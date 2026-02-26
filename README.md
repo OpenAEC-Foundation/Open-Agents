@@ -8,15 +8,23 @@ Gebouwd voor Frappe/ERPNext hosting infrastructuur.
 
 ### Pijler 1: ERPNext Agent-as-a-Service
 
-Kant-en-klare gespecialiseerde agents per domein, aangeboden als dienst:
+> **Status: Conceptfase** — De agent-structuur en workflows zijn nog volledig vorm te geven. Onderstaande tabel is een eerste opzet. We gaan de architectuur, dataflows en agent-interacties nog in kaart brengen met flowcharts (draw.io) voordat we gaan bouwen.
 
-| Agent | Domein | Voorbeelden |
-|-------|--------|-------------|
-| Boekhouding | Financieel | Facturen, BTW, rapportages |
-| Inkoop | Supply chain | Leveranciers, orders, voorraad |
-| HR | Personeelszaken | Verlof, contracten, onboarding |
-| Project | Projectmanagement | Planning, uren, BIM-data |
-| Admin | Systeembeheer | Server, backups, monitoring |
+Gespecialiseerde agents per domein, aangeboden als dienst (eerste opzet):
+
+| Agent | Domein | Voorbeelden | Status |
+|-------|--------|-------------|--------|
+| Boekhouding | Financieel | Facturen, BTW, rapportages | Concept |
+| Inkoop | Supply chain | Leveranciers, orders, voorraad | Concept |
+| HR | Personeelszaken | Verlof, contracten, onboarding | Concept |
+| Project | Projectmanagement | Planning, uren, BIM-data | Concept |
+| Admin | Systeembeheer | Server, backups, monitoring | Concept |
+
+**Nog uit te werken:**
+- Flowcharts per agent: input/output, decision trees, API interacties (draw.io)
+- ERPNext DocType mapping per agent domein
+- Security model: welke Frappe roles per agent
+- Orkestratie: hoe agents samenwerken
 
 Elke agent draait als geïsoleerde Docker container met eigen skills, snippets en API credentials.
 

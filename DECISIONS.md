@@ -13,6 +13,7 @@
 | D-002 | Pi.dev vs Claude Code als agent framework | Pi.dev biedt meer controle, Claude Code meer out-of-box | A) Pi.dev B) Claude Code C) Eigen framework | Open |
 | D-003 | Eerste pilot agent kiezen | Boekhouding, Inkoop, of Admin als eerste agent | A) Boekhouding B) Admin C) Inkoop | Open |
 | D-004 | Lokaal model voor classificatie | Ollama op Hetzner vs alleen cloud API | A) Ollama B) Haiku C) Hybrid | Open |
+| D-005 | Flowchart tooling voor agent architectuur | Workflows, dataflows en agent-interacties visueel in kaart brengen | A) draw.io B) Mermaid in Markdown C) Excalidraw | Open |
 
 ---
 
