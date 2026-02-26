@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pi.dev Ultieme Gids — Van Claude Code naar Pi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0e14;
+            --bg-card: #131820;
+            --bg-el: #1a2029;
+            --bg-code: #0d1117;
+            --border: #2a3140;
+            --text: #e2e8f0;
+            --dim: #7a8599;
+            --muted: #4a5568;
+            --orange: #f0883e;
+            --blue: #58a6ff;
+            --green: #3fb950;
+            --purple: #a371f7;
+            --red: #f85149;
+            --cyan: #56d4dd;
+            --yellow: #e3b341;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Outfit', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.7; }
+
+        .page { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+
+        /* SIDEBAR */
+        .sidebar {
+            background: var(--bg-card); border-right: 1px solid var(--border);
+            padding: 1.5rem 1rem; position: sticky; top: 0; height: 100vh;
+            overflow-y: auto; font-size: 0.82rem;
+        }
+
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .sb-logo { font-size: 1.1rem; font-weight: 900; margin-bottom: 0.15rem; }
+        .sb-logo span { color: var(--orange); }
+        .sb-sub { font-size: 0.65rem; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 1.5rem; }
+
+        .sb-group { margin-bottom: 1.25rem; }
+        .sb-group-title {
+            font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2px;
+            color: var(--muted); margin-bottom: 0.4rem; padding-left: 0.5rem;
+        }
+
+        .sb-link {
+            display: block; padding: 0.35rem 0.6rem; color: var(--dim);
+            text-decoration: none; border-radius: 5px; transition: all 0.15s;
+            font-size: 0.8rem;
+        }
+
+        .sb-link:hover { background: var(--bg-el); color: var(--text); }
+        .sb-link.active { background: var(--orange); color: #fff; }
+
+        /* MAIN */
+        .main { padding: 2rem 3rem 4rem; max-width: 960px; }
+
+        h1 {
+            font-size: 2.4rem; font-weight: 900; margin-bottom: 0.3rem;
+            background: linear-gradient(135deg, var(--orange), var(--yellow));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+
+        .page-sub { color: var(--dim); font-size: 1rem; margin-bottom: 0.5rem; }
+        .page-meta { font-size: 0.75rem; color: var(--muted); font-family: var(--mono); margin-bottom: 2.5rem; }
+
+        h2 {
+            font-size: 1.4rem; font-weight: 700; color: var(--blue);
+            margin: 2.5rem 0 1rem; padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); margin: 1.5rem 0 0.75rem; }
+        h4 { font-size: 0.9rem; font-weight: 700; color: var(--cyan); margin: 1rem 0 0.5rem; }
+
+        p { margin-bottom: 1rem; color: var(--text); }
+
+        a { color: var(--blue); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* CODE */
+        pre {
+            background: var(--bg-code); border: 1px solid var(--border);
+            border-radius: 8px; padding: 1rem 1.25rem; margin: 0.75rem 0 1.25rem;
+            overflow-x: auto; font-family: var(--mono); font-size: 0.8rem;
+            line-height: 1.6; color: var(--text);
+        }
+
+        code {
+            font-family: var(--mono); font-size: 0.82em;
+            background: var(--bg-el); padding: 0.15rem 0.4rem;
+            border-radius: 3px; color: var(--orange);
+        }
+
+        pre code { background: none; padding: 0; color: var(--text); }
+
+        .code-label {
+            display: inline-block; font-size: 0.65rem; font-family: var(--mono);
+            color: var(--dim); background: var(--bg-el); padding: 0.15rem 0.5rem;
+            border-radius: 4px 4px 0 0; margin-bottom: -1px; position: relative; z-index: 1;
+        }
+
+        /* TABLES */
+        table {
+            width: 100%; border-collapse: collapse; margin: 0.75rem 0 1.5rem;
+            font-size: 0.85rem;
+        }
+
+        th {
+            text-align: left; padding: 0.6rem 0.75rem;
+            background: var(--bg-el); color: var(--dim);
+            font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        tr:hover td { background: rgba(26,32,41,0.5); }
+
+        /* KEY BADGE */
+        kbd {
+            display: inline-block; padding: 0.1rem 0.45rem;
+            background: var(--bg-el); border: 1px solid var(--border);
+            border-radius: 4px; font-family: var(--mono); font-size: 0.75em;
+            color: var(--text); box-shadow: 0 1px 0 var(--border);
+        }
+
+        /* BOXES */
+        .box {
+            padding: 1rem 1.25rem; border-radius: 8px; margin: 1rem 0 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .box-tip { background: rgba(63,185,80,0.08); border-color: rgba(63,185,80,0.3); }
+        .box-tip::before { content: '💡 TIP'; display: block; font-size: 0.7rem; font-weight: 700; color: var(--green); margin-bottom: 0.4rem; letter-spacing: 1px; }
+
+        .box-warn { background: rgba(240,136,62,0.08); border-color: rgba(240,136,62,0.3); }
+        .box-warn::before { content: '⚠️ LET OP'; display: block; font-size: 0.7rem; font-weight: 700; color: var(--orange); margin-bottom: 0.4rem; letter-spacing: 1px; }
+
+        .box-key { background: rgba(88,166,255,0.08); border-color: rgba(88,166,255,0.3); }
+        .box-key::before { content: '🔑 BELANGRIJK'; display: block; font-size: 0.7rem; font-weight: 700; color: var(--blue); margin-bottom: 0.4rem; letter-spacing: 1px; }
+
+        .box-cc { background: rgba(163,113,247,0.08); border-color: rgba(163,113,247,0.3); }
+        .box-cc::before { content: '🔄 CLAUDE CODE → PI'; display: block; font-size: 0.7rem; font-weight: 700; color: var(--purple); margin-bottom: 0.4rem; letter-spacing: 1px; }
+
+        /* COMPARISON TABLE */
+        .cmp-good { color: var(--green); }
+        .cmp-bad { color: var(--red); }
+        .cmp-neutral { color: var(--dim); }
+
+        /* STEP BLOCKS */
+        .step {
+            display: flex; gap: 1rem; margin-bottom: 1.25rem;
+            padding: 1rem; background: var(--bg-card); border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .step-num {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--orange); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 0.85rem; flex-shrink: 0;
+        }
+
+        .step-body { flex: 1; }
+        .step-title { font-weight: 700; margin-bottom: 0.25rem; }
+        .step-desc { font-size: 0.85rem; color: var(--dim); }
+
+        /* SECTION IDs */
+        section { scroll-margin-top: 1rem; }
+
+        /* RESPONSIVE */
+        @media (max-width: 820px) {
+            .page { grid-template-columns: 1fr; }
+            .sidebar { position: relative; height: auto; }
+            .main { padding: 1.5rem; }
+            h1 { font-size: 1.8rem; }
+        }
+
+        footer {
+            text-align: center; padding: 2rem 0 1rem;
+            border-top: 1px solid var(--border); margin-top: 3rem;
+            color: var(--muted); font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+    <div class="sb-logo">Pi<span>.dev</span> Gids</div>
+    <div class="sb-sub">Voor Claude Code gebruikers</div>
+
+    <div class="sb-group">
+        <div class="sb-group-title">Start</div>
+        <a href="#installatie" class="sb-link">Installatie</a>
+        <a href="#anthropic" class="sb-link">Anthropic Setup</a>
+        <a href="#eerste-sessie" class="sb-link">Eerste Sessie</a>
+    </div>
+    <div class="sb-group">
+        <div class="sb-group-title">Interface</div>
+        <a href="#tui" class="sb-link">Terminal Interface</a>
+        <a href="#commands" class="sb-link">Slash Commands</a>
+        <a href="#keybindings" class="sb-link">Keybindings</a>
+        <a href="#steering" class="sb-link">Steering vs Follow-up</a>
+    </div>
+    <div class="sb-group">
+        <div class="sb-group-title">Modi</div>
+        <a href="#interactive" class="sb-link">Interactive</a>
+        <a href="#print" class="sb-link">Print / JSON</a>
+        <a href="#rpc" class="sb-link">RPC</a>
+        <a href="#sdk" class="sb-link">SDK</a>
+    </div>
+    <div class="sb-group">
+        <div class="sb-group-title">Context</div>
+        <a href="#sessies" class="sb-link">Sessies & Boom</a>
+        <a href="#agents-md" class="sb-link">AGENTS.md</a>
+        <a href="#compactie" class="sb-link">Compactie</a>
+    </div>
+    <div class="sb-group">
+        <div class="sb-group-title">Uitbreiden</div>
+        <a href="#skills" class="sb-link">Skills</a>
+        <a href="#templates" class="sb-link">Prompt Templates</a>
+        <a href="#extensions" class="sb-link">Extensions</a>
+        <a href="#packages" class="sb-link">Packages</a>
+    </div>
+    <div class="sb-group">
+        <div class="sb-group-title">Configuratie</div>
+        <a href="#models" class="sb-link">Models & Providers</a>
+        <a href="#settings" class="sb-link">Settings</a>
+    </div>
+    <div class="sb-group">
+        <div class="sb-group-title">Vergelijking</div>
+        <a href="#cc-vs-pi" class="sb-link">Claude Code vs Pi</a>
+        <a href="#afleren" class="sb-link">Wat afleren?</a>
+    </div>
+    <div class="sb-group">
+        <div class="sb-group-title">ERPNext</div>
+        <a href="#erpnext" class="sb-link">Frappe Integratie</a>
+        <a href="#security" class="sb-link">Security</a>
+    </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+<h1>Pi.dev Ultieme Gids</h1>
+<p class="page-sub">Van Claude Code gebruiker naar Pi power user</p>
+<p class="page-meta">Impertio Studio B.V. · 26-02-2026 · Provider: Anthropic (Claude)</p>
+
+<div class="box box-key">
+Pi is een <strong>minimale, open-source terminal coding agent</strong> die jou volledige controle geeft over wat er in het context window zit. Anders dan Claude Code's feature-rijke aanpak, geeft Pi je 4 tools en een 200-token systeemprompt — en laat je de rest zelf bouwen via TypeScript extensions, skills en packages.
+</div>
+
+<!-- ═══════════════ INSTALLATIE ═══════════════ -->
+<section id="installatie">
+<h2>Installatie</h2>
+
+<div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+        <div class="step-title">Node.js installeren (als je dat nog niet hebt)</div>
+        <div class="step-desc">Pi vereist Node.js 18+. Check met <code>node --version</code></div>
+    </div>
+</div>
+
+<div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+        <div class="step-title">Pi globaal installeren</div>
+        <div class="step-desc">Via npm — één commando</div>
+    </div>
+</div>
+
+<pre><code>npm install -g @mariozechner/pi-coding-agent</code></pre>
+
+<div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+        <div class="step-title">Verifiëren</div>
+        <div class="step-desc">Check of pi beschikbaar is</div>
+    </div>
+</div>
+
+<pre><code>pi --version
+pi --help</code></pre>
+
+<div class="box box-tip">
+Op <strong>Windows</strong> heb je bash nodig. Pi zoekt automatisch naar Git Bash op <code>C:\Program Files\Git\bin\bash.exe</code>. Als je al Claude Code in PowerShell gebruikt, heb je waarschijnlijk Git Bash al. Check anders je PATH voor bash.exe (Cygwin, MSYS2, WSL).
+</div>
+</section>
+
+<!-- ═══════════════ ANTHROPIC SETUP ═══════════════ -->
+<section id="anthropic">
+<h2>Anthropic/Claude Configureren</h2>
+
+<p>Maak het authenticatie bestand:</p>
+
+<div class="code-label">~/.pi/agent/auth.json</div>
+<pre><code>{
+  "anthropic": {
+    "type": "api_key",
+    "key": "sk-ant-api03-jouw-key-hier"
+  }
+}</code></pre>
+
+<h3>Drie manieren om je key op te geven</h3>
+
+<table>
+<tr><th>Methode</th><th>Voorbeeld</th><th>Wanneer</th></tr>
+<tr><td>Letterlijke key</td><td><code>"sk-ant-api03-..."</code></td><td>Simpel, lokale dev</td></tr>
+<tr><td>Shell commando</td><td><code>"!op read 'op://vault/anthropic'"</code></td><td>1Password, macOS Keychain</td></tr>
+<tr><td>Env variabele</td><td><code>"ANTHROPIC_API_KEY"</code></td><td>CI/CD, containers</td></tr>
+</table>
+
+<div class="box box-cc">
+In Claude Code wordt authenticatie afgehandeld via <code>claude login</code>. In Pi configureer je het zelf via <code>auth.json</code> of <code>/login</code> voor OAuth (Claude Pro/Max abonnement).
+</div>
+</section>
+
+<!-- ═══════════════ EERSTE SESSIE ═══════════════ -->
+<section id="eerste-sessie">
+<h2>Eerste Sessie</h2>
+
+<pre><code># Nieuwe interactieve sessie
+pi
+
+# Met initiële prompt
+pi "Leg deze codebase uit"
+
+# Specifiek model kiezen
+pi --model claude-sonnet-4-20250514 "Refactor dit bestand"
+
+# Model met thinking level
+pi --model sonnet:high "Los dit complexe probleem op"</code></pre>
+
+<p>Bij de eerste start detecteert Pi automatisch je terminal achtergrond (dark/light) voor het thema. De startup header toont geladen AGENTS.md bestanden, prompt templates, skills, en extensions.</p>
+</section>
+
+<!-- ═══════════════ TUI ═══════════════ -->
+<section id="tui">
+<h2>De Terminal Interface</h2>
+
+<p>Pi is een <strong>scrollback-based TUI</strong>. Niet full-screen zoals vim, maar het voegt toe aan je terminal buffer met native scrolling en zoeken. Dit werkt het beste in Ghostty en iTerm2.</p>
+
+<h3>Interface zones</h3>
+
+<table>
+<tr><th>Zone</th><th>Waar</th><th>Wat</th></tr>
+<tr><td>Startup header</td><td>Bovenaan</td><td>Shortcut hints, geladen context bestanden</td></tr>
+<tr><td>Messages area</td><td>Midden</td><td>Conversatie, tool calls, outputs, errors</td></tr>
+<tr><td>Editor</td><td>Onderaan</td><td>Hier typ je. <strong>Randkleur = thinking level</strong></td></tr>
+<tr><td>Footer</td><td>Onderaan</td><td>Dir, sessie, tokens, kosten ($), context %, model</td></tr>
+</table>
+
+<div class="box box-tip">
+Typ <code>@</code> voor fuzzy file search (respecteert .gitignore). <kbd>Tab</kbd> completeert bestandspaden. Je kunt bestanden <strong>drag & droppen</strong> vanuit je file manager naar de terminal.
+</div>
+</section>
+
+<!-- ═══════════════ COMMANDS ═══════════════ -->
+<section id="commands">
+<h2>Alle Slash Commands</h2>
+
+<table>
+<tr><th>Command</th><th>Shortcut</th><th>Wat doet het?</th></tr>
+<tr><td><code>/model</code></td><td><kbd>Ctrl+L</kbd></td><td>Model selector openen — fuzzy search door alle providers</td></tr>
+<tr><td><code>/settings</code></td><td><kbd>Shift+Tab</kbd></td><td>Interactieve settings UI</td></tr>
+<tr><td><code>/tree</code></td><td><kbd>Esc Esc</kbd></td><td>Sessie boom navigeren — spring naar elk punt, switch branches</td></tr>
+<tr><td><code>/fork</code></td><td>—</td><td>Nieuwe sessie vanuit huidige branch</td></tr>
+<tr><td><code>/compact</code></td><td>—</td><td>Handmatige compactie. Optioneel: <code>/compact &lt;instructies&gt;</code></td></tr>
+<tr><td><code>/export</code></td><td>—</td><td>Sessie → standalone HTML bestand</td></tr>
+<tr><td><code>/share</code></td><td>—</td><td>Upload naar GitHub gist → deelbare URL</td></tr>
+<tr><td><code>/login</code></td><td>—</td><td>OAuth login (Claude Pro/Max, GitHub Copilot)</td></tr>
+<tr><td><code>/resume</code></td><td>—</td><td>Browse eerdere sessies. <kbd>Ctrl+D</kbd> om te verwijderen</td></tr>
+<tr><td><code>/hotkeys</code></td><td>—</td><td>Alle keyboard shortcuts tonen</td></tr>
+<tr><td><code>/clear</code></td><td>—</td><td>Display leegmaken</td></tr>
+<tr><td><code>/exit</code></td><td>—</td><td>Pi afsluiten</td></tr>
+<tr><td><code>/skill:&lt;naam&gt;</code></td><td>—</td><td>Specifieke skill forceren</td></tr>
+<tr><td><code>/&lt;template&gt;</code></td><td>—</td><td>Prompt template expanderen</td></tr>
+</table>
+</section>
+
+<!-- ═══════════════ KEYBINDINGS ═══════════════ -->
+<section id="keybindings">
+<h2>Keybindings</h2>
+
+<h3>Kern interactie</h3>
+<table>
+<tr><th>Toets</th><th>Actie</th></tr>
+<tr><td><kbd>Enter</kbd></td><td>Stuur bericht. <strong>Tijdens streaming:</strong> steering bericht (onderbreekt na huidige tool)</td></tr>
+<tr><td><kbd>Alt+Enter</kbd></td><td>Follow-up bericht (wacht tot agent klaar is)</td></tr>
+<tr><td><kbd>Escape</kbd></td><td>Huidige operatie afbreken</td></tr>
+<tr><td><kbd>Esc</kbd> <kbd>Esc</kbd></td><td>Configureerbaar: <code>/tree</code> (standaard), <code>/fork</code>, of niets</td></tr>
+<tr><td><kbd>Ctrl+L</kbd></td><td>Model selector</td></tr>
+<tr><td><kbd>Ctrl+P</kbd></td><td>Volgend model in je lijst</td></tr>
+<tr><td><kbd>Ctrl+Shift+P</kbd></td><td>Vorig model</td></tr>
+<tr><td><kbd>Shift+Tab</kbd></td><td>Settings UI</td></tr>
+<tr><td><kbd>Ctrl+O</kbd></td><td>Toggle tool output (expand/collapse)</td></tr>
+</table>
+
+<h3>Editor</h3>
+<table>
+<tr><th>Toets</th><th>Actie</th></tr>
+<tr><td><kbd>Ctrl+K</kbd></td><td>Kill line (Emacs kill ring)</td></tr>
+<tr><td><kbd>Ctrl+Y</kbd></td><td>Yank (plak vanuit kill ring)</td></tr>
+<tr><td><kbd>Alt+Y</kbd></td><td>Yank-pop (cycle kill ring)</td></tr>
+<tr><td><kbd>Ctrl+Z</kbd></td><td>Undo</td></tr>
+<tr><td><kbd>@</kbd></td><td>Fuzzy file search</td></tr>
+<tr><td><kbd>Tab</kbd></td><td>Bestandspad completie</td></tr>
+</table>
+</section>
+
+<!-- ═══════════════ STEERING ═══════════════ -->
+<section id="steering">
+<h2>Steering vs Follow-up</h2>
+
+<div class="box box-key">
+Dit is het <strong>grootste verschil</strong> met Claude Code. In Claude Code wacht je altijd tot de agent klaar is. In Pi kun je <strong>actief sturen terwijl de agent werkt</strong>.
+</div>
+
+<table>
+<tr><th></th><th><kbd>Enter</kbd> — Steering</th><th><kbd>Alt+Enter</kbd> — Follow-up</th></tr>
+<tr><td><strong>Wanneer?</strong></td><td>Tijdens streaming</td><td>Tijdens streaming</td></tr>
+<tr><td><strong>Gedrag</strong></td><td>Geleverd na huidige tool, <strong>onderbreekt</strong> rest</td><td>Wacht tot agent <strong>alles afrondt</strong></td></tr>
+<tr><td><strong>Gebruik</strong></td><td>Koerscorrectie: "Stop, doe X anders"</td><td>Vervolgvraag: "Daarna ook Y doen"</td></tr>
+</table>
+</section>
+
+<!-- ═══════════════ MODI ═══════════════ -->
+<section id="interactive">
+<h2>Interactive Mode (standaard)</h2>
+<pre><code>pi                              # Nieuwe sessie
+pi "Refactor auth module"       # Met prompt
+pi -c                           # Hervat meest recente
+pi -r                           # Browse eerdere sessies
+pi --session pad.jsonl          # Specifieke sessie</code></pre>
+</section>
+
+<section id="print">
+<h2>Print / JSON Mode</h2>
+<p>Niet-interactief, perfect voor scripts en CI/CD:</p>
+<pre><code>pi -p "Vat deze codebase samen"              # Tekst naar stdout
+pi --mode json "Leg uit"                      # JSON event stream
+pi --tools read,grep,find,ls -p "Review"     # Read-only mode</code></pre>
+</section>
+
+<section id="rpc">
+<h2>RPC Mode</h2>
+<p>JSON protocol over stdin/stdout — voor IDE integratie of non-Node.js apps:</p>
+<pre><code>pi --mode rpc</code></pre>
+<p>Commando's: <code>prompt</code>, <code>steer</code>, <code>follow_up</code>, <code>abort</code>, <code>get_state</code>, <code>get_stats</code>, <code>select_model</code>, <code>list_models</code>, <code>bash</code>, en meer.</p>
+</section>
+
+<section id="sdk">
+<h2>SDK Mode</h2>
+<p>Programmatische embedding — <strong>dit is de modus voor ERPNext integratie</strong>:</p>
+<pre><code>import { AuthStorage, createAgentSession, ModelRegistry, SessionManager }
+  from "@mariozechner/pi-coding-agent";
+
+const authStorage = AuthStorage.create();
+const modelRegistry = new ModelRegistry(authStorage);
+
+const { session } = await createAgentSession({
+  sessionManager: SessionManager.inMemory(),
+  authStorage, modelRegistry,
+});
+
+session.subscribe((event) =&gt; {
+  if (event.type === "message_update" &&
+      event.assistantMessageEvent.type === "text_delta") {
+    process.stdout.write(event.assistantMessageEvent.delta);
+  }
+});
+
+await session.prompt("Welke bestanden staan hier?");</code></pre>
+</section>
+
+<!-- ═══════════════ SESSIES ═══════════════ -->
+<section id="sessies">
+<h2>Sessies & Boom-structuur</h2>
+<p>Sessies zijn JSONL bestanden met een <strong>boomstructuur</strong> (id + parentId). Alle branches blijven bewaard in één bestand. <code>/tree</code> laat je navigeren naar elk punt en branches wisselen.</p>
+
+<pre><code># Sessies beheren
+pi -c              # Hervat meest recente
+pi -r              # Browse interactief
+pi --no-session    # Ephemeral — niets opslaan
+
+# In sessie
+/tree              # Boom navigeren, branches wisselen
+/fork              # Nieuwe sessie vanuit huidige punt
+/export            # Exporteer naar HTML
+/share             # Upload naar GitHub gist</code></pre>
+</section>
+
+<section id="agents-md">
+<h2>AGENTS.md — Project Instructies</h2>
+<p>Geladen bij startup vanuit drie locaties (geconcateneerd):</p>
+<pre><code>~/.pi/agent/AGENTS.md    # Globaal
+../AGENTS.md             # Parent dirs tot git root
+./AGENTS.md              # Huidige werkdirectory</code></pre>
+
+<div class="box box-tip">
+Schrijf een <code>AGENTS.md</code> voor elk ERPNext project met API endpoints, DocTypes, filter syntax, en regels. Dit is Pi's equivalent van Claude Code's <code>CLAUDE.md</code>.
+</div>
+</section>
+
+<section id="compactie">
+<h2>Compactie</h2>
+<p>Automatisch standaard ingeschakeld. Vat oudere berichten samen bij context overflow. Configureerbaar:</p>
+<pre><code>/compact                         # Handmatig
+/compact behoud alle API calls   # Met instructies
+
+# Settings
+compaction.reserveTokens: 16384       # Tokens voor LLM respons
+compaction.keepRecentTokens: 20000    # Recent berichten intact</code></pre>
+</section>
+
+<!-- ═══════════════ SKILLS ═══════════════ -->
+<section id="skills">
+<h2>Skills</h2>
+<p>On-demand capability packages. Alleen beschrijvingen zitten in context — instructies laden wanneer nodig.</p>
+
+<pre><code># Skill directory structuur
+mijn-skill/
+├── SKILL.md            # Vereist: YAML frontmatter + instructies
+├── scripts/
+│   └── process.sh      # Helper scripts
+└── references/
+    └── api-ref.md      # Docs die on-demand laden</code></pre>
+
+<div class="code-label">~/.pi/agent/skills/erpnext-todos/SKILL.md</div>
+<pre><code>---
+name: erpnext-todos
+description: Manage ERPNext ToDo items via Frappe REST API.
+  Create, list, update, and close todos.
+---
+
+# ERPNext ToDo Management
+
+## List open todos
+```bash
+curl -H "Authorization: token KEY:SECRET" \
+  "https://instance.frappe.cloud/api/resource/ToDo?\
+  filters=[[\"status\",\"=\",\"Open\"]]"
+```
+
+## Create todo
+```bash
+curl -X POST "https://instance.frappe.cloud/api/resource/ToDo" \
+  -H "Authorization: token KEY:SECRET" \
+  -d '{"allocated_to":"user@mail","description":"..."}'
+```</code></pre>
+
+<p>Discovery locaties: <code>~/.pi/agent/skills/</code>, <code>~/.agents/skills/</code>, <code>.pi/skills/</code>, <code>.agents/skills/</code>, en packages.</p>
+</section>
+
+<!-- ═══════════════ TEMPLATES ═══════════════ -->
+<section id="templates">
+<h2>Prompt Templates</h2>
+<p>Elk <code>.md</code> bestand in de prompts directory wordt een slash command:</p>
+
+<div class="code-label">~/.pi/agent/prompts/review.md</div>
+<pre><code>Review deze code op bugs, security issues, en performance.
+Focus op: {{focus}}</code></pre>
+
+<p>Typ <code>/review</code> → Pi expandeert naar de inhoud. Ondersteunt <code>{{variable}}</code> en bash-argumenten (<code>$1</code>, <code>$@</code>).</p>
+</section>
+
+<!-- ═══════════════ EXTENSIONS ═══════════════ -->
+<section id="extensions">
+<h2>Extensions</h2>
+<p>TypeScript modules met volledige systeemtoegang — tools, commands, shortcuts, CLI flags, UI, en 20+ events.</p>
+
+<div class="code-label">~/.pi/agent/extensions/my-ext.ts</div>
+<pre><code>import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+
+export default function (pi: ExtensionAPI) {
+  // Custom tool voor het LLM
+  pi.registerTool({
+    name: "erpnext_query",
+    label: "ERPNext Query",
+    description: "Query ERPNext via REST API",
+    parameters: Type.Object({
+      doctype: Type.String(),
+      filters: Type.Optional(Type.String()),
+    }),
+    async execute(id, params, onUpdate, ctx, signal) {
+      const resp = await fetch(
+        `https://instance.frappe.cloud/api/resource/${params.doctype}`,
+        { headers: { "Authorization": "token key:secret" } }
+      );
+      const data = await resp.json();
+      return {
+        content: [{ type: "text",
+          text: JSON.stringify(data, null, 2) }],
+        details: {},
+      };
+    },
+  });
+
+  // Slash command
+  pi.registerCommand("todos", {
+    description: "Toon open ERPNext todos",
+    handler: async (args, ctx) =&gt; {
+      ctx.ui.notify("Todos laden...", "info");
+    },
+  });
+}</code></pre>
+
+<h3>Extension API methoden</h3>
+<table>
+<tr><th>Methode</th><th>Doel</th></tr>
+<tr><td><code>registerTool()</code></td><td>LLM-callable tools</td></tr>
+<tr><td><code>registerCommand()</code></td><td>Slash commands</td></tr>
+<tr><td><code>registerShortcut()</code></td><td>Keybindings</td></tr>
+<tr><td><code>registerFlag()</code></td><td>CLI flags</td></tr>
+<tr><td><code>on()</code></td><td>Lifecycle events (20+)</td></tr>
+<tr><td><code>registerProvider()</code></td><td>Custom LLM providers</td></tr>
+<tr><td><code>exec()</code></td><td>Shell commando's</td></tr>
+<tr><td><code>sendMessage()</code></td><td>Bericht injectie</td></tr>
+</table>
+</section>
+
+<!-- ═══════════════ PACKAGES ═══════════════ -->
+<section id="packages">
+<h2>Packages</h2>
+<pre><code>pi install npm:@foo/pi-tools          # Van npm
+pi install git:github.com/user/repo   # Van git
+pi install /pad/naar/package          # Lokaal
+pi remove npm:@foo/pi-tools           # Verwijderen
+pi list                                # Lijst
+pi update                              # Alles updaten
+pi config                              # In/uitschakelen</code></pre>
+</section>
+
+<!-- ═══════════════ MODELS ═══════════════ -->
+<section id="models">
+<h2>Models & Providers</h2>
+<p>Custom providers toevoegen via <code>~/.pi/agent/models.json</code>. Het bestand herlaadt bij elke <code>/model</code> — geen herstart nodig.</p>
+
+<div class="code-label">~/.pi/agent/models.json — Ollama (lokaal)</div>
+<pre><code>{
+  "providers": {
+    "ollama": {
+      "baseUrl": "http://localhost:11434/v1",
+      "api": "openai-completions",
+      "apiKey": "ollama",
+      "models": [{
+        "id": "llama3.1:8b",
+        "name": "Llama 3.1 8B (Lokaal)",
+        "reasoning": false,
+        "contextWindow": 128000,
+        "maxTokens": 32000,
+        "cost": { "input": 0, "output": 0 }
+      }]
+    }
+  }
+}</code></pre>
+</section>
+
+<section id="settings">
+<h2>Settings</h2>
+<p>Twee niveaus: <code>~/.pi/agent/settings.json</code> (globaal) en <code>.pi/settings.json</code> (project). CLI argumenten overschrijven alles.</p>
+
+<div class="box box-tip">
+Settings bestanden ondersteunen relaxed JSON — comments en trailing comma's zijn toegestaan.
+</div>
+</section>
+
+<!-- ═══════════════ VERGELIJKING ═══════════════ -->
+<section id="cc-vs-pi">
+<h2>Claude Code vs Pi — Vergelijking</h2>
+
+<table>
+<tr><th>Aspect</th><th>Claude Code</th><th>Pi</th></tr>
+<tr><td>Systeemprompt</td><td>~10.000 tokens</td><td class="cmp-good">~200 tokens</td></tr>
+<tr><td>Ingebouwde tools</td><td>10+</td><td>4 (read, write, edit, bash)</td></tr>
+<tr><td>Security</td><td>Deny-first + Haiku screening</td><td class="cmp-neutral">Geen. Bouw zelf.</td></tr>
+<tr><td>Providers</td><td>Alleen Anthropic</td><td class="cmp-good">15+ providers</td></tr>
+<tr><td>Sub-agents</td><td>Ingebouwd</td><td>Via tmux of extensions</td></tr>
+<tr><td>MCP</td><td>Ingebouwd</td><td>Geen. CLI tools + READMEs</td></tr>
+<tr><td>Extensions</td><td>Hooks (14 events)</td><td class="cmp-good">Full API (20+ events, tools, UI)</td></tr>
+<tr><td>Context controle</td><td>Verandert per release</td><td class="cmp-good">Jij controleert alles</td></tr>
+<tr><td>Kosten zichtbaar</td><td>Beperkt</td><td class="cmp-good">Realtime in footer</td></tr>
+<tr><td>Licentie</td><td>Proprietary</td><td class="cmp-good">MIT</td></tr>
+</table>
+</section>
+
+<section id="afleren">
+<h2>Wat moet je afleren van Claude Code?</h2>
+
+<div class="box box-cc">
+<strong>1.</strong> Stop met verwachten van ingebouwde safety prompts — bouw een permission-gate extension<br>
+<strong>2.</strong> Stop met MCP servers — schrijf CLI tools met README bestanden<br>
+<strong>3.</strong> Gebruik <code>tmux</code> voor background processen<br>
+<strong>4.</strong> Schrijf plannen naar bestanden (<code>PLAN.md</code>) i.p.v. een plan mode<br>
+<strong>5.</strong> Bouw CLI tools eerst, wrap ze optioneel in extensions
+</div>
+</section>
+
+<!-- ═══════════════ ERPNEXT ═══════════════ -->
+<section id="erpnext">
+<h2>ERPNext/Frappe Integratie</h2>
+
+<h3>Architectuur: SDK als Sidecar</h3>
+
+<pre><code>ERPNext (Python)
+    ↕ HTTP
+Pi Agent Service (Node.js + Pi SDK)
+    └─ Custom tools:
+       ├─ frappe_get_document
+       ├─ frappe_list_documents
+       ├─ frappe_create_document
+       ├─ frappe_call_method
+       └─ frappe_run_report
+    └─ GEEN bash/write/edit tools</code></pre>
+
+<div class="box box-warn">
+In productie: <strong>nooit</strong> de standaard bash/write/edit tools aanbieden aan de agent. Maak custom tools die alleen via de Frappe REST API werken. Zo kan de agent nooit buiten zijn scope opereren.
+</div>
+</section>
+
+<section id="security">
+<h2>Security</h2>
+<p>Pi levert bewust geen ingebouwde security. Praktische opties:</p>
+
+<table>
+<tr><th>Maatregel</th><th>Hoe</th></tr>
+<tr><td>Permission gates</td><td>Extension die <code>tool_call</code> events intercepteert</td></tr>
+<tr><td>Protected paths</td><td>Extension die file ops op specifieke dirs blokkeert</td></tr>
+<tr><td>Sandboxing</td><td>Extension die commands in Docker/Podman draait</td></tr>
+<tr><td>Read-only</td><td><code>--tools read,grep,find,ls</code> flag</td></tr>
+<tr><td>API isolatie</td><td>Dedicated Frappe users met minimale roles</td></tr>
+<tr><td>Audit trail</td><td>Log tool calls naar custom DocType</td></tr>
+</table>
+</section>
+
+<footer>
+    <p>Impertio Studio B.V. · Robuust zonder overkill</p>
+    <p style="margin-top:0.3rem;">
+        <a href="https://pi.dev">pi.dev</a> ·
+        <a href="https://github.com/badlogic/pi-mono">GitHub</a> ·
+        <a href="https://discord.com/invite/3cU7Bz4UPx">Discord</a>
+    </p>
+</footer>
+
+</main>
+</div>
+</body>
+</html>

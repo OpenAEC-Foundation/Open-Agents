@@ -1,0 +1,45 @@
+name: Feature Request
+description: Stel een nieuwe feature voor
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Probleem
+      description: Welk probleem lost deze feature op?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Voorgestelde oplossing
+      description: Hoe zou de feature moeten werken?
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Categorie
+      options:
+        - Agent (nieuw type)
+        - Agent (bestaand verbeteren)
+        - Smart Context Layer
+        - Model Routing
+        - Snippet Bibliotheek
+        - Docker/Deployment
+        - Documentatie
+        - Overig
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioriteit
+      options:
+        - Hoog - Blokkerend voor voortgang
+        - Medium - Belangrijk maar niet urgent
+        - Laag - Nice to have
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatieven overwogen
+      description: Welke andere oplossingen heb je overwogen?

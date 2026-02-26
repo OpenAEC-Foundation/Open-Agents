@@ -1,0 +1,59 @@
+# ============================================
+# CREDENTIAL & SECRET PROTECTION
+# Defense-in-depth: 3 lagen van bescherming
+# Zie: Impertio-AI-Ecosystem-Deployment/lessons/security/SEC_002
+# ============================================
+
+# === LAAG 1: Specifieke bestanden ===
+# Claude Code lokale settings (credentials, permissies)
+CLAUDE.local.md
+.claude/settings.local.json
+
+# MCP server configuratie (bevat API secrets)
+.mcp.json
+
+# Environment bestanden
+.env
+.env.local
+.env.*.local
+
+# === LAAG 2: Wildcard patronen (safety net) ===
+# Vangt ALLE bestanden op met credential-gerelateerde namen
+*credentials*
+*secret*
+*token*
+*.local.md
+
+# === LAAG 3: Bekende gevaarlijke extensies ===
+# Certificates en private keys
+*.pem
+*.key
+*.p12
+*.pfx
+
+# === OS bestanden ===
+Thumbs.db
+.DS_Store
+
+# === Node modules ===
+node_modules/
+
+# === Tijdelijke bestanden ===
+_temp_*/
+
+# === Python ===
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# === Docker ===
+.docker-env
+
+# === IDE bestanden ===
+.idea/
+*.swp
+*.swo
+
+# === Pi agent sessies ===
+.pi/sessions/

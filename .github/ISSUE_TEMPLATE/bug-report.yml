@@ -1,0 +1,54 @@
+name: Bug Report
+description: Report a bug in Open-Agents
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Beschrijving
+      description: Beschrijf de bug kort en bondig
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Verwacht gedrag
+      description: Wat had er moeten gebeuren?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Werkelijk gedrag
+      description: Wat gebeurde er in plaats daarvan?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Stappen om te reproduceren
+      description: Hoe kunnen we dit reproduceren?
+      value: |
+        1. ...
+        2. ...
+        3. ...
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent Type
+      description: Welke agent betreft het?
+      options:
+        - Boekhouding
+        - Inkoop
+        - HR
+        - Project
+        - Admin
+        - Smart Context Layer
+        - Model Router
+        - Overig
+  - type: textarea
+    id: context
+    attributes:
+      label: Extra context
+      description: Logs, screenshots, configuratie, etc.

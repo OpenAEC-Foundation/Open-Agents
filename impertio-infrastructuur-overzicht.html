@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impertio Infrastructuur Overzicht</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0e14;
+            --bg-card: #131820;
+            --bg-elevated: #1a2029;
+            --bg-hover: #222a35;
+            --border: #2a3140;
+            --border-active: #3a4555;
+            --text: #e2e8f0;
+            --text-dim: #7a8599;
+            --text-muted: #4a5568;
+            --orange: #f0883e;
+            --orange-glow: rgba(240, 136, 62, 0.15);
+            --blue: #58a6ff;
+            --blue-glow: rgba(88, 166, 255, 0.12);
+            --green: #3fb950;
+            --green-glow: rgba(63, 185, 80, 0.12);
+            --purple: #a371f7;
+            --purple-glow: rgba(163, 113, 247, 0.12);
+            --red: #f85149;
+            --red-glow: rgba(248, 81, 73, 0.12);
+            --cyan: #56d4dd;
+            --cyan-glow: rgba(86, 212, 221, 0.12);
+            --yellow: #e3b341;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
+
+        /* HEADER */
+        header {
+            text-align: center;
+            padding: 2.5rem 0 2rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .logo { font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.5rem; }
+        .logo span { color: var(--orange); font-weight: 700; }
+
+        h1 {
+            font-size: 2.2rem; font-weight: 900;
+            background: linear-gradient(135deg, var(--orange), var(--yellow));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+
+        .subtitle { color: var(--text-dim); font-size: 1rem; font-weight: 300; margin-top: 0.25rem; }
+        .date-stamp { color: var(--text-muted); font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; }
+
+        /* FILTER TABS */
+        .filter-bar {
+            display: flex; flex-wrap: wrap; gap: 0.5rem;
+            justify-content: center; margin-bottom: 2rem;
+        }
+
+        .filter-btn {
+            padding: 0.4rem 1rem; border: 1px solid var(--border);
+            background: var(--bg-card); color: var(--text-dim);
+            border-radius: 20px; cursor: pointer; font-family: 'Outfit', sans-serif;
+            font-size: 0.8rem; font-weight: 600; transition: all 0.2s;
+        }
+
+        .filter-btn:hover { border-color: var(--orange); color: var(--text); }
+        .filter-btn.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+        /* LEGEND */
+        .legend {
+            display: flex; flex-wrap: wrap; gap: 1.5rem;
+            justify-content: center; margin-bottom: 2rem;
+            padding: 1rem; background: var(--bg-card);
+            border-radius: 8px; border: 1px solid var(--border);
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--text-dim); }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        /* GRID LAYOUT */
+        .infra-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* LAYER CARDS */
+        .layer-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .layer-card:hover { border-color: var(--border-active); }
+        .layer-card.highlight { border-color: var(--orange); box-shadow: 0 0 20px var(--orange-glow); }
+
+        .layer-header {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .layer-icon {
+            width: 36px; height: 36px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; flex-shrink: 0;
+        }
+
+        .layer-title { font-weight: 700; font-size: 0.95rem; flex: 1; }
+        .layer-location { font-size: 0.7rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+
+        .layer-badge {
+            font-size: 0.65rem; padding: 0.15rem 0.5rem;
+            border-radius: 10px; font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .badge-live { background: var(--green-glow); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+        .badge-dev { background: var(--blue-glow); color: var(--blue); border: 1px solid rgba(88,166,255,0.3); }
+        .badge-plan { background: var(--purple-glow); color: var(--purple); border: 1px solid rgba(163,113,247,0.3); }
+        .badge-action { background: var(--orange-glow); color: var(--orange); border: 1px solid rgba(240,136,62,0.3); }
+
+        .layer-body { padding: 1rem 1.25rem; }
+
+        /* SYSTEM ITEMS */
+        .system-item {
+            display: flex; align-items: flex-start; gap: 0.75rem;
+            padding: 0.75rem; margin-bottom: 0.5rem;
+            background: var(--bg-elevated);
+            border-radius: 8px; border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .system-item:hover { border-color: var(--border); background: var(--bg-hover); }
+        .system-item:last-child { margin-bottom: 0; }
+
+        .sys-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            margin-top: 6px; flex-shrink: 0;
+        }
+
+        .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+        .dot-blue { background: var(--blue); box-shadow: 0 0 6px var(--blue); }
+        .dot-orange { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+        .dot-purple { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
+        .dot-red { background: var(--red); box-shadow: 0 0 6px var(--red); }
+        .dot-cyan { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+
+        .sys-info { flex: 1; min-width: 0; }
+        .sys-name { font-weight: 600; font-size: 0.85rem; }
+        .sys-desc { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.15rem; }
+        .sys-url { font-size: 0.7rem; color: var(--blue); font-family: 'JetBrains Mono', monospace; margin-top: 0.2rem; word-break: break-all; }
+
+        .sys-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.35rem; }
+        .sys-tag {
+            font-size: 0.6rem; padding: 0.1rem 0.4rem;
+            border-radius: 4px; font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-dark); color: var(--text-dim);
+            border: 1px solid var(--border);
+        }
+
+        /* ACTION ITEMS SECTION */
+        .actions-section {
+            margin-top: 2rem;
+            padding: 1.25rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .actions-section h2 {
+            font-size: 1.1rem; font-weight: 700;
+            color: var(--orange); margin-bottom: 1rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+
+        .action-group { margin-bottom: 1.25rem; }
+        .action-group:last-child { margin-bottom: 0; }
+
+        .action-group-title {
+            font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--text-muted); margin-bottom: 0.5rem;
+            padding-left: 0.5rem;
+        }
+
+        .action-item {
+            display: flex; align-items: flex-start; gap: 0.75rem;
+            padding: 0.6rem 0.75rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .action-item:hover { background: var(--bg-elevated); }
+
+        .action-priority {
+            font-size: 0.6rem; padding: 0.15rem 0.45rem;
+            border-radius: 4px; font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            flex-shrink: 0; margin-top: 2px;
+        }
+
+        .priority-high { background: var(--red-glow); color: var(--red); }
+        .priority-med { background: var(--orange-glow); color: var(--orange); }
+        .priority-low { background: var(--blue-glow); color: var(--blue); }
+
+        .action-text { font-size: 0.82rem; flex: 1; }
+        .action-where { font-size: 0.7rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+
+        /* CONNECTION ARROWS (visual flow) */
+        .flow-section {
+            margin-top: 2rem; padding: 1.5rem;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .flow-section h2 {
+            font-size: 1.1rem; font-weight: 700;
+            color: var(--cyan); margin-bottom: 1rem;
+        }
+
+        .flow-diagram {
+            display: flex; flex-direction: column; gap: 0.5rem;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+        }
+
+        .flow-row {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.4rem 0.75rem;
+            background: var(--bg-elevated);
+            border-radius: 6px;
+        }
+
+        .flow-from, .flow-to {
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .flow-from { background: var(--blue-glow); color: var(--blue); }
+        .flow-to { background: var(--green-glow); color: var(--green); }
+        .flow-arrow { color: var(--text-muted); }
+        .flow-label { color: var(--text-dim); font-size: 0.65rem; }
+
+        /* FULL WIDTH CARDS */
+        .full-width { grid-column: 1 / -1; }
+
+        /* PI.DEV VISION SECTION */
+        .vision-card {
+            background: linear-gradient(135deg, var(--bg-card), rgba(240,136,62,0.05));
+            border: 1px solid rgba(240,136,62,0.3);
+        }
+
+        .vision-card .layer-header { border-bottom-color: rgba(240,136,62,0.2); }
+
+        /* RESPONSIVE */
+        @media (max-width: 820px) {
+            .infra-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 1.6rem; }
+        }
+
+        footer {
+            text-align: center; padding: 2rem 0 1rem;
+            border-top: 1px solid var(--border); margin-top: 2rem;
+            color: var(--text-muted); font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">IMPERTIO <span>STUDIO</span> × OPEN<span>COMPANY</span>246</div>
+            <h1>Infrastructuur Overzicht</h1>
+            <div class="subtitle">Hardware · Software · Hosting · Integraties · Actiepunten</div>
+            <div class="date-stamp">Versie 26-02-2026 · Freek Heijting</div>
+        </header>
+
+        <!-- FILTER -->
+        <div class="filter-bar">
+            <button class="filter-btn active" data-filter="all">Alles</button>
+            <button class="filter-btn" data-filter="hosting">Hosting & Servers</button>
+            <button class="filter-btn" data-filter="software">Software</button>
+            <button class="filter-btn" data-filter="ai">AI & Agents</button>
+            <button class="filter-btn" data-filter="integration">Integraties</button>
+            <button class="filter-btn" data-filter="future">Toekomst</button>
+        </div>
+
+        <!-- LEGEND -->
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Live / Operationeel</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> In ontwikkeling</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Actie vereist</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> Gepland / Onderzoek</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div> Extern beheerd</div>
+        </div>
+
+        <!-- INFRASTRUCTURE GRID -->
+        <div class="infra-grid">
+
+            <!-- ═══════════════════════════════════════
+                 LAYER 1: HETZNER SERVERS
+                 ═══════════════════════════════════════ -->
+            <div class="layer-card" data-category="hosting">
+                <div class="layer-header">
+                    <div class="layer-icon" style="background:var(--blue-glow);color:var(--blue)">🖥️</div>
+                    <div>
+                        <div class="layer-title">Hetzner Cloud Servers</div>
+                        <div class="layer-location">📍 Hetzner Nuremberg, Duitsland (EU)</div>
+                    </div>
+                    <span class="layer-badge badge-live">LIVE</span>
+                </div>
+                <div class="layer-body">
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">Productie Server</div>
+                            <div class="sys-desc">Hosting backend voor alle Priilk Cloud sites. Docker containers, Frappe Bench, databases.</div>
+                            <div class="sys-tags">
+                                <span class="sys-tag">Docker</span>
+                                <span class="sys-tag">Ubuntu</span>
+                                <span class="sys-tag">SSH: Freek ✓</span>
+                                <span class="sys-tag">Pritam: beheer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">DNS / SSL / Reverse Proxy</div>
+                            <div class="sys-desc">DNS records, Let's Encrypt SSL, Nginx reverse proxy voor alle *.prilk.cloud sites</div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">Nextcloud Instance</div>
+                            <div class="sys-desc">File sharing, team samenwerking, Talk chatbot (in progress)</div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-purple"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">Docker: Pi Agent Containers</div>
+                            <div class="sys-desc">Toekomst: Pi.dev agents als geïsoleerde Docker containers. Per klant een container met eigen snippets, skills en API credentials. Ollama voor lokale LLM.</div>
+                            <div class="sys-tags">
+                                <span class="sys-tag">roadmap</span>
+                                <span class="sys-tag">docker compose</span>
+                                <span class="sys-tag">per-klant isolatie</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════
+                 LAYER 2: PRIILK CLOUD
+                 ═══════════════════════════════════════ -->
+            <div class="layer-card" data-category="hosting software">
+                <div class="layer-header">
+                    <div class="layer-icon" style="background:var(--cyan-glow);color:var(--cyan)">☁️</div>
+                    <div>
+                        <div class="layer-title">Priilk Cloud (Frappe Cloud)</div>
+                        <div class="layer-location">📍 prilk.cloud · Pritam · Backend beheer</div>
+                    </div>
+                    <span class="layer-badge badge-live">LIVE</span>
+                </div>
+                <div class="layer-body">
+                    <div class="system-item">
+                        <div class="sys-dot dot-cyan"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">Priilk Cloud Dashboard</div>
+                            <div class="sys-desc">Beheer van alle sites, benches, servers, backups. Ingelogd als info@impertio.nl</div>
+                            <div class="sys-url">https://prilk.cloud/dashboard/sites</div>
+                            <div class="sys-tags">
+                                <span class="sys-tag">Freek: toegang ✓</span>
+                                <span class="sys-tag">Pritam: beheer</span>
+                                <span class="sys-tag">23 notificaties</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="font-size:0.7rem;color:var(--dim);padding:0.5rem 0 0.25rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;">6 Actieve Sites op Hetzner Nuremberg — Frappe v16</div>
+
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">open-aec-foundation-erp.prilk.cloud</div>
+                            <div class="sys-desc">Open-AEC Foundation ERP instance</div>
+                            <div class="sys-tags">
+                                <span class="sys-tag">Shared bench</span>
+                                <span class="sys-tag">$1/mo</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">www.opencompany246.nl</div>
+                            <div class="sys-desc">OpenCompany246 website + ERP — eigen Impertio bench group</div>
+                            <div class="sys-url">https://opencompany246.nl</div>
+                            <div class="sys-tags">
+                                <span class="sys-tag">Impertio bench</span>
+                                <span class="sys-tag">$1/mo</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">mandownmandown-erp.prilk.cloud</div>
+                            <div class="sys-desc">Klant instance — ManDownManDown</div>
+                            <div class="sys-tags"><span class="sys-tag">Shared</span><span class="sys-tag">$1/mo</span></div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">symitech.prilk.cloud</div>
+                            <div class="sys-desc">Klant instance — Symitech</div>
+                            <div class="sys-tags"><span class="sys-tag">Shared</span></div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">domera.prilk.cloud</div>
+                            <div class="sys-desc">Klant instance — Domera</div>
+                            <div class="sys-tags"><span class="sys-tag">Shared</span></div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">nicksworld1-erp.prilk.cloud</div>
+                            <div class="sys-desc">Klant instance — NicksWorld1</div>
+                            <div class="sys-tags"><span class="sys-tag">Shared</span><span class="sys-tag">$1/mo</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════
+                 LAYER 3: ERPNEXT & SUBSCRIPTIONS
+                 ═══════════════════════════════════════ -->
+            <div class="layer-card" data-category="software integration">
+                <div class="layer-header">
+                    <div class="layer-icon" style="background:var(--green-glow);color:var(--green)">📊</div>
+                    <div>
+                        <div class="layer-title">ERPNext Instances & Subscriptions</div>
+                        <div class="layer-location">📍 Frappe v16 · opencompany246.nl</div>
+                    </div>
+                    <span class="layer-badge badge-live">LIVE</span>
+                </div>
+                <div class="layer-body">
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">impertire.frappe.cloud — Eigen Bedrijfsvoering</div>
+                            <div class="sys-desc">Intern ERP: Accounting, Buying, Selling, Stock, HR, Projects, CRM, Payroll, Support, Wiki</div>
+                            <div class="sys-url">https://impertire.frappe.cloud/app/home</div>
+                            <div class="sys-tags">
+                                <span class="sys-tag">freek@impertio.nl</span>
+                                <span class="sys-tag">API ✓</span>
+                                <span class="sys-tag">Claude Code ✓</span>
+                                <span class="sys-tag">~94 open todos</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="font-size:0.7rem;color:var(--dim);padding:0.5rem 0 0.25rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;">6 Actieve Subscriptions (opencompany246.nl/desk/subscription)</div>
+
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">ACC-SUB-2026-00019 — Open-AEC Foundation</div>
+                            <div class="sys-tags"><span class="sys-tag">Active</span><span class="sys-tag">5h geleden</span></div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">ACC-SUB-2026-00018 — finaltest</div>
+                            <div class="sys-tags"><span class="sys-tag">Active</span><span class="sys-tag">test instance</span></div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">ACC-SUB-2026-00017 — Preetam</div>
+                            <div class="sys-tags"><span class="sys-tag">Active</span></div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">ACC-SUB-2026-00013 — 3BM Bouwtechniek V.O.F.</div>
+                            <div class="sys-tags"><span class="sys-tag">Active</span></div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">ACC-SUB-2026-00004 — NicksWorld1</div>
+                            <div class="sys-tags"><span class="sys-tag">Active</span></div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">ACC-SUB-2026-00002 — Impertio</div>
+                            <div class="sys-tags"><span class="sys-tag">Active</span></div>
+                        </div>
+                    </div>
+
+                    <div style="font-size:0.7rem;color:var(--dim);padding:0.75rem 0 0.25rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;">API Toegang</div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">REST API — Token Auth</div>
+                            <div class="sys-desc">Volledige API toegang tot alle instances. CRUD via /api/resource, whitelisted methods.</div>
+                            <div class="sys-tags">
+                                <span class="sys-tag">Claude Code ✓</span>
+                                <span class="sys-tag">Pi.dev target</span>
+                                <span class="sys-tag">Frappe v16</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════
+                 LAYER 4: WEBSITES & DOMAINS
+                 ═══════════════════════════════════════ -->
+            <div class="layer-card" data-category="hosting software">
+                <div class="layer-header">
+                    <div class="layer-icon" style="background:var(--green-glow);color:var(--green)">🌐</div>
+                    <div>
+                        <div class="layer-title">Websites & Domeinen</div>
+                        <div class="layer-location">📍 Publiek toegankelijk</div>
+                    </div>
+                    <span class="layer-badge badge-live">LIVE</span>
+                </div>
+                <div class="layer-body">
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">opencompany246.nl</div>
+                            <div class="sys-desc">OpenCompany246 website — ERP hosting diensten, klant portal</div>
+                            <div class="sys-url">https://opencompany246.nl</div>
+                            <div class="sys-tags"><span class="sys-tag">Impertio bench</span></div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">prilk.cloud</div>
+                            <div class="sys-desc">Priilk Cloud dashboard — site & server beheer</div>
+                            <div class="sys-url">https://prilk.cloud</div>
+                            <div class="sys-tags"><span class="sys-tag">Pritam</span></div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">Klant *.prilk.cloud sites</div>
+                            <div class="sys-desc">Symitech, Domera, ManDownManDown, NicksWorld1, en meer</div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">LinkedIn pagina's</div>
+                            <div class="sys-desc">Impertio Studio BV + OpenCompany246 company pages</div>
+                            <div class="sys-tags"><span class="sys-tag">aangemaakt ✓</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════
+                 LAYER 5: GITHUB ORGANIZATIONS
+                 ═══════════════════════════════════════ -->
+            <div class="layer-card" data-category="software integration">
+                <div class="layer-header">
+                    <div class="layer-icon" style="background:var(--purple-glow);color:var(--purple)">⚙️</div>
+                    <div>
+                        <div class="layer-title">GitHub Organisaties</div>
+                        <div class="layer-location">📍 Impertio-Studio + OpenAEC-Foundation</div>
+                    </div>
+                    <span class="layer-badge badge-live">LIVE</span>
+                </div>
+                <div class="layer-body">
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">github.com/Impertio-Studio</div>
+                            <div class="sys-desc">Bedrijfsrepo's — Frappe apps, interne tooling, deployment configs</div>
+                            <div class="sys-url">https://github.com/Impertio-Studio</div>
+                            <div class="sys-tags">
+                                <span class="sys-tag">private repos</span>
+                                <span class="sys-tag">bedrijfscode</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">github.com/OpenAEC-Foundation</div>
+                            <div class="sys-desc">Open-source repo's — IFC Library, Sverchok, AI Ecosystem Deployment, en meer</div>
+                            <div class="sys-url">https://github.com/OpenAEC-Foundation</div>
+                            <div class="sys-tags">
+                                <span class="sys-tag">public + private</span>
+                                <span class="sys-tag">open source</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">GitHub API Toegang</div>
+                            <div class="sys-desc">Fine-grained PAT tokens, issue management, CI/CD</div>
+                            <div class="sys-tags">
+                                <span class="sys-tag">Claude Code ✓</span>
+                                <span class="sys-tag">Pi.dev target</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════
+                 LAYER 6: AI TOOLING
+                 ═══════════════════════════════════════ -->
+            <div class="layer-card" data-category="ai software">
+                <div class="layer-header">
+                    <div class="layer-icon" style="background:var(--orange-glow);color:var(--orange)">🤖</div>
+                    <div>
+                        <div class="layer-title">AI Development Stack</div>
+                        <div class="layer-location">📍 Lokaal + Cloud</div>
+                    </div>
+                    <span class="layer-badge badge-dev">DEV</span>
+                </div>
+                <div class="layer-body">
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">Claude Code CLI</div>
+                            <div class="sys-desc">Primaire AI coding agent — praat met ERPNext API, GitHub, servers</div>
+                            <div class="sys-tags">
+                                <span class="sys-tag">PowerShell</span>
+                                <span class="sys-tag">MCP</span>
+                                <span class="sys-tag">ervaren ✓</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-green"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">Claude Desktop + claude.ai</div>
+                            <div class="sys-desc">GUI interface, Projects, MCP setup, web-based chat</div>
+                        </div>
+                    </div>
+                    <div class="system-item">
+                        <div class="sys-dot dot-purple"></div>
+                        <div class="sys-info">
+                            <div class="sys-name">Pi.dev Coding Agent — PILOT PROJECT</div>
+                            <div class="sys-desc">Open-source terminal agent. SDK/RPC modus voor ERPNext integratie. 15+ LLM providers.</div>
+                            <div class="sys-url">https://pi.dev · https://github.com/badlogic/pi-mono</div>
+                            <div class="sys-tags">
+                                <span class="sys-tag">MIT license</span>
+                                <span class="sys-tag">onderzoek fase</span>
+                                <span class="sys-tag">Frappe app target</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+            <!-- ═══════════════════════════════════════
+                 PI.DEV INTEGRATION VISION — FULL WIDTH
+                 ═══════════════════════════════════════ -->
+            <div class="layer-card vision-card full-width" data-category="ai future integration">
+                <div class="layer-header">
+                    <div class="layer-icon" style="background:var(--orange-glow);color:var(--orange)">🚀</div>
+                    <div>
+                        <div class="layer-title">OpenAgents — Pi.dev × ERPNext Agentic Platform</div>
+                        <div class="layer-location">📍 github.com/Impertio-Studio/openagents · Roadmap Q1-Q2 2026</div>
+                    </div>
+                    <span class="layer-badge badge-plan">VISIE</span>
+                </div>
+                <div class="layer-body">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;">
+                        <div class="system-item">
+                            <div class="sys-dot dot-orange"></div>
+                            <div class="sys-info">
+                                <div class="sys-name">Fase 1: Leren & Experimenteren</div>
+                                <div class="sys-desc">Pi installeren, Anthropic koppelen, basis workflows leren. Claude Code ervaring overbrengen. AGENTS.md schrijven voor ERPNext projecten.</div>
+                                <div class="sys-tags">
+                                    <span class="sys-tag">Freek</span>
+                                    <span class="sys-tag">nu starten</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="system-item">
+                            <div class="sys-dot dot-purple"></div>
+                            <div class="sys-info">
+                                <div class="sys-name">Fase 2: OpenAgents Snippets & Extensions</div>
+                                <div class="sys-desc">Snippet bibliotheek opzetten (shared + per agent type). Smart Context extension en Model Router bouwen in TypeScript.</div>
+                                <div class="sys-tags">
+                                    <span class="sys-tag">Freek + Pritam</span>
+                                    <span class="sys-tag">SDK/RPC</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="system-item">
+                            <div class="sys-dot dot-purple"></div>
+                            <div class="sys-info">
+                                <div class="sys-name">Fase 3: Docker Agent Deployment</div>
+                                <div class="sys-desc">Pi agents als Docker containers op Hetzner. Per klant geïsoleerd. Alleen custom API tools, geen bash/write naar host. Pritam beheert containers.</div>
+                                <div class="sys-tags">
+                                    <span class="sys-tag">Pritam: Docker ops</span>
+                                    <span class="sys-tag">Freek: extensions</span>
+                                    <span class="sys-tag">Dockerfile in repo</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="system-item">
+                            <div class="sys-dot dot-purple"></div>
+                            <div class="sys-info">
+                                <div class="sys-name">Fase 4: Multi-tenant AI Platform</div>
+                                <div class="sys-desc">Pi containers per klant via Priilk Cloud. Ollama op Hetzner voor lokale LLM (classificatie/routing). White-label AI operations als dienst.</div>
+                                <div class="sys-tags">
+                                    <span class="sys-tag">OpenCompany246</span>
+                                    <span class="sys-tag">schaalbaar</span>
+                                    <span class="sys-tag">Ollama lokaal</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /infra-grid -->
+
+        <!-- ═══════════════════════════════════════
+             DATA FLOW DIAGRAM
+             ═══════════════════════════════════════ -->
+        <div class="flow-section">
+            <h2>🔄 Dataflows & Connecties</h2>
+            <div class="flow-diagram">
+                <div class="flow-row">
+                    <span class="flow-from">Claude Code</span>
+                    <span class="flow-arrow">→ API token →</span>
+                    <span class="flow-to">impertire.frappe.cloud</span>
+                    <span class="flow-label">ToDo CRUD, doctype management, rapportages</span>
+                </div>
+                <div class="flow-row">
+                    <span class="flow-from">Claude Code</span>
+                    <span class="flow-arrow">→ PAT token →</span>
+                    <span class="flow-to">GitHub (beide orgs)</span>
+                    <span class="flow-label">Issue management, repo beheer, code commits</span>
+                </div>
+                <div class="flow-row">
+                    <span class="flow-from">Priilk Cloud</span>
+                    <span class="flow-arrow">→ provisioning →</span>
+                    <span class="flow-to">*.prilk.cloud sites</span>
+                    <span class="flow-label">Klant-instances aanmaken, beheren, updaten (Frappe v16)</span>
+                </div>
+                <div class="flow-row">
+                    <span class="flow-from">opencompany246.nl</span>
+                    <span class="flow-arrow">→ subscription →</span>
+                    <span class="flow-to">Klant ERP instances</span>
+                    <span class="flow-label">6 actieve subscriptions — facturatie en beheer</span>
+                </div>
+                <div class="flow-row">
+                    <span class="flow-from">Hetzner Server</span>
+                    <span class="flow-arrow">→ hosting →</span>
+                    <span class="flow-to">Alle Priilk Cloud sites</span>
+                    <span class="flow-label">Docker containers, Frappe Bench, databases, Nextcloud</span>
+                </div>
+                <div class="flow-row" style="border:1px dashed var(--orange);border-radius:6px;">
+                    <span class="flow-from" style="background:var(--orange-glow);color:var(--orange)">Pi.dev SDK</span>
+                    <span class="flow-arrow">→ custom tools →</span>
+                    <span class="flow-to" style="background:var(--orange-glow);color:var(--orange)">Frappe REST API</span>
+                    <span class="flow-label">🔮 TOEKOMST: Agentic workflows per klant-instance</span>
+                </div>
+                <div class="flow-row" style="border:1px dashed var(--orange);border-radius:6px;">
+                    <span class="flow-from" style="background:var(--orange-glow);color:var(--orange)">Pi.dev Sidecar</span>
+                    <span class="flow-arrow">→ Node.js →</span>
+                    <span class="flow-to" style="background:var(--orange-glow);color:var(--orange)">Hetzner Server</span>
+                    <span class="flow-label">🔮 TOEKOMST: Server beheer, monitoring, Frappe app deployment</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════
+             CONCRETE ACTIEPUNTEN
+             ═══════════════════════════════════════ -->
+        <div class="actions-section">
+            <h2>⚡ Concrete Actiepunten per Laag</h2>
+
+            <div class="action-group">
+                <div class="action-group-title">🖥️ Hetzner / Server</div>
+                <div class="action-item">
+                    <span class="action-priority priority-med">MED</span>
+                    <div>
+                        <div class="action-text">Met Pritam afstemmen: Pi.dev sidecar deployment mogelijkheden op Hetzner</div>
+                        <div class="action-where">→ Hetzner server · overleg Pritam</div>
+                    </div>
+                </div>
+                <div class="action-item">
+                    <span class="action-priority priority-low">LOW</span>
+                    <div>
+                        <div class="action-text">Ollama LLM hosting evalueren op Hetzner voor lokale AI (Fase 4)</div>
+                        <div class="action-where">→ Hetzner server · GPU/CPU evaluatie</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-group">
+                <div class="action-group-title">☁️ Priilk Cloud</div>
+                <div class="action-item">
+                    <span class="action-priority priority-low">LOW</span>
+                    <div>
+                        <div class="action-text">Billing address toevoegen aan Frappe Cloud profiel (melding in dashboard)</div>
+                        <div class="action-where">→ prilk.cloud/dashboard</div>
+                    </div>
+                </div>
+                <div class="action-item">
+                    <span class="action-priority priority-med">MED</span>
+                    <div>
+                        <div class="action-text">Klant-instance template standaardiseren met OpenCompany246 branding</div>
+                        <div class="action-where">→ Priilk Cloud · Bench Groups</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-group">
+                <div class="action-group-title">📊 ERPNext</div>
+                <div class="action-item">
+                    <span class="action-priority priority-high">HIGH</span>
+                    <div>
+                        <div class="action-text">Open todos terugbrengen van 94 → onder 50 (duplicaten opruimen)</div>
+                        <div class="action-where">→ impertire.frappe.cloud</div>
+                    </div>
+                </div>
+                <div class="action-item">
+                    <span class="action-priority priority-med">MED</span>
+                    <div>
+                        <div class="action-text">Setup wizard afmaken: Item, Customer, Supplier, First Sales Invoice</div>
+                        <div class="action-where">→ impertire.frappe.cloud/app/home</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-group">
+                <div class="action-group-title">🤖 Pi.dev Pilot</div>
+                <div class="action-item">
+                    <span class="action-priority priority-high">HIGH</span>
+                    <div>
+                        <div class="action-text">Pi.dev installeren, Anthropic API key configureren, eerste sessie draaien</div>
+                        <div class="action-where">→ Lokaal · npm install -g @mariozechner/pi-coding-agent</div>
+                    </div>
+                </div>
+                <div class="action-item">
+                    <span class="action-priority priority-high">HIGH</span>
+                    <div>
+                        <div class="action-text">AGENTS.md schrijven voor ERPNext project (API endpoints, DocTypes, regels)</div>
+                        <div class="action-where">→ Lokaal · ~/.pi/agent/AGENTS.md</div>
+                    </div>
+                </div>
+                <div class="action-item">
+                    <span class="action-priority priority-med">MED</span>
+                    <div>
+                        <div class="action-text">Eerste Pi Skill: ERPNext ToDo management via Frappe REST API</div>
+                        <div class="action-where">→ Lokaal · ~/.pi/agent/skills/erpnext-todos/</div>
+                    </div>
+                </div>
+                <div class="action-item">
+                    <span class="action-priority priority-med">MED</span>
+                    <div>
+                        <div class="action-text">Met Pritam bespreken: custom Frappe app als Pi SDK sidecar voor klant-instances</div>
+                        <div class="action-where">→ Overleg · architectuur bepalen</div>
+                    </div>
+                </div>
+                <div class="action-item">
+                    <span class="action-priority priority-low">LOW</span>
+                    <div>
+                        <div class="action-text">Pi SDK POC: Node.js sidecar die opencompany246.nl ERPNext events afhandelt</div>
+                        <div class="action-where">→ Hetzner server · Docker container</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Impertio Studio B.V. · OpenCompany246 · Gegenereerd 26-02-2026</p>
+            <p style="margin-top:0.3rem;">Robuust zonder overkill.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Filter functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const filter = btn.dataset.filter;
+                document.querySelectorAll('.layer-card').forEach(card => {
+                    if (filter === 'all') {
+                        card.style.display = '';
+                    } else {
+                        const cats = card.dataset.category || '';
+                        card.style.display = cats.includes(filter) ? '' : 'none';
+                    }
+                });
+            });
+        });
+
+        // Hover highlight
+        document.querySelectorAll('.layer-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const card = header.closest('.layer-card');
+                card.classList.toggle('highlight');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Vragen of discussie
+    url: https://github.com/OpenAEC-Foundation/Open-Agents/discussions
+    about: Stel vragen of start een discussie
