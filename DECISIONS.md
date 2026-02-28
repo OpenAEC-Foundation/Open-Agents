@@ -55,6 +55,9 @@
 | D-032 | Raw fetch voor non-Claude runtime adapters | OpenAI, Mistral en Ollama adapters gebruiken raw `fetch()` zonder SDK dependencies | Geen extra dependencies nodig. Zelfde `AgentRuntime` interface als ClaudeSDKRuntime. Text-in/text-out voor PoC (geen tool use voor non-Claude). Ollama draait lokaal op configurable base URL. | 2026-03-01 |
 | D-033 | Dynamic preset loading van agents/presets/*.json via backend API | GET /api/presets endpoint laadt JSON files uit agents/presets/ met in-memory caching | 10 rijke agent presets beschikbaar in repo werden genegeerd. Nu dynamisch geladen met fallback naar 4 hardcoded presets als backend onbereikbaar is. POST /api/presets/reload voor development hot-reload. | 2026-03-01 |
 | D-034 | VS Code Extension architectuur | 2 packages (vscode-extension CJS/tsup + vscode-webview browser/Vite), webview direct HTTP naar backend, MCP server in extension package, geen backend auto-start | Extension host en webview hebben fundamenteel verschillende build targets. Direct HTTP simpeler dan postMessage proxy. MCP server is thin bridge naar backend REST API. | 2026-03-02 |
+| D-035 | Safety rule enforcement point | execution-engine.ts VOOR runtime.execute() | Eén enforcement punt voor alle providers. Runtime ontvangt pre-gefilterde AgentNodeData met alleen toegestane tools. resolveRules() mergt global + per-node regels met permission mode mapping. | 2026-03-02 |
+| D-036 | Audit granularity | Step-niveau (per node in een run), niet per tool-call | Consistent across alle providers. Huidige runtime interface yieldt geen per-tool-call events. Step-level logging hergebruikt bestaande SSE event data. | 2026-03-02 |
+| D-037 | Replay implementatie | Frontend-gecontroleerde playback van bestaande eventBuffers | Geen nieuwe backend infrastructuur nodig. EventBuffers Map bewaart al alle SSE events per run. Frontend fetcht via GET /api/audit/replay/:id en stept lokaal door. | 2026-03-02 |
 
 ---
 

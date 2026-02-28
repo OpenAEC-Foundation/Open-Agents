@@ -23,6 +23,9 @@ importers:
       '@fastify/cors':
         specifier: ^11.0.0
         version: 11.2.0
+      '@open-agents/knowledge':
+        specifier: workspace:*
+        version: link:../knowledge
       '@open-agents/shared':
         specifier: workspace:*
         version: link:../shared

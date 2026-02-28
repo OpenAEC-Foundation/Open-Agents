@@ -17,6 +17,17 @@ import type {
   SkillLevel,
   ProviderConnection,
   ModelProvider,
+  AppTab,
+  AgentDefinition,
+  FlowTemplate,
+  SafetyConfig,
+  GlobalSafetyRules,
+  AgentSafetyRules,
+  SafetyTestResult,
+  AgentTool,
+  RunSummary,
+  AuditEntry,
+  AuditFilter,
 } from "@open-agents/shared";
 import type { Patch } from "immer";
 
@@ -72,15 +83,55 @@ export interface HistorySlice {
 }
 
 export interface UISlice {
+  activeTab: AppTab;
   sidebarOpen: boolean;
   chatPanelOpen: boolean;
   exportedJson: string | null;
   connectModalOpen: boolean;
+  selectedOutputNodeId: string | null;
 
+  setActiveTab: (tab: AppTab) => void;
   setSidebarOpen: (open: boolean) => void;
   setChatPanelOpen: (open: boolean) => void;
   setExportedJson: (json: string | null) => void;
   setConnectModalOpen: (open: boolean) => void;
+  setSelectedOutputNodeId: (id: string | null) => void;
+}
+
+export interface FactorySlice {
+  // Wizard state
+  wizardOpen: boolean;
+  wizardStep: number;
+  wizardDraft: Partial<AgentDefinition>;
+
+  // Library agents (fetched from backend)
+  agents: AgentDefinition[];
+  agentsLoading: boolean;
+
+  // LLM Generator state (Fase 2.4)
+  generatorOpen: boolean;
+  generatorLoading: boolean;
+  generatorDraft: Partial<AgentDefinition> | null;
+  generatorError: string | null;
+
+  // Wizard actions
+  openWizard: () => void;
+  closeWizard: () => void;
+  setWizardStep: (step: number) => void;
+  updateWizardDraft: (patch: Partial<AgentDefinition>) => void;
+  submitWizard: () => Promise<void>;
+
+  // Generator actions (Fase 2.4)
+  openGenerator: () => void;
+  closeGenerator: () => void;
+  generateAgent: (description: string) => Promise<void>;
+  refineAgent: (refinementPrompt: string) => Promise<void>;
+  updateGeneratorDraft: (patch: Partial<AgentDefinition>) => void;
+  acceptGeneratorDraft: () => Promise<void>;
+
+  // Agent CRUD
+  fetchAgents: () => Promise<void>;
+  deleteAgent: (id: string) => Promise<void>;
 }
 
 export interface SettingsSlice {
@@ -110,6 +161,15 @@ export interface ExecutionSlice {
   runError: string | null;
   isRunning: boolean;
 
+  // Session management state (Sprint 3)
+  isPaused: boolean;
+  isCancelled: boolean;
+  stepElapsed: Record<string, number>;
+  pendingErrorNodeId: string | null;
+
+  // Template state (Sprint 3)
+  templates: FlowTemplate[];
+
   // Chat actions
   openChat: (nodeId: string) => void;
   closeChat: () => void;
@@ -119,6 +179,20 @@ export interface ExecutionSlice {
   // Execution actions
   startExecution: (config: CanvasConfig) => Promise<void>;
   resetExecution: () => void;
+
+  // Session management actions (Sprint 3)
+  pauseExecution: () => Promise<void>;
+  resumeExecution: () => Promise<void>;
+  cancelExecution: () => Promise<void>;
+  restartExecution: () => Promise<void>;
+  submitErrorDecision: (decision: "retry" | "skip" | "abort") => Promise<void>;
+
+  // Template actions (Sprint 3)
+  loadTemplates: () => Promise<void>;
+  applyTemplate: (templateId: string) => Promise<void>;
+
+  /** Internal: consume SSE stream. Not for external use. */
+  _consumeSSEStream: (runId: string) => Promise<void>;
 }
 
 export interface CanvasDocument {
@@ -140,6 +214,36 @@ export interface WorkspaceSlice {
   renameDocument: (id: string, name: string) => void;
 }
 
+export interface SafetySlice {
+  safetyConfig: SafetyConfig | null;
+  safetyLoading: boolean;
+  testResult: SafetyTestResult | null;
+
+  fetchSafety: () => Promise<void>;
+  updateGlobalSafetyRules: (rules: Partial<GlobalSafetyRules>) => Promise<void>;
+  setNodeSafetyRules: (nodeId: string, rules: AgentSafetyRules) => Promise<void>;
+  removeNodeSafetyRules: (nodeId: string) => Promise<void>;
+  testSafetyCommand: (nodeId: string, command: string, agentTools: AgentTool[]) => Promise<void>;
+}
+
+export interface AuditSlice {
+  runs: RunSummary[];
+  runsLoading: boolean;
+  selectedRunId: string | null;
+  auditEntries: AuditEntry[];
+  auditFilter: AuditFilter;
+  replayEvents: SSEEvent[];
+  replayIndex: number;
+  isReplaying: boolean;
+
+  fetchRuns: () => Promise<void>;
+  selectRun: (runId: string) => Promise<void>;
+  setAuditFilter: (filter: Partial<AuditFilter>) => void;
+  startReplay: (runId: string) => Promise<void>;
+  stepReplay: () => void;
+  stopReplay: () => void;
+}
+
 // =============================================
 // Combined state
 // =============================================
@@ -150,7 +254,10 @@ export type AppState = CanvasSlice &
   UISlice &
   SettingsSlice &
   ExecutionSlice &
-  WorkspaceSlice;
+  WorkspaceSlice &
+  FactorySlice &
+  SafetySlice &
+  AuditSlice;
 
 /** Typed slice creator — each slice can access the full AppState */
 export type SliceCreator<T> = StateCreator<

@@ -4,7 +4,7 @@
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
 > **Laatste update**: 2026-03-02
-> **Status**: Sprint 1 - Proof of Concept COMPLETE
+> **Status**: Sprint 6a - Knowledge Base COMPLETE
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -17,24 +17,24 @@
 | Research & Visie | 3 | 3 |
 | Core Documenten | 7 | 7 |
 | PoC Canvas | 1 | 1 |
-| Factory Portal | 0 | 1 |
-| Orchestratie (Flow + Pool) | 0 | 2 |
-| Safety & Audit | 0 | 1 |
-| Knowledge Base + Snippet Engine | 0 | 1 |
+| Factory Portal | 1 | 1 |
+| Orchestratie (Flow + Pool) | 1 | 2 |
+| Safety & Audit | 1 | 1 |
+| Knowledge Base + Snippet Engine | 1 | 1 |
 | Assembly Engine (NL → Graph) | 0 | 1 |
 | AI Assembly Assistant | 0 | 1 |
 | VS Code Extension | 0 | 1 |
 | Frappe App | 0 | 1 |
 | Library Ecosystem (10 types) | 0 | 10 |
-| LLM Asset Generation (Factory) | 0 | 1 |
+| LLM Asset Generation (Factory) | 1 | 1 |
 | Agent Library (doel: 1000+) | 0 | 1000 |
 
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
 **Fase 1 (PoC)**: ████████████████████ **100%** - canvas UI, backend API, e2e wiring, theming, BYOK
-**Fase 2 (Factory)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
-**Fase 3 (Orchestratie)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
-**Fase 4 (Intelligence)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - safety & audit
-**Fase 4a (Knowledge)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - knowledge base + snippet engine (Sprint 6a)
+**Fase 2 (Factory)**: ████████████████████ **100%** - tabs, wizard, library, CRUD API, presets, LLM-powered generation
+**Fase 3 (Orchestratie)**: ██████████░░░░░░░░░░ **50%** — flow pattern (Sprint 3) complete
+**Fase 4 (Intelligence)**: ████████████████████ **100%** - safety & audit (Sprint 5)
+**Fase 4a (Knowledge)**: ████████████████████ **100%** - knowledge base + snippet engine (Sprint 6a)
 **Fase 4b (Assembly)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - NL → agent graph self-assembly (Sprint 6b)
 **Fase 4c (Assistant)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - AI assembly assistant sidebar (Sprint 6c)
 **Fase 5 (Deployment)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
@@ -82,35 +82,47 @@
 
 ### Fase 2: Factory & Asset Library (Sprint 2)
 
-- [ ] Factory portal tabblad
-- [ ] Agent creation wizard
-- [ ] LLM-powered asset generatie (FR-23): conversational, template-based, refinement
-- [ ] Library ecosystem shell met 10 library types (FR-22)
-- [ ] Agent Library als eerste gevulde library
-- [ ] Eerste 10 voorgebouwde agents
+- [x] Tab navigatie systeem (Canvas | Factory | Library | Settings)
+- [x] Factory portal tabblad met asset type keuze
+- [x] Agent creation wizard (5-stap: naam, model, prompt, tools, review)
+- [x] Agent CRUD API endpoints (POST/GET/PUT/DELETE /api/agents)
+- [x] Library ecosystem shell met 10 library types (FR-22)
+- [x] Agent Library met grid/lijst view, zoek/filter, drag-to-canvas, detail panel
+- [x] Settings page (provider management, thema, skill level)
+- [x] Model metadata gecentraliseerd (MODEL_CATALOG in shared types)
+- [x] Preset agents als seed in agent library (10 presets)
+- [x] LLM-powered asset generatie (FR-23): conversational input, AI generation, preview/edit, refinement, save to library
 
 ### Fase 3: Orchestratie Patronen (Sprint 3-4)
 
-- [ ] Flow pattern: sequentiële pipeline (A→B→C)
-- [ ] Output passing tussen agents
-- [ ] Session management (pause, resume, fork)
+**Sprint 3 — Flow Pattern (Complete):**
+- [x] Flow pattern: sequentiële pipeline (A→B→C) — topologische sort, output passing
+- [x] Visual flow status: edge kleuring (idle/running/completed/error), node border ring, status icons
+- [x] Session management: pause, resume, cancel met step-boundary control
+- [x] Error handling: retry/skip/abort decision dialog, max 3 retries
+- [x] ExecutionToolbar met state machine (idle→running→paused→completed)
+- [x] Output panel met elapsed time per step, focus scroll bij node click
+- [x] 3 flow templates: Code Review Pipeline, Bug Fix Flow, Documentation Generator
+- [x] Runtime adapters: abort signal support (Claude SDK, OpenAI, Mistral, Ollama)
+
+**Sprint 4 — Pool Pattern (Pending):**
 - [ ] Pool pattern: dispatcher-based routing
 - [ ] Parallelle agent execution
 - [ ] Patronen combineerbaar
 
 ### Fase 4: Intelligence (Sprint 5, 6a, 6b, 6c)
 
-**Sprint 5 — Safety & Audit:**
-- [ ] Safety rules editor (visueel)
-- [ ] Audit trail en run history
+**Sprint 5 — Safety & Audit (Complete):**
+- [x] Safety rules editor (visueel) — SafetySettingsView in Settings tab
+- [x] Audit trail en run history — RunHistoryView in Runs tab + ReplayControls
 
-**Sprint 6a — Knowledge Base + Snippet Engine (FR-16):**
-- [ ] `@open-agents/knowledge` package in monorepo
-- [ ] Hardcoded engine: model profiles, tool profiles, token budgets, graph validator, cost estimator
-- [ ] 20 routing pattern snippets (Diamond, Escalation, Map-Reduce, etc.)
-- [ ] 7 orchestratie principes + 13 building block profiles als snippets
-- [ ] Markdown loader + knowledge registry
-- [ ] Knowledge API routes
+**Sprint 6a — Knowledge Base + Snippet Engine (FR-16) (Complete):**
+- [x] `@open-agents/knowledge` package in monorepo
+- [x] Hardcoded engine: model profiles, tool profiles, token budgets, graph validator, cost estimator
+- [x] 35 routing pattern snippets (Diamond, Escalation, Map-Reduce, etc.) (20 gepland + 15 bonus)
+- [x] 7 orchestratie principes + 13 building block profiles als snippets
+- [x] Markdown loader + knowledge registry
+- [x] Knowledge API routes (patterns, principles, blocks, models, tools, estimate-cost, validate)
 
 **Sprint 6b — Assembly Engine (FR-17, D-022):**
 - [ ] Intent classificatie (Haiku) — NL → TaskIntent

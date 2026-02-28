@@ -1,12 +1,19 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type { ExecutionStatus } from "@open-agents/shared";
 import { useAppStore } from "../stores/appStore";
+
+function formatElapsed(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
 
 const statusBadgeClasses: Record<ExecutionStatus, string> = {
   idle: "bg-zinc-600 text-zinc-300",
   running: "bg-yellow-600 text-yellow-100 animate-pulse",
   completed: "bg-green-600 text-green-100",
   error: "bg-red-600 text-red-100",
+  paused: "bg-yellow-600 text-yellow-100",
+  cancelled: "bg-zinc-600 text-zinc-300",
 };
 
 export function OutputPanel() {
@@ -16,9 +23,20 @@ export function OutputPanel() {
   const runError = useAppStore((s) => s.runError);
   const isRunning = useAppStore((s) => s.isRunning);
   const resetExecution = useAppStore((s) => s.resetExecution);
+  const stepElapsed = useAppStore((s) => s.stepElapsed);
+  const selectedOutputNodeId = useAppStore((s) => s.selectedOutputNodeId);
+  const setSelectedOutputNodeId = useAppStore((s) => s.setSelectedOutputNodeId);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
+  const setNodeRef = useCallback(
+    (nodeId: string) => (el: HTMLDivElement | null) => {
+      nodeRefs.current[nodeId] = el;
+    },
+    [],
+  );
 
   // Auto-scroll to bottom when output changes
   useEffect(() => {
@@ -36,6 +54,23 @@ export function OutputPanel() {
       }
     }
   }, [nodeStatuses]);
+
+  // Focus scroll when a node is selected from the canvas
+  useEffect(() => {
+    if (!selectedOutputNodeId) return;
+    // Expand the section
+    setCollapsed((prev) => ({ ...prev, [selectedOutputNodeId]: false }));
+    // Scroll into view after a tick (so section expands first)
+    requestAnimationFrame(() => {
+      nodeRefs.current[selectedOutputNodeId]?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    });
+    // Clear selection after focusing
+    const timer = setTimeout(() => setSelectedOutputNodeId(null), 1500);
+    return () => clearTimeout(timer);
+  }, [selectedOutputNodeId, setSelectedOutputNodeId]);
 
   if (!activeRun) return null;
 
@@ -80,10 +115,16 @@ export function OutputPanel() {
           const output = nodeOutputs[step.nodeId];
           const isCollapsed = collapsed[step.nodeId] ?? true;
 
+          const elapsed = stepElapsed[step.nodeId];
+          const isSelected = selectedOutputNodeId === step.nodeId;
+
           return (
             <div
               key={step.nodeId}
-              className="border-b border-border-default last:border-b-0"
+              ref={setNodeRef(step.nodeId)}
+              className={`border-b border-border-default last:border-b-0 transition-colors ${
+                isSelected ? "ring-1 ring-blue-500/40 bg-blue-950/20" : ""
+              }`}
             >
               {/* Node header */}
               <button
@@ -102,6 +143,11 @@ export function OutputPanel() {
                 <span className="text-text-primary text-sm font-medium truncate">
                   {step.nodeId}
                 </span>
+                {elapsed !== undefined && (
+                  <span className="ml-auto text-xs text-text-muted tabular-nums">
+                    {formatElapsed(elapsed)}
+                  </span>
+                )}
               </button>
 
               {/* Node body */}

@@ -1,0 +1,44 @@
+{
+  "id": "code-review-pipeline",
+  "name": "Code Review Pipeline",
+  "description": "Scout scans the codebase, Reviewer checks quality, Reporter summarizes findings.",
+  "nodes": [
+    {
+      "id": "scout",
+      "type": "agent",
+      "position": { "x": 100, "y": 150 },
+      "data": {
+        "name": "Scout",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "Scan the repository structure. List all source files with a brief description of their purpose. Focus on the main application code, not config files or dependencies.",
+        "tools": ["Read", "Glob", "Grep"]
+      }
+    },
+    {
+      "id": "reviewer",
+      "type": "agent",
+      "position": { "x": 450, "y": 150 },
+      "data": {
+        "name": "Reviewer",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "Review the code files listed by the previous agent. Check for: code quality issues, potential bugs, security concerns, and adherence to best practices. Provide specific file references and line numbers.",
+        "tools": ["Read", "Glob", "Grep"]
+      }
+    },
+    {
+      "id": "reporter",
+      "type": "agent",
+      "position": { "x": 800, "y": 150 },
+      "data": {
+        "name": "Reporter",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "Write a concise executive summary of the code review findings. Organize by severity (critical, warning, info). Include actionable recommendations.",
+        "tools": []
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-scout-reviewer", "source": "scout", "target": "reviewer" },
+    { "id": "e-reviewer-reporter", "source": "reviewer", "target": "reporter" }
+  ]
+}

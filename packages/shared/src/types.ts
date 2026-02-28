@@ -72,7 +72,7 @@ export interface CanvasConfig {
 }
 
 /** Execution status for a node or run */
-export type ExecutionStatus = "idle" | "running" | "completed" | "error";
+export type ExecutionStatus = "idle" | "running" | "paused" | "cancelled" | "completed" | "error";
 
 /** A single step in an execution run */
 export interface ExecutionStep {
@@ -82,6 +82,7 @@ export interface ExecutionStep {
   error?: string;
   startedAt?: string;
   completedAt?: string;
+  elapsedMs?: number;
 }
 
 /** A complete execution run */
@@ -92,10 +93,21 @@ export interface ExecutionRun {
   steps: ExecutionStep[];
   startedAt: string;
   completedAt?: string;
+  pausedAt?: string;
 }
 
 /** SSE event types sent during execution */
-export type SSEEventType = "step:start" | "step:output" | "step:complete" | "step:error" | "run:complete";
+export type SSEEventType =
+  | "step:start"
+  | "step:output"
+  | "step:complete"
+  | "step:error"
+  | "step:skipped"
+  | "step:timing"
+  | "run:complete"
+  | "run:paused"
+  | "run:cancelled"
+  | "run:error:awaiting-decision";
 
 /** SSE event payload */
 export interface SSEEvent {
@@ -249,4 +261,167 @@ export interface HealthResponse {
   uptime: number;
   /** Which providers have valid API keys */
   providers?: ProviderConnection[];
+}
+
+// =============================================
+// Model Metadata (centralized — was duplicated in Sidebar + AgentNode)
+// =============================================
+
+export interface ModelMeta {
+  id: ModelId;
+  provider: ModelProvider;
+  labels: Record<SkillLevel, string>;
+  color: string;
+}
+
+/** All supported models with display metadata */
+export const MODEL_CATALOG: ModelMeta[] = [
+  { id: "anthropic/claude-haiku-4-5", provider: "anthropic", labels: { beginner: "Fast & cheap", intermediate: "Haiku", advanced: "Haiku" }, color: "bg-emerald-500" },
+  { id: "anthropic/claude-sonnet-4-6", provider: "anthropic", labels: { beginner: "Balanced", intermediate: "Sonnet", advanced: "Sonnet" }, color: "bg-blue-500" },
+  { id: "anthropic/claude-opus-4-6", provider: "anthropic", labels: { beginner: "Most capable", intermediate: "Opus", advanced: "Opus" }, color: "bg-purple-500" },
+  { id: "openai/gpt-4o", provider: "openai", labels: { beginner: "GPT (fast)", intermediate: "GPT-4o", advanced: "GPT-4o" }, color: "bg-teal-500" },
+  { id: "openai/o3", provider: "openai", labels: { beginner: "GPT (reasoning)", intermediate: "o3", advanced: "o3" }, color: "bg-teal-500" },
+  { id: "mistral/mistral-large", provider: "mistral", labels: { beginner: "Mistral (large)", intermediate: "Mistral L", advanced: "Mistral L" }, color: "bg-orange-500" },
+];
+
+/** Lookup model metadata by id. Falls back to a generic entry. */
+export function getModelMeta(id: string): ModelMeta {
+  const found = MODEL_CATALOG.find((m) => m.id === id);
+  if (found) return found;
+  const provider = (id.split("/")[0] ?? "anthropic") as ModelProvider;
+  const shortName = id.split("/").pop() ?? id;
+  return {
+    id: id as ModelId,
+    provider,
+    labels: { beginner: shortName, intermediate: shortName, advanced: shortName },
+    color: "bg-zinc-500",
+  };
+}
+
+// =============================================
+// App Navigation
+// =============================================
+
+/** Tab identifiers for main app navigation */
+export type AppTab = "canvas" | "runs" | "factory" | "library" | "settings";
+
+// =============================================
+// Agent Definitions (Sprint 2 — Factory-created agents)
+// =============================================
+
+/** A user-created agent definition stored in the library */
+export interface AgentDefinition {
+  id: string;
+  name: string;
+  description: string;
+  model: ModelId;
+  systemPrompt: string;
+  tools: AgentTool[];
+  category?: string;
+  tags?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+// =============================================
+// Safety Rules (Sprint 5 — D-034)
+// =============================================
+
+/** Permission mode for an agent */
+export type PermissionMode = "read-only" | "edit" | "full-access";
+
+/** Safety rules applied to a single agent node */
+export interface AgentSafetyRules {
+  /** Which tools are allowed (subset of AgentTool). Empty = all blocked. */
+  allowedTools: AgentTool[];
+  /** Regex patterns for blocked bash commands */
+  bashBlacklist: string[];
+  /** Glob patterns for allowed file access. Empty array = no restriction. */
+  fileWhitelist: string[];
+  /** Overall permission mode */
+  permissionMode: PermissionMode;
+}
+
+/** Global safety rules that apply to all agents */
+export interface GlobalSafetyRules {
+  /** Tools blocked globally (applied before per-agent rules) */
+  blockedTools: AgentTool[];
+  /** Bash patterns blocked globally */
+  bashBlacklist: string[];
+  /** File access patterns enforced globally */
+  fileWhitelist: string[];
+  /** Default permission mode for agents without explicit rules */
+  defaultPermissionMode: PermissionMode;
+}
+
+/** Complete safety configuration */
+export interface SafetyConfig {
+  global: GlobalSafetyRules;
+  /** Per-node overrides, keyed by node ID */
+  perNode: Record<string, AgentSafetyRules>;
+}
+
+/** Result of testing a command against safety rules */
+export interface SafetyTestResult {
+  allowed: boolean;
+  reason?: string;
+  matchedRule?: string;
+}
+
+// =============================================
+// Audit Trail (Sprint 5 — D-035)
+// =============================================
+
+/** Status of an audit entry */
+export type AuditStatus = "success" | "error" | "blocked";
+
+/** A single audit entry logged during execution */
+export interface AuditEntry {
+  id: string;
+  runId: string;
+  nodeId: string;
+  agentName: string;
+  tool: string;
+  input: string;
+  output: string;
+  status: AuditStatus;
+  timestamp: string;
+  durationMs: number;
+}
+
+/** Summary of an execution run for the runs list */
+export interface RunSummary {
+  id: string;
+  configId: string;
+  configName?: string;
+  status: ExecutionStatus;
+  nodeCount: number;
+  startedAt: string;
+  completedAt?: string;
+  totalDurationMs?: number;
+  entryCounts: { success: number; error: number; blocked: number };
+}
+
+/** Filters for querying audit entries */
+export interface AuditFilter {
+  runId?: string;
+  nodeId?: string;
+  agentName?: string;
+  tool?: string;
+  status?: AuditStatus;
+  fromDate?: string;
+  toDate?: string;
+}
+
+// =============================================
+// Flow Templates (Sprint 3 — D-003)
+// =============================================
+
+/** A reusable flow template */
+export interface FlowTemplate {
+  id: string;
+  name: string;
+  description: string;
+  nodes: CanvasNode[];
+  edges: CanvasEdge[];
 }

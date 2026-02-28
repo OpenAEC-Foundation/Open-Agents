@@ -35,11 +35,12 @@ export async function executeRoutes(app: FastifyInstance) {
       }
     }
 
-    // Check that at least one provider key is available for the models in this config
+    // Check that provider keys are available (Anthropic + Ollama can work without BYOK key:
+    // Anthropic uses Claude Code OAuth, Ollama is local)
     const providers = new Set(config.nodes.map((n) => n.data.model.split("/")[0]));
     for (const provider of providers) {
       const key = getApiKey(provider as "anthropic" | "openai" | "mistral" | "ollama");
-      if (!key && provider !== "ollama") {
+      if (!key && provider !== "ollama" && provider !== "anthropic") {
         reply.code(400);
         return { error: `No API key configured for provider "${provider}". Connect via Settings first.` };
       }
@@ -79,7 +80,7 @@ export async function executeRoutes(app: FastifyInstance) {
       }
 
       // If run is already finished, close immediately
-      if (run.status === "completed" || run.status === "error") {
+      if (run.status === "completed" || run.status === "error" || run.status === "cancelled") {
         raw.end();
         return;
       }
@@ -88,7 +89,12 @@ export async function executeRoutes(app: FastifyInstance) {
       const unsubscribe = engine.subscribe(request.params.id, (event) => {
         raw.write(`data: ${JSON.stringify(event)}\n\n`);
 
-        if (event.type === "run:complete") {
+        // Close SSE stream on terminal events
+        if (
+          event.type === "run:complete" ||
+          event.type === "run:paused" ||
+          event.type === "run:cancelled"
+        ) {
           clearTimeout(timeout);
           raw.end();
           unsubscribe();
@@ -126,6 +132,70 @@ export async function executeRoutes(app: FastifyInstance) {
         return { error: "Run not found" };
       }
       return run;
+    },
+  );
+
+  // =========================================================================
+  // Sprint 3: Execution Control Endpoints
+  // =========================================================================
+
+  // Pause a running execution after the current step
+  app.post<{ Params: { id: string } }>(
+    "/execute/:id/pause",
+    async (request, reply) => {
+      const ok = engine.pauseRun(request.params.id);
+      if (!ok) {
+        reply.code(409);
+        return { error: "Run is not in a pauseable state" };
+      }
+      return { ok: true };
+    },
+  );
+
+  // Resume a paused execution
+  app.post<{ Params: { id: string } }>(
+    "/execute/:id/resume",
+    async (request, reply) => {
+      const ok = engine.resumeRun(request.params.id);
+      if (!ok) {
+        reply.code(409);
+        return { error: "Run is not paused" };
+      }
+      return { ok: true };
+    },
+  );
+
+  // Cancel a running or paused execution
+  app.post<{ Params: { id: string } }>(
+    "/execute/:id/cancel",
+    async (request, reply) => {
+      const ok = engine.cancelRun(request.params.id);
+      if (!ok) {
+        reply.code(409);
+        return { error: "Run cannot be cancelled" };
+      }
+      return { ok: true };
+    },
+  );
+
+  // Submit an error decision (retry/skip/abort) for a failed step
+  app.post<{
+    Params: { id: string };
+    Body: { decision: "retry" | "skip" | "abort" };
+  }>(
+    "/execute/:id/decision",
+    async (request, reply) => {
+      const { decision } = request.body;
+      if (!decision || !["retry", "skip", "abort"].includes(decision)) {
+        reply.code(400);
+        return { error: "Invalid decision. Must be 'retry', 'skip', or 'abort'." };
+      }
+      const ok = engine.submitErrorDecision(request.params.id, decision);
+      if (!ok) {
+        reply.code(409);
+        return { error: "No pending decision for this run" };
+      }
+      return { ok: true };
     },
   );
 }

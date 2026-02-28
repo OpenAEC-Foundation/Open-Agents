@@ -21,13 +21,26 @@ export type {
   SkillLevel,
   ToolDisplayInfo,
   ModelDisplayInfo,
+  ModelMeta,
   ConnectionStatus,
   ConnectRequest,
   ConnectResponse,
   ProviderConnection,
+  AppTab,
+  AgentDefinition,
+  PermissionMode,
+  AgentSafetyRules,
+  GlobalSafetyRules,
+  SafetyConfig,
+  SafetyTestResult,
+  AuditStatus,
+  AuditEntry,
+  RunSummary,
+  AuditFilter,
+  FlowTemplate,
 } from "./types.js";
 
-export { TOOL_DISPLAY } from "./types.js";
+export { TOOL_DISPLAY, MODEL_CATALOG, getModelMeta } from "./types.js";
 
 export type {
   AgentEventType,
@@ -35,3 +48,26 @@ export type {
   RuntimeExecutionConfig,
   AgentRuntime,
 } from "./runtime.js";
+
+export type {
+  LatencyTier,
+  RiskLevel,
+  ExecutionTimeTier,
+  ModelCapability,
+  ModelProfile,
+  ToolProfile,
+  TokenProfile,
+  PatternNodeTemplate,
+  PatternCategory,
+  RoutingPattern,
+  OrchestrationPrinciple,
+  BuildingBlockType,
+  BuildingBlock,
+  NodeCostBreakdown,
+  CostEstimate,
+  ValidationSeverity,
+  ValidationIssue,
+  ValidationResult,
+  KnowledgeSearchQuery,
+  KnowledgeSearchResult,
+} from "./knowledge-types.js";

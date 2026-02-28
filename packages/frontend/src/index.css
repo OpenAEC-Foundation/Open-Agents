@@ -58,3 +58,13 @@ body,
     border-color 200ms ease,
     box-shadow 200ms ease;
 }
+
+/* Sprint 3: Pulsing blue ring for running nodes */
+@keyframes ring-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px #3b82f6; }
+  50% { box-shadow: 0 0 0 4px #3b82f680; }
+}
+
+.node-running {
+  animation: ring-pulse 1.5s ease-in-out infinite;
+}

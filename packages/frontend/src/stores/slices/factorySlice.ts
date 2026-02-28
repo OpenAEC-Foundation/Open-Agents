@@ -12,6 +12,12 @@ export const createFactorySlice: SliceCreator<FactorySlice> = (set, get) => ({
   agents: [],
   agentsLoading: false,
 
+  // Generator state (Fase 2.4)
+  generatorOpen: false,
+  generatorLoading: false,
+  generatorDraft: null,
+  generatorError: null,
+
   openWizard: () => set((state) => {
     state.wizardOpen = true;
     state.wizardStep = 0;
@@ -59,6 +65,128 @@ export const createFactorySlice: SliceCreator<FactorySlice> = (set, get) => ({
       });
     } catch (err) {
       console.error("Failed to create agent:", err);
+    }
+  },
+
+  // Generator actions (Fase 2.4)
+  openGenerator: () => set((state) => {
+    state.generatorOpen = true;
+    state.generatorDraft = null;
+    state.generatorError = null;
+  }),
+
+  closeGenerator: () => set((state) => {
+    state.generatorOpen = false;
+    state.generatorLoading = false;
+    state.generatorDraft = null;
+    state.generatorError = null;
+  }),
+
+  generateAgent: async (description: string) => {
+    set((state) => {
+      state.generatorLoading = true;
+      state.generatorError = null;
+      state.generatorDraft = null;
+    });
+
+    try {
+      const res = await fetch(`${getApiBase()}/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description, assetType: "agent" }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        set((state) => {
+          state.generatorLoading = false;
+          state.generatorError = data.error ?? "Generation failed";
+        });
+        return;
+      }
+
+      set((state) => {
+        state.generatorLoading = false;
+        state.generatorDraft = data.draft;
+      });
+    } catch (err) {
+      set((state) => {
+        state.generatorLoading = false;
+        state.generatorError = err instanceof Error ? err.message : "Network error";
+      });
+    }
+  },
+
+  refineAgent: async (refinementPrompt: string) => {
+    const existing = get().generatorDraft;
+    if (!existing) return;
+
+    set((state) => {
+      state.generatorLoading = true;
+      state.generatorError = null;
+    });
+
+    try {
+      const res = await fetch(`${getApiBase()}/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: refinementPrompt,
+          assetType: "agent",
+          existingDraft: existing,
+          refinementPrompt,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        set((state) => {
+          state.generatorLoading = false;
+          state.generatorError = data.error ?? "Refinement failed";
+        });
+        return;
+      }
+
+      set((state) => {
+        state.generatorLoading = false;
+        state.generatorDraft = data.draft;
+      });
+    } catch (err) {
+      set((state) => {
+        state.generatorLoading = false;
+        state.generatorError = err instanceof Error ? err.message : "Network error";
+      });
+    }
+  },
+
+  updateGeneratorDraft: (patch) => set((state) => {
+    if (state.generatorDraft) {
+      state.generatorDraft = { ...state.generatorDraft, ...patch };
+    }
+  }),
+
+  acceptGeneratorDraft: async () => {
+    const draft = get().generatorDraft;
+    if (!draft?.name || !draft?.systemPrompt || !draft?.model) return;
+
+    try {
+      const res = await fetch(`${getApiBase()}/agents`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(draft),
+      });
+      if (!res.ok) throw new Error("Failed to save agent");
+
+      const created: AgentDefinition = await res.json();
+      set((state) => {
+        state.agents.push(created);
+        state.generatorOpen = false;
+        state.generatorLoading = false;
+        state.generatorDraft = null;
+        state.generatorError = null;
+      });
+    } catch (err) {
+      console.error("Failed to save generated agent:", err);
     }
   },
 

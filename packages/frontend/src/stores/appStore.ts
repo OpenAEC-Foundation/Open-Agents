@@ -9,6 +9,9 @@ import { createUISlice } from "./slices/uiSlice";
 import { createSettingsSlice } from "./slices/settingsSlice";
 import { createExecutionSlice } from "./slices/executionSlice";
 import { createWorkspaceSlice } from "./slices/workspaceSlice";
+import { createFactorySlice } from "./slices/factorySlice";
+import { createSafetySlice } from "./slices/safetySlice";
+import { createAuditSlice } from "./slices/auditSlice";
 
 export const useAppStore: UseBoundStore<StoreApi<AppState>> = create<AppState>()(
   immer(
@@ -22,6 +25,9 @@ export const useAppStore: UseBoundStore<StoreApi<AppState>> = create<AppState>()
           ...createSettingsSlice(...a),
           ...createExecutionSlice(...a),
           ...createWorkspaceSlice(...a),
+          ...createFactorySlice(...a),
+          ...createSafetySlice(...a),
+          ...createAuditSlice(...a),
         }),
         {
           name: "open-agents-store",

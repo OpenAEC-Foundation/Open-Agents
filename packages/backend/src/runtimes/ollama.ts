@@ -44,6 +44,7 @@ export class OllamaRuntime implements AgentRuntime {
           prompt,
           stream: false,
         }),
+        signal: config.abortSignal,
       });
 
       if (!res.ok) {

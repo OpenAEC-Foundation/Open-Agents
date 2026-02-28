@@ -21,6 +21,7 @@ export interface RuntimeExecutionConfig {
   nodeId: string;
   agent: AgentNodeData;
   previousOutput?: string;
+  abortSignal?: AbortSignal;
 }
 
 /**

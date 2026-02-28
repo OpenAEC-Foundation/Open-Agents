@@ -1,30 +1,17 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import type { AgentNodeData, ModelId, AgentTool, ExecutionStatus } from "@open-agents/shared";
-import { TOOL_DISPLAY } from "@open-agents/shared";
+import { TOOL_DISPLAY, MODEL_CATALOG, getModelMeta } from "@open-agents/shared";
 import { useAppStore } from "../stores/appStore";
 
-const statusColors: Record<ExecutionStatus, string> = {
+const statusColors: Record<string, string> = {
   idle: "bg-border-default",
   running: "bg-yellow-400 animate-pulse",
   completed: "bg-green-500",
   error: "bg-red-500",
+  paused: "bg-yellow-400",
+  cancelled: "bg-zinc-500",
 };
-
-interface ModelMeta {
-  id: ModelId;
-  labels: { beginner: string; intermediate: string; advanced: string };
-  color: string;
-}
-
-const models: ModelMeta[] = [
-  { id: "anthropic/claude-haiku-4-5", labels: { beginner: "Fast & cheap", intermediate: "Haiku", advanced: "Haiku" }, color: "bg-emerald-500" },
-  { id: "anthropic/claude-sonnet-4-6", labels: { beginner: "Balanced", intermediate: "Sonnet", advanced: "Sonnet" }, color: "bg-blue-500" },
-  { id: "anthropic/claude-opus-4-6", labels: { beginner: "Most capable", intermediate: "Opus", advanced: "Opus" }, color: "bg-purple-500" },
-  { id: "openai/gpt-4o", labels: { beginner: "GPT (fast)", intermediate: "GPT-4o", advanced: "GPT-4o" }, color: "bg-teal-500" },
-  { id: "openai/o3", labels: { beginner: "GPT (reasoning)", intermediate: "o3", advanced: "o3" }, color: "bg-teal-500" },
-  { id: "mistral/mistral-large", labels: { beginner: "Mistral (large)", intermediate: "Mistral L", advanced: "Mistral L" }, color: "bg-orange-500" },
-];
 
 const allTools: AgentTool[] = [
   "Read",
@@ -42,13 +29,33 @@ export function AgentNode({ id, data }: NodeProps) {
   const updateNodeData = useAppStore((s) => s.updateNodeData);
   const skillLevel = useAppStore((s) => s.skillLevel);
   const nodeStatus: ExecutionStatus = useAppStore((s) => s.nodeStatuses[id] ?? "idle");
+  const setSelectedOutputNodeId = useAppStore((s) => s.setSelectedOutputNodeId);
 
   const updateData = useCallback(
     (patch: Partial<AgentNodeData>) => updateNodeData(id, patch),
     [id, updateNodeData],
   );
 
-  const modelMeta = models.find((m) => m.id === agentData.model) ?? models[1];
+  const handleNodeClick = useCallback(() => {
+    if (nodeStatus === "completed" || nodeStatus === "error") {
+      setSelectedOutputNodeId(id);
+    }
+  }, [id, nodeStatus, setSelectedOutputNodeId]);
+
+  const nodeBorderStyle = useMemo((): React.CSSProperties => ({
+    boxShadow:
+      nodeStatus === "running"
+        ? undefined // handled by CSS class .node-running
+        : nodeStatus === "completed"
+          ? "0 0 0 2px #22c55e"
+          : nodeStatus === "error"
+            ? "0 0 0 2px #ef4444"
+            : nodeStatus === "paused"
+              ? "0 0 0 2px #eab308"
+              : "0 0 0 1px #333333",
+  }), [nodeStatus]);
+
+  const modelMeta = getModelMeta(agentData.model);
   const modelLabel = modelMeta.labels[skillLevel];
 
   const toggleTool = useCallback(
@@ -63,7 +70,13 @@ export function AgentNode({ id, data }: NodeProps) {
   );
 
   return (
-    <div className="bg-surface-raised border border-border-subtle rounded-lg shadow-lg min-w-[240px] max-w-[300px]">
+    <div
+      className={`bg-surface-raised rounded-lg shadow-lg min-w-[240px] max-w-[300px] transition-shadow ${
+        nodeStatus === "running" ? "node-running" : ""
+      }`}
+      style={nodeBorderStyle}
+      onClick={handleNodeClick}
+    >
       <Handle
         type="target"
         position={Position.Left}
@@ -72,7 +85,16 @@ export function AgentNode({ id, data }: NodeProps) {
 
       {/* Header: editable name + model selector */}
       <div className="px-3 py-2 border-b border-border-default flex items-center gap-2">
-        <div className={`w-2 h-2 rounded-full shrink-0 ${statusColors[nodeStatus]}`} />
+        <div className={`w-2 h-2 rounded-full shrink-0 ${statusColors[nodeStatus] ?? "bg-border-default"}`} />
+        {nodeStatus === "completed" && (
+          <span className="text-green-500 text-xs shrink-0" title="Completed">&#10003;</span>
+        )}
+        {nodeStatus === "error" && (
+          <span className="text-red-500 text-xs shrink-0" title="Error">&#10005;</span>
+        )}
+        {nodeStatus === "running" && (
+          <span className="text-blue-400 text-xs shrink-0 animate-spin" title="Running">&#10227;</span>
+        )}
         <input
           className="nopan nodrag bg-transparent text-text-primary text-sm font-medium outline-none border-b border-transparent focus:border-border-focus w-full min-w-0"
           value={agentData.name}
@@ -84,7 +106,7 @@ export function AgentNode({ id, data }: NodeProps) {
           value={agentData.model}
           onChange={(e) => updateData({ model: e.target.value as ModelId })}
         >
-          {models.map((m) => (
+          {MODEL_CATALOG.map((m) => (
             <option key={m.id} value={m.id} className="bg-surface-raised">
               {m.labels[skillLevel]}
             </option>
