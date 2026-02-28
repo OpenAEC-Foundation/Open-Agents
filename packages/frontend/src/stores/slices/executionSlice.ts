@@ -1,14 +1,10 @@
-import type {
-  ChatMessage,
-  ChatEvent,
-  AgentNodeData,
-  ExecutionRun,
-  ExecutionStatus,
-  SSEEvent,
-} from "@open-agents/shared";
+import type { ChatMessage } from "@open-agents/shared";
 import type { SliceCreator, ExecutionSlice } from "../types";
-
-const API_BASE = "/api";
+import {
+  streamChat,
+  createExecutionRun,
+  streamExecution,
+} from "../../services/executionService";
 
 export const createExecutionSlice: SliceCreator<ExecutionSlice> = (set, get) => ({
   // Chat state
@@ -56,82 +52,43 @@ export const createExecutionSlice: SliceCreator<ExecutionSlice> = (set, get) => 
     });
 
     try {
-      const res = await fetch(`${API_BASE}/execute`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(config),
-      });
-
-      if (!res.ok) {
-        const err = (await res.json()) as { error: string };
-        throw new Error(err.error ?? `HTTP ${res.status}`);
-      }
-
-      const run = (await res.json()) as ExecutionRun;
+      const run = await createExecutionRun(config);
       set((state) => { state.activeRun = run; });
 
-      // Open SSE connection to stream execution events
-      const sseRes = await fetch(`${API_BASE}/execute/${run.id}/status`);
-      if (!sseRes.ok) {
-        throw new Error(`SSE connection failed: HTTP ${sseRes.status}`);
-      }
-
-      const reader = sseRes.body?.getReader();
-      if (!reader) throw new Error("No response body for SSE stream");
-
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split("\n\n");
-        buffer = parts.pop() ?? "";
-
-        for (const part of parts) {
-          const line = part.trim();
-          if (!line.startsWith("data: ")) continue;
-          const json = line.slice(6).trim();
-          if (!json) continue;
-
-          const event = JSON.parse(json) as SSEEvent;
-
-          switch (event.type) {
-            case "step:start":
-              if (event.nodeId) {
-                set((state) => { state.nodeStatuses[event.nodeId!] = "running"; });
-              }
-              break;
-            case "step:output":
-              if (event.nodeId) {
-                set((state) => { state.nodeOutputs[event.nodeId!] = event.data ?? ""; });
-              }
-              break;
-            case "step:complete":
-              if (event.nodeId) {
-                set((state) => {
-                  state.nodeStatuses[event.nodeId!] = "completed";
-                  state.nodeOutputs[event.nodeId!] = event.data ?? "";
-                });
-              }
-              break;
-            case "step:error":
-              if (event.nodeId) {
-                set((state) => {
-                  state.nodeStatuses[event.nodeId!] = "error";
-                  state.nodeOutputs[event.nodeId!] = event.data ?? "";
-                });
-              }
-              break;
-            case "run:complete":
+      for await (const event of streamExecution(run.id)) {
+        switch (event.type) {
+          case "step:start":
+            if (event.nodeId) {
+              set((state) => { state.nodeStatuses[event.nodeId!] = "running"; });
+            }
+            break;
+          case "step:output":
+            if (event.nodeId) {
+              set((state) => { state.nodeOutputs[event.nodeId!] = event.data ?? ""; });
+            }
+            break;
+          case "step:complete":
+            if (event.nodeId) {
               set((state) => {
-                state.isRunning = false;
-                if (state.activeRun) state.activeRun.status = "completed";
+                state.nodeStatuses[event.nodeId!] = "completed";
+                state.nodeOutputs[event.nodeId!] = event.data ?? "";
               });
-              break;
-          }
+            }
+            break;
+          case "step:error":
+            if (event.nodeId) {
+              set((state) => {
+                state.nodeStatuses[event.nodeId!] = "error";
+                state.nodeOutputs[event.nodeId!] = event.data ?? "";
+              });
+            }
+            break;
+          case "run:complete":
+            set((state) => {
+              state.isRunning = false;
+              if (state.activeRun) state.activeRun.status = "completed";
+            });
+            break;
         }
       }
 
@@ -162,53 +119,22 @@ export const createExecutionSlice: SliceCreator<ExecutionSlice> = (set, get) => 
     });
 
     try {
-      const res = await fetch(`${API_BASE}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message,
-          agent,
-          sessionId: get().sessions[nodeId],
-        }),
-      });
-
-      if (!res.ok) {
-        const err = (await res.json()) as { error: string };
-        throw new Error(err.error ?? `HTTP ${res.status}`);
-      }
-
-      const reader = res.body?.getReader();
-      if (!reader) throw new Error("No response body");
-
-      const decoder = new TextDecoder();
-      let sseBuffer = "";
       let fullContent = "";
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        sseBuffer += decoder.decode(value, { stream: true });
-        const lines = sseBuffer.split("\n");
-        sseBuffer = lines.pop() ?? "";
-
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const json = line.slice(6).trim();
-          if (!json) continue;
-
-          const event = JSON.parse(json) as ChatEvent;
-
-          if (event.type === "chat:session" && event.sessionId) {
-            set((state) => { state.sessions[nodeId] = event.sessionId!; });
-          } else if (event.type === "chat:delta" && event.delta) {
+      for await (const event of streamChat(message, agent, get().sessions[nodeId])) {
+        switch (event.type) {
+          case "session":
+            set((state) => { state.sessions[nodeId] = event.sessionId; });
+            break;
+          case "delta":
             fullContent += event.delta;
             set((state) => { state.streamingContent = fullContent; });
-          } else if (event.type === "chat:complete") {
-            fullContent = event.content ?? fullContent;
-          } else if (event.type === "chat:error") {
-            throw new Error(event.error ?? "Chat error");
-          }
+            break;
+          case "complete":
+            fullContent = event.content || fullContent;
+            break;
+          case "error":
+            throw new Error(event.error);
         }
       }
 
