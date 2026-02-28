@@ -4,7 +4,7 @@
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
 > **Laatste update**: 2026-02-28
-> **Status**: Fase 0 - Foundation IN PROGRESS
+> **Status**: Sprint 1 - Proof of Concept ACTIVE
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -15,7 +15,7 @@
 | Categorie | Voltooid | Totaal |
 |-----------|:--------:|:------:|
 | Research & Visie | 3 | 3 |
-| Core Documenten | 5 | 7 |
+| Core Documenten | 7 | 7 |
 | PoC Canvas | 0 | 1 |
 | Factory Portal | 0 | 1 |
 | Orchestratie (Flow + Pool) | 0 | 2 |
@@ -25,7 +25,7 @@
 | Frappe App | 0 | 1 |
 | Agent Library (doel: 100+) | 0 | 100 |
 
-**Fase 0 (Foundation)**: ████████████████░░░░ **80%** - documenten, visie, research
+**Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
 **Fase 1 (PoC)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 2 (Factory)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 3 (Orchestratie)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
@@ -37,7 +37,7 @@
 
 ## Fase Overzicht
 
-### Fase 0: Foundation (In Progress)
+### Fase 0: Foundation (Complete)
 
 - [x] Pi.dev research en documentatie
 - [x] OpenAgents projectplan geschreven
@@ -48,13 +48,13 @@
 - [x] Visuele editor libraries research (React Flow, Vue Flow, Rete.js)
 - [x] Vergelijkbare platforms analyse (Langflow, Flowise, Dify, n8n)
 - [x] OpenAEC repos inventaris (36 repos, relevante tools geïdentificeerd)
-- [ ] REQUIREMENTS.md geschreven
-- [ ] MASTERPLAN.md geschreven
-- [ ] PRINCIPLES.md geschreven
-- [ ] SOURCES.md geschreven
-- [ ] OPEN-QUESTIONS.md geschreven
-- [ ] DECISIONS.md geüpdate met nieuwe beslissingen
-- [ ] ROADMAP.md geüpdate (dit document)
+- [x] REQUIREMENTS.md geschreven
+- [x] MASTERPLAN.md geschreven
+- [x] PRINCIPLES.md geschreven
+- [x] SOURCES.md geschreven
+- [x] OPEN-QUESTIONS.md geschreven
+- [x] DECISIONS.md geüpdate met nieuwe beslissingen
+- [x] ROADMAP.md geüpdate (dit document)
 
 ### Fase 1: Proof of Concept (Sprint 1)
 

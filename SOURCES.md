@@ -22,6 +22,7 @@
 | Bron | Onderwerp | Kernpunten |
 |------|-----------|------------|
 | [Agent SDK Overview](https://platform.claude.com/docs/en/agent-sdk/overview) | Agent SDK | `query()` functie, subagent spawning, session management (resume/fork), hooks (PreToolUse, PostToolUse, Stop, SessionStart, SessionEnd), MCP server integratie, permission modes, Python + TypeScript SDKs. |
+| [**Agent Teams**](https://code.claude.com/docs/en/agent-teams) | **Agent Teams (KERN)** | **Experimentele multi-session orchestratie.** Team lead coördineert teammates (elk eigen context window). Shared task list met self-claiming, inter-agent messaging (direct + broadcast), plan approval workflow, hooks (`TeammateIdle`, `TaskCompleted`), display modes (in-process/split-pane). Architectuur: team lead + teammates + shared task list + mailbox. Verschil met subagents: subagents rapporteren alleen terug, teammates communiceren onderling. **Dit is exact wat Open-Agents visueel moet maken.** |
 | [Agent Skills Overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview) | Skills | Progressieve 3-level loading (metadata ~100 tokens, instructions <5K tokens, resources unlimited), YAML frontmatter, custom upload via `/v1/skills` API. |
 | [Context Windows](https://platform.claude.com/docs/en/build-with-claude/context-windows) | Context | 200K standaard, 1M beta (tier 4+), server-side compaction, context awareness (token budget updates), prijsverhoging boven 200K. |
 
@@ -96,6 +97,17 @@ Onderstaande inzichten komen voort uit het analyseren van bovenstaande bronnen e
 - **Canvas node naar AgentDefinition**: elk visueel node mapt naar `{description, prompt, tools}`.
 - **Skills naar "capability marketplace"**: sleep skills op agent nodes in de visuele builder. Progressieve loading voorkomt token overhead bij grote snippet libraries.
 - **MCP servers naar "connector nodes"**: speciaal node type voor externe systeemverbindingen (ERPNext, Nextcloud, databases).
+
+### Agent Teams → Canvas Mapping (KERN)
+
+- **Agent Teams = native bevestiging van ons concept.** Claude Code heeft nu zelf multi-agent orchestratie met team lead, teammates, shared task list en mailbox. Open-Agents maakt dit visueel en toegankelijk.
+- **Team lead → Orchestrator node op canvas.** De lead coördineert, assignt taken, synthestiseert resultaten. In onze UI is dit het centrale dispatcher-blok.
+- **Teammates → Agent nodes op canvas.** Elk teammate is een volledige Claude Code sessie met eigen context window. In onze canvas zijn dit de individuele agent-blokken.
+- **Shared task list → Flow/Pool edges op canvas.** Task dependencies worden visueel als verbindingslijnen. Self-claiming = Pool pattern. Sequentiële dependencies = Flow pattern.
+- **Mailbox (message/broadcast) → Inter-agent messaging edges.** Directe communicatie tussen agents wordt visueel als verbindingslijnen met message-indicatoren.
+- **Plan approval workflow → Visuele gate nodes.** Teammates plannen eerst, lead keurt goed. In onze UI: review/approval stap als apart blok in de flow.
+- **Hooks (`TeammateIdle`, `TaskCompleted`) → Event triggers op canvas.** Quality gates als visuele checkpoints op edges.
+- **Subagents vs Agent Teams = twee orchestratieniveaus.** Subagents voor fire-and-forget (rapport terug), Teams voor collaboratief werk (onderling communiceren). Open-Agents moet beide visueel ondersteunen.
 
 ### Context & Session Management
 

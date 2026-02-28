@@ -116,6 +116,8 @@ Open-Agents is een visueel platform waarmee je AI agent-architecturen bouwt door
 - Workspace-specifieke agent configuraties (per project andere agents)
 - Workspace state persistent: heropenen met laatste configuratie
 - De app is een laag bovenop je bestaande workspace - raakt je bestanden niet aan tenzij een agent dat doet
+- Docker containers mounten de workspace directory: agents draaien geïsoleerd maar werken alsof ze `cd [WORKSPACE] && claude` hebben gedaan
+- Volume mount strategie: workspace als read/write mount, agent config als read-only mount
 
 ### FR-13: Switchable Orchestrator Context
 
