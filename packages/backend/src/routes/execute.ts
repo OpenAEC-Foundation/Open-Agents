@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { CanvasConfig, SSEEvent } from "@open-agents/shared";
 import * as engine from "../execution-engine.js";
+import { getApiKey } from "../key-store.js";
 
 export async function executeRoutes(app: FastifyInstance) {
   // Start execution of a canvas configuration
@@ -34,10 +35,14 @@ export async function executeRoutes(app: FastifyInstance) {
       }
     }
 
-    // Check API key is configured
-    if (!process.env.ANTHROPIC_API_KEY) {
-      reply.code(500);
-      return { error: "ANTHROPIC_API_KEY not configured on server" };
+    // Check that at least one provider key is available for the models in this config
+    const providers = new Set(config.nodes.map((n) => n.data.model.split("/")[0]));
+    for (const provider of providers) {
+      const key = getApiKey(provider as "anthropic" | "openai" | "mistral" | "ollama");
+      if (!key && provider !== "ollama") {
+        reply.code(400);
+        return { error: `No API key configured for provider "${provider}". Connect via Settings first.` };
+      }
     }
 
     const run = engine.startRun(config);

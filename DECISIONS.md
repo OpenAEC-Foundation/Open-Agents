@@ -49,6 +49,7 @@
 | D-013 | Claude API Key Beheer | Environment variable (`ANTHROPIC_API_KEY` in `.env`) | Simpelst voor PoC. `.env` in `.gitignore`, `.env.example` als template. BYOK via UI is latere iteratie. | 2026-03-01 |
 | D-027 | Library Ecosystem architectuur | 10 browsable libraries (7 atomair + 3 composiet) georganiseerd per D-025 engineering laag | Dekt alle asset types van het platform: patterns, agents, skills, connectors, hooks, rules, models (atomair) + templates, plugins, workspace templates (composiet). Elke library heeft zoeken, filteren, preview, one-click apply. | 2026-02-28 |
 | D-028 | LLM-Powered Asset Generation | Factory gebruikt LLM voor conversational generatie van library assets | LLM kent platform regels (D-023 taxonomie, D-024 workspace stack, D-020 snippet formaat). Automatische validatie bij generatie. Draft-first: gebruiker reviewt voor publicatie. | 2026-02-28 |
+| D-029 | White-Label Theming Architectuur | CSS custom properties + Tailwind v4 `@theme` voor swappable branding | Twee lagen: (1) `@theme` in index.css mapt semantische tokens naar CSS vars, (2) themabestand (bv. impertio.css) definieert de `--oa-*` variabelen. White-labelen = één CSS bestand swappen, geen component code wijzigen. Impertio Studio als default thema. Zie D-029 Details. | 2026-03-01 |
 
 ---
 
@@ -237,6 +238,57 @@ Van duurste naar goedkoopste per use:
 
 ---
 
+## D-029 Details: White-Label Theming Architectuur
+
+> **Kernvraag**: Hoe leggen we huisstijl vast zonder het statisch in te bakken? Andere bedrijven moeten hun branding kunnen inwisselen.
+
+### Architectuur: Twee Lagen
+
+```
+┌─────────────────────────────────────────┐
+│ index.css                               │
+│                                         │
+│  @theme {                               │
+│    --color-surface-base: var(--oa-...); │  ← Tailwind utilities genereren
+│    --color-accent-primary: var(--oa-...)│     (bg-surface-base, etc.)
+│    --font-sans: var(--oa-font-sans);    │
+│  }                                      │
+├─────────────────────────────────────────┤
+│ themes/impertio.css (swappable)         │
+│                                         │
+│  :root {                                │
+│    --oa-surface-base: #0a0a0a;          │  ← Branding waarden
+│    --oa-accent-primary: #ff6b00;        │
+│    --oa-font-sans: 'Montserrat', ...;   │
+│  }                                      │
+└─────────────────────────────────────────┘
+```
+
+### Semantic Token Systeem
+
+| Categorie | Tokens | Voorbeeld Impertio |
+|-----------|--------|-------------------|
+| Surface | `surface-base`, `surface-raised`, `surface-overlay`, `surface-input` | #0a0a0a, #1a1a1a, #2d2d2d, #0a0a0a |
+| Border | `border-default`, `border-subtle`, `border-focus` | #404040, #333333, #ff6b00 |
+| Text | `text-primary`, `text-secondary`, `text-tertiary`, `text-muted` | #ffffff, #b3b3b3, #8a8a8a, #666666 |
+| Accent | `accent-primary`, `accent-primary-hover`, `accent-secondary`, `accent-code` | #ff6b00, #ff8c00, #00ff88, #00cc6a |
+| Typography | `font-sans`, `font-mono` | Montserrat, JetBrains Mono |
+
+### White-Label Procedure
+
+1. Kopieer `themes/impertio.css` → `themes/my-brand.css`
+2. Vervang alle `--oa-*` waarden met eigen branding
+3. Wijzig `@import` in `index.css` naar nieuw bestand
+4. Geen component code wijzigen nodig
+
+### Wat NIET in het themasysteem zit
+
+- **Model badge kleuren** (emerald, blue, purple, teal, orange): semantisch per model, niet per brand
+- **React Flow dark mode**: eigen theming via `colorMode="dark"`
+- **Layout/spacing**: vaste UX, niet per brand aanpasbaar
+
+---
+
 ## Decision Template
 
 ```markdown
@@ -249,4 +301,4 @@ Bij het nemen van een beslissing, verplaats naar "Genomen" met rationale en datu
 
 ---
 
-*Laatste update: 2026-03-01*
+*Laatste update: 2026-03-02*

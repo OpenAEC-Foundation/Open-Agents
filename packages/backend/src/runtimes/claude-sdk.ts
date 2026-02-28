@@ -3,16 +3,32 @@ import type {
   AgentEvent,
   RuntimeExecutionConfig,
 } from "@open-agents/shared";
+import { getApiKey } from "../key-store.js";
 
 /**
  * Claude Agent SDK runtime adapter (D-015).
  * Wraps @anthropic-ai/claude-agent-sdk query() into the AgentRuntime interface.
+ * API key is resolved from key-store (BYOK) with env var fallback.
  */
 export class ClaudeSDKRuntime implements AgentRuntime {
   readonly name = "Claude Agent SDK";
   readonly provider = "anthropic";
 
   async *execute(config: RuntimeExecutionConfig): AsyncIterable<AgentEvent> {
+    const apiKey = getApiKey("anthropic");
+    if (!apiKey) {
+      yield {
+        type: "error",
+        nodeId: config.nodeId,
+        data: "No Anthropic API key configured. Connect via Settings.",
+        timestamp: new Date().toISOString(),
+      };
+      return;
+    }
+
+    // Set env var for SDK (it reads from ANTHROPIC_API_KEY)
+    process.env.ANTHROPIC_API_KEY = apiKey;
+
     const { query } = await import("@anthropic-ai/claude-agent-sdk");
 
     const prompt = config.previousOutput

@@ -1,4 +1,43 @@
 @import "tailwindcss";
+@import "./themes/impertio.css";
+
+/*
+ * Design tokens → Tailwind utilities
+ *
+ * The @theme block maps semantic token names to CSS custom properties.
+ * The actual values come from the active theme file (e.g., impertio.css).
+ *
+ * This generates utility classes like:
+ *   bg-surface-base, text-text-primary, border-border-default, etc.
+ */
+@theme {
+  /* Surface colors */
+  --color-surface-base: var(--oa-surface-base);
+  --color-surface-raised: var(--oa-surface-raised);
+  --color-surface-overlay: var(--oa-surface-overlay);
+  --color-surface-input: var(--oa-surface-input);
+
+  /* Border colors */
+  --color-border-default: var(--oa-border-default);
+  --color-border-subtle: var(--oa-border-subtle);
+  --color-border-focus: var(--oa-border-focus);
+
+  /* Text colors */
+  --color-text-primary: var(--oa-text-primary);
+  --color-text-secondary: var(--oa-text-secondary);
+  --color-text-tertiary: var(--oa-text-tertiary);
+  --color-text-muted: var(--oa-text-muted);
+
+  /* Accent colors */
+  --color-accent-primary: var(--oa-accent-primary);
+  --color-accent-primary-hover: var(--oa-accent-primary-hover);
+  --color-accent-secondary: var(--oa-accent-secondary);
+  --color-accent-code: var(--oa-accent-code);
+
+  /* Typography */
+  --font-sans: var(--oa-font-sans);
+  --font-mono: var(--oa-font-mono);
+}
 
 html,
 body,
@@ -7,5 +46,15 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Smooth theme transitions — colors and fonts animate when switching */
+*,
+*::before,
+*::after {
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
 }

@@ -308,6 +308,21 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - **Batch generatie**: meerdere gerelateerde assets in één keer genereren (bijv. een agent + bijbehorende skills + workspace template)
 - Gegenereerde assets verschijnen als draft in de library, gebruiker reviewt en publiceert
 
+### FR-24: White-Label Theming (D-029)
+
+- Alle visuele branding (kleuren, fonts, accenten) via **CSS custom properties** (`--oa-*`)
+- Tailwind v4 `@theme` block mapt semantische tokens naar CSS variabelen
+- **Impertio Studio B.V.** huisstijl als default thema
+- **Semantic token categorieën**:
+  - Surface: `surface-base`, `surface-raised`, `surface-overlay`, `surface-input`
+  - Border: `border-default`, `border-subtle`, `border-focus`
+  - Text: `text-primary`, `text-secondary`, `text-tertiary`, `text-muted`
+  - Accent: `accent-primary`, `accent-primary-hover`, `accent-secondary`, `accent-code`
+  - Typography: `font-sans`, `font-mono`
+- **White-label procedure**: kopieer themabestand, pas `--oa-*` waarden aan, wijzig import in index.css
+- Geen component code wijzigen nodig bij branding wissel
+- Model badge kleuren (per LLM provider) blijven los van het themasysteem
+
 ---
 
 ## Niet-Functionele Requirements
@@ -337,7 +352,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 - Moderne, cleane UI die niet afschrikt
 - Visueel aantrekkelijk voor non-technical users
-- Consistent design system
+- Consistent design system via semantic token theming (FR-24, D-029)
+- White-label: branding inwisselbaar zonder code wijzigingen
 - Dark/light mode
 
 ### NFR-05: Architectuur
@@ -394,4 +410,4 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ---
 
-*Laatste update: 2026-02-28*
+*Laatste update: 2026-03-02*

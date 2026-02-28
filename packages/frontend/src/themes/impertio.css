@@ -1,0 +1,40 @@
+/*
+ * Impertio Studio B.V. — Brand Theme
+ *
+ * To white-label Open-Agents for your own brand:
+ * 1. Copy this file and rename it (e.g., my-brand.css)
+ * 2. Replace all --oa-* values with your brand colors/fonts
+ * 3. Update the @import in index.css to point to your file
+ *
+ * All --oa-* variables are consumed by Tailwind via the @theme
+ * block in index.css. You do NOT need to touch any components.
+ */
+
+:root {
+  /* ── Surface ── */
+  --oa-surface-base: #0a0a0a;       /* Obsidian Black — main background */
+  --oa-surface-raised: #1a1a1a;     /* Carbon — cards, sidebar, header */
+  --oa-surface-overlay: #2d2d2d;    /* Graphite — overlays, dropdowns */
+  --oa-surface-input: #0a0a0a;      /* Input backgrounds */
+
+  /* ── Border ── */
+  --oa-border-default: #404040;     /* Standard borders */
+  --oa-border-subtle: #333333;      /* Subtle/lighter borders */
+  --oa-border-focus: #ff6b00;       /* Focus ring — Electric Orange */
+
+  /* ── Text ── */
+  --oa-text-primary: #ffffff;       /* Primary text */
+  --oa-text-secondary: #b3b3b3;    /* Secondary text */
+  --oa-text-tertiary: #8a8a8a;     /* Tertiary text */
+  --oa-text-muted: #666666;        /* Muted/disabled text */
+
+  /* ── Accent ── */
+  --oa-accent-primary: #ff6b00;     /* Electric Orange — buttons, active states */
+  --oa-accent-primary-hover: #ff8c00; /* Blaze — hover states */
+  --oa-accent-secondary: #00ff88;   /* Matrix Green — code, success, highlights */
+  --oa-accent-code: #00cc6a;        /* Terminal — code blocks, JSON output */
+
+  /* ── Typography ── */
+  --oa-font-sans: 'Montserrat Variable', system-ui, -apple-system, sans-serif;
+  --oa-font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+}

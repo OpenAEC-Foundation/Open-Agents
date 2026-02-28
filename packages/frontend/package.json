@@ -11,8 +11,11 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@fontsource-variable/montserrat": "^5.2.8",
     "@open-agents/shared": "workspace:*",
     "@xyflow/react": "^12.10.0",
+    "immer": "^11.1.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "zustand": "^5.0.11"

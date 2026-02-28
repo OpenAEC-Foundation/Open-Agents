@@ -12,8 +12,22 @@ export type {
   ExecutionRun,
   SSEEventType,
   SSEEvent,
+  ChatMessage,
+  ChatSession,
+  ChatEventType,
+  ChatEvent,
+  AgentPreset,
   HealthResponse,
+  SkillLevel,
+  ToolDisplayInfo,
+  ModelDisplayInfo,
+  ConnectionStatus,
+  ConnectRequest,
+  ConnectResponse,
+  ProviderConnection,
 } from "./types.js";
+
+export { TOOL_DISPLAY } from "./types.js";
 
 export type {
   AgentEventType,
