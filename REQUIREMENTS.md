@@ -105,7 +105,19 @@ Open-Agents is een visueel platform waarmee je AI agent-architecturen bouwt door
 - "Explain this" functie op elk UI element
 - Progressive disclosure: complexiteit tonen wanneer de gebruiker er klaar voor is
 
-### FR-12: Switchable Orchestrator Context
+### FR-12: Workspace Selectie & Git Integratie
+
+- Gebruiker kan een lokale workspace (map met Git repo) openen/selecteren
+- Ondersteunt `.code-workspace` bestanden (VS Code compatible)
+- Agents werken binnen de geselecteerde workspace context
+- Git-aware: agents zien bestanden, branches, commit history
+- Workspace browser: bestandsboom zichtbaar in de app
+- Meerdere workspaces tegelijk open (tabs of vensters)
+- Workspace-specifieke agent configuraties (per project andere agents)
+- Workspace state persistent: heropenen met laatste configuratie
+- De app is een laag bovenop je bestaande workspace - raakt je bestanden niet aan tenzij een agent dat doet
+
+### FR-13: Switchable Orchestrator Context
 
 - Input venster waar de gebruiker praat met de orchestrator
 - Context selector (dropdown/tabs) bovenaan het input venster
@@ -117,7 +129,7 @@ Open-Agents is een visueel platform waarmee je AI agent-architecturen bouwt door
 - Claude Code als onderliggende engine voor het input venster
 - Sneltoetsen om snel van context te wisselen
 
-### FR-13: API-first
+### FR-14: API-first
 
 - REST API voor alle functionaliteit die de UI biedt
 - Gedocumenteerde API (OpenAPI/Swagger)
