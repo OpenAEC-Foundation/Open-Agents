@@ -1,0 +1,138 @@
+{
+  "name": "Execution Run",
+  "module": "Open Agents",
+  "doctype": "DocType",
+  "document_type": "Document",
+  "engine": "InnoDB",
+  "naming_rule": "By fieldname",
+  "autoname": "field:run_id",
+  "is_submittable": 0,
+  "track_changes": 1,
+  "fields": [
+    {
+      "fieldname": "run_id",
+      "fieldtype": "Data",
+      "label": "Run ID",
+      "reqd": 1,
+      "unique": 1,
+      "in_list_view": 1,
+      "description": "Unique run identifier (nanoid format)"
+    },
+    {
+      "fieldname": "config_id",
+      "fieldtype": "Data",
+      "label": "Config ID",
+      "reqd": 1,
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "description": "References the CanvasConfig that was executed"
+    },
+    {
+      "fieldname": "config_name",
+      "fieldtype": "Data",
+      "label": "Config Name",
+      "in_list_view": 1,
+      "description": "Display name of the executed config"
+    },
+    {
+      "fieldname": "column_break_1",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "label": "Status",
+      "reqd": 1,
+      "options": "Idle\nRunning\nPaused\nCancelled\nCompleted\nError",
+      "default": "Idle",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "description": "Current execution status"
+    },
+    {
+      "fieldname": "execution_mode",
+      "fieldtype": "Select",
+      "label": "Mode",
+      "options": "Flow\nPool",
+      "default": "Flow",
+      "in_standard_filter": 1,
+      "description": "Execution pattern used"
+    },
+    {
+      "fieldname": "section_timing",
+      "fieldtype": "Section Break",
+      "label": "Timing"
+    },
+    {
+      "fieldname": "started_at",
+      "fieldtype": "Datetime",
+      "label": "Started At",
+      "description": "When execution began"
+    },
+    {
+      "fieldname": "completed_at",
+      "fieldtype": "Datetime",
+      "label": "Completed At",
+      "description": "When execution finished"
+    },
+    {
+      "fieldname": "column_break_2",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "paused_at",
+      "fieldtype": "Datetime",
+      "label": "Paused At",
+      "description": "When execution was paused"
+    },
+    {
+      "fieldname": "total_elapsed_ms",
+      "fieldtype": "Int",
+      "label": "Total Elapsed (ms)",
+      "description": "Total execution time in milliseconds"
+    },
+    {
+      "fieldname": "section_steps",
+      "fieldtype": "Section Break",
+      "label": "Steps & Output"
+    },
+    {
+      "fieldname": "steps",
+      "fieldtype": "JSON",
+      "label": "Steps",
+      "default": "[]",
+      "description": "JSON array of ExecutionStep objects"
+    },
+    {
+      "fieldname": "section_config",
+      "fieldtype": "Section Break",
+      "label": "Full Config",
+      "collapsible": 1
+    },
+    {
+      "fieldname": "canvas_config",
+      "fieldtype": "JSON",
+      "label": "Canvas Config",
+      "description": "Full CanvasConfig JSON snapshot at time of execution"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "export": 1
+    },
+    {
+      "role": "All",
+      "read": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "title_field": "config_name",
+  "search_fields": "run_id, config_id, config_name, status",
+  "icon": "fa fa-play-circle"
+}

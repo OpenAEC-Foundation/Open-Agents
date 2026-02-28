@@ -4,9 +4,11 @@ import type {
   SSEEvent,
   CanvasConfig,
   ExecutionRun,
+  FlowTemplate,
 } from "@open-agents/shared";
 
-const API_BASE = "/api";
+import { getApiBase } from "./apiConfig";
+
 
 /** Chat event types yielded by streamChat */
 export type ChatStreamEvent =
@@ -21,7 +23,7 @@ export async function* streamChat(
   agent: AgentNodeData,
   sessionId?: string,
 ): AsyncGenerator<ChatStreamEvent> {
-  const res = await fetch(`${API_BASE}/chat`, {
+  const res = await fetch(`${getApiBase()}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message, agent, sessionId }),
@@ -71,7 +73,7 @@ export type ExecutionStreamEvent = SSEEvent;
 
 /** Start an execution run and return the run metadata */
 export async function createExecutionRun(config: CanvasConfig): Promise<ExecutionRun> {
-  const res = await fetch(`${API_BASE}/execute`, {
+  const res = await fetch(`${getApiBase()}/execute`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(config),
@@ -87,7 +89,7 @@ export async function createExecutionRun(config: CanvasConfig): Promise<Executio
 
 /** Stream execution SSE events for a given run */
 export async function* streamExecution(runId: string): AsyncGenerator<SSEEvent> {
-  const sseRes = await fetch(`${API_BASE}/execute/${runId}/status`);
+  const sseRes = await fetch(`${getApiBase()}/execute/${runId}/status`);
   if (!sseRes.ok) {
     throw new Error(`SSE connection failed: HTTP ${sseRes.status}`);
   }
@@ -115,4 +117,57 @@ export async function* streamExecution(runId: string): AsyncGenerator<SSEEvent> 
       yield JSON.parse(json) as SSEEvent;
     }
   }
+}
+
+// =============================================
+// Execution Control (Sprint 3)
+// =============================================
+
+/** Pause an active run after the current step */
+export async function pauseRun(runId: string): Promise<void> {
+  const res = await fetch(`${getApiBase()}/execute/${runId}/pause`, { method: "POST" });
+  if (!res.ok) throw new Error(`Pause failed: HTTP ${res.status}`);
+}
+
+/** Cancel an active or paused run */
+export async function cancelRun(runId: string): Promise<void> {
+  const res = await fetch(`${getApiBase()}/execute/${runId}/cancel`, { method: "POST" });
+  if (!res.ok) throw new Error(`Cancel failed: HTTP ${res.status}`);
+}
+
+/** Resume a paused run */
+export async function resumeRun(runId: string): Promise<void> {
+  const res = await fetch(`${getApiBase()}/execute/${runId}/resume`, { method: "POST" });
+  if (!res.ok) throw new Error(`Resume failed: HTTP ${res.status}`);
+}
+
+/** Submit an error decision (retry/skip/abort) for a failed step */
+export async function submitDecision(
+  runId: string,
+  decision: "retry" | "skip" | "abort",
+): Promise<void> {
+  const res = await fetch(`${getApiBase()}/execute/${runId}/decision`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ decision }),
+  });
+  if (!res.ok) throw new Error(`Decision failed: HTTP ${res.status}`);
+}
+
+// =============================================
+// Flow Templates (Sprint 3)
+// =============================================
+
+/** List all available flow templates */
+export async function listTemplates(): Promise<FlowTemplate[]> {
+  const res = await fetch(`${getApiBase()}/templates`);
+  if (!res.ok) throw new Error(`Templates fetch failed: HTTP ${res.status}`);
+  return (await res.json()) as FlowTemplate[];
+}
+
+/** Get a single template by ID */
+export async function getTemplate(templateId: string): Promise<FlowTemplate> {
+  const res = await fetch(`${getApiBase()}/templates/${templateId}`);
+  if (!res.ok) throw new Error(`Template load failed: HTTP ${res.status}`);
+  return (await res.json()) as FlowTemplate;
 }

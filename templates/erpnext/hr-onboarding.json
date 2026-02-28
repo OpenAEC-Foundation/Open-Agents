@@ -1,0 +1,48 @@
+{
+  "name": "HR Onboarding",
+  "description": "Sequential HR onboarding flow: contract generation, system provisioning, and welcome email",
+  "type": "flow",
+  "domain": "erpnext",
+  "nodes": [
+    {
+      "id": "agent-contract",
+      "type": "agent",
+      "position": { "x": 200, "y": 150 },
+      "data": {
+        "name": "Contract Generator",
+        "description": "Generates employment contracts based on HR data",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are an HR contract specialist for ERPNext. When a new Employee is created, you:\n\n- Generate an employment contract based on the Employee DocType data\n- Include job title, department, start date, salary structure\n- Apply Dutch labor law requirements (arbeidsovereenkomst)\n- Include standard clauses: proeftijd, opzegtermijn, geheimhouding\n- Reference the applicable CAO if specified\n\nOutput a structured contract document with:\n- Employee details (name, address, BSN placeholder)\n- Employment terms (type: bepaald/onbepaald, hours, salary)\n- Benefits and allowances from Salary Structure\n- Standard legal clauses\n\nUse ERPNext DocTypes: Employee, Salary Structure, Department.",
+        "tools": ["Read"]
+      }
+    },
+    {
+      "id": "agent-provision",
+      "type": "agent",
+      "position": { "x": 200, "y": 400 },
+      "data": {
+        "name": "Systeem Provisioner",
+        "description": "Creates system accounts and access for new employees",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a system provisioning specialist for ERPNext. After the contract is generated, you:\n\n- Create a User account in ERPNext linked to the Employee\n- Assign appropriate Role Profile based on department and designation\n- Set up email account configuration\n- Generate a checklist of external systems to provision:\n  - Email (Microsoft 365 / Google Workspace)\n  - Chat (Slack / Teams)\n  - VPN access\n  - Department-specific tools\n\nOutput a provisioning report with:\n- ERPNext user created (email, roles)\n- External system accounts to create (manual tasks)\n- Access permissions summary\n- IT equipment requirements\n\nUse ERPNext DocTypes: User, Role Profile, Employee.",
+        "tools": ["Read", "Bash"]
+      }
+    },
+    {
+      "id": "agent-welcome",
+      "type": "agent",
+      "position": { "x": 200, "y": 650 },
+      "data": {
+        "name": "Welkom Mailer",
+        "description": "Sends personalized welcome email to new employees",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "You are an HR communications specialist. After system provisioning, you:\n\n- Draft a personalized welcome email in Dutch\n- Include first-day information:\n  - Office location and arrival time\n  - Who to report to (reporting manager)\n  - Dress code and practical info\n  - Links to onboarding documentation\n- Attach or reference the provisioned accounts\n- Include a warm, professional tone\n\nOutput a ready-to-send email with:\n- Subject line\n- HTML body (simple, professional styling)\n- CC list (manager, HR, IT)\n\nThe email should make the new employee feel welcome and well-prepared.",
+        "tools": ["Read"]
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-contract-provision", "source": "agent-contract", "target": "agent-provision" },
+    { "id": "e-provision-welcome", "source": "agent-provision", "target": "agent-welcome" }
+  ]
+}

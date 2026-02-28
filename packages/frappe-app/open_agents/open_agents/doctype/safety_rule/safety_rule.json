@@ -1,0 +1,95 @@
+{
+  "name": "Safety Rule",
+  "module": "Open Agents",
+  "doctype": "DocType",
+  "document_type": "Document",
+  "engine": "InnoDB",
+  "naming_rule": "Autoincrement",
+  "is_submittable": 0,
+  "track_changes": 1,
+  "fields": [
+    {
+      "fieldname": "rule_type",
+      "fieldtype": "Select",
+      "label": "Rule Type",
+      "reqd": 1,
+      "options": "Tool Block\nBash Blacklist\nFile Whitelist\nPermission Mode",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "description": "Type of safety constraint"
+    },
+    {
+      "fieldname": "pattern",
+      "fieldtype": "Data",
+      "label": "Pattern",
+      "reqd": 1,
+      "in_list_view": 1,
+      "description": "Regex pattern (for Bash Blacklist), glob pattern (for File Whitelist), or tool name (for Tool Block)"
+    },
+    {
+      "fieldname": "column_break_1",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "scope",
+      "fieldtype": "Select",
+      "label": "Scope",
+      "reqd": 1,
+      "options": "Global\nAgent",
+      "default": "Global",
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "description": "Whether this rule applies globally or to a specific agent"
+    },
+    {
+      "fieldname": "agent_config",
+      "fieldtype": "Link",
+      "label": "Agent Config",
+      "options": "Agent Config",
+      "depends_on": "eval:doc.scope=='Agent'",
+      "description": "If scope is Agent, which agent this rule applies to"
+    },
+    {
+      "fieldname": "enabled",
+      "fieldtype": "Check",
+      "label": "Enabled",
+      "default": 1,
+      "in_list_view": 1,
+      "description": "Whether this rule is active"
+    },
+    {
+      "fieldname": "section_details",
+      "fieldtype": "Section Break",
+      "label": "Details"
+    },
+    {
+      "fieldname": "description",
+      "fieldtype": "Small Text",
+      "label": "Description",
+      "description": "Human-readable explanation of what this rule does"
+    },
+    {
+      "fieldname": "permission_mode",
+      "fieldtype": "Select",
+      "label": "Permission Mode",
+      "options": "\nread-only\nedit\nfull-access",
+      "depends_on": "eval:doc.rule_type=='Permission Mode'",
+      "description": "Permission level (only for Permission Mode rule type)"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "export": 1,
+      "import": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "search_fields": "rule_type, pattern, scope",
+  "icon": "fa fa-shield"
+}

@@ -1,0 +1,20 @@
+/* Open Agents Canvas page styles */
+
+#open-agents-canvas-container {
+  background: var(--bg-color);
+}
+
+#open-agents-canvas-iframe {
+  background: #1a1a2e;
+  transition: opacity 0.3s ease;
+}
+
+/* Remove Frappe page padding to give canvas full width */
+.page-container[data-page-name="open-agents-canvas"] .page-content {
+  padding: 0;
+}
+
+.page-container[data-page-name="open-agents-canvas"] .container {
+  max-width: 100%;
+  padding: 0 8px;
+}

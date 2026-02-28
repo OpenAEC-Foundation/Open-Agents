@@ -1,0 +1,76 @@
+{
+  "name": "Boekhouding Team",
+  "description": "Pool-based accounting team: invoice processing, VAT calculation, and financial reporting for ERPNext",
+  "type": "pool",
+  "domain": "erpnext",
+  "nodes": [
+    {
+      "id": "dispatcher-accounting",
+      "type": "dispatcher",
+      "position": { "x": 400, "y": 100 },
+      "data": {
+        "name": "Boekhouding Dispatcher",
+        "description": "Routes accounting tasks to the right specialist",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "You are an accounting task router for ERPNext. Classify incoming requests and route them to the appropriate specialist:\n\n- Factuur Verwerker: invoice processing, purchase invoices, sales invoices, payment entries\n- BTW Calculator: VAT calculations, tax returns, BTW aangifte, tax compliance\n- Rapportage Agent: financial reports, balance sheets, profit & loss, trial balance\n\nRespond with a JSON array of agent names that should handle the request.",
+        "tools": []
+      }
+    },
+    {
+      "id": "agent-invoice",
+      "type": "agent",
+      "position": { "x": 100, "y": 350 },
+      "data": {
+        "name": "Factuur Verwerker",
+        "description": "Processes purchase and sales invoices in ERPNext",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are an invoice processing specialist for ERPNext. You handle:\n\n- Purchase Invoice creation and validation\n- Sales Invoice generation from Delivery Notes\n- Payment Entry matching and reconciliation\n- Credit Note processing\n\nUse ERPNext DocType knowledge: Purchase Invoice, Sales Invoice, Payment Entry, Journal Entry.\nAlways validate amounts, tax rates, and account mappings.\nOutput structured data compatible with frappe.client.insert().",
+        "tools": ["Read", "Bash"]
+      }
+    },
+    {
+      "id": "agent-vat",
+      "type": "agent",
+      "position": { "x": 400, "y": 350 },
+      "data": {
+        "name": "BTW Calculator",
+        "description": "Calculates VAT returns and tax compliance for Dutch regulations",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a Dutch VAT (BTW) specialist for ERPNext. You handle:\n\n- BTW aangifte calculation (rubrieken 1a t/m 5e)\n- ICL/ICP reporting for EU transactions\n- VAT rate validation (21%, 9%, 0%)\n- Reverse charge mechanism (verleggingsregeling)\n\nUse ERPNext tax accounts and GL Entry data.\nOutput calculations in the format required by the Dutch Belastingdienst.",
+        "tools": ["Read"]
+      }
+    },
+    {
+      "id": "agent-reporting",
+      "type": "agent",
+      "position": { "x": 700, "y": 350 },
+      "data": {
+        "name": "Rapportage Agent",
+        "description": "Generates financial reports from ERPNext data",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a financial reporting specialist for ERPNext. You generate:\n\n- Balance Sheet (balans)\n- Profit & Loss Statement (winst- en verliesrekening)\n- Trial Balance (proefbalans)\n- Cash Flow statements\n- Custom financial analyses\n\nUse ERPNext report APIs and GL Entry data.\nPresent data in clear tables with period comparisons.\nHighlight significant variances and trends.",
+        "tools": ["Read"]
+      }
+    },
+    {
+      "id": "aggregator-accounting",
+      "type": "aggregator",
+      "position": { "x": 400, "y": 550 },
+      "data": {
+        "name": "Boekhouding Samenvatting",
+        "description": "Combines results from accounting specialists",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "You combine and summarize the outputs from the accounting team specialists. Present a unified response that:\n\n1. Lists all actions taken or calculations made\n2. Highlights any warnings or issues found\n3. Provides a clear summary in Dutch\n\nKeep the summary concise but complete.",
+        "tools": []
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-dispatch-invoice", "source": "dispatcher-accounting", "target": "agent-invoice" },
+    { "id": "e-dispatch-vat", "source": "dispatcher-accounting", "target": "agent-vat" },
+    { "id": "e-dispatch-reporting", "source": "dispatcher-accounting", "target": "agent-reporting" },
+    { "id": "e-invoice-agg", "source": "agent-invoice", "target": "aggregator-accounting" },
+    { "id": "e-vat-agg", "source": "agent-vat", "target": "aggregator-accounting" },
+    { "id": "e-reporting-agg", "source": "agent-reporting", "target": "aggregator-accounting" }
+  ]
+}

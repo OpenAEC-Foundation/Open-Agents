@@ -1,0 +1,17 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include open_agents *.css
+recursive-include open_agents *.csv
+recursive-include open_agents *.html
+recursive-include open_agents *.ico
+recursive-include open_agents *.js
+recursive-include open_agents *.json
+recursive-include open_agents *.md
+recursive-include open_agents *.png
+recursive-include open_agents *.py
+recursive-include open_agents *.svg
+recursive-include open_agents *.txt

@@ -60,6 +60,7 @@ export class MistralRuntime implements AgentRuntime {
             messages,
             max_tokens: config.agent.maxTokens ?? 4096,
           }),
+          signal: config.abortSignal,
         },
       );
 

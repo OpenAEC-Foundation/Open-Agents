@@ -1,0 +1,142 @@
+{
+  "name": "Agent Config",
+  "module": "Open Agents",
+  "doctype": "DocType",
+  "document_type": "Document",
+  "engine": "InnoDB",
+  "naming_rule": "By fieldname",
+  "autoname": "field:agent_id",
+  "is_submittable": 0,
+  "track_changes": 1,
+  "fields": [
+    {
+      "fieldname": "agent_id",
+      "fieldtype": "Data",
+      "label": "Agent ID",
+      "reqd": 1,
+      "unique": 1,
+      "in_list_view": 1,
+      "description": "Unique agent identifier (nanoid format)"
+    },
+    {
+      "fieldname": "agent_name",
+      "fieldtype": "Data",
+      "label": "Name",
+      "reqd": 1,
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "description": "Display name of the agent"
+    },
+    {
+      "fieldname": "description",
+      "fieldtype": "Small Text",
+      "label": "Description",
+      "description": "What this agent does"
+    },
+    {
+      "fieldname": "column_break_1",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "model",
+      "fieldtype": "Data",
+      "label": "Model",
+      "reqd": 1,
+      "in_list_view": 1,
+      "in_standard_filter": 1,
+      "default": "anthropic/claude-sonnet-4-6",
+      "description": "Model ID in provider/model format (e.g. anthropic/claude-sonnet-4-6)"
+    },
+    {
+      "fieldname": "max_tokens",
+      "fieldtype": "Int",
+      "label": "Max Tokens",
+      "default": 4096,
+      "description": "Maximum tokens for response"
+    },
+    {
+      "fieldname": "section_prompt",
+      "fieldtype": "Section Break",
+      "label": "System Prompt"
+    },
+    {
+      "fieldname": "system_prompt",
+      "fieldtype": "Code",
+      "label": "System Prompt",
+      "reqd": 1,
+      "options": "Markdown",
+      "description": "Instructions for the agent"
+    },
+    {
+      "fieldname": "section_tools",
+      "fieldtype": "Section Break",
+      "label": "Tools"
+    },
+    {
+      "fieldname": "tools",
+      "fieldtype": "JSON",
+      "label": "Tools",
+      "default": "[]",
+      "description": "JSON array of tool names: Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch"
+    },
+    {
+      "fieldname": "section_meta",
+      "fieldtype": "Section Break",
+      "label": "Metadata",
+      "collapsible": 1
+    },
+    {
+      "fieldname": "category",
+      "fieldtype": "Data",
+      "label": "Category",
+      "in_standard_filter": 1,
+      "description": "Agent category for library organization"
+    },
+    {
+      "fieldname": "tags",
+      "fieldtype": "Small Text",
+      "label": "Tags",
+      "description": "Comma-separated tags for search and filtering"
+    },
+    {
+      "fieldname": "column_break_2",
+      "fieldtype": "Column Break"
+    },
+    {
+      "fieldname": "source",
+      "fieldtype": "Select",
+      "label": "Source",
+      "options": "\nPreset\nFactory\nLibrary\nManual",
+      "default": "Manual",
+      "in_standard_filter": 1,
+      "description": "How this agent was created"
+    },
+    {
+      "fieldname": "canvas_config_json",
+      "fieldtype": "JSON",
+      "label": "Canvas Node Config",
+      "description": "Full AgentNodeData JSON for canvas compatibility",
+      "hidden": 1
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "export": 1,
+      "import": 1
+    },
+    {
+      "role": "All",
+      "read": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "title_field": "agent_name",
+  "search_fields": "agent_name, description, category",
+  "icon": "fa fa-robot"
+}

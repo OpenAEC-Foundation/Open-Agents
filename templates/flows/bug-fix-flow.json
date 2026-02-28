@@ -1,0 +1,44 @@
+{
+  "id": "bug-fix-flow",
+  "name": "Bug Fix Flow",
+  "description": "Analyzer investigates the bug, Fixer implements the fix, Tester verifies the solution.",
+  "nodes": [
+    {
+      "id": "analyzer",
+      "type": "agent",
+      "position": { "x": 100, "y": 150 },
+      "data": {
+        "name": "Analyzer",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "Analyze the codebase to understand the reported bug. Search for relevant code, identify the root cause, and document your findings. Include file paths, function names, and the exact issue.",
+        "tools": ["Read", "Glob", "Grep"]
+      }
+    },
+    {
+      "id": "fixer",
+      "type": "agent",
+      "position": { "x": 450, "y": 150 },
+      "data": {
+        "name": "Fixer",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "Based on the analysis from the previous agent, implement the fix. Make minimal, focused changes. Explain each change and why it resolves the bug.",
+        "tools": ["Read", "Write", "Edit", "Glob"]
+      }
+    },
+    {
+      "id": "tester",
+      "type": "agent",
+      "position": { "x": 800, "y": 150 },
+      "data": {
+        "name": "Tester",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "Verify the fix by reviewing the changes. Check that the fix addresses the root cause without introducing new issues. Run any existing tests if available. Summarize the verification results.",
+        "tools": ["Read", "Bash", "Glob", "Grep"]
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-analyzer-fixer", "source": "analyzer", "target": "fixer" },
+    { "id": "e-fixer-tester", "source": "fixer", "target": "tester" }
+  ]
+}

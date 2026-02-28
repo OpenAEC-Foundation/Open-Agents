@@ -1,0 +1,44 @@
+{
+  "id": "documentation-generator",
+  "name": "Documentation Generator",
+  "description": "Scanner maps the codebase, Writer creates documentation, Formatter polishes the output.",
+  "nodes": [
+    {
+      "id": "scanner",
+      "type": "agent",
+      "position": { "x": 100, "y": 150 },
+      "data": {
+        "name": "Scanner",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "Map the project structure. For each source file, identify: exports, key functions/classes, dependencies, and purpose. Output a structured overview that can be used to generate documentation.",
+        "tools": ["Read", "Glob", "Grep"]
+      }
+    },
+    {
+      "id": "writer",
+      "type": "agent",
+      "position": { "x": 450, "y": 150 },
+      "data": {
+        "name": "Writer",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "Based on the codebase overview from the previous agent, write comprehensive documentation in Markdown format. Include: project overview, architecture description, API reference, and usage examples. Be thorough but concise.",
+        "tools": ["Read", "Glob"]
+      }
+    },
+    {
+      "id": "formatter",
+      "type": "agent",
+      "position": { "x": 800, "y": 150 },
+      "data": {
+        "name": "Formatter",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "Review and polish the documentation from the previous agent. Fix formatting, improve readability, add a table of contents, and ensure consistent style. Output the final, publication-ready documentation.",
+        "tools": []
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-scanner-writer", "source": "scanner", "target": "writer" },
+    { "id": "e-writer-formatter", "source": "writer", "target": "formatter" }
+  ]
+}

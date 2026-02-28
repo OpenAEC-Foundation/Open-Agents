@@ -1,97 +1,34 @@
-import { useCallback, useEffect, useRef, type DragEvent } from "react";
-import {
-  ReactFlow,
-  Background,
-  Controls,
-  MiniMap,
-  Panel,
-  type NodeMouseHandler,
-} from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
-
-import { AgentNode } from "./components/AgentNode";
-import { Sidebar } from "./components/Sidebar";
-import { SkillLevelToggle } from "./components/SkillLevelToggle";
-import { ConnectionIndicator } from "./components/ConnectionIndicator";
-import { ConnectModal } from "./components/ConnectModal";
-import { ThemePicker } from "./components/ThemePicker";
-import { ChatPanel } from "./components/ChatPanel";
-import { OutputPanel } from "./components/OutputPanel";
-import { GenerateBar } from "./components/GenerateBar";
-import { PatternLibrary } from "./components/PatternLibrary";
-import { CostEstimatePanel } from "./components/CostEstimatePanel";
+import { useEffect } from "react";
+import type { AppTab } from "@open-agents/shared";
 import { useAppStore } from "./stores/appStore";
 import { getTheme, applyTheme } from "./themes/themes";
-import type { AgentNodeData } from "@open-agents/shared";
+import { ConnectionIndicator } from "./components/ConnectionIndicator";
+import { ConnectModal } from "./components/ConnectModal";
+import { PatternLibrary } from "./components/PatternLibrary";
+import { CanvasPage } from "./pages/CanvasPage";
+import { FactoryPage } from "./pages/FactoryPage";
+import { LibraryPage } from "./pages/LibraryPage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { RunHistoryView } from "./components/RunHistoryView";
 
-const nodeTypes = { agent: AgentNode };
+const tabs: { id: AppTab; label: string }[] = [
+  { id: "canvas", label: "Canvas" },
+  { id: "runs", label: "Runs" },
+  { id: "factory", label: "Factory" },
+  { id: "library", label: "Library" },
+  { id: "settings", label: "Settings" },
+];
 
 export function App() {
-  const nodes = useAppStore((s) => s.nodes);
-  const edges = useAppStore((s) => s.edges);
-  const onNodesChange = useAppStore((s) => s.onNodesChange);
-  const onEdgesChange = useAppStore((s) => s.onEdgesChange);
-  const onConnect = useAppStore((s) => s.onConnect);
-  const addNode = useAppStore((s) => s.addNode);
-  const getCanvasConfig = useAppStore((s) => s.getCanvasConfig);
-
   const themeId = useAppStore((s) => s.themeId);
+  const activeTab = useAppStore((s) => s.activeTab);
+  const setActiveTab = useAppStore((s) => s.setActiveTab);
 
   useEffect(() => {
     applyTheme(getTheme(themeId));
   }, [themeId]);
 
-  const exportedJson = useAppStore((s) => s.exportedJson);
-  const setExportedJson = useAppStore((s) => s.setExportedJson);
-  const reactFlowWrapper = useRef<HTMLDivElement>(null);
-
-  const onDragOver = useCallback((e: DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  }, []);
-
-  const onDrop = useCallback(
-    (e: DragEvent) => {
-      e.preventDefault();
-      const raw = e.dataTransfer.getData("application/open-agents-preset");
-      if (!raw) return;
-
-      const data = JSON.parse(raw) as AgentNodeData;
-      const bounds = reactFlowWrapper.current?.getBoundingClientRect();
-      if (!bounds) return;
-
-      addNode(data, {
-        x: e.clientX - bounds.left - 120,
-        y: e.clientY - bounds.top - 40,
-      });
-    },
-    [addNode],
-  );
-
-  const handleExport = useCallback(() => {
-    const config = getCanvasConfig();
-    setExportedJson(JSON.stringify(config, null, 2));
-  }, [getCanvasConfig, setExportedJson]);
-
-  const isRunning = useAppStore((s) => s.isRunning);
-  const startExecution = useAppStore((s) => s.startExecution);
-
-  const handleRun = useCallback(() => {
-    const config = getCanvasConfig();
-    startExecution(config);
-    setExportedJson(null); // close export panel if open
-  }, [getCanvasConfig, startExecution, setExportedJson]);
-
-  const openChat = useAppStore((s) => s.openChat);
-
-  const handleNodeDoubleClick: NodeMouseHandler = useCallback(
-    (_event, node) => {
-      openChat(node.id);
-    },
-    [openChat],
-  );
-
-  // Undo/Redo keyboard shortcuts
+  // Undo/Redo keyboard shortcuts (global)
   const undo = useAppStore((s) => s.undo);
   const redo = useAppStore((s) => s.redo);
 
@@ -112,85 +49,40 @@ export function App() {
 
   return (
     <div className="w-full h-full flex flex-col font-sans">
-      <header className="h-12 bg-surface-raised text-text-primary flex items-center px-4 gap-4 shrink-0 border-b border-border-default">
-        <h1 className="text-lg font-semibold">Open-Agents</h1>
-        <span className="text-text-tertiary text-sm">Canvas</span>
+      {/* Header with tab navigation */}
+      <header className="h-12 bg-surface-raised text-text-primary flex items-center px-4 gap-1 shrink-0 border-b border-border-default">
+        <h1 className="text-lg font-semibold mr-4">Open-Agents</h1>
+
+        {/* Tab navigation */}
+        <nav className="flex items-center gap-0.5">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                activeTab === tab.id
+                  ? "bg-accent-primary/15 text-accent-primary font-medium"
+                  : "text-text-tertiary hover:text-text-secondary hover:bg-surface-overlay/50"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
         <div className="ml-auto flex items-center gap-3">
           <ConnectionIndicator />
-          <ThemePicker />
-          <SkillLevelToggle />
         </div>
       </header>
 
-      {/* GenerateBar — prominent NL input above canvas */}
-      <div className="px-4 py-2 bg-surface-base border-b border-border-default shrink-0">
-        <GenerateBar />
-      </div>
+      {/* Page content */}
+      {activeTab === "canvas" && <CanvasPage />}
+      {activeTab === "runs" && <RunHistoryView />}
+      {activeTab === "factory" && <FactoryPage />}
+      {activeTab === "library" && <LibraryPage />}
+      {activeTab === "settings" && <SettingsPage />}
 
-      <div className="flex-1 flex min-h-0">
-        <Sidebar />
-
-        <div className="flex-1 relative" ref={reactFlowWrapper}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
-            onNodeDoubleClick={handleNodeDoubleClick}
-            nodeTypes={nodeTypes}
-            fitView
-            colorMode="dark"
-          >
-            <Background />
-            <Controls />
-            <MiniMap />
-            <Panel position="top-right">
-              <div className="flex gap-2">
-                <button
-                  onClick={handleRun}
-                  disabled={isRunning || nodes.length === 0}
-                  className="px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isRunning ? "Running..." : "Run"}
-                </button>
-                <button
-                  onClick={handleExport}
-                  className="px-3 py-1.5 bg-accent-primary text-text-primary rounded text-sm hover:bg-accent-primary-hover"
-                >
-                  Export JSON
-                </button>
-              </div>
-            </Panel>
-          </ReactFlow>
-
-          {exportedJson && (
-            <div className="absolute bottom-0 left-0 right-0 max-h-64 bg-surface-base/95 border-t border-border-default overflow-auto z-10">
-              <div className="flex items-center justify-between px-4 py-2 border-b border-border-default">
-                <span className="text-text-secondary text-sm font-medium">
-                  Canvas Export
-                </span>
-                <button
-                  onClick={() => setExportedJson(null)}
-                  className="text-text-tertiary hover:text-text-primary text-sm"
-                >
-                  Close
-                </button>
-              </div>
-              <pre className="p-4 text-xs text-accent-code font-mono">
-                {exportedJson}
-              </pre>
-            </div>
-          )}
-
-          <OutputPanel />
-        </div>
-
-        <ChatPanel />
-      </div>
-
+      {/* Global modals */}
       <ConnectModal />
       <PatternLibrary />
     </div>

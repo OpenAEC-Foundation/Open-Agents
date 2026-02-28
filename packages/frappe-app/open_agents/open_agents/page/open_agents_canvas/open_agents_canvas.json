@@ -1,0 +1,17 @@
+{
+  "name": "Open Agents Canvas",
+  "module": "Open Agents",
+  "doctype": "Page",
+  "page_name": "open-agents-canvas",
+  "title": "Open Agents Canvas",
+  "icon": "fa fa-sitemap",
+  "standard": "Yes",
+  "roles": [
+    {
+      "role": "System Manager"
+    },
+    {
+      "role": "All"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "@open-agents/frappe-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Frappe/ERPNext wrapper for Open-Agents canvas"
+}

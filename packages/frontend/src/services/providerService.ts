@@ -1,10 +1,11 @@
 import type { ProviderConnection, ModelProvider } from "@open-agents/shared";
 
-const API_BASE = "/api";
+import { getApiBase } from "./apiConfig";
+
 
 /** Fetch current provider connection statuses */
 export async function fetchConnections(): Promise<ProviderConnection[]> {
-  const res = await fetch(`${API_BASE}/connect`);
+  const res = await fetch(`${getApiBase()}/connect`);
   if (!res.ok) return [];
   const data = (await res.json()) as { providers: ProviderConnection[] };
   return data.providers;
@@ -15,7 +16,7 @@ export async function connectProvider(
   provider: ModelProvider,
   apiKey: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  const res = await fetch(`${API_BASE}/connect`, {
+  const res = await fetch(`${getApiBase()}/connect`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ provider, apiKey }),
@@ -32,5 +33,5 @@ export async function connectProvider(
 
 /** Disconnect a provider (remove API key) */
 export async function disconnectProvider(provider: ModelProvider): Promise<void> {
-  await fetch(`${API_BASE}/connect/${provider}`, { method: "DELETE" });
+  await fetch(`${getApiBase()}/connect/${provider}`, { method: "DELETE" });
 }

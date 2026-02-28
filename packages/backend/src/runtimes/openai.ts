@@ -58,6 +58,7 @@ export class OpenAIRuntime implements AgentRuntime {
           messages,
           max_tokens: config.agent.maxTokens ?? 4096,
         }),
+        signal: config.abortSignal,
       });
 
       if (!res.ok) {

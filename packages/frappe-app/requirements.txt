@@ -1,0 +1,2 @@
+# Open-Agents Frappe app dependencies
+# frappe is provided by the bench environment

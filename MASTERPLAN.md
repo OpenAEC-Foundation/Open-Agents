@@ -17,8 +17,8 @@
 | Sprint | Naam | Doel | Afhankelijk van | Status |
 |--------|------|------|-----------------|--------|
 | 0 | Foundation | Core documenten + dev environment | -- | Done |
-| 1 | Proof of Concept | Minimale canvas → Claude Code, e2e | Sprint 0 | **Active** |
-| 2 | Factory Portal | Agents aanmaken via UI | Sprint 1 | Planned |
+| 1 | Proof of Concept | Minimale canvas → Claude Code, e2e | Sprint 0 | Done |
+| 2 | Factory Portal | Agents aanmaken via UI | Sprint 1 | Done |
 | 3 | Flow Pattern | Sequentiële pipeline werkend | Sprint 1 | Planned |
 | 4 | Pool Pattern | Dispatcher + parallelle execution | Sprint 3 | Planned |
 | 5 | Safety & Audit | Rules editor + audit trail | Sprint 1 | Planned |
@@ -343,10 +343,10 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Tab navigatie systeem
-- [ ] Factory startscherm
-- [ ] Agent creation wizard (5 stappen)
-- [ ] Agent CRUD API endpoints
+- [x] Tab navigatie systeem
+- [x] Factory startscherm
+- [x] Agent creation wizard (5 stappen)
+- [x] Agent CRUD API endpoints
 
 ### Fase 2.2: Asset Library `[PAR]` — parallel met 2.3
 
@@ -377,12 +377,12 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Library shell met tab navigatie (10 types, uitbreidbaar)
-- [ ] Agent Library: grid/lijst view
-- [ ] Zoek en filter functionaliteit
-- [ ] Drag from library to canvas
-- [ ] Detail view
-- [ ] Edit/delete acties
+- [x] Library shell met tab navigatie (10 types, uitbreidbaar)
+- [x] Agent Library: grid/lijst view
+- [x] Zoek en filter functionaliteit
+- [x] Drag from library to canvas
+- [x] Detail view
+- [x] Edit/delete acties
 
 ### Fase 2.3: Preset Agents `[PAR]` — parallel met 2.2
 
@@ -409,8 +409,8 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] 10 agent preset JSON bestanden
-- [ ] Database seeding bij startup
+- [x] 10 agent preset JSON bestanden
+- [x] Database seeding bij startup
 
 ### Fase 2.4: LLM-Powered Asset Generation `[SEQ]` — na 2.1
 
@@ -450,10 +450,10 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Conversational input veld
-- [ ] Agent config generator via Claude
-- [ ] Preview en aanpas flow
-- [ ] Opslaan naar library
+- [x] Conversational input veld
+- [x] Agent config generator via Claude
+- [x] Preview en aanpas flow
+- [x] Opslaan naar library
 
 ---
 

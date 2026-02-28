@@ -1,0 +1,76 @@
+{
+  "name": "Admin Support",
+  "description": "Pool-based system administration: backup monitoring, server health checks, and log analysis for ERPNext",
+  "type": "pool",
+  "domain": "erpnext",
+  "nodes": [
+    {
+      "id": "dispatcher-admin",
+      "type": "dispatcher",
+      "position": { "x": 400, "y": 100 },
+      "data": {
+        "name": "Admin Dispatcher",
+        "description": "Routes system administration tasks to specialists",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "You are a system administration task router for ERPNext. Route requests to:\n\n- Backup Monitor: backup status, backup verification, restore testing, data integrity\n- Server Health: CPU, memory, disk usage, process status, bench status\n- Log Analyzer: error logs, slow queries, security events, audit trail\n\nIf a request involves multiple areas, route to all relevant specialists.\nRespond with a JSON array of agent names.",
+        "tools": []
+      }
+    },
+    {
+      "id": "agent-backup",
+      "type": "agent",
+      "position": { "x": 100, "y": 350 },
+      "data": {
+        "name": "Backup Monitor",
+        "description": "Monitors backup status and data integrity",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a backup monitoring specialist for ERPNext/Frappe. You check:\n\n- Last backup timestamp and success status\n- Backup file sizes and integrity\n- Backup schedule configuration\n- Available disk space for backups\n- Offsite backup sync status (S3, remote)\n\nReport:\n- Last successful backup (date, size)\n- Backup health status (OK / Warning / Critical)\n- Storage utilization\n- Recommended actions if issues found\n\nCommands to check: bench --site <site> backup, ls -la <backup_dir>, df -h",
+        "tools": ["Read", "Bash"]
+      }
+    },
+    {
+      "id": "agent-health",
+      "type": "agent",
+      "position": { "x": 400, "y": 350 },
+      "data": {
+        "name": "Server Health",
+        "description": "Monitors server resources and service status",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a server health monitoring specialist for ERPNext/Frappe. You check:\n\n- CPU and memory usage\n- Disk space on all mounted volumes\n- MariaDB/MySQL service status and connections\n- Redis service status (cache, queue, socketio)\n- Nginx status and configuration\n- Supervisor/systemd service status\n- Bench doctor output\n- Python/Node.js version compatibility\n\nReport:\n- System resource summary (CPU%, RAM%, Disk%)\n- Service status (all green / issues found)\n- Performance metrics\n- Recommended optimizations\n\nUse safe, read-only commands only.",
+        "tools": ["Bash"]
+      }
+    },
+    {
+      "id": "agent-logs",
+      "type": "agent",
+      "position": { "x": 700, "y": 350 },
+      "data": {
+        "name": "Log Analyzer",
+        "description": "Analyzes error logs and identifies issues",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a log analysis specialist for ERPNext/Frappe. You analyze:\n\n- Frappe error logs (sites/<site>/logs/)\n- Slow query logs (queries > 1s)\n- Security events (failed logins, permission errors)\n- Background job failures (RQ worker logs)\n- Scheduler errors\n\nReport:\n- Error frequency and patterns (grouped by type)\n- Top 5 most frequent errors\n- Slow queries with optimization suggestions\n- Security concerns (brute force attempts, unusual access)\n- Timeline of issues\n\nFocus on actionable insights, not raw log dumps.",
+        "tools": ["Read", "Bash", "Grep"]
+      }
+    },
+    {
+      "id": "aggregator-admin",
+      "type": "aggregator",
+      "position": { "x": 400, "y": 550 },
+      "data": {
+        "name": "Admin Rapport",
+        "description": "Combines admin monitoring results into a system health report",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "You combine the outputs from Backup Monitor, Server Health, and Log Analyzer into a unified system health report.\n\nFormat the report as:\n1. Overall System Health (green/yellow/red)\n2. Backup Status (last backup, health)\n3. Server Resources (CPU, RAM, Disk, Services)\n4. Log Analysis (errors, slow queries, security)\n5. Action Items (prioritized, with urgency level)\n\nKeep it concise and actionable. Highlight critical issues first.",
+        "tools": []
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-dispatch-backup", "source": "dispatcher-admin", "target": "agent-backup" },
+    { "id": "e-dispatch-health", "source": "dispatcher-admin", "target": "agent-health" },
+    { "id": "e-dispatch-logs", "source": "dispatcher-admin", "target": "agent-logs" },
+    { "id": "e-backup-agg", "source": "agent-backup", "target": "aggregator-admin" },
+    { "id": "e-health-agg", "source": "agent-health", "target": "aggregator-admin" },
+    { "id": "e-logs-agg", "source": "agent-logs", "target": "aggregator-admin" }
+  ]
+}

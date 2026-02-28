@@ -1,0 +1,76 @@
+{
+  "name": "Project Monitor",
+  "description": "Pool-based project monitoring: hours tracking, budget oversight, and deadline watching for ERPNext Projects",
+  "type": "pool",
+  "domain": "erpnext",
+  "nodes": [
+    {
+      "id": "dispatcher-project",
+      "type": "dispatcher",
+      "position": { "x": 400, "y": 100 },
+      "data": {
+        "name": "Project Dispatcher",
+        "description": "Routes project monitoring tasks to specialists",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "You are a project monitoring task router for ERPNext. Route requests to:\n\n- Uren Checker: timesheet issues, hour tracking, overtime, attendance\n- Budget Tracker: project costs, budget variance, expense tracking\n- Deadline Watcher: task deadlines, milestone tracking, delays, scheduling\n\nIf a request involves multiple areas, route to all relevant specialists.\nRespond with a JSON array of agent names.",
+        "tools": []
+      }
+    },
+    {
+      "id": "agent-hours",
+      "type": "agent",
+      "position": { "x": 100, "y": 350 },
+      "data": {
+        "name": "Uren Checker",
+        "description": "Monitors timesheet entries and hour allocations per project",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a timesheet monitoring specialist for ERPNext. You track:\n\n- Timesheet submissions per employee per project\n- Hours booked vs hours budgeted\n- Missing timesheets (employees who haven't submitted)\n- Overtime detection and compliance\n- Billable vs non-billable hour ratios\n\nAnalyze ERPNext data and report:\n- Hours summary per project/task\n- Employees with missing or late timesheets\n- Budget utilization percentage (hours)\n- Anomalies (unusually high/low hours)\n\nUse ERPNext DocTypes: Timesheet, Project, Task, Employee.",
+        "tools": ["Read"]
+      }
+    },
+    {
+      "id": "agent-budget",
+      "type": "agent",
+      "position": { "x": 400, "y": 350 },
+      "data": {
+        "name": "Budget Tracker",
+        "description": "Tracks project budgets and cost variance",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a project budget tracking specialist for ERPNext. You monitor:\n\n- Project budget vs actual costs\n- Cost breakdown by cost center and account\n- Purchase Orders and invoices linked to the project\n- Budget variance analysis (planned vs actual vs forecast)\n- Burn rate and projected overspend\n\nReport:\n- Budget utilization percentage\n- Top cost categories\n- Variance alerts (>10% overspend flagged)\n- Forecast to completion\n\nUse ERPNext DocTypes: Project, Budget, GL Entry, Purchase Invoice, Journal Entry.",
+        "tools": ["Read"]
+      }
+    },
+    {
+      "id": "agent-deadline",
+      "type": "agent",
+      "position": { "x": 700, "y": 350 },
+      "data": {
+        "name": "Deadline Watcher",
+        "description": "Monitors task and milestone deadlines for delays",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a deadline monitoring specialist for ERPNext. You track:\n\n- Task deadlines and completion status\n- Milestone dates and progress\n- Dependencies between tasks\n- Critical path analysis\n- Delay patterns and risk assessment\n\nReport:\n- Overdue tasks (sorted by days overdue)\n- Upcoming deadlines (next 7 days)\n- At-risk milestones\n- Suggested schedule adjustments\n- Dependency bottlenecks\n\nUse ERPNext DocTypes: Task, Project, Milestone.",
+        "tools": ["Read"]
+      }
+    },
+    {
+      "id": "aggregator-project",
+      "type": "aggregator",
+      "position": { "x": 400, "y": 550 },
+      "data": {
+        "name": "Project Status Rapport",
+        "description": "Combines all monitoring results into a unified project status report",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "You combine the outputs from Uren Checker, Budget Tracker, and Deadline Watcher into a unified project status report.\n\nFormat the report as:\n1. Overall Project Health (green/yellow/red)\n2. Hours Summary (utilization, missing timesheets)\n3. Budget Summary (utilization, variance, forecast)\n4. Deadline Summary (overdue, upcoming, at-risk)\n5. Action Items (prioritized list)\n\nKeep it concise and actionable. Write in Dutch.",
+        "tools": []
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-dispatch-hours", "source": "dispatcher-project", "target": "agent-hours" },
+    { "id": "e-dispatch-budget", "source": "dispatcher-project", "target": "agent-budget" },
+    { "id": "e-dispatch-deadline", "source": "dispatcher-project", "target": "agent-deadline" },
+    { "id": "e-hours-agg", "source": "agent-hours", "target": "aggregator-project" },
+    { "id": "e-budget-agg", "source": "agent-budget", "target": "aggregator-project" },
+    { "id": "e-deadline-agg", "source": "agent-deadline", "target": "aggregator-project" }
+  ]
+}

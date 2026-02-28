@@ -15,19 +15,12 @@ export class ClaudeSDKRuntime implements AgentRuntime {
   readonly provider = "anthropic";
 
   async *execute(config: RuntimeExecutionConfig): AsyncIterable<AgentEvent> {
+    // BYOK key takes priority; otherwise Agent SDK falls back to
+    // Claude Code OAuth credentials (~/.claude/.credentials.json)
     const apiKey = getApiKey("anthropic");
-    if (!apiKey) {
-      yield {
-        type: "error",
-        nodeId: config.nodeId,
-        data: "No Anthropic API key configured. Connect via Settings.",
-        timestamp: new Date().toISOString(),
-      };
-      return;
+    if (apiKey) {
+      process.env.ANTHROPIC_API_KEY = apiKey;
     }
-
-    // Set env var for SDK (it reads from ANTHROPIC_API_KEY)
-    process.env.ANTHROPIC_API_KEY = apiKey;
 
     const { query } = await import("@anthropic-ai/claude-agent-sdk");
 
@@ -55,6 +48,8 @@ export class ClaudeSDKRuntime implements AgentRuntime {
           maxTurns: 20,
         },
       })) {
+        if (config.abortSignal?.aborted) break;
+
         if ("result" in message) {
           result = (message as { result: string }).result;
           yield {
