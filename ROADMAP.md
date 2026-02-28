@@ -23,7 +23,7 @@
 | Semantische Laag | 0 | 1 |
 | VS Code Extension | 0 | 1 |
 | Frappe App | 0 | 1 |
-| Agent Library (doel: 100+) | 0 | 100 |
+| Agent Library (doel: 1000+) | 0 | 1000 |
 
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
 **Fase 1 (PoC)**: ████████░░░░░░░░░░░░ **40%** - framework gekozen, scaffolding klaar
@@ -32,7 +32,7 @@
 **Fase 4 (Intelligence)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 5 (Deployment)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
-**Fase 7 (Agent Library)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - 100 atomaire agents (doorlopend)
+**Fase 7 (Agent Library)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - 1000+ atomaire agents (doorlopend, 1015 gedefinieerd)
 **Fase 8 (Refactor)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - consolidatie eerste Scrum iteratie
 
 ---
@@ -114,10 +114,11 @@
 > Loopt parallel naast alle sprints. Vult retroactief agents aan per fase.
 > Referentiemodel: Anthropic Agent Teams. Zie AGENTS.md voor de volledige library.
 
-- [ ] 10 core agents (bij Sprint 2)
-- [ ] 40 category agents: text, code, review, data (bij Sprint 3-5)
-- [ ] 30 specialist agents: git, research, communicatie, file (bij Sprint 5-8)
-- [ ] 10 ERPNext agents (bij Sprint 8)
+- [x] 1015 atomaire agents gedefinieerd in AGENTS.md (20 categorieën A-T)
+- [ ] 10 core agents geïmplementeerd (bij Sprint 2)
+- [ ] 50 category agents geïmplementeerd: text, code, review, data (bij Sprint 3-5)
+- [ ] 100 specialist agents geïmplementeerd: git, research, API, DevOps (bij Sprint 5-8)
+- [ ] 65 ERPNext agents geïmplementeerd (bij Sprint 8)
 - [ ] 10 flow & pool templates die agents combineren
 
 ### Fase 8: Refactor & Consolidatie (Sprint 10)

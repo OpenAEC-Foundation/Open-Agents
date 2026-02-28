@@ -25,7 +25,7 @@
 | 6 | Semantische Laag | Natural language → architectuur | Sprint 2, 3 | Planned |
 | 7 | VS Code Extension | Canvas als VS Code webview + MCP | Sprint 1 | Planned |
 | 8 | Frappe App | Frappe wrapper + ERPNext templates | Sprint 1 | Planned |
-| 9 | Agent Library | 100 atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | Planned |
+| 9 | Agent Library | 1000+ atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | Planned |
 | 10 | Refactor & Consolidatie | Refactor van alles uit eerste Scrum iteratie | Sprint 1-9 | Planned |
 
 ```
@@ -905,7 +905,7 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 
 ## Sprint 9: Agent Library (Doorlopend)
 
-**Doel**: 100 atomaire agents bouwen, georganiseerd per categorie. Elke agent doet één ding. Complexiteit ontstaat uit de architectuur (flows, pools), niet uit individuele agents.
+**Doel**: 1000+ atomaire agents bouwen, georganiseerd per categorie (20 categorieën A-T). Elke agent doet één ding. Complexiteit ontstaat uit de architectuur (flows, pools), niet uit individuele agents. 1015 agents zijn reeds gedefinieerd in AGENTS.md.
 
 **Afhankelijk van**: Sprint 2 (Factory portal voor het aanmaken)
 **Loopt doorlopend**: Vult retroactief agents aan in elke sprint die ze nodig heeft.
@@ -917,7 +917,7 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 - Plan approval workflow = onze gate nodes
 - Quality hooks (`TeammateIdle`, `TaskCompleted`) = onze event triggers
 
-> Zie `AGENTS.md` voor de volledige library van 100 atomaire agent definities.
+> Zie `AGENTS.md` voor de volledige library van 1015 atomaire agent definities (20 categorieën A-T).
 
 ### Fase 9.1: Core Agents (10) `[SEQ]` — eerst, bij Sprint 2
 
@@ -1211,7 +1211,7 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 
 | Activiteit | Frequentie | Uitvoering |
 |-----------|------------|------------|
-| Agent library uitbreiden (doel: 100+) | Elke sprint | `[PAR]` altijd |
+| Agent library uitbreiden (doel: 1000+) | Elke sprint | `[PAR]` altijd |
 | Community templates verzamelen | Vanaf Sprint 3 | `[PAR]` altijd |
 | User testing met niet-technische gebruikers | Elke sprint | `[SEQ]` na sprint deliverables |
 | API documentatie bijwerken (OpenAPI/Swagger) | Elke sprint | `[PAR]` altijd |

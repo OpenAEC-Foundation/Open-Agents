@@ -3,9 +3,12 @@ import { Handle, Position, useReactFlow, type NodeProps } from "@xyflow/react";
 import type { AgentNodeData, ModelId, AgentTool } from "@open-agents/shared";
 
 const models: { id: ModelId; label: string; color: string }[] = [
-  { id: "claude-haiku-4-5", label: "Haiku", color: "bg-emerald-500" },
-  { id: "claude-sonnet-4-6", label: "Sonnet", color: "bg-blue-500" },
-  { id: "claude-opus-4-6", label: "Opus", color: "bg-purple-500" },
+  { id: "anthropic/claude-haiku-4-5", label: "Haiku", color: "bg-emerald-500" },
+  { id: "anthropic/claude-sonnet-4-6", label: "Sonnet", color: "bg-blue-500" },
+  { id: "anthropic/claude-opus-4-6", label: "Opus", color: "bg-purple-500" },
+  { id: "openai/gpt-4o", label: "GPT-4o", color: "bg-teal-500" },
+  { id: "openai/o3", label: "o3", color: "bg-teal-500" },
+  { id: "mistral/mistral-large", label: "Mistral L", color: "bg-orange-500" },
 ];
 
 const allTools: AgentTool[] = [

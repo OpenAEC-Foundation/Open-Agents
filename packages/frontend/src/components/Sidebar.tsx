@@ -1,5 +1,5 @@
 import type { DragEvent } from "react";
-import type { AgentNodeData, ModelId } from "@open-agents/shared";
+import type { AgentNodeData } from "@open-agents/shared";
 
 interface AgentPreset {
   label: string;
@@ -7,17 +7,18 @@ interface AgentPreset {
   data: AgentNodeData;
 }
 
-const modelColors: Record<ModelId, string> = {
-  "claude-haiku-4-5": "bg-emerald-500",
-  "claude-sonnet-4-6": "bg-blue-500",
-  "claude-opus-4-6": "bg-purple-500",
+const modelMeta: Record<string, { label: string; color: string }> = {
+  "anthropic/claude-haiku-4-5": { label: "Haiku", color: "bg-emerald-500" },
+  "anthropic/claude-sonnet-4-6": { label: "Sonnet", color: "bg-blue-500" },
+  "anthropic/claude-opus-4-6": { label: "Opus", color: "bg-purple-500" },
+  "openai/gpt-4o": { label: "GPT-4o", color: "bg-teal-500" },
+  "openai/o3": { label: "o3", color: "bg-teal-500" },
+  "mistral/mistral-large": { label: "Mistral L", color: "bg-orange-500" },
 };
 
-const modelLabels: Record<ModelId, string> = {
-  "claude-haiku-4-5": "Haiku",
-  "claude-sonnet-4-6": "Sonnet",
-  "claude-opus-4-6": "Opus",
-};
+function getModelMeta(id: string) {
+  return modelMeta[id] ?? { label: id.split("/").pop() ?? id, color: "bg-zinc-500" };
+}
 
 const presets: AgentPreset[] = [
   {
@@ -25,7 +26,7 @@ const presets: AgentPreset[] = [
     description: "Analyses code and identifies patterns",
     data: {
       name: "Analyst",
-      model: "claude-sonnet-4-6",
+      model: "anthropic/claude-sonnet-4-6",
       systemPrompt: "Analyse the codebase and identify key patterns.",
       tools: ["Read", "Glob", "Grep"],
     },
@@ -35,7 +36,7 @@ const presets: AgentPreset[] = [
     description: "Writes and edits code",
     data: {
       name: "Coder",
-      model: "claude-sonnet-4-6",
+      model: "anthropic/claude-sonnet-4-6",
       systemPrompt: "Write clean, well-structured code based on the given task.",
       tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"],
     },
@@ -45,7 +46,7 @@ const presets: AgentPreset[] = [
     description: "Reviews code for quality and bugs",
     data: {
       name: "Reviewer",
-      model: "claude-opus-4-6",
+      model: "anthropic/claude-opus-4-6",
       systemPrompt:
         "Review the code for bugs, security issues, and quality improvements.",
       tools: ["Read", "Glob", "Grep"],
@@ -56,7 +57,7 @@ const presets: AgentPreset[] = [
     description: "Writes documentation and reports",
     data: {
       name: "Writer",
-      model: "claude-haiku-4-5",
+      model: "anthropic/claude-haiku-4-5",
       systemPrompt: "Write clear, concise documentation or reports.",
       tools: ["Read", "Write", "WebSearch"],
     },
@@ -92,9 +93,9 @@ export function Sidebar() {
                 {preset.label}
               </span>
               <span
-                className={`ml-auto text-xs px-1.5 py-0.5 rounded text-white ${modelColors[preset.data.model]}`}
+                className={`ml-auto text-xs px-1.5 py-0.5 rounded text-white ${getModelMeta(preset.data.model).color}`}
               >
-                {modelLabels[preset.data.model]}
+                {getModelMeta(preset.data.model).label}
               </span>
             </div>
             <p className="text-zinc-400 text-xs mt-1">{preset.description}</p>

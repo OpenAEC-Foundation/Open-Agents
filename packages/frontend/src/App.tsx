@@ -16,7 +16,7 @@ import "@xyflow/react/dist/style.css";
 
 import { AgentNode } from "./components/AgentNode";
 import { Sidebar } from "./components/Sidebar";
-import type { CanvasConfig, AgentNodeData, CanvasNode } from "@open-agents/shared";
+import type { CanvasConfig, AgentNodeData } from "@open-agents/shared";
 
 // React Flow v12 requires Record<string, unknown> for node data.
 // We use Node (unparameterized) and cast data in components via `as unknown as AgentNodeData`.
@@ -29,7 +29,7 @@ const initialNodes: Node[] = [
     position: { x: 100, y: 100 },
     data: {
       name: "Analyst",
-      model: "claude-sonnet-4-6",
+      model: "anthropic/claude-sonnet-4-6",
       systemPrompt: "Analyse the codebase and identify key patterns.",
       tools: ["Read", "Glob", "Grep"],
     },
@@ -40,7 +40,7 @@ const initialNodes: Node[] = [
     position: { x: 500, y: 100 },
     data: {
       name: "Reporter",
-      model: "claude-haiku-4-5",
+      model: "anthropic/claude-haiku-4-5",
       systemPrompt: "Write a concise summary based on the analysis.",
       tools: ["Read", "Write"],
     },
