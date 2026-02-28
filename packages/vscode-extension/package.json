@@ -18,17 +18,74 @@
     "commands": [
       {
         "command": "open-agents.openCanvas",
-        "title": "Open-Agents: Open Canvas"
+        "title": "Open Canvas",
+        "category": "Open-Agents",
+        "icon": "$(circuit-board)"
       },
       {
         "command": "open-agents.newAgent",
-        "title": "Open-Agents: New Agent"
+        "title": "New Agent",
+        "category": "Open-Agents",
+        "icon": "$(add)"
       },
       {
         "command": "open-agents.startBackend",
-        "title": "Open-Agents: Start Backend"
+        "title": "Start Backend",
+        "category": "Open-Agents",
+        "icon": "$(server)"
+      },
+      {
+        "command": "open-agents.openSettings",
+        "title": "Settings",
+        "category": "Open-Agents",
+        "icon": "$(gear)"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "open-agents",
+          "title": "Open-Agents",
+          "icon": "$(circuit-board)"
+        }
+      ]
+    },
+    "views": {
+      "open-agents": [
+        {
+          "id": "openAgentsExplorer",
+          "name": "Open-Agents",
+          "type": "tree"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "openAgentsExplorer",
+        "contents": "Welcome to Open-Agents!\n\nVisual agent orchestration for Claude Code.\n\n[Open Canvas](command:open-agents.openCanvas)\n[Start Backend](command:open-agents.startBackend)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "open-agents.openCanvas",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "open-agents.openCanvas",
+          "when": "view == openAgentsExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "open-agents.newAgent",
+          "when": "view == openAgentsExplorer",
+          "group": "navigation"
+        }
+      ]
+    },
     "configuration": {
       "title": "Open-Agents",
       "properties": {

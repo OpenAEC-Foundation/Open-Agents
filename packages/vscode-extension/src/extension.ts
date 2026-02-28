@@ -1,7 +1,19 @@
 import * as vscode from "vscode";
 import { createWebviewPanel } from "./webviewProvider";
+import { createStatusBar } from "./statusBar";
+import { OpenAgentsSidebarProvider } from "./sidebarProvider";
 
 export function activate(context: vscode.ExtensionContext) {
+  // Status bar: live backend health indicator
+  createStatusBar(context);
+
+  // Sidebar: quick actions + tips
+  const sidebarProvider = new OpenAgentsSidebarProvider();
+  vscode.window.registerTreeDataProvider(
+    "openAgentsExplorer",
+    sidebarProvider,
+  );
+
   // Command: Open Canvas
   context.subscriptions.push(
     vscode.commands.registerCommand("open-agents.openCanvas", () => {
@@ -25,7 +37,17 @@ export function activate(context: vscode.ExtensionContext) {
     }),
   );
 
-  // Watch agents/presets/ for changes (file watcher for Fase 7.4)
+  // Command: Open Settings
+  context.subscriptions.push(
+    vscode.commands.registerCommand("open-agents.openSettings", () => {
+      vscode.commands.executeCommand(
+        "workbench.action.openSettings",
+        "open-agents",
+      );
+    }),
+  );
+
+  // Watch agents/presets/ for changes
   if (vscode.workspace.workspaceFolders?.[0]) {
     const presetsWatcher = vscode.workspace.createFileSystemWatcher(
       new vscode.RelativePattern(
@@ -49,27 +71,6 @@ export function activate(context: vscode.ExtensionContext) {
     presetsWatcher.onDidChange(reloadPresets);
     presetsWatcher.onDidDelete(reloadPresets);
     context.subscriptions.push(presetsWatcher);
-  }
-
-  // Check backend health on activation
-  checkBackendHealth();
-}
-
-async function checkBackendHealth() {
-  const apiUrl = vscode.workspace
-    .getConfiguration("open-agents")
-    .get<string>("apiUrl", "http://localhost:3001");
-  try {
-    const res = await fetch(`${apiUrl}/api/health`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  } catch {
-    const choice = await vscode.window.showWarningMessage(
-      "Open-Agents backend is not running. Start it to use the canvas.",
-      "Start Backend",
-    );
-    if (choice === "Start Backend") {
-      vscode.commands.executeCommand("open-agents.startBackend");
-    }
   }
 }
 
