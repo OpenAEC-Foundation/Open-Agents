@@ -1,5 +1,6 @@
 export type {
   ModelId,
+  ModelProvider,
   AgentTool,
   AgentNodeData,
   NodeType,
@@ -13,3 +14,10 @@ export type {
   SSEEvent,
   HealthResponse,
 } from "./types.js";
+
+export type {
+  AgentEventType,
+  AgentEvent,
+  RuntimeExecutionConfig,
+  AgentRuntime,
+} from "./runtime.js";

@@ -5,61 +5,29 @@ import {
   Controls,
   MiniMap,
   Panel,
-  addEdge,
-  useNodesState,
-  useEdgesState,
-  type OnConnect,
-  type Node,
-  type Edge,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import { AgentNode } from "./components/AgentNode";
 import { Sidebar } from "./components/Sidebar";
-import type { CanvasConfig, AgentNodeData } from "@open-agents/shared";
+import { useCanvasStore } from "./stores/canvasStore";
+import type { AgentNodeData } from "@open-agents/shared";
 
-// React Flow v12 requires Record<string, unknown> for node data.
-// We use Node (unparameterized) and cast data in components via `as unknown as AgentNodeData`.
 const nodeTypes = { agent: AgentNode };
 
-const initialNodes: Node[] = [
-  {
-    id: "agent-1",
-    type: "agent",
-    position: { x: 100, y: 100 },
-    data: {
-      name: "Analyst",
-      model: "anthropic/claude-sonnet-4-6",
-      systemPrompt: "Analyse the codebase and identify key patterns.",
-      tools: ["Read", "Glob", "Grep"],
-    },
-  },
-  {
-    id: "agent-2",
-    type: "agent",
-    position: { x: 500, y: 100 },
-    data: {
-      name: "Reporter",
-      model: "anthropic/claude-haiku-4-5",
-      systemPrompt: "Write a concise summary based on the analysis.",
-      tools: ["Read", "Write"],
-    },
-  },
-];
-
-const initialEdges: Edge[] = [];
-
 export function App() {
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialEdges);
-  const [exportedJson, setExportedJson] = useState<string | null>(null);
-  const nodeIdCounter = useRef(3); // start after agent-1 and agent-2
-  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    onConnect,
+    addNode,
+    getCanvasConfig,
+  } = useCanvasStore();
 
-  const onConnect: OnConnect = useCallback(
-    (connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges],
-  );
+  const [exportedJson, setExportedJson] = useState<string | null>(null);
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
   const onDragOver = useCallback((e: DragEvent) => {
     e.preventDefault();
@@ -72,44 +40,22 @@ export function App() {
       const raw = e.dataTransfer.getData("application/open-agents-preset");
       if (!raw) return;
 
-      const data = JSON.parse(raw) as Record<string, unknown>;
-      const id = `agent-${nodeIdCounter.current++}`;
-
-      // Get the bounding rect of the ReactFlow wrapper to calculate position
+      const data = JSON.parse(raw) as AgentNodeData;
       const bounds = reactFlowWrapper.current?.getBoundingClientRect();
       if (!bounds) return;
 
-      const newNode: Node = {
-        id,
-        type: "agent",
-        position: {
-          x: e.clientX - bounds.left - 120,
-          y: e.clientY - bounds.top - 40,
-        },
-        data,
-      };
-
-      setNodes((nds) => [...nds, newNode]);
+      addNode(data, {
+        x: e.clientX - bounds.left - 120,
+        y: e.clientY - bounds.top - 40,
+      });
     },
-    [setNodes],
+    [addNode],
   );
 
   const handleExport = useCallback(() => {
-    const config: CanvasConfig = {
-      nodes: nodes.map((n) => ({
-        id: n.id,
-        type: (n.type ?? "agent") as CanvasConfig["nodes"][number]["type"],
-        position: n.position,
-        data: n.data as unknown as AgentNodeData,
-      })),
-      edges: edges.map((e) => ({
-        id: e.id,
-        source: e.source,
-        target: e.target,
-      })),
-    };
+    const config = getCanvasConfig();
     setExportedJson(JSON.stringify(config, null, 2));
-  }, [nodes, edges]);
+  }, [getCanvasConfig]);
 
   return (
     <div className="w-full h-full flex flex-col">

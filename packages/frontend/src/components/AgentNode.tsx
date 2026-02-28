@@ -1,6 +1,7 @@
 import { useCallback } from "react";
-import { Handle, Position, useReactFlow, type NodeProps } from "@xyflow/react";
+import { Handle, Position, type NodeProps } from "@xyflow/react";
 import type { AgentNodeData, ModelId, AgentTool } from "@open-agents/shared";
+import { useCanvasStore } from "../stores/canvasStore";
 
 const models: { id: ModelId; label: string; color: string }[] = [
   { id: "anthropic/claude-haiku-4-5", label: "Haiku", color: "bg-emerald-500" },
@@ -24,17 +25,11 @@ const allTools: AgentTool[] = [
 
 export function AgentNode({ id, data }: NodeProps) {
   const agentData = data as unknown as AgentNodeData;
-  const { setNodes } = useReactFlow();
+  const updateNodeData = useCanvasStore((s) => s.updateNodeData);
 
   const updateData = useCallback(
-    (patch: Partial<AgentNodeData>) => {
-      setNodes((nds) =>
-        nds.map((n) =>
-          n.id === id ? { ...n, data: { ...n.data, ...patch } } : n,
-        ),
-      );
-    },
-    [id, setNodes],
+    (patch: Partial<AgentNodeData>) => updateNodeData(id, patch),
+    [id, updateNodeData],
   );
 
   const modelMeta = models.find((m) => m.id === agentData.model) ?? models[1];

@@ -20,16 +20,23 @@
 | Factory Portal | 0 | 1 |
 | Orchestratie (Flow + Pool) | 0 | 2 |
 | Safety & Audit | 0 | 1 |
-| Semantische Laag | 0 | 1 |
+| Knowledge Base + Snippet Engine | 0 | 1 |
+| Assembly Engine (NL → Graph) | 0 | 1 |
+| AI Assembly Assistant | 0 | 1 |
 | VS Code Extension | 0 | 1 |
 | Frappe App | 0 | 1 |
+| Library Ecosystem (10 types) | 0 | 10 |
+| LLM Asset Generation (Factory) | 0 | 1 |
 | Agent Library (doel: 1000+) | 0 | 1000 |
 
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
-**Fase 1 (PoC)**: ████████░░░░░░░░░░░░ **40%** - framework gekozen, scaffolding klaar
+**Fase 1 (PoC)**: ████████████░░░░░░░░ **60%** - 1.2a architecture foundations voltooid
 **Fase 2 (Factory)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 3 (Orchestratie)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
-**Fase 4 (Intelligence)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
+**Fase 4 (Intelligence)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - safety & audit
+**Fase 4a (Knowledge)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - knowledge base + snippet engine (Sprint 6a)
+**Fase 4b (Assembly)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - NL → agent graph self-assembly (Sprint 6b)
+**Fase 4c (Assistant)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - AI assembly assistant sidebar (Sprint 6c)
 **Fase 5 (Deployment)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 7 (Agent Library)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - 1000+ atomaire agents (doorlopend, 1015 gedefinieerd)
@@ -72,8 +79,9 @@
 
 - [ ] Factory portal tabblad
 - [ ] Agent creation wizard
-- [ ] Conversational agent creation
-- [ ] Basis asset library
+- [ ] LLM-powered asset generatie (FR-23): conversational, template-based, refinement
+- [ ] Library ecosystem shell met 10 library types (FR-22)
+- [ ] Agent Library als eerste gevulde library
 - [ ] Eerste 10 voorgebouwde agents
 
 ### Fase 3: Orchestratie Patronen (Sprint 3-4)
@@ -85,14 +93,34 @@
 - [ ] Parallelle agent execution
 - [ ] Patronen combineerbaar
 
-### Fase 4: Intelligence (Sprint 5-6)
+### Fase 4: Intelligence (Sprint 5, 6a, 6b, 6c)
 
+**Sprint 5 — Safety & Audit:**
 - [ ] Safety rules editor (visueel)
 - [ ] Audit trail en run history
-- [ ] Natural language → architectuur generatie
-- [ ] Auto-context building
-- [ ] Smart suggestions
-- [ ] Beginner conversational mode
+
+**Sprint 6a — Knowledge Base + Snippet Engine (FR-16):**
+- [ ] `@open-agents/knowledge` package in monorepo
+- [ ] Hardcoded engine: model profiles, tool profiles, token budgets, graph validator, cost estimator
+- [ ] 20 routing pattern snippets (Diamond, Escalation, Map-Reduce, etc.)
+- [ ] 7 orchestratie principes + 13 building block profiles als snippets
+- [ ] Markdown loader + knowledge registry
+- [ ] Knowledge API routes
+
+**Sprint 6b — Assembly Engine (FR-17, D-022):**
+- [ ] Intent classificatie (Haiku) — NL → TaskIntent
+- [ ] Pattern matching (TypeScript) — intent → top 3 patterns
+- [ ] Graph generatie (Sonnet) — pattern → CanvasConfig met nodes, edges, prompts
+- [ ] Cost estimatie + graph validatie
+- [ ] GenerateBar, PatternLibrary, CostEstimatePanel componenten
+- [ ] Auto-layout met dagre
+
+**Sprint 6c — AI Assembly Assistant (FR-18, FR-19):**
+- [ ] Assistant engine met context-aware prompts
+- [ ] Chat API (SSE streaming)
+- [ ] AssistantSidebar component (chat + suggesties + cost + context selector)
+- [ ] Bidirectionele canvas sync (CanvasAction → canvasStore)
+- [ ] Smart suggestions met one-click Apply
 
 ### Fase 5: Deployment Targets (Sprint 7-8)
 
@@ -144,8 +172,12 @@
 | Standaard werk | Sonnet 4.6 | Balans kwaliteit/snelheid |
 | Complexe analyse | Opus 4.6 | Maximale redenering |
 | Code generatie | Sonnet 4.6 | Sterk in code, snel genoeg |
-| Classificatie | Haiku 4.5 | Alleen classificatie, minimale kosten |
-| Semantische laag | Sonnet 4.6 | Intent herkenning + architectuur generatie |
+| Intent classificatie (D-017) | Haiku 4.5 | Assembly stap 1: NL → TaskIntent, minimale kosten |
+| Graph generatie (D-017) | Sonnet 4.6 | Assembly stap 3: pattern → concrete agent graph |
+| AI Assistant chat (D-018) | Sonnet 4.6 | Interactieve hulp bij assembleren, gebalanceerd |
+| Pattern matching (D-022) | TypeScript | Assembly stap 2: geen LLM, deterministische scoring |
+| Cost + validatie (D-022) | TypeScript | Assembly stap 4+5: geen LLM, betrouwbare berekening |
+| Factory asset generatie (D-028) | Sonnet 4.6 | Genereert library assets volgens platform regels |
 
 ---
 

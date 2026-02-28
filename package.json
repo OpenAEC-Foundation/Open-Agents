@@ -9,7 +9,11 @@
     "dev:backend": "pnpm --filter @open-agents/backend dev",
     "build": "pnpm -r run build",
     "clean": "pnpm -r run clean",
-    "typecheck": "pnpm -r run typecheck"
+    "typecheck": "pnpm -r run typecheck",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
   },
   "engines": {
     "node": ">=20.0.0",

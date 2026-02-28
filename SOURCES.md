@@ -47,9 +47,18 @@
 
 | Locatie | Beschrijving |
 |---------|--------------|
-| `C:\Users\Freek Heijting\Documents\GitHub\Claude_Workspace_Development_Workflows` | Dynamic workspace builder concept voor Claude Code. |
+| `C:\Users\Freek Heijting\Documents\GitHub\Claude_Workspace_Development_Workflows` | **KERN** — 6-Layer Stack model, workspace engineering patterns, agent context optimalisatie. |
 
-Deze werkmap bevat 17 gespecialiseerde workflow-modules (Hooks, MCP, Skills, Subagents, Workspace Builder, etc.) en een uitgebreide research-bibliotheek met 20+ analyse-documenten over workspace-orkestratie, multi-model patronen (Opus/Sonnet/Haiku routing), token efficiency en skill-architectuur. Het project definieert een zes-lagen stack (CLAUDE.md, Skills, MCP, Hooks, Subagents, Commands) en evolueert van losse skill packages naar "kloon-klare workspace-repos". Dit is direct relevant voor Open-Agents omdat de smart context layer (Pijler 2) dezelfde patronen moet implementeren: progressieve kennisloading, model routing en workspace-als-eenheid.
+Deze werkmap bevat 17 gespecialiseerde workflow-modules (Hooks, MCP, Skills, Subagents, Workspace Builder, etc.) en een uitgebreide research-bibliotheek met 20+ analyse-documenten over workspace-orkestratie, multi-model patronen (Opus/Sonnet/Haiku routing), token efficiency en skill-architectuur.
+
+**Directe impact op Open-Agents (D-024, D-025):**
+
+- **6-Layer Stack**: CLAUDE.md → Rules → Skills → MCP → Subagents → Hooks. Dit is het model dat elke agent-workspace in Open-Agents volgt (zie FR-21).
+- **Token Efficiency Hiërarchie**: Van duurste (CLAUDE.md, altijd geladen) naar goedkoopste (hooks, zero tokens). Bepaalt hoe we agent-workspaces samenstellen.
+- **Progressive Skill Loading**: 3 niveaus (metadata ~100 tokens, instructies <5K, resources onbeperkt). Essentieel voor schaalbare agent context.
+- **Research-first Methodologie**: 87% one-shot success rate aangetoond in 68 ontwikkelsessies. Onderbouwt Principle 12 (meerlaagse engineering).
+- **Kloon-klare Workspace Repos**: Template-structuur per domein (CLAUDE.md + skills + rules + MCP + hooks). Direct herbruikbaar als agent-workspace templates.
+- **Workspace-als-eenheid**: Elke workspace is een complete, geïsoleerde context-omgeving. Vertaalt naar Docker containers per agent (D-101, D-024).
 
 ---
 

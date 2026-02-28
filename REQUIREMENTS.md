@@ -6,7 +6,14 @@
 
 ## Visie
 
-Open-Agents is een visueel platform waarmee je AI agent-architecturen bouwt door blokken te slepen en te verbinden. Geen code nodig. De app genereert automatisch configuratie die AI agents (Claude, Pi, etc.) aanstuurt. Complexe prompt-engineering en context-engineering achter een simpele interface.
+Open-Agents is een **hyper session workspace builder met agentic orchestratie**. Je bouwt visueel de ideale workspace-configuratie per agent — CLAUDE.md, skills, rules, MCP servers, hooks — en orkestreert ze samen op een canvas. Zelf instellen of door AI laten genereren. Geen code nodig.
+
+**Drie lagen in één tool (D-025):**
+1. **Orchestratie** (canvas): WIE doet wat — flows, pools, routing
+2. **Agent Identiteit** (SDK): WAT is elke entiteit — agent, subagent, teammate, skill
+3. **Workspace Engineering** (Docker): HOE denkt de agent — 6-layer context stack per container
+
+Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). Open-Agents optimaliseert alle drie de lagen, en maakt dat gebruiksvriendelijk via Factory, AI assistant, en self-assembly.
 
 ---
 
@@ -21,13 +28,20 @@ Open-Agents is een visueel platform waarmee je AI agent-architecturen bouwt door
 - Undo/redo
 - Snap-to-grid en alignment helpers
 
-### FR-02: Agent Blokken
+### FR-02: Agent Blokken (D-023)
 
-- Voorgedefinieerde agent types (generiek, specialist, dispatcher, safety, reviewer)
-- Per blok configureerbaar: naam, system prompt, allowed tools, model, skills
+- **Zes canvas block types** gebaseerd op Anthropic Agent SDK taxonomie:
+  - **Agent Node**: Top-level of subagent — groot blok met status indicator, systemPrompt, tools, model, skills, hooks
+  - **Teammate Node**: Onafhankelijke peer — peer blok met mailbox icon, bidirectionele messaging edges
+  - **Skill Badge**: Kennis/instructie — klein label/tag op een agent-blok (geen standalone blok)
+  - **Connector Node**: MCP Server — klein blok met plug icon, server config, tool definitions
+  - **Gate Node**: Hook/approval — diamant shape, filter condition of approval rule
+  - **Dispatcher Node**: Orchestratie — groot blok met routing icon, routing rules
+- Per blok configureerbaar: naam, system prompt, allowed tools, model, skills, hooks
 - Custom agent types aanmaken (via Factory)
 - Visuele indicatie van agent status (idle, running, done, error)
 - Klein en modulair: elke agent heeft één duidelijke kleine taak
+- **Lakmoestest**: als het in één LLM-call kan → het is een skill (badge), geen agent (node)
 
 ### FR-03: Orchestratie Patronen
 
@@ -156,6 +170,144 @@ Open-Agents is een visueel platform waarmee je AI agent-architecturen bouwt door
 - Optioneel: `maxTokens` per agent configureerbaar
 - Toekomst: custom/self-hosted endpoints toevoegen (OpenAI-compatible API)
 
+### FR-16: Knowledge Base & Snippet Engine (D-020, D-021)
+
+- Gestructureerde kennisbibliotheek als apart package (`@open-agents/knowledge`)
+- **Hardcoded engine logic** (TypeScript): model capability profiles (cost/speed/capabilities), tool risico-niveaus, token budget berekening, graph validatie regels
+- **Extensible snippets** (Markdown met YAML frontmatter): 20 routing patterns, 7 orchestratie principes, 13 building block profiles
+- Elk routing pattern bevat: naam, diagram, when-to-use, token profiel, node/edge templates
+- API endpoints: `GET /api/knowledge/patterns`, `/principles`, `/blocks`
+- Extensible: gebruikers kunnen eigen snippets toevoegen
+- Bron: kennis geëxtraheerd uit meta-analyse van 68 ontwikkelsessies (Claude Workspace Development Workflows)
+
+### FR-17: Self-Assembly Engine - NL naar Agent Graph (D-017, D-022)
+
+- Gebruiker beschrijft gewenste taak in natuurlijke taal
+- **5-staps pipeline**:
+  1. Intent classificatie (Haiku): task type, complexiteit, domein, geschat aantal agents
+  2. Pattern matching (TypeScript): score-based matching van intent op routing patterns
+  3. Graph generatie (Sonnet): concrete nodes met model, tools, system prompt, edges
+  4. Cost estimatie (TypeScript): USD schatting per node en totaal
+  5. Graph validatie (TypeScript): cycle detectie, orphan nodes, ongeldige referenties
+- Resultaat verschijnt direct op canvas, volledig editeerbaar
+- GenerateBar component boven het canvas voor NL input
+- LLM alleen waar creativiteit nodig is; deterministische TypeScript waar betrouwbaarheid cruciaal is
+
+### FR-18: AI Assembly Assistant - Sidebar (D-018)
+
+- Chat panel naast het canvas als kennispartner bij het assembleren
+- **Context-aware**: leest huidige canvas state mee bij elke interactie
+- **Zes query modes**:
+  - Explain: "Wat doet deze pipeline?"
+  - Suggest: "Hoe verbeter ik dit?" → suggesties met one-click Apply
+  - Generate: "Bouw een code review pipeline" → genereert canvas acties
+  - Modify: "Verander de analyst naar Sonnet" → specifieke node wijziging
+  - Cost: "Wat kost dit?" → cost estimate
+  - Pattern: "Welk pattern past bij 3 reviewers?" → pattern informatie
+- **Bidirectionele canvas sync**: assistant kan nodes toevoegen, wijzigen, verwijderen via CanvasAction objecten
+- Context selector (neutral, code-review, security, ERPNext, custom)
+- Gebruikt knowledge base (FR-16) als referentiemateriaal
+
+### FR-19: Pattern Library Browser
+
+- Visueel doorbladerbare bibliotheek van alle routing patterns uit de knowledge base
+- Per pattern: naam, ASCII diagram, wanneer gebruiken, cost profiel, voorbeeld use case
+- Drag-to-canvas of one-click toepassen van een pattern
+- Zoeken en filteren op tags en categorieën
+- Categorieën: linear, pyramid, parallel, iterative, validation, efficiency, specialist
+
+### FR-20: Agent Taxonomie & Entiteittypes (D-023)
+
+- **Vier entiteittypes** op basis van Anthropic Agent SDK, elk met eigen eigenschappen:
+  - **Top-level Agent**: eigen context window, autonome executie-loop, tool use, multi-turn. Minimum: `description` + `prompt` + tools.
+  - **Subagent**: eigen context window, fire-and-forget, rapporteert aan parent. Minimum: `description` + `prompt`.
+  - **Teammate**: volledig onafhankelijke sessie, peer-to-peer messaging, gedeelde takenlijst. Minimum: `description` + `prompt` + `tools`.
+  - **Skill**: deelt parent's context window, geen autonome executie, is kennis/instructie. Progressive loading (metadata → instructies → resources).
+- Elk entiteittype heeft een eigen canvas representatie (zie FR-02)
+- Agent definitie velden (configureerbaar per node):
+  - Verplicht: `description`, `prompt` (system prompt)
+  - Optioneel: `tools`, `model` (provider/model format, D-011), `maxTurns`, `permissionMode`, `skills`, `mcpServers`, `hooks`, `memory`, `isolation`
+- **Scheidslijn agent vs prompt template**: een agent heeft een autonome executie-loop met tool use over meerdere turns. Een prompt template/skill is een single-turn LLM-call (tekst in → tekst uit, geen tools).
+- AGENTS.md library (1015 definities) bevat overwegend prompt templates; bij implementatie worden ze skills of prompt templates binnen agent-workspaces. Echte agents ontstaan bij toevoegen van tools + autonome loop.
+
+### FR-21: Per-Agent Workspace Engineering (D-024, D-025)
+
+- Elke agent draait in een Docker container met een geoptimaliseerde workspace
+- Workspace volgt het **6-layer stack model** (uit Claude Workspace Development Workflows):
+  1. **CLAUDE.md** — Agent identity, domeinkennis, conventies (altijd geladen, ~100-300 regels)
+  2. **.claude/rules/** — Conditionele path-scoped regels (geladen bij matching files)
+  3. **.claude/skills/** — On-demand domein-expertise, progressive loading (metadata ~100 tokens)
+  4. **.mcp.json** — Externe tool connecties (altijd geladen als tool definitions)
+  5. **.claude/agents/** — Subagent definities voor werk-delegatie (eigen context window)
+  6. **Hooks** — Lifecycle automatisering: PreToolUse, PostToolUse, Setup (zero tokens, shell)
+- **Docker volume strategie**:
+  - `/workspace` (read/write): project bestanden
+  - `/agent-config` (read-only): agent workspace template (CLAUDE.md, skills, etc.)
+  - `/shared-skills` (read-only): gedeelde skill library
+- **Multi-layered engineering** (D-025): drie optimalisatielagen:
+  - Laag 1 (Orchestratie): WIE doet wat — canvas flow/pool patronen
+  - Laag 2 (Agent Identiteit): WAT is elke entiteit — SDK type, tools, model, permissies
+  - Laag 3 (Workspace/Context): HOE denkt de agent — 6-layer stack per Docker container
+- Factory portal (FR-04) genereert workspace templates per agent type
+- Token efficiency: CLAUDE.md kort houden, skills on-demand laden, hooks zero-cost
+
+### FR-22: Library Ecosystem (D-025)
+
+- **Tien browsable libraries** georganiseerd per engineering laag (D-025):
+
+**Laag 1 — Orchestratie (WIE doet wat):**
+
+| # | Library | Inhoud | Bron |
+|---|---------|--------|------|
+| 1 | **Pattern Library** | 20+ routing patterns (Diamond, Escalation, Map-Reduce, etc.) met diagram, when-to-use, cost profiel, node/edge templates | FR-19, Knowledge Base |
+| 2 | **Template Gallery** *(composiet)* | Kant-en-klare multi-agent pipelines voor specifieke use cases (code review team, security audit, data pipeline) | Combinatie van patterns + agents + skills |
+
+**Laag 2 — Agent Identiteit (WAT is elke entiteit):**
+
+| # | Library | Inhoud | Bron |
+|---|---------|--------|------|
+| 3 | **Agent Library** | Atomaire agent definities (1015+ in AGENTS.md) met description, prompt, tools, model hint | FR-20, AGENTS.md |
+| 4 | **Skill Library** | On-demand kennis/instructie snippets, progressive loading (metadata → full content) | FR-21 laag 3, .claude/skills/ |
+| 5 | **Model Catalog** | Provider/model profielen met cost, speed, capabilities, aanbevolen use cases | FR-16 engine, D-011 |
+
+**Laag 3 — Workspace/Context (HOE denkt de agent):**
+
+| # | Library | Inhoud | Bron |
+|---|---------|--------|------|
+| 6 | **Connector Library** | MCP server definities (GitHub, filesystem, database, API connectors) met tool definitions en risico-niveaus | FR-21 laag 4, .mcp.json |
+| 7 | **Hook Library** | Herbruikbare lifecycle hooks (PreToolUse guards, PostToolUse validators, Setup scripts) | FR-21 laag 6 |
+| 8 | **Rule Library** | Conditionele path-scoped regels voor agent gedrag (file conventions, code style, safety constraints) | FR-21 laag 2, .claude/rules/ |
+| 9 | **Plugin Library** *(composiet)* | Bundels van skills + hooks + connectors + agents als herbruikbaar pakket | Composiet van 4+6+7+8 |
+| 10 | **Workspace Template Library** *(composiet)* | Complete 6-layer workspace configuraties per agent type (CLAUDE.md + rules + skills + MCP + agents + hooks) | FR-21, composiet van alle lagen |
+
+- Elke library heeft: zoeken, filteren op tags/categorie, preview, one-click toepassen op canvas of agent
+- Drie composiet libraries (2, 9, 10) combineren assets uit atomaire libraries
+- Gebruikers kunnen eigen assets toevoegen aan elke library via Factory (FR-04, FR-23)
+- Community sharing: assets exporteren/importeren (JSON + Markdown)
+- Versiebeheer per asset
+
+### FR-23: LLM-Powered Asset Generation (Factory)
+
+- Factory portal (FR-04) gebruikt een LLM om nieuwe assets te genereren voor elke library uit FR-22
+- **Generatie modes**:
+  - **Conversational**: gebruiker beschrijft in natuurlijke taal wat ze nodig hebben, LLM genereert het asset
+  - **Template-based**: gebruiker kiest een template/categorie, LLM vult de details in
+  - **Refinement**: gebruiker past bestaand asset aan via chat met LLM suggesties
+- **Platform-aware generatie**: LLM kent de platform regels, conventies en best practices:
+  - Agent definities volgen D-023 taxonomie (agent vs skill lakmoestest)
+  - Workspace templates volgen 6-layer stack model (D-024)
+  - Skills volgen progressive loading formaat (metadata ~100 tokens)
+  - Hooks volgen lifecycle event specificaties
+  - Rules volgen path-scoped conditionele structuur
+  - Patterns volgen snippet formaat met YAML frontmatter (D-020)
+- **Validatie bij generatie**: elk gegenereerd asset wordt automatisch gevalideerd:
+  - Structurele correctheid (vereiste velden, geldig formaat)
+  - Consistentie met bestaande assets (geen duplicaten, compatibele interfaces)
+  - Token efficiency check (CLAUDE.md niet te lang, skills compact)
+  - Cost impact schatting bij agent/pattern assets
+- **Batch generatie**: meerdere gerelateerde assets in één keer genereren (bijv. een agent + bijbehorende skills + workspace template)
+- Gegenereerde assets verschijnen als draft in de library, gebruiker reviewt en publiceert
+
 ---
 
 ## Niet-Functionele Requirements
@@ -194,6 +346,14 @@ Open-Agents is een visueel platform waarmee je AI agent-architecturen bouwt door
 - API-first backend
 - Stateless frontend, alle state in backend/configuratie
 - Docker containers voor agent isolatie (optioneel per agent)
+
+### NFR-06: Token Cost Awareness
+
+- Cost estimate zichtbaar bij elk canvas ontwerp (FR-17 stap 4)
+- Per-node cost breakdown met model en geschatte tokens
+- Model suggesties voor cost optimalisatie door AI Assistant (FR-18)
+- Waarschuwingen bij dure configuraties (Opus voor eenvoudige taken, hoge fan-out)
+- Confidence levels: high/medium/low afhankelijk van voorspelbaarheid
 
 ---
 
@@ -234,4 +394,4 @@ Open-Agents is een visueel platform waarmee je AI agent-architecturen bouwt door
 
 ---
 
-*Laatste update: 2026-03-01*
+*Laatste update: 2026-02-28*

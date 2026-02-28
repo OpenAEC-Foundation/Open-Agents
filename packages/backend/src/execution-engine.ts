@@ -7,12 +7,34 @@ import type {
   ExecutionRun,
   SSEEvent,
   SSEEventType,
+  AgentRuntime,
+  ModelProvider,
 } from "@open-agents/shared";
 
 // In-memory stores
 const runs = new Map<string, ExecutionRun>();
 const eventBuffers = new Map<string, SSEEvent[]>();
 const emitters = new Map<string, EventEmitter>();
+
+// Runtime registry: provider → AgentRuntime
+const runtimes = new Map<string, AgentRuntime>();
+
+/** Register a runtime adapter for a provider */
+export function registerRuntime(runtime: AgentRuntime): void {
+  runtimes.set(runtime.provider, runtime);
+}
+
+/** Get the runtime for a model's provider (e.g. "anthropic" from "anthropic/claude-sonnet-4-6") */
+function getRuntimeForModel(model: string): AgentRuntime {
+  const provider = model.split("/")[0] as ModelProvider;
+  const runtime = runtimes.get(provider);
+  if (!runtime) {
+    throw new Error(
+      `No runtime registered for provider "${provider}". Available: ${[...runtimes.keys()].join(", ") || "none"}`,
+    );
+  }
+  return runtime;
+}
 
 // ---------------------------------------------------------------------------
 // Topological sort (Kahn's algorithm)
@@ -85,44 +107,6 @@ function emitEvent(
 }
 
 // ---------------------------------------------------------------------------
-// Node execution via Claude Agent SDK
-// ---------------------------------------------------------------------------
-
-async function executeNode(
-  node: CanvasNode,
-  previousOutput: string | undefined,
-  runId: string,
-): Promise<string> {
-  // Dynamic import so the module loads even if SDK is not installed
-  const { query } = await import("@anthropic-ai/claude-agent-sdk");
-
-  const prompt = previousOutput
-    ? `Previous agent output:\n\n${previousOutput}\n\nNow execute your task based on the above context.`
-    : "Execute your task.";
-
-  let result = "";
-
-  for await (const message of query({
-    prompt,
-    options: {
-      systemPrompt: node.data.systemPrompt,
-      allowedTools: node.data.tools,
-      model: node.data.model,
-      permissionMode: "bypassPermissions",
-      allowDangerouslySkipPermissions: true,
-      maxTurns: 20,
-    },
-  })) {
-    if ("result" in message) {
-      result = (message as { result: string }).result;
-      emitEvent(runId, "step:output", node.id, result);
-    }
-  }
-
-  return result;
-}
-
-// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -190,12 +174,28 @@ async function runExecution(
     emitEvent(run.id, "step:start", nodeId);
 
     try {
-      const output = await executeNode(node, previousOutput, run.id);
+      // Resolve runtime via provider prefix (D-015)
+      const runtime = getRuntimeForModel(node.data.model);
+      let lastOutput = "";
+
+      for await (const event of runtime.execute({
+        nodeId,
+        agent: node.data,
+        previousOutput,
+      })) {
+        if (event.type === "output" && event.data) {
+          lastOutput = event.data;
+          emitEvent(run.id, "step:output", nodeId, event.data);
+        } else if (event.type === "error") {
+          throw new Error(event.data ?? "Runtime error");
+        }
+      }
+
       step.status = "completed";
-      step.output = output;
+      step.output = lastOutput;
       step.completedAt = new Date().toISOString();
-      outputs.set(nodeId, output);
-      emitEvent(run.id, "step:complete", nodeId, output);
+      outputs.set(nodeId, lastOutput);
+      emitEvent(run.id, "step:complete", nodeId, lastOutput);
     } catch (err: unknown) {
       const errorMsg =
         err instanceof Error ? err.message : "Unknown error";

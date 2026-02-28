@@ -1352,22 +1352,66 @@ Hieronder voorbeelden van hoe atomaire agents combineerbaar zijn tot krachtige w
 
 ## Agent Definitie Structuur
 
-Elke agent wordt gedefinieerd als een minimaal configuratie-object:
+> **Belangrijk**: De 1015 definities in deze library zijn overwegend **prompt templates** — single-turn
+> transformaties (tekst in → tekst uit, geen tools). Bij implementatie worden ze **skills** of
+> **prompt templates** binnen een agent-workspace. Een echte **agent** (in SDK-zin) ontstaat wanneer
+> een prompt template tools krijgt en in een autonome executie-loop draait.
+>
+> Zie **D-023** (Agent Taxonomie) in DECISIONS.md voor de volledige definitie van wanneer iets
+> een agent, subagent, teammate, of skill is.
+
+### Classificatie per SDK Type
+
+| SDK Type | Eigen Context? | Tools? | Autonome Loop? | Voorbeelden in deze library |
+|----------|:--------------:|:------:|:--------------:|----------------------------|
+| **Skill / Prompt Template** | Nee | Nee | Nee | A-01 t/m A-55 (text), D-01 t/m D-55 (data), meeste entries |
+| **Agent** (subagent) | Ja | Ja | Ja | Entries die file I/O, git, of shell nodig hebben (E-*, G-*, K-*) |
+| **Teammate** | Ja | Ja | Ja | Agents in team-composities (flow/pool voorbeelden hierboven) |
+
+### Prompt Template Definitie (meeste entries)
 
 ```yaml
 id: "summarize"
 name: "Summarize"
 category: "text"
+sdk_type: "skill"            # skill | subagent | teammate
 description: "Vat tekst samen tot de kern (3-5 zinnen)"
 input: "Tekst (any length)"
 output: "Samenvatting (3-5 zinnen)"
-model_hint: "haiku"        # haiku = snel/goedkoop, sonnet = standaard, opus = complex
+model_hint: "haiku"          # haiku = snel/goedkoop, sonnet = standaard, opus = complex
 max_tokens: 500
 system_prompt: |
   Je bent een samenvatter. Je ontvangt tekst en retourneert een samenvatting
   van maximaal 5 zinnen. Behoud de kernboodschap. Geen inleiding, geen afsluiting,
   alleen de samenvatting.
-tools: []                   # Geen tools nodig voor deze agent
+tools: []                    # Geen tools = prompt template / skill
+```
+
+### Agent Definitie (met tools + autonome loop)
+
+```yaml
+id: "file-organizer"
+name: "File Organizer"
+category: "file"
+sdk_type: "subagent"         # Draait in eigen context window
+description: "Organiseert bestanden in mappen op basis van type en inhoud"
+input: "Directory path"
+output: "Georganiseerde directory + rapport"
+model_hint: "sonnet"
+max_tokens: 4000
+system_prompt: |
+  Je bent een bestandsorganisator. Analyseer alle bestanden in de opgegeven
+  directory, categoriseer ze op type en inhoud, en verplaats ze naar logische
+  submappen. Rapporteer wat je hebt gedaan.
+tools:                       # Tools = echte agent (autonome loop)
+  - "Read"
+  - "Bash"
+  - "Glob"
+  - "Write"
+workspace:                   # 6-layer stack (D-024)
+  claude_md: "agent-configs/file-organizer/CLAUDE.md"
+  skills: ["file-classification"]
+  hooks: ["post-move-verify"]
 ```
 
 ### Model Routing per Agent

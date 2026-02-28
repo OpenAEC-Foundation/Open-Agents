@@ -1,6 +1,6 @@
 # Masterplan - Open-Agents
 
-> **Versie**: 0.4
+> **Versie**: 0.5
 > **Laatste update**: 2026-02-28
 > **Methodiek**: Scrum (korte sprints, snel waarde leveren)
 > **Zie ook**: REQUIREMENTS.md, PRINCIPLES.md, ROADMAP.md, SOURCES.md
@@ -22,26 +22,38 @@
 | 3 | Flow Pattern | Sequentiële pipeline werkend | Sprint 1 | Planned |
 | 4 | Pool Pattern | Dispatcher + parallelle execution | Sprint 3 | Planned |
 | 5 | Safety & Audit | Rules editor + audit trail | Sprint 1 | Planned |
-| 6 | Semantische Laag | Natural language → architectuur | Sprint 2, 3 | Planned |
+| 6a | Knowledge Base + Snippet Engine | Kennisbibliotheek: routing patterns, model profiles, principes | Sprint 1 | Planned |
+| 6b | Assembly Engine | NL → Agent Graph self-assembly pipeline | Sprint 6a | Planned |
+| 6c | AI Assembly Assistant | Sidebar kennispartner + pattern library | Sprint 6b | Planned |
 | 7 | VS Code Extension | Canvas als VS Code webview + MCP | Sprint 1 | Planned |
 | 8 | Frappe App | Frappe wrapper + ERPNext templates | Sprint 1 | Planned |
 | 9 | Agent Library | 1000+ atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | Planned |
 | 10 | Refactor & Consolidatie | Refactor van alles uit eerste Scrum iteratie | Sprint 1-9 | Planned |
 
 ```
-Sprint 0 ──→ Sprint 1 ──┬──→ Sprint 2 ──┬──→ Sprint 6
-                         ├──→ Sprint 3 ──┤
-                         │               └──→ Sprint 4
-                         ├──→ Sprint 5
-                         ├──→ Sprint 7
-                         └──→ Sprint 8
+Sprint 0 ──→ Sprint 1 ──→ Sprint 1.2a ──→ Sprint 1.5
+                                              │
+              ┌───────┬───────┬───────┬───────┼───────┐
+              v       v       v       v       v       v
+            S2      S3      S5      S7      S8     S6a
+              │       │                              │
+              v       v                              v
+            (S2)    S4                             S6b
+                                                     │
+                                                     v
+                                                   S6c
 
-Sprint 6 hangt af van ZOWEL Sprint 2 (Factory) ALS Sprint 3 (Flow pattern)
+Sprint 6a-6c is de nieuwe Semantische Laag, opgesplitst in:
+  6a: Knowledge Base (FR-16) - kennisbibliotheek + snippet engine
+  6b: Assembly Engine (FR-17) - NL → agent graph generatie
+  6c: AI Assistant (FR-18, FR-19) - sidebar + pattern library
+
 Sprint 9 (Agent Library) loopt DOORLOPEND naast alle sprints (vanaf Sprint 2)
 Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 ```
 
-> **Na Sprint 1 kunnen Sprints 2, 3, 5, 7 en 8 parallel starten.**
+> **Na Sprint 1.5 kunnen Sprints 2, 3, 5, 6a, 7 en 8 parallel starten.**
+> **Sprint 6a → 6b → 6c is sequentieel (elke stap bouwt voort).**
 > **Sprint 9 (Agent Library) loopt continu en vult retroactief agents aan in elke sprint.**
 > **Sprint 10 (Refactor) is de laatste sprint: consolideert en refactort alles.**
 
@@ -184,19 +196,19 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Beslissingen:**
-- [ ] D-011: Database keuze (PoC)
-- [ ] D-012: Auth strategie (PoC)
-- [ ] D-013: Claude API key beheer
-- [ ] D-014: Frontend state management
-- [ ] D-015: Agent SDK interface strategie (runtime adapter)
+- [x] D-026: Database keuze (PoC) → In-memory Map (was D-011 in prompt, hernummerd)
+- [x] D-012: Auth strategie (PoC) → Geen auth (localhost only)
+- [x] D-013: Claude API key beheer → Environment variable
+- [x] D-014: Frontend state management → Zustand
+- [x] D-015: Agent SDK interface strategie (runtime adapter) → AgentRuntime interface
 
 **Infrastructuur:**
-- [ ] CI/CD pipeline (.github/workflows/ci.yml)
-- [ ] Vitest configuratie + eerste test
-- [ ] Pino logger setup in backend
-- [ ] .env.example + .env in .gitignore
-- [ ] Runtime adapter interface (AgentRuntime) in shared package
-- [ ] ClaudeSDKRuntime implementatie
+- [x] CI/CD pipeline (.github/workflows/ci.yml)
+- [x] Vitest configuratie + eerste test (5 tests, 2 test files)
+- [x] Pino logger setup in backend (Fastify built-in pino)
+- [x] .env.example + .env in .gitignore
+- [x] Runtime adapter interface (AgentRuntime) in shared package
+- [x] ClaudeSDKRuntime implementatie
 
 ---
 
@@ -304,7 +316,7 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 
 ## Sprint 2: Factory Portal
 
-**Doel**: Gebruikers kunnen nieuwe agents aanmaken via een intuïtieve interface.
+**Doel**: Gebruikers kunnen nieuwe agents en andere assets aanmaken via een intuïtieve interface. Factory is de bron voor alle 10 libraries (FR-22) en gebruikt LLM-powered generatie (FR-23).
 
 **Afhankelijk van**: Sprint 1 (werkend canvas + backend)
 
@@ -342,18 +354,31 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 > Bouw de Asset Library voor Open-Agents.
 >
-> Een overzichtspagina die alle aangemaakte assets toont:
-> 1. Grid/lijst view van alle agents (kaartjes met naam, model, beschrijving)
-> 2. Zoeken en filteren op naam, type, tags
-> 3. Agent kaartje is sleepbaar naar het canvas (drag from library to canvas)
-> 4. Detail view per agent (klik op kaartje → volledige config zien)
-> 5. Edit en delete acties
+> De library is de centrale plek om alle platform assets te browsen (FR-22).
+> Er zijn 10 library types (7 atomair + 3 composiet), georganiseerd per
+> engineering laag (D-025):
+>
+> Laag 1 (Orchestratie): Pattern Library, Template Gallery
+> Laag 2 (Agent Identiteit): Agent Library, Skill Library, Model Catalog
+> Laag 3 (Workspace/Context): Connector Library, Hook Library, Rule Library,
+>   Plugin Library, Workspace Template Library
+>
+> Voor Sprint 2 begin met de Agent Library:
+> 1. Tab navigatie tussen library types (uitbreidbaar)
+> 2. Grid/lijst view van alle agents (kaartjes met naam, model, beschrijving)
+> 3. Zoeken en filteren op naam, type, tags, categorie
+> 4. Agent kaartje is sleepbaar naar het canvas (drag from library to canvas)
+> 5. Detail view per agent (klik op kaartje → volledige config zien)
+> 6. Edit en delete acties
+> 7. Community sharing: export/import knoppen
 >
 > De library haalt data op via GET /api/agents.
+> Andere library types worden in latere sprints gevuld.
 > ```
 
 **Taken:**
-- [ ] Grid/lijst view
+- [ ] Library shell met tab navigatie (10 types, uitbreidbaar)
+- [ ] Agent Library: grid/lijst view
 - [ ] Zoek en filter functionaliteit
 - [ ] Drag from library to canvas
 - [ ] Detail view
@@ -387,27 +412,41 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 - [ ] 10 agent preset JSON bestanden
 - [ ] Database seeding bij startup
 
-### Fase 2.4: Conversational Agent Creation `[SEQ]` — na 2.1
+### Fase 2.4: LLM-Powered Asset Generation `[SEQ]` — na 2.1
 
 > **Prompt**:
 > ```
-> Voeg een conversational mode toe aan de Factory.
+> Bouw LLM-powered asset generatie voor de Factory (FR-23).
 >
-> Naast de wizard kan de gebruiker ook een agent aanmaken door te typen:
-> "Maak een agent die code reviewed en focust op security"
+> De Factory gebruikt een LLM om nieuwe assets te genereren voor alle
+> library types (FR-22). De LLM kent de platform regels en genereert
+> assets die direct bruikbaar zijn.
+>
+> Drie generatie modes:
+> 1. **Conversational**: gebruiker beschrijft in NL wat ze nodig hebben
+>    Voorbeeld: "Maak een agent die code reviewed en focust op security"
+> 2. **Template-based**: kies een asset type + categorie, LLM vult details in
+> 3. **Refinement**: pas bestaand asset aan via chat met LLM suggesties
 >
 > Implementatie:
-> 1. Tekstveld bovenaan de Factory pagina
-> 2. Stuur beschrijving naar Claude via Agent SDK
-> 3. Claude genereert: name, description, model, systemPrompt, tools
-> 4. Toon gegenereerde config als preview
-> 5. Gebruiker kan aanpassen en opslaan
+> 1. Tekstveld + asset type selector bovenaan de Factory pagina
+> 2. Stuur beschrijving + asset type naar backend
+> 3. Backend system prompt bevat platform regels:
+>    - Agent definities volgen D-023 taxonomie (agent vs skill lakmoestest)
+>    - Workspace templates volgen 6-layer stack (D-024)
+>    - Skills volgen progressive loading formaat
+>    - Alle assets volgen D-020 snippet formaat (Markdown + YAML frontmatter)
+> 4. Automatische validatie bij generatie (structuur, consistentie, token efficiency)
+> 5. Gegenereerd asset verschijnt als draft → gebruiker reviewt en publiceert
+> 6. Batch generatie: meerdere gerelateerde assets in één keer
+>    Voorbeeld: agent + bijbehorende skills + workspace template
 >
 > System prompt voor de generator:
-> "Je bent een agent configuratie generator. Op basis van een beschrijving
-> genereer je een complete agent config met name, description, model
-> (haiku/sonnet/opus), systemPrompt en tools. Kies het lichtste model
-> dat de taak aankan. Houd system prompts beknopt en gefocust."
+> "Je bent een Open-Agents asset generator. Je genereert assets volgens
+> de platform standaarden. Agents volgen de D-023 taxonomie: als het in
+> één LLM-call kan, maak het een skill, niet een agent. Kies het lichtste
+> model dat de taak aankan. Houd system prompts beknopt en gefocust.
+> Workspace templates volgen het 6-layer stack model."
 > ```
 
 **Taken:**
@@ -647,70 +686,250 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 
 ---
 
-## Sprint 6: Semantische Laag
+## Sprint 6a: Knowledge Base + Snippet Engine
 
-**Doel**: De app begrijpt natural language en genereert architecturen automatisch.
+**Doel**: Gestructureerde kennisbibliotheek die de assembly engine en AI assistant van intelligentie voorziet (FR-16).
 
-**Afhankelijk van**: Sprint 2 (Factory) + Sprint 3 (Flow pattern)
+**Afhankelijk van**: Sprint 1.5 (werkende monorepo + build pipeline)
 
-### Fase 6.1: Natural Language → Architecture `[SEQ]` — eerst
+**Bron**: Kennis geëxtraheerd uit Claude Workspace Development Workflows meta-analyse (68 sessies).
 
-> **Prompt**:
-> ```
-> Bouw de semantische laag voor Open-Agents.
->
-> Input: gebruiker typt "Ik wil een team dat mijn pull requests reviewed
-> op code kwaliteit, security en performance"
->
-> Output: automatisch gegenereerde canvas architectuur met:
-> - Dispatcher node (ontvangt PR)
-> - 3 specialist agents (Quality, Security, Performance)
-> - Aggregator node (combineert feedback)
->
-> Implementatie:
-> 1. Tekstveld bovenaan de app (naast canvas tabs)
-> 2. Stuur beschrijving naar Claude met system prompt:
->    "Je bent een agent architectuur generator. Op basis van een beschrijving
->    genereer je een JSON canvas configuratie met nodes en edges.
->    Gebruik deze node types: agent, dispatcher, aggregator.
->    Kies voor elke agent het juiste model en tools.
->    Antwoord met valid JSON: {nodes: [...], edges: [...]}"
-> 3. Parse JSON response
-> 4. Render op canvas (met auto-layout via dagre of ELK)
-> 5. Gebruiker kan aanpassen en dan uitvoeren
-> ```
-
-**Taken:**
-- [ ] NL input veld
-- [ ] Architecture generation prompt
-- [ ] JSON parsing en validatie
-- [ ] Auto-layout op canvas
-
-### Fase 6.2: Smart Suggestions `[SEQ]` — na 6.1
+### Fase 6a.1: Knowledge Package Setup `[SEQ]` — eerst
 
 > **Prompt**:
 > ```
-> Voeg smart suggestions toe aan het canvas.
+> Maak het @open-agents/knowledge package aan in de monorepo.
 >
-> Het systeem analyseert de huidige canvas configuratie en suggereert:
-> 1. "Je hebt een Reviewer maar geen Tester - wil je die toevoegen?"
-> 2. "Deze flow heeft geen error handling - voeg een Safety node toe?"
-> 3. "Agent X gebruikt Opus maar de taak is simpel - Sonnet is goedkoper"
+> Structuur:
+> packages/knowledge/
+>   package.json
+>   src/
+>     index.ts
+>     engine/
+>       model-profiles.ts    # ModelProfile[] met cost/speed/capabilities
+>       tool-profiles.ts     # ToolProfile[] met risico-niveaus
+>       token-budget.ts      # Budget berekening functies
+>       graph-validator.ts   # Structurele validatie (cycles, orphans)
+>       cost-estimator.ts    # USD cost berekening per canvas config
 >
-> Implementatie:
-> - Analyseer canvas state bij elke wijziging
-> - Stuur config naar Claude met prompt: "Analyseer deze agent architectuur
->   en geef max 3 verbeter-suggesties. Focus op: ontbrekende stappen,
->   model optimalisatie, safety gaps."
-> - Toon suggesties als banner/toast boven het canvas
-> - Klik op suggestie → voert wijziging automatisch door
+> Types in packages/shared/src/knowledge-types.ts:
+>   ModelProfile, ToolProfile, RoutingPattern, CostEstimate,
+>   ValidationResult, OrchestrationPrinciple, BuildingBlock
+>
+> Schrijf Vitest tests voor alle engine functies.
 > ```
 
 **Taken:**
-- [ ] Canvas state analyse
-- [ ] Suggestie-generatie via Claude
-- [ ] Suggestie UI (banners/toasts)
-- [ ] One-click suggestie toepassen
+- [ ] `packages/knowledge/` package aanmaken in monorepo
+- [ ] `knowledge-types.ts` in shared package
+- [ ] `model-profiles.ts` — alle model cost/speed/capability data
+- [ ] `tool-profiles.ts` — tool beschrijvingen en risico-niveaus
+- [ ] `token-budget.ts` — budget berekening functies
+- [ ] `graph-validator.ts` — structurele validatie
+- [ ] `cost-estimator.ts` — USD cost berekening
+- [ ] Vitest tests voor alle engine functies
+
+### Fase 6a.2: Snippet Library `[SEQ]` — na 6a.1
+
+> **Prompt**:
+> ```
+> Schrijf de kennisbibliotheek als markdown snippets met YAML frontmatter.
+>
+> 20 routing patterns (uit Claude Workspace Development Workflows):
+>   patterns/linear/    — single-shot, chain, escalation-ladder, de-escalation
+>   patterns/pyramid/   — diamond, pyramid-up, pyramid-down
+>   patterns/parallel/  — fan-out, fan-in, map-reduce
+>   patterns/iterative/ — simple-loop, spiral, recursive-depth
+>   patterns/validation/— pipeline-gate, consensus, debate
+>   patterns/efficiency/— lazy-escalation, batch-summarize, cache-check
+>   patterns/specialist/— router-specialists
+>
+> Elk pattern bevat: id, name, category, tags, tokenProfile, minNodes,
+> maxNodes, beschrijving, ASCII diagram, when-to-use, node templates
+> (role + model + tools + prompt template), edge flow, anti-patterns.
+>
+> Ook: 7 orchestratie principes + 13 building block profiles als snippets.
+>
+> Implementeer markdown loader met YAML frontmatter parsing (gray-matter).
+> Maak knowledge registry (index + zoeken op tags).
+> Maak API routes: GET /api/knowledge/patterns, /principles, /blocks
+> ```
+
+**Taken:**
+- [ ] 20 routing pattern markdown snippets schrijven
+- [ ] 7 orchestratie principes als snippets
+- [ ] 13 building block profiles als snippets
+- [ ] Markdown loader met YAML frontmatter parsing
+- [ ] Knowledge registry (index + search by tags)
+- [ ] API routes: `GET /api/knowledge/patterns`, `/principles`, `/blocks`
+- [ ] Tests voor loader en registry
+
+**Acceptatiecriteria:**
+- `GET /api/knowledge/patterns` retourneert alle 20 patterns met metadata
+- `GET /api/knowledge/patterns/diamond` retourneert diamond pattern met node/edge templates
+- Cost estimator produceert realistische USD schattingen
+- Graph validator vangt cycles, orphans, ongeldige models/tools
+
+---
+
+## Sprint 6b: Assembly Engine (NL → Agent Graph)
+
+**Doel**: Gebruiker beschrijft taak in natuurlijke taal → systeem genereert optimale agent graph (FR-17, D-022).
+
+**Afhankelijk van**: Sprint 6a (knowledge base nodig)
+
+### Fase 6b.1: Intent Classification + Pattern Matching `[SEQ]` — eerst
+
+> **Prompt**:
+> ```
+> Bouw de eerste twee stappen van de assembly pipeline.
+>
+> Stap 1 — classifyIntent(description): Haiku (D-017)
+>   Input: NL beschrijving van gebruiker
+>   Output: TaskIntent {taskType, domain, complexity, estimatedAgentCount,
+>           needsParallel, needsValidation, keywords, constraints}
+>   System prompt bevat: task type definities, beschikbare patterns, presets
+>
+> Stap 2 — matchPatterns(intent): Pure TypeScript (geen LLM)
+>   Scoring regels:
+>     +0.3 category match (sequential→linear, parallel→parallel, etc.)
+>     +0.2 node count range match
+>     +0.1 per matching tag
+>     +0.2 als intent.needsValidation en pattern heeft validation gates
+>     -0.2 als "budget-sensitive" en costMultiplier > 3
+>   Retourneer top 3 matches gesorteerd op score
+>
+> API: POST /api/assembly/generate (eerste 2 stappen)
+> Tests: 10+ verschillende NL beschrijvingen
+> ```
+
+**Taken:**
+- [ ] `classifyIntent()` met Haiku
+- [ ] System prompt voor intent classificatie
+- [ ] `matchPatterns()` score-based matching (pure TypeScript)
+- [ ] `POST /api/assembly/generate` endpoint (stap 1+2)
+- [ ] Tests met 10+ NL beschrijvingen
+
+### Fase 6b.2: Graph Generation + Frontend `[SEQ]` — na 6b.1
+
+> **Prompt**:
+> ```
+> Bouw stap 3-5 van de assembly pipeline + frontend integratie.
+>
+> Stap 3 — generateGraph(intent, pattern, presets, modelProfiles): Sonnet
+>   Genereert concrete CanvasConfig met:
+>   - Node namen (niet "specialist-1" maar "Security Auditor")
+>   - System prompts afgestemd op de taak
+>   - Model selectie met justification
+>   - Tool selectie per node
+>   - Edges volgens pattern template
+>
+> Stap 4 — estimateCost(config): TypeScript
+> Stap 5 — validateGraph(config): TypeScript
+>
+> Frontend:
+> - GenerateBar.tsx: NL input veld boven het canvas
+> - PatternLibrary.tsx: browseable pattern bibliotheek in sidebar (FR-19)
+> - CostEstimatePanel.tsx: per-node en totaal cost visualisatie
+> - Auto-layout met @dagrejs/dagre (D-019)
+>
+> E2E test: typ beschrijving → graph verschijnt op canvas
+> ```
+
+**Taken:**
+- [ ] `generateGraph()` met Sonnet
+- [ ] Cost estimator en graph validator in pipeline wiren
+- [ ] Auto-layout met `@dagrejs/dagre` (D-019)
+- [ ] `GenerateBar.tsx` — NL input boven canvas
+- [ ] `PatternLibrary.tsx` — browseable pattern bibliotheek
+- [ ] `CostEstimatePanel.tsx` — cost visualisatie
+- [ ] E2E test: NL beschrijving → graph op canvas
+
+**Acceptatiecriteria:**
+- "I want a team that reviews code for quality, security and performance" → dispatcher + 3 specialists + aggregator
+- "Build a simple code analysis pipeline" → 2-3 node chain
+- Cost estimate getoond bij elk gegenereerd graph
+- Gebruiker kan gegenereerd graph bewerken na creatie
+- Pattern library toont alle 20 patterns met diagrammen
+
+---
+
+## Sprint 6c: AI Assembly Assistant
+
+**Doel**: Chat panel naast het canvas als kennispartner bij het assembleren (FR-18).
+
+**Afhankelijk van**: Sprint 6b (assembly engine + knowledge base)
+
+### Fase 6c.1: Backend + State Management `[SEQ]` — eerst
+
+> **Prompt**:
+> ```
+> Bouw de AI Assistant backend en state management.
+>
+> Backend (assistant-engine.ts):
+> - Context-aware system prompt die canvas state meeleest
+> - Zes query modes: Explain, Suggest, Generate, Modify, Cost, Pattern
+> - SSE streaming voor chat responses
+> - CanvasAction types: add-node, remove-node, update-node, replace-all
+> - POST /api/assistant/chat (SSE streaming)
+> - POST /api/assistant/suggestions (passieve canvas analyse)
+>
+> Frontend state (Zustand):
+> - assistantStore.ts: messages, isLoading, context, sendMessage(), applyAction()
+> - useAssistant.ts hook
+> - applyAction() dispatcht CanvasAction naar canvasStore
+>
+> Model: Sonnet voor alle queries (D-018)
+> ```
+
+**Taken:**
+- [ ] `assistant-engine.ts` met context-aware system prompts
+- [ ] `POST /api/assistant/chat` met SSE streaming
+- [ ] `POST /api/assistant/suggestions` voor passieve analyse
+- [ ] `assistantStore.ts` (Zustand)
+- [ ] `useAssistant.ts` hook
+- [ ] CanvasAction types + applyAction logic → canvasStore
+
+### Fase 6c.2: Frontend UI `[SEQ]` — na 6c.1
+
+> **Prompt**:
+> ```
+> Bouw de AssistantSidebar component.
+>
+> Layout: vast panel rechts van canvas, ~320px breed, inklapbaar
+>
+> Secties:
+> 1. Context selector dropdown (neutral, code-review, security, ERPNext, custom)
+> 2. Chat berichten (scrollable, user/assistant bubbles)
+> 3. Inline suggestie kaarten met "Apply" knop
+> 4. Cost estimate badge (altijd zichtbaar als canvas nodes heeft)
+> 5. Input bar onderaan met send knop
+>
+> Bidirectionele sync:
+> - Canvas → Assistant: canvasStore.getCanvasConfig() bij elke API call
+> - Assistant → Canvas: "Apply" knop dispatcht CanvasAction naar canvasStore
+>
+> Integreer in App.tsx layout (sidebar rechts van canvas)
+> E2E test: stel vragen, pas suggesties toe
+> ```
+
+**Taken:**
+- [ ] `AssistantSidebar.tsx` component
+- [ ] Chat message list (user/assistant bubbles)
+- [ ] Context selector dropdown
+- [ ] Inline suggestie kaarten met "Apply" knoppen
+- [ ] Cost estimate badge
+- [ ] Input bar met send knop
+- [ ] Collapse/expand toggle
+- [ ] Integratie in `App.tsx` layout
+- [ ] E2E test: vraag → antwoord → apply suggestie
+
+**Acceptatiecriteria:**
+- Assistant kan uitleggen wat de huidige canvas doet
+- Assistant suggereert verbeteringen (ontbrekende validatie, dure models)
+- "Add a security check" genereert een CanvasAction die een node toevoegt
+- Cost estimate update bij canvas wijzigingen
+- Context selector past expertise van de assistant aan
 
 ---
 
