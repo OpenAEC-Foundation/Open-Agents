@@ -17,6 +17,9 @@ import { ConnectModal } from "./components/ConnectModal";
 import { ThemePicker } from "./components/ThemePicker";
 import { ChatPanel } from "./components/ChatPanel";
 import { OutputPanel } from "./components/OutputPanel";
+import { GenerateBar } from "./components/GenerateBar";
+import { PatternLibrary } from "./components/PatternLibrary";
+import { CostEstimatePanel } from "./components/CostEstimatePanel";
 import { useAppStore } from "./stores/appStore";
 import { getTheme, applyTheme } from "./themes/themes";
 import type { AgentNodeData } from "@open-agents/shared";
@@ -119,6 +122,11 @@ export function App() {
         </div>
       </header>
 
+      {/* GenerateBar — prominent NL input above canvas */}
+      <div className="px-4 py-2 bg-surface-base border-b border-border-default shrink-0">
+        <GenerateBar />
+      </div>
+
       <div className="flex-1 flex min-h-0">
         <Sidebar />
 
@@ -184,6 +192,7 @@ export function App() {
       </div>
 
       <ConnectModal />
+      <PatternLibrary />
     </div>
   );
 }

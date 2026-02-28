@@ -8,6 +8,8 @@ import type {
 } from "@xyflow/react";
 import type {
   AgentNodeData,
+  CanvasNodeData,
+  NodeType,
   CanvasConfig,
   ChatMessage,
   ChatEvent,
@@ -33,8 +35,8 @@ export interface CanvasSlice {
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
 
-  addNode: (data: AgentNodeData, position: { x: number; y: number }) => string;
-  updateNodeData: (nodeId: string, patch: Partial<AgentNodeData>) => void;
+  addNode: (data: CanvasNodeData, position: { x: number; y: number }, type?: NodeType) => string;
+  updateNodeData: (nodeId: string, patch: Partial<CanvasNodeData>) => void;
   removeNode: (nodeId: string) => void;
   setCanvas: (nodes: Node[], edges: Edge[]) => void;
   getCanvasConfig: () => CanvasConfig;

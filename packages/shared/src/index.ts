@@ -3,6 +3,9 @@ export type {
   ModelProvider,
   AgentTool,
   AgentNodeData,
+  DispatcherNodeData,
+  AggregatorNodeData,
+  CanvasNodeData,
   NodeType,
   CanvasNode,
   CanvasEdge,
@@ -27,7 +30,7 @@ export type {
   ProviderConnection,
 } from "./types.js";
 
-export { TOOL_DISPLAY } from "./types.js";
+export { TOOL_DISPLAY, isAgentNode, isDispatcherNode, isAggregatorNode } from "./types.js";
 
 export type {
   AgentEventType,
