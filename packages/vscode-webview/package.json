@@ -1,14 +1,12 @@
 {
-  "name": "@open-agents/frontend",
+  "name": "@open-agents/vscode-webview",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "build": "vite build",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@fontsource-variable/jetbrains-mono": "^5.2.8",

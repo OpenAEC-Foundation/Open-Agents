@@ -8,6 +8,8 @@
     "dev:frontend": "pnpm --filter @open-agents/frontend dev",
     "dev:backend": "pnpm --filter @open-agents/backend dev",
     "build": "pnpm -r run build",
+    "build:ext": "pnpm --filter @open-agents/vscode-webview build && pnpm --filter @open-agents/vscode-extension build",
+    "dev:ext": "pnpm --filter @open-agents/vscode-extension dev",
     "clean": "pnpm -r run clean",
     "typecheck": "pnpm -r run typecheck",
     "test": "vitest run"

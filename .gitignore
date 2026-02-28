@@ -40,6 +40,7 @@ node_modules/
 
 # === Build output ===
 dist/
+packages/vscode-extension/media/
 *.tsbuildinfo
 
 # === Tijdelijke bestanden ===

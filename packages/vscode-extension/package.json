@@ -1,0 +1,73 @@
+{
+  "name": "@open-agents/vscode-extension",
+  "displayName": "Open-Agents",
+  "description": "Visual agent orchestration canvas for Claude Code",
+  "version": "0.1.0",
+  "publisher": "impertio-studio",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "open-agents.openCanvas",
+        "title": "Open-Agents: Open Canvas"
+      },
+      {
+        "command": "open-agents.newAgent",
+        "title": "Open-Agents: New Agent"
+      },
+      {
+        "command": "open-agents.startBackend",
+        "title": "Open-Agents: Start Backend"
+      }
+    ],
+    "configuration": {
+      "title": "Open-Agents",
+      "properties": {
+        "open-agents.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:3001",
+          "description": "Backend API URL"
+        },
+        "open-agents.defaultModel": {
+          "type": "string",
+          "default": "anthropic/claude-sonnet-4-6",
+          "description": "Default model for new agents"
+        },
+        "open-agents.theme": {
+          "type": "string",
+          "enum": [
+            "impertio",
+            "neutral",
+            "midnight"
+          ],
+          "default": "impertio",
+          "description": "Canvas theme"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@open-agents/shared": "workspace:*",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.95.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,6 +1,8 @@
 import { type DragEvent, useEffect, useState } from "react";
-import type { AgentNodeData, AgentPreset, SkillLevel } from "@open-agents/shared";
+import type { AgentNodeData, AgentPreset } from "@open-agents/shared";
+import { getModelMeta } from "@open-agents/shared";
 import { useAppStore } from "../stores/appStore";
+import { getApiBase } from "../services/apiConfig";
 
 // Fallback presets if backend is unavailable
 const fallbackPresets: AgentPreset[] = [
@@ -51,21 +53,6 @@ const fallbackPresets: AgentPreset[] = [
   },
 ];
 
-const modelMeta: Record<string, { labels: Record<SkillLevel, string>; color: string }> = {
-  "anthropic/claude-haiku-4-5": { labels: { beginner: "Fast & cheap", intermediate: "Haiku", advanced: "Haiku" }, color: "bg-emerald-500" },
-  "anthropic/claude-sonnet-4-6": { labels: { beginner: "Balanced", intermediate: "Sonnet", advanced: "Sonnet" }, color: "bg-blue-500" },
-  "anthropic/claude-opus-4-6": { labels: { beginner: "Most capable", intermediate: "Opus", advanced: "Opus" }, color: "bg-purple-500" },
-  "openai/gpt-4o": { labels: { beginner: "GPT (fast)", intermediate: "GPT-4o", advanced: "GPT-4o" }, color: "bg-teal-500" },
-  "openai/o3": { labels: { beginner: "GPT (reasoning)", intermediate: "o3", advanced: "o3" }, color: "bg-teal-500" },
-  "mistral/mistral-large": { labels: { beginner: "Mistral (large)", intermediate: "Mistral L", advanced: "Mistral L" }, color: "bg-orange-500" },
-};
-
-function getModelMeta(id: string, level: SkillLevel) {
-  const meta = modelMeta[id];
-  if (!meta) return { label: id.split("/").pop() ?? id, color: "bg-zinc-500" };
-  return { label: meta.labels[level], color: meta.color };
-}
-
 function onDragStart(e: DragEvent, agent: AgentNodeData) {
   e.dataTransfer.setData(
     "application/open-agents-preset",
@@ -79,7 +66,7 @@ export function Sidebar() {
   const [presets, setPresets] = useState<AgentPreset[]>(fallbackPresets);
 
   useEffect(() => {
-    fetch("/api/presets")
+    fetch(`${getApiBase()}/presets`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: AgentPreset[] | null) => {
         if (data && data.length > 0) setPresets(data);
@@ -100,7 +87,7 @@ export function Sidebar() {
 
       <div className="flex flex-col gap-2 p-3">
         {presets.map((preset) => {
-          const mm = getModelMeta(preset.agent.model, skillLevel);
+          const mm = getModelMeta(preset.agent.model);
           return (
             <div
               key={preset.id}
@@ -115,7 +102,7 @@ export function Sidebar() {
                 <span
                   className={`ml-auto text-xs px-1.5 py-0.5 rounded text-white ${mm.color}`}
                 >
-                  {mm.label}
+                  {mm.labels[skillLevel]}
                 </span>
               </div>
               <p className="text-text-tertiary text-xs mt-1">
