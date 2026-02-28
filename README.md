@@ -1,81 +1,85 @@
 # Open-Agents
 
-Open-source agentic coding platform met twee pijlers: gespecialiseerde ERPNext agents die als dienst worden aangeboden, en een smart context layer die op de achtergrond de beste kennissnippets inlaadt voor elk gesprek met intelligente model routing.
+Visual agent orchestration platform. Build AI agent architectures by dragging and connecting blocks on a canvas — no code needed. The platform generates configurations that drive Claude agents via the Anthropic Agent SDK.
 
-Gebouwd voor Frappe/ERPNext hosting infrastructuur.
+## Quick Start
 
-## Twee Pijlers
+```bash
+# Prerequisites: Node.js >= 20, pnpm >= 9
+npm install -g pnpm
 
-### Pijler 1: ERPNext Agent-as-a-Service
+# Install dependencies
+pnpm install
 
-> **Status: Conceptfase** — De agent-structuur en workflows zijn nog volledig vorm te geven. Onderstaande tabel is een eerste opzet. We gaan de architectuur, dataflows en agent-interacties nog in kaart brengen met flowcharts (draw.io) voordat we gaan bouwen.
+# Start both frontend and backend
+pnpm dev
 
-Gespecialiseerde agents per domein, aangeboden als dienst (eerste opzet):
-
-| Agent | Domein | Voorbeelden | Status |
-|-------|--------|-------------|--------|
-| Boekhouding | Financieel | Facturen, BTW, rapportages | Concept |
-| Inkoop | Supply chain | Leveranciers, orders, voorraad | Concept |
-| HR | Personeelszaken | Verlof, contracten, onboarding | Concept |
-| Project | Projectmanagement | Planning, uren, BIM-data | Concept |
-| Admin | Systeembeheer | Server, backups, monitoring | Concept |
-
-**Nog uit te werken:**
-- Flowcharts per agent: input/output, decision trees, API interacties (draw.io)
-- ERPNext DocType mapping per agent domein
-- Security model: welke Frappe roles per agent
-- Orkestratie: hoe agents samenwerken
-
-Elke agent draait als geïsoleerde Docker container met eigen skills, snippets en API credentials.
-
-### Pijler 2: Smart Context Layer
-
-Het brein achter elke agent — automatische context assembly:
-
-1. **Classificatie** — Licht model analyseert de vraag en selecteert relevante tags
-2. **Context Assembly** — Zoekt matching snippets uit gedeelde + agent-specifieke bibliotheek
-3. **Model Routing** — Routeert naar het juiste model op basis van complexiteit
-4. **Antwoord** — Gebruiker merkt niets van de orkestratie
-
-## Architectuur
-
-```
-openagents/
-├── snippets/          # Kennisbibliotheek (shared + per agent)
-├── extensions/        # Smart context & model routing
-├── agents/            # Agent configuraties per domein
-├── docker/            # Dockerfile & docker-compose
-├── docs/              # Documentatie
-│   ├── research/      # Onderzoeksrapporten
-│   ├── design/        # Ontwerp beslissingen
-│   └── planning/      # Masterplan & planning
-└── .claude/           # Claude Code workspace configuratie
+# Or start individually
+pnpm dev:frontend   # React canvas on http://localhost:5173
+pnpm dev:backend    # Fastify API on http://localhost:3001
 ```
 
-## Status
+## Architecture
 
-Dit project bevindt zich in de **eerste fase** — research en structuur opzetten. Zie [ROADMAP.md](ROADMAP.md) voor de actuele status.
+Monorepo with pnpm workspaces:
 
-## Tech Stack
+```
+packages/
+  shared/        # TypeScript types & interfaces
+  frontend/      # React + React Flow v12 + Vite + Tailwind 4
+  backend/       # Fastify API + Claude Agent SDK
+```
 
-- **Agent Framework**: Pi.dev (Pi Coding Agent)
-- **ERP**: Frappe/ERPNext
-- **Deployment**: Docker op Hetzner
-- **AI Models**: Claude (Anthropic), met model routing
-- **Taal**: TypeScript (extensions), Python (Frappe integratie)
+### Tech Stack
 
-## Organisatie
+| Layer | Technology | Why |
+|-------|-----------|-----|
+| Canvas editor | React Flow (xyflow v12) | 24k stars, market leader, VS Code webview proven |
+| Frontend | React 19 + Vite + Tailwind CSS 4 | Modern, fast, large ecosystem |
+| Backend | Node.js + Fastify | TypeScript everywhere, native SSE, 2-3x faster than Express |
+| Agent runtime | Claude Agent SDK (TS) | Official Anthropic SDK, streaming, sessions, hooks, MCP |
+| Monorepo | pnpm workspaces | Shared types, single CI/CD |
 
-| Entiteit | Rol |
-|----------|-----|
-| **Impertio Studio B.V.** | Ontwikkeling en beheer |
-| **OpenAEC Foundation** | Open-source publicatie |
-| **OpenCompany246** | Klant-facing dienstverlening |
+### API Endpoints
 
-## Licentie
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/health` | Health check |
+| POST | `/api/configs` | Save a canvas configuration |
+| GET | `/api/configs/:id` | Get a configuration |
+| GET | `/api/configs` | List all configurations |
+| POST | `/api/execute` | Execute a configuration |
+| GET | `/api/execute/:id/status` | Execution status (SSE) |
+
+## Project Documents
+
+| Document | Purpose |
+|----------|---------|
+| [ROADMAP.md](ROADMAP.md) | Project status (single source of truth) |
+| [MASTERPLAN.md](MASTERPLAN.md) | Sprint plan with executable prompts |
+| [DECISIONS.md](DECISIONS.md) | Architecture decisions |
+| [REQUIREMENTS.md](REQUIREMENTS.md) | Functional & non-functional requirements |
+| [PRINCIPLES.md](PRINCIPLES.md) | Design principles |
+| [SOURCES.md](SOURCES.md) | Research & references |
+
+## Vision
+
+Three deployment targets from one codebase:
+1. **Standalone web app** (self-hosted or cloud)
+2. **VS Code extension** (webview + Claude Code integration via MCP)
+3. **Frappe app** (ERPNext ecosystem)
+
+## Organization
+
+| Entity | Role |
+|--------|------|
+| **Impertio Studio B.V.** | Development & operations |
+| **OpenAEC Foundation** | Open-source publication |
+
+## License
 
 [Apache-2.0](LICENSE)
 
 ---
 
-*Impertio Studio B.V. — AI ecosystems for the AEC industry*
+*Impertio Studio B.V. — AI ecosystems, deployed right.*

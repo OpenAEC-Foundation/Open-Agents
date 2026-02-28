@@ -26,7 +26,7 @@
 | Agent Library (doel: 100+) | 0 | 100 |
 
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
-**Fase 1 (PoC)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
+**Fase 1 (PoC)**: ████████░░░░░░░░░░░░ **40%** - framework gekozen, scaffolding klaar
 **Fase 2 (Factory)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 3 (Orchestratie)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 4 (Intelligence)**: ░░░░░░░░░░░░░░░░░░░░ **0%**

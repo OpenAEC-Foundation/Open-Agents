@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../packages/frontend/src:/app/packages/frontend/src
+      - ../packages/shared/src:/app/packages/shared/src
+    environment:
+      - NODE_ENV=development
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    ports:
+      - "3001:3001"
+    volumes:
+      - ../packages/backend/src:/app/packages/backend/src
+      - ../packages/shared/src:/app/packages/shared/src
+    environment:
+      - NODE_ENV=development
+      - PORT=3001

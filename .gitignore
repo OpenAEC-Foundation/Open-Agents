@@ -38,6 +38,10 @@ Thumbs.db
 # === Node modules ===
 node_modules/
 
+# === Build output ===
+dist/
+*.tsbuildinfo
+
 # === Tijdelijke bestanden ===
 _temp_*/
 

@@ -1,6 +1,6 @@
 # Masterplan - Open-Agents
 
-> **Versie**: 0.2
+> **Versie**: 0.3
 > **Laatste update**: 2026-02-28
 > **Methodiek**: Scrum (korte sprints, snel waarde leveren)
 > **Zie ook**: REQUIREMENTS.md, PRINCIPLES.md, ROADMAP.md, SOURCES.md
@@ -107,12 +107,12 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Mono-repo structuur opzetten
-- [ ] Frontend project initialiseren
-- [ ] Backend project initialiseren
-- [ ] Shared types package
-- [ ] Docker-compose dev environment
-- [ ] Setup instructies
+- [x] Mono-repo structuur opzetten (pnpm workspaces)
+- [x] Frontend project initialiseren (React + Vite + React Flow v12 + Tailwind 4)
+- [x] Backend project initialiseren (Fastify + tsx watch)
+- [x] Shared types package (@open-agents/shared)
+- [x] Docker-compose dev environment
+- [x] Setup instructies (README.md)
 
 ### Fase 1.3: Canvas UI `[PAR]` — parallel met 1.4
 
@@ -120,7 +120,7 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 > Bouw de minimale canvas editor voor Open-Agents.
 >
-> Gebruik [gekozen canvas library] en maak:
+> Gebruik React Flow (@xyflow/react v12) en maak:
 > 1. Een canvas component met drag-and-drop
 > 2. Een "Agent" node type met: naam, model selector, system prompt veld
 > 3. Edges tussen nodes (verbindingen trekken)
@@ -162,7 +162,7 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 >    - --output-format stream-json
 > 3. Output streamen via Server-Sent Events
 >
-> Gebruik de Claude Code CLI via child_process of de Agent SDK package.
+> Gebruik de Claude Agent SDK (@anthropic-ai/claude-agent-sdk, D-009).
 > Maak ook een health check endpoint: GET /api/health
 > ```
 
