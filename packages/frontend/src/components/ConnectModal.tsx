@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ModelProvider, ConnectionStatus } from "@open-agents/shared";
-import { useSettingsStore } from "../stores/settingsStore";
+import { useAppStore } from "../stores/appStore";
 
 const providerInfo: { id: ModelProvider; name: string; placeholder: string; helpUrl: string }[] = [
   {
@@ -34,10 +34,10 @@ function StatusDot({ status }: { status: ConnectionStatus }) {
 }
 
 function ProviderRow({ id, name, placeholder, helpUrl }: typeof providerInfo[number]) {
-  const providers = useSettingsStore((s) => s.providers);
-  const connectProvider = useSettingsStore((s) => s.connectProvider);
-  const disconnectProvider = useSettingsStore((s) => s.disconnectProvider);
-  const skillLevel = useSettingsStore((s) => s.skillLevel);
+  const providers = useAppStore((s) => s.providers);
+  const connectProvider = useAppStore((s) => s.connectProvider);
+  const disconnectProvider = useAppStore((s) => s.disconnectProvider);
+  const skillLevel = useAppStore((s) => s.skillLevel);
 
   const conn = providers.find((p) => p.provider === id);
   const status = conn?.status ?? "disconnected";
@@ -117,9 +117,9 @@ function ProviderRow({ id, name, placeholder, helpUrl }: typeof providerInfo[num
 }
 
 export function ConnectModal() {
-  const open = useSettingsStore((s) => s.connectModalOpen);
-  const setOpen = useSettingsStore((s) => s.setConnectModalOpen);
-  const skillLevel = useSettingsStore((s) => s.skillLevel);
+  const open = useAppStore((s) => s.connectModalOpen);
+  const setOpen = useAppStore((s) => s.setConnectModalOpen);
+  const skillLevel = useAppStore((s) => s.skillLevel);
 
   if (!open) return null;
 

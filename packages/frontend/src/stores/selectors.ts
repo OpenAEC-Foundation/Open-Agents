@@ -54,6 +54,17 @@ export const useClearChatHistory = () => useAppStore((s) => s.clearChatHistory);
 export const useNodeMessages = (nodeId: string) =>
   useAppStore((s) => s.messages[nodeId] ?? []);
 
+// === Canvas Execution Selectors ===
+export const useIsRunning = () => useAppStore((s) => s.isRunning);
+export const useActiveRun = () => useAppStore((s) => s.activeRun);
+export const useNodeStatuses = () => useAppStore((s) => s.nodeStatuses);
+export const useNodeOutputs = () => useAppStore((s) => s.nodeOutputs);
+export const useRunError = () => useAppStore((s) => s.runError);
+export const useStartExecution = () => useAppStore((s) => s.startExecution);
+export const useResetExecution = () => useAppStore((s) => s.resetExecution);
+export const useNodeStatus = (nodeId: string) =>
+  useAppStore((s) => s.nodeStatuses[nodeId] ?? "idle");
+
 // === Workspace Selectors ===
 export const useActiveDocumentId = () => useAppStore((s) => s.activeDocumentId);
 export const useDocuments = () => useAppStore((s) => s.documents);

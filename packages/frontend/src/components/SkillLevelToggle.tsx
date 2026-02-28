@@ -1,5 +1,5 @@
 import type { SkillLevel } from "@open-agents/shared";
-import { useSettingsStore } from "../stores/settingsStore";
+import { useAppStore } from "../stores/appStore";
 
 const levels: { id: SkillLevel; label: string; description: string }[] = [
   { id: "beginner", label: "Simple", description: "Plain language, no jargon" },
@@ -8,8 +8,8 @@ const levels: { id: SkillLevel; label: string; description: string }[] = [
 ];
 
 export function SkillLevelToggle() {
-  const skillLevel = useSettingsStore((s) => s.skillLevel);
-  const setSkillLevel = useSettingsStore((s) => s.setSkillLevel);
+  const skillLevel = useAppStore((s) => s.skillLevel);
+  const setSkillLevel = useAppStore((s) => s.setSkillLevel);
 
   return (
     <div className="flex items-center gap-1 bg-surface-overlay rounded-md p-0.5">

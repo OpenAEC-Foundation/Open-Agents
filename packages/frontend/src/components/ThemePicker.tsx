@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { themes, getTheme, applyTheme } from "../themes/themes";
-import { useSettingsStore } from "../stores/settingsStore";
+import { useAppStore } from "../stores/appStore";
 
 export function ThemePicker() {
-  const themeId = useSettingsStore((s) => s.themeId);
-  const setThemeId = useSettingsStore((s) => s.setThemeId);
+  const themeId = useAppStore((s) => s.themeId);
+  const setThemeId = useAppStore((s) => s.setThemeId);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const savedThemeRef = useRef(themeId);

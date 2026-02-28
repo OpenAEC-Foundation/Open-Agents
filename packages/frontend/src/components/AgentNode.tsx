@@ -2,9 +2,7 @@ import { useCallback } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import type { AgentNodeData, ModelId, AgentTool, ExecutionStatus } from "@open-agents/shared";
 import { TOOL_DISPLAY } from "@open-agents/shared";
-import { useCanvasStore } from "../stores/canvasStore";
-import { useSettingsStore } from "../stores/settingsStore";
-import { useExecutionStore } from "../stores/executionStore";
+import { useAppStore } from "../stores/appStore";
 
 const statusColors: Record<ExecutionStatus, string> = {
   idle: "bg-border-default",
@@ -41,9 +39,9 @@ const allTools: AgentTool[] = [
 
 export function AgentNode({ id, data }: NodeProps) {
   const agentData = data as unknown as AgentNodeData;
-  const updateNodeData = useCanvasStore((s) => s.updateNodeData);
-  const skillLevel = useSettingsStore((s) => s.skillLevel);
-  const nodeStatus: ExecutionStatus = useExecutionStore((s) => s.nodeStatuses[id] ?? "idle");
+  const updateNodeData = useAppStore((s) => s.updateNodeData);
+  const skillLevel = useAppStore((s) => s.skillLevel);
+  const nodeStatus: ExecutionStatus = useAppStore((s) => s.nodeStatuses[id] ?? "idle");
 
   const updateData = useCallback(
     (patch: Partial<AgentNodeData>) => updateNodeData(id, patch),

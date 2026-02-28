@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type DragEvent } from "react";
+import { useCallback, useEffect, useRef, type DragEvent } from "react";
 import {
   ReactFlow,
   Background,
@@ -17,33 +17,29 @@ import { ConnectModal } from "./components/ConnectModal";
 import { ThemePicker } from "./components/ThemePicker";
 import { ChatPanel } from "./components/ChatPanel";
 import { OutputPanel } from "./components/OutputPanel";
-import { useCanvasStore } from "./stores/canvasStore";
-import { useChatStore } from "./stores/chatStore";
-import { useExecutionStore } from "./stores/executionStore";
-import { useSettingsStore } from "./stores/settingsStore";
+import { useAppStore } from "./stores/appStore";
 import { getTheme, applyTheme } from "./themes/themes";
 import type { AgentNodeData } from "@open-agents/shared";
 
 const nodeTypes = { agent: AgentNode };
 
 export function App() {
-  const {
-    nodes,
-    edges,
-    onNodesChange,
-    onEdgesChange,
-    onConnect,
-    addNode,
-    getCanvasConfig,
-  } = useCanvasStore();
+  const nodes = useAppStore((s) => s.nodes);
+  const edges = useAppStore((s) => s.edges);
+  const onNodesChange = useAppStore((s) => s.onNodesChange);
+  const onEdgesChange = useAppStore((s) => s.onEdgesChange);
+  const onConnect = useAppStore((s) => s.onConnect);
+  const addNode = useAppStore((s) => s.addNode);
+  const getCanvasConfig = useAppStore((s) => s.getCanvasConfig);
 
-  const themeId = useSettingsStore((s) => s.themeId);
+  const themeId = useAppStore((s) => s.themeId);
 
   useEffect(() => {
     applyTheme(getTheme(themeId));
   }, [themeId]);
 
-  const [exportedJson, setExportedJson] = useState<string | null>(null);
+  const exportedJson = useAppStore((s) => s.exportedJson);
+  const setExportedJson = useAppStore((s) => s.setExportedJson);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
   const onDragOver = useCallback((e: DragEvent) => {
@@ -72,18 +68,18 @@ export function App() {
   const handleExport = useCallback(() => {
     const config = getCanvasConfig();
     setExportedJson(JSON.stringify(config, null, 2));
-  }, [getCanvasConfig]);
+  }, [getCanvasConfig, setExportedJson]);
 
-  const isRunning = useExecutionStore((s) => s.isRunning);
-  const startExecution = useExecutionStore((s) => s.startExecution);
+  const isRunning = useAppStore((s) => s.isRunning);
+  const startExecution = useAppStore((s) => s.startExecution);
 
   const handleRun = useCallback(() => {
     const config = getCanvasConfig();
     startExecution(config);
     setExportedJson(null); // close export panel if open
-  }, [getCanvasConfig, startExecution]);
+  }, [getCanvasConfig, startExecution, setExportedJson]);
 
-  const openChat = useChatStore((s) => s.openChat);
+  const openChat = useAppStore((s) => s.openChat);
 
   const handleNodeDoubleClick: NodeMouseHandler = useCallback(
     (_event, node) => {
@@ -91,6 +87,25 @@ export function App() {
     },
     [openChat],
   );
+
+  // Undo/Redo keyboard shortcuts
+  const undo = useAppStore((s) => s.undo);
+  const redo = useAppStore((s) => s.redo);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [undo, redo]);
 
   return (
     <div className="w-full h-full flex flex-col font-sans">

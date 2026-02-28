@@ -1,11 +1,11 @@
 import { useEffect } from "react";
-import { useSettingsStore } from "../stores/settingsStore";
+import { useAppStore } from "../stores/appStore";
 
 export function ConnectionIndicator() {
-  const providers = useSettingsStore((s) => s.providers);
-  const fetchConnections = useSettingsStore((s) => s.fetchConnections);
-  const setConnectModalOpen = useSettingsStore((s) => s.setConnectModalOpen);
-  const skillLevel = useSettingsStore((s) => s.skillLevel);
+  const providers = useAppStore((s) => s.providers);
+  const fetchConnections = useAppStore((s) => s.fetchConnections);
+  const setConnectModalOpen = useAppStore((s) => s.setConnectModalOpen);
+  const skillLevel = useAppStore((s) => s.skillLevel);
 
   // Fetch connection status on mount
   useEffect(() => {

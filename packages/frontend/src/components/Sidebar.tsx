@@ -1,6 +1,6 @@
 import { type DragEvent, useEffect, useState } from "react";
 import type { AgentNodeData, AgentPreset, SkillLevel } from "@open-agents/shared";
-import { useSettingsStore } from "../stores/settingsStore";
+import { useAppStore } from "../stores/appStore";
 
 // Fallback presets if backend is unavailable
 const fallbackPresets: AgentPreset[] = [
@@ -75,7 +75,7 @@ function onDragStart(e: DragEvent, agent: AgentNodeData) {
 }
 
 export function Sidebar() {
-  const skillLevel = useSettingsStore((s) => s.skillLevel);
+  const skillLevel = useAppStore((s) => s.skillLevel);
   const [presets, setPresets] = useState<AgentPreset[]>(fallbackPresets);
 
   useEffect(() => {

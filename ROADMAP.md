@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-02-28
-> **Status**: Sprint 1 - Proof of Concept ACTIVE
+> **Laatste update**: 2026-03-02
+> **Status**: Sprint 1 - Proof of Concept COMPLETE
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -16,7 +16,7 @@
 |-----------|:--------:|:------:|
 | Research & Visie | 3 | 3 |
 | Core Documenten | 7 | 7 |
-| PoC Canvas | 0 | 1 |
+| PoC Canvas | 1 | 1 |
 | Factory Portal | 0 | 1 |
 | Orchestratie (Flow + Pool) | 0 | 2 |
 | Safety & Audit | 0 | 1 |
@@ -30,7 +30,7 @@
 | Agent Library (doel: 1000+) | 0 | 1000 |
 
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
-**Fase 1 (PoC)**: ████████████░░░░░░░░ **60%** - 1.2a architecture foundations voltooid
+**Fase 1 (PoC)**: ████████████████████ **100%** - canvas UI, backend API, e2e wiring, theming, BYOK
 **Fase 2 (Factory)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 3 (Orchestratie)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 4 (Intelligence)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - safety & audit
@@ -65,15 +65,20 @@
 - [x] DECISIONS.md geüpdate met nieuwe beslissingen
 - [x] ROADMAP.md geüpdate (dit document)
 
-### Fase 1: Proof of Concept (Sprint 1)
+### Fase 1: Proof of Concept (Sprint 1) — Complete
 
 - [x] Frontend framework gekozen (D-006): React + React Flow
 - [x] Backend framework gekozen (D-007): Node.js + Fastify
-- [ ] Minimale canvas met 2 agent-blokken
-- [ ] Blokken visueel verbinden
-- [ ] Canvas exporteert naar JSON configuratie
-- [ ] Config triggert Claude Code via Agent SDK
-- [ ] End-to-end flow werkend
+- [x] Minimale canvas met 2 agent-blokken
+- [x] Blokken visueel verbinden
+- [x] Canvas exporteert naar JSON configuratie
+- [x] Config triggert Claude Code via Agent SDK
+- [x] End-to-end flow werkend
+- [x] Bonus: White-label theming (D-029) met 3 thema's
+- [x] Bonus: Multi-provider BYOK key management
+- [x] Bonus: Skill level toggle (beginner/intermediate/advanced)
+- [x] Bonus: Per-node chat via Agent SDK
+- [x] Bonus: Execution engine met topologische sort
 
 ### Fase 2: Factory & Asset Library (Sprint 2)
 

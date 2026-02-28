@@ -1,18 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AgentNodeData } from "@open-agents/shared";
-import { useChatStore } from "../stores/chatStore";
-import { useCanvasStore } from "../stores/canvasStore";
+import { useAppStore } from "../stores/appStore";
 
 export function ChatPanel() {
-  const activeNodeId = useChatStore((s) => s.activeNodeId);
-  const messages = useChatStore((s) => s.messages);
-  const isStreaming = useChatStore((s) => s.isStreaming);
-  const streamingContent = useChatStore((s) => s.streamingContent);
-  const closeChat = useChatStore((s) => s.closeChat);
-  const sendMessage = useChatStore((s) => s.sendMessage);
-  const clearHistory = useChatStore((s) => s.clearHistory);
+  const activeNodeId = useAppStore((s) => s.activeNodeId);
+  const messages = useAppStore((s) => s.messages);
+  const isStreaming = useAppStore((s) => s.isStreaming);
+  const streamingContent = useAppStore((s) => s.streamingContent);
+  const closeChat = useAppStore((s) => s.closeChat);
+  const sendMessage = useAppStore((s) => s.sendMessage);
+  const clearChatHistory = useAppStore((s) => s.clearChatHistory);
 
-  const nodes = useCanvasStore((s) => s.nodes);
+  const nodes = useAppStore((s) => s.nodes);
 
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -79,7 +78,7 @@ export function ChatPanel() {
           </span>
           {nodeMessages.length > 0 && (
             <button
-              onClick={() => clearHistory(activeNodeId)}
+              onClick={() => clearChatHistory(activeNodeId)}
               className="ml-auto text-text-muted hover:text-red-400 text-xs"
             >
               Clear

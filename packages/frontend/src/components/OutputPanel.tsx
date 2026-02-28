@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ExecutionStatus } from "@open-agents/shared";
-import { useExecutionStore } from "../stores/executionStore";
+import { useAppStore } from "../stores/appStore";
 
 const statusBadgeClasses: Record<ExecutionStatus, string> = {
   idle: "bg-zinc-600 text-zinc-300",
@@ -10,12 +10,12 @@ const statusBadgeClasses: Record<ExecutionStatus, string> = {
 };
 
 export function OutputPanel() {
-  const activeRun = useExecutionStore((s) => s.activeRun);
-  const nodeStatuses = useExecutionStore((s) => s.nodeStatuses);
-  const nodeOutputs = useExecutionStore((s) => s.nodeOutputs);
-  const runError = useExecutionStore((s) => s.runError);
-  const isRunning = useExecutionStore((s) => s.isRunning);
-  const reset = useExecutionStore((s) => s.reset);
+  const activeRun = useAppStore((s) => s.activeRun);
+  const nodeStatuses = useAppStore((s) => s.nodeStatuses);
+  const nodeOutputs = useAppStore((s) => s.nodeOutputs);
+  const runError = useAppStore((s) => s.runError);
+  const isRunning = useAppStore((s) => s.isRunning);
+  const resetExecution = useAppStore((s) => s.resetExecution);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -58,7 +58,7 @@ export function OutputPanel() {
           )}
         </div>
         <button
-          onClick={reset}
+          onClick={resetExecution}
           className="text-text-tertiary hover:text-text-primary text-sm"
         >
           Close
