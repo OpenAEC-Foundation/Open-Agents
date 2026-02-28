@@ -17,7 +17,7 @@
 | Sprint | Naam | Doel | Afhankelijk van | Status |
 |--------|------|------|-----------------|--------|
 | 0 | Foundation | Core documenten + dev environment | -- | Done |
-| 1 | Proof of Concept | Minimale canvas → Claude Code, e2e | Sprint 0 | Next |
+| 1 | Proof of Concept | Minimale canvas → Claude Code, e2e | Sprint 0 | **Active** |
 | 2 | Factory Portal | Agents aanmaken via UI | Sprint 1 | Planned |
 | 3 | Flow Pattern | Sequentiële pipeline werkend | Sprint 1 | Planned |
 | 4 | Pool Pattern | Dispatcher + parallelle execution | Sprint 3 | Planned |
@@ -25,6 +25,8 @@
 | 6 | Semantische Laag | Natural language → architectuur | Sprint 2, 3 | Planned |
 | 7 | VS Code Extension | Canvas als VS Code webview + MCP | Sprint 1 | Planned |
 | 8 | Frappe App | Frappe wrapper + ERPNext templates | Sprint 1 | Planned |
+| 9 | Agent Library | 100 atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | Planned |
+| 10 | Refactor & Consolidatie | Refactor van alles uit eerste Scrum iteratie | Sprint 1-9 | Planned |
 
 ```
 Sprint 0 ──→ Sprint 1 ──┬──→ Sprint 2 ──→ Sprint 6
@@ -32,9 +34,14 @@ Sprint 0 ──→ Sprint 1 ──┬──→ Sprint 2 ──→ Sprint 6
                          ├──→ Sprint 5
                          ├──→ Sprint 7
                          └──→ Sprint 8
+
+Sprint 9 (Agent Library) loopt DOORLOPEND naast alle sprints (vanaf Sprint 2)
+Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 ```
 
 > **Na Sprint 1 kunnen Sprints 2, 3, 5, 7 en 8 parallel starten.**
+> **Sprint 9 (Agent Library) loopt continu en vult retroactief agents aan in elke sprint.**
+> **Sprint 10 (Refactor) is de laatste sprint: consolideert en refactort alles.**
 
 ---
 
@@ -76,9 +83,9 @@ Sprint 0 ──→ Sprint 1 ──┬──→ Sprint 2 ──→ Sprint 6
 > ```
 
 **Taken:**
-- [ ] D-006 beslissen: Frontend framework
-- [ ] D-007 beslissen: Backend framework
-- [ ] D-008 beslissen: Mono-repo vs multi-repo
+- [x] D-006 beslissen: Frontend framework → React + React Flow (xyflow v12)
+- [x] D-007 beslissen: Backend framework → Node.js + Fastify
+- [x] D-008 beslissen: Mono-repo vs multi-repo → Mono-repo + pnpm workspaces
 
 ### Fase 1.2: Project Scaffolding `[SEQ]` — na 1.1
 
@@ -788,6 +795,310 @@ Sprint 0 ──→ Sprint 1 ──┬──→ Sprint 2 ──→ Sprint 6
 - [ ] 5 ERPNext templates (JSON)
 - [ ] MCP server voor ERPNext API
 - [ ] Template loader in Frappe app
+
+---
+
+## Sprint 9: Agent Library (Doorlopend)
+
+**Doel**: 100 atomaire agents bouwen, georganiseerd per categorie. Elke agent doet één ding. Complexiteit ontstaat uit de architectuur (flows, pools), niet uit individuele agents.
+
+**Afhankelijk van**: Sprint 2 (Factory portal voor het aanmaken)
+**Loopt doorlopend**: Vult retroactief agents aan in elke sprint die ze nodig heeft.
+
+**Referentiemodel**: Anthropic Agent Teams (`code.claude.com/docs/en/agent-teams`)
+- Anthropic definieert agents met: duidelijke rol, eigen context window, spawn prompt
+- Shared task list met self-claiming = ons Pool pattern
+- Sequentiële dependencies = ons Flow pattern
+- Plan approval workflow = onze gate nodes
+- Quality hooks (`TeammateIdle`, `TaskCompleted`) = onze event triggers
+
+> Zie `AGENTS.md` voor de volledige library van 100 atomaire agent definities.
+
+### Fase 9.1: Core Agents (10) `[SEQ]` — eerst, bij Sprint 2
+
+> **Prompt**:
+> ```
+> Bouw de eerste 10 core agents voor de Open-Agents library.
+>
+> Elke agent is ATOMAIR — doet precies één ding. Definieer per agent:
+> - id, name, category, description
+> - input/output specificatie
+> - model_hint (haiku voor classificatie/transformatie, sonnet voor generatie/analyse)
+> - system_prompt (kort, gefocust, geen fluff)
+> - tools (zo min mogelijk)
+>
+> Start met de meest universeel bruikbare agents:
+> 1. summarize — vat tekst samen
+> 2. translate — vertaalt tekst
+> 3. explain-code — legt code uit
+> 4. find-bugs — zoekt bugs
+> 5. generate-test — schrijft unit tests
+> 6. format-code — formatteert code
+> 7. generate-commit-msg — genereert commit bericht uit diff
+> 8. check-security — zoekt security issues
+> 9. read-file — leest bestandsinhoud
+> 10. search-in-files — doorzoekt bestanden
+>
+> Referentie: Anthropic Agent Teams model — elke agent is een onafhankelijke
+> Claude Code sessie met eigen context window en duidelijke rol.
+> Net als Anthropic's teammates: onafhankelijk, gespecialiseerd, combineerbaar.
+>
+> Sla op als individuele YAML bestanden in agents/library/core/.
+> ```
+
+**Taken:**
+- [ ] 10 core agent YAML bestanden
+- [ ] Agent loader in backend (leest YAML, maakt beschikbaar via API)
+- [ ] Agents zichtbaar in Factory library
+
+### Fase 9.2: Category Agents (40) `[PAR]` — parallel, bij Sprint 3-5
+
+> **Prompt**:
+> ```
+> Bouw 40 extra agents verdeeld over 4 categorieën.
+>
+> Categorieën (10 per categorie):
+> A. Text & Taal: detect-language, rewrite-formal, fix-grammar, extract-entities,
+>    classify-sentiment, anonymize, extract-action-items, generate-title,
+>    compare-texts, generate-questions
+>
+> B. Code & Development: detect-code-language, add-comments, generate-types,
+>    generate-docstring, extract-function, rename-variable, convert-syntax,
+>    generate-regex, detect-complexity, list-dependencies
+>
+> C. Review & Kwaliteit: check-style, check-accessibility, check-performance,
+>    check-naming, check-dead-code, check-duplication, rate-readability,
+>    check-test-coverage, check-documentation, validate-api-response
+>
+> D. Data & Transformatie: json-to-yaml, yaml-to-json, csv-to-json,
+>    validate-json, validate-yaml, flatten-json, extract-schema,
+>    transform-keys, filter-fields, merge-objects
+>
+> Zelfde atomaire definitie als Fase 9.1.
+> Sla op in agents/library/{category}/ per categorie.
+> ```
+
+**Taken:**
+- [ ] `[PAR]` 10 Text & Taal agents
+- [ ] `[PAR]` 10 Code & Development agents
+- [ ] `[PAR]` 10 Review & Kwaliteit agents
+- [ ] `[PAR]` 10 Data & Transformatie agents
+
+### Fase 9.3: Specialist Agents (30) `[PAR]` — parallel, bij Sprint 5-8
+
+> **Prompt**:
+> ```
+> Bouw 30 specialist agents verdeeld over 3 categorieën.
+>
+> E. Git & Versioning (8): summarize-diff, list-changed-files, check-conflicts,
+>    generate-changelog, classify-commit, suggest-branch-name,
+>    generate-pr-description, generate-commit-msg
+>
+> F. Research & Analyse (10): search-codebase, explain-error, find-examples,
+>    analyze-architecture, compare-approaches, estimate-impact,
+>    find-documentation, analyze-dependencies, profile-codebase,
+>    suggest-next-step
+>
+> G. Communicatie & Rapportage (7): format-markdown, generate-report,
+>    draft-email, create-checklist, format-table, generate-diagram-code,
+>    create-status-update
+>
+> H. File & System (5): write-file, list-files, find-file, count-lines,
+>    detect-filetype
+>
+> Sla op in agents/library/{category}/.
+> ```
+
+**Taken:**
+- [ ] `[PAR]` 8 Git & Versioning agents
+- [ ] `[PAR]` 10 Research & Analyse agents
+- [ ] `[PAR]` 7 Communicatie & Rapportage agents
+- [ ] `[PAR]` 5 File & System agents
+
+### Fase 9.4: ERPNext Agents (10) `[SEQ]` — bij Sprint 8
+
+> **Prompt**:
+> ```
+> Bouw 10 ERPNext-specifieke atomaire agents.
+>
+> I. ERPNext & Business:
+> 1. validate-doctype — valideert DocType JSON
+> 2. generate-doctype — genereert DocType uit beschrijving
+> 3. explain-doctype — legt DocType uit
+> 4. generate-whitelisted-api — genereert Frappe API endpoint
+> 5. validate-fixtures — valideert ERPNext fixtures
+> 6. generate-print-format — genereert Jinja print format
+> 7. check-permissions — analyseert permissie-matrix
+> 8. generate-client-script — genereert JS client script
+> 9. generate-report-query — genereert Script Report
+> 10. validate-naming-series — valideert naming pattern
+>
+> Elke agent is atomair maar ERPNext-aware via system prompt.
+> Sla op in agents/library/erpnext/.
+> ```
+
+**Taken:**
+- [ ] 10 ERPNext agent YAML bestanden
+- [ ] ERPNext MCP server integratie (voor API calls naar ERPNext)
+
+### Fase 9.5: Flow & Pool Templates `[SEQ]` — na 9.1-9.4
+
+> **Prompt**:
+> ```
+> Maak 10 voorgebouwde flow- en pool-templates die atomaire agents combineren
+> tot krachtige workflows. Dit demonstreert de kernfilosofie: individuele
+> agents zijn simpel, de architectuur maakt ze krachtig.
+>
+> Flows:
+> 1. Code Review Pipeline: read-file → detect-code-language → check-style →
+>    find-bugs → check-security → summarize
+> 2. Smart Translator: detect-language → translate → fix-grammar → rewrite-formal
+> 3. PR Assistant: list-changed-files → summarize-diff → generate-commit-msg →
+>    generate-pr-description
+> 4. Bug Fixer: explain-error → search-codebase → suggest-fix → generate-test →
+>    generate-commit-msg
+> 5. Documentation Generator: analyze-architecture → list-files →
+>    generate-docstring → format-markdown → generate-diagram-code
+>
+> Pools:
+> 6. Multi-Reviewer: read-file → [check-style, check-security, check-performance,
+>    check-naming] → summarize
+> 7. ERPNext Feature Builder: generate-doctype → [generate-whitelisted-api,
+>    generate-client-script, generate-print-format] → validate-doctype →
+>    generate-test
+> 8. Security Audit: list-files → per bestand [check-security, find-bugs] →
+>    generate-report
+> 9. Codebase Profiler: list-files → [profile-codebase, analyze-dependencies,
+>    analyze-architecture] → generate-report
+> 10. Onboarding Assistant: explain-code → generate-questions →
+>     create-checklist → format-markdown
+>
+> Sla op als JSON canvas configs in templates/ directory.
+> ```
+
+**Taken:**
+- [ ] 5 flow templates (JSON canvas configs)
+- [ ] 5 pool templates (JSON canvas configs)
+- [ ] Templates laden via Factory portal
+
+### Retroactieve Vulling per Sprint
+
+| Sprint | Agents die het nodig heeft | Fase |
+|--------|---------------------------|------|
+| Sprint 2 (Factory) | 10 core agents als presets | 9.1 |
+| Sprint 3 (Flow) | Flow-ready agents (text, code) | 9.2 |
+| Sprint 4 (Pool) | Pool-ready agents (review, analyse) | 9.2 |
+| Sprint 5 (Safety) | Security agents | 9.2 |
+| Sprint 6 (Semantisch) | Alle agents als keuzemenu | 9.1-9.4 |
+| Sprint 7 (VS Code) | Core agents beschikbaar via MCP | 9.1 |
+| Sprint 8 (Frappe) | ERPNext agents | 9.4 |
+
+---
+
+## Sprint 10: Refactor & Consolidatie
+
+**Doel**: Refactor, opschonen en consolideren van alles wat in de eerste Scrum iteratie (Sprint 1-9) is gebouwd. Technische schuld aflossen, patronen standaardiseren, performance optimaliseren.
+
+**Afhankelijk van**: Sprint 1-9 (alles)
+
+### Fase 10.1: Code Audit `[SEQ]` — eerst
+
+> **Prompt**:
+> ```
+> Voer een volledige code audit uit op het Open-Agents project.
+>
+> Analyseer:
+> 1. Code duplicatie: vind herhaalde patronen die naar shared utilities kunnen
+> 2. Naamgeving inconsistenties: variables, functies, bestanden
+> 3. Type safety: ontbrekende types, any-types, onveilige casts
+> 4. Error handling: onafgehandelde errors, missing try/catch
+> 5. API consistentie: endpoint naamgeving, response formats, status codes
+> 6. Frontend component structuur: te grote componenten, ontbrekende memoization
+> 7. Test coverage: ontbrekende tests, flaky tests
+> 8. Security: hardcoded secrets, SQL injection, XSS, OWASP top-10
+> 9. Performance: onnodige re-renders, N+1 queries, grote bundles
+> 10. Documentatie: ontbrekende JSDoc, verouderde comments
+>
+> Genereer een rapport met prioriteit (P1 = kritiek, P2 = belangrijk, P3 = nice-to-have).
+> Sla op als docs/audit/sprint-1-audit.md
+> ```
+
+**Taken:**
+- [ ] Code audit rapport genereren
+- [ ] Issues aanmaken in GitHub per P1/P2 finding
+
+### Fase 10.2: Refactor `[PAR]` — parallel tracks
+
+> **Prompt (Backend)**:
+> ```
+> Refactor de Open-Agents backend op basis van het audit rapport.
+>
+> Focus op:
+> 1. Gedeelde utilities extraheren (error handling, validation, response formatting)
+> 2. API endpoint naamgeving standaardiseren (RESTful conventies)
+> 3. Database queries optimaliseren
+> 4. Middleware pattern toepassen (auth, logging, error handling)
+> 5. Type safety verbeteren (geen `any` types)
+> 6. Environment configuration centraliseren
+>
+> Geen nieuwe features. Alleen opschonen en standaardiseren.
+> ```
+
+> **Prompt (Frontend)**:
+> ```
+> Refactor de Open-Agents frontend op basis van het audit rapport.
+>
+> Focus op:
+> 1. Component decomposition: grote componenten opsplitsen
+> 2. State management opschonen (geen prop drilling)
+> 3. Shared hooks extraheren
+> 4. Consistent styling (design tokens, CSS variables)
+> 5. Accessibility verbeteren (ARIA labels, keyboard navigation)
+> 6. Bundle size optimaliseren (lazy loading, tree shaking)
+>
+> Geen nieuwe features. Alleen opschonen en standaardiseren.
+> ```
+
+**Taken:**
+- [ ] `[PAR]` Backend refactor
+- [ ] `[PAR]` Frontend refactor
+- [ ] `[PAR]` Test suite uitbreiden voor gerefactorde code
+- [ ] `[PAR]` API documentatie bijwerken (OpenAPI/Swagger)
+
+### Fase 10.3: Consolidatie & Release Prep `[SEQ]` — na 10.2
+
+> **Prompt**:
+> ```
+> Consolideer het Open-Agents project voor eerste release.
+>
+> 1. README.md herschrijven: installatie, quick start, screenshots, architectuur
+> 2. CONTRIBUTING.md aanmaken: code conventies, PR process, development setup
+> 3. CHANGELOG.md genereren uit git history
+> 4. Alle DECISIONS.md open beslissingen reviewen en sluiten waar mogelijk
+> 5. ROADMAP.md updaten met retrospective van eerste iteratie
+> 6. Docker-compose productie config testen
+> 7. CI/CD pipeline: lint, test, build, deploy
+> 8. Versie 0.1.0 taggen en release notes schrijven
+> ```
+
+**Taken:**
+- [ ] README.md herschrijven
+- [ ] CONTRIBUTING.md aanmaken
+- [ ] CHANGELOG.md genereren
+- [ ] Open beslissingen reviewen
+- [ ] CI/CD pipeline opzetten
+- [ ] v0.1.0 release
+
+### Acceptatiecriteria Sprint 10
+
+- Geen P1 of P2 audit findings open
+- Alle tests slagen
+- API documentatie compleet en actueel
+- README met werkende installatie-instructies
+- Docker-compose start zonder errors
+- Bundle size < target (te bepalen)
+- Lighthouse accessibility score > 90
+- v0.1.0 getagd en release notes geschreven
 
 ---
 

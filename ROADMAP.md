@@ -32,6 +32,8 @@
 **Fase 4 (Intelligence)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 5 (Deployment)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
+**Fase 7 (Agent Library)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - 100 atomaire agents (doorlopend)
+**Fase 8 (Refactor)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - consolidatie eerste Scrum iteratie
 
 ---
 
@@ -58,8 +60,8 @@
 
 ### Fase 1: Proof of Concept (Sprint 1)
 
-- [ ] Frontend framework gekozen (D-006)
-- [ ] Backend framework gekozen (D-007)
+- [x] Frontend framework gekozen (D-006): React + React Flow
+- [x] Backend framework gekozen (D-007): Node.js + Fastify
 - [ ] Minimale canvas met 2 agent-blokken
 - [ ] Blokken visueel verbinden
 - [ ] Canvas exporteert naar JSON configuratie
@@ -102,11 +104,34 @@
 
 ### Fase 6: Scale & Community
 
-- [ ] Agent library uitbreiden naar 100+
 - [ ] Community template marketplace
 - [ ] Multi-tenant deployment
 - [ ] Performance optimalisatie
 - [ ] Documentatie en tutorials
+
+### Fase 7: Agent Library (Doorlopend — Sprint 9)
+
+> Loopt parallel naast alle sprints. Vult retroactief agents aan per fase.
+> Referentiemodel: Anthropic Agent Teams. Zie AGENTS.md voor de volledige library.
+
+- [ ] 10 core agents (bij Sprint 2)
+- [ ] 40 category agents: text, code, review, data (bij Sprint 3-5)
+- [ ] 30 specialist agents: git, research, communicatie, file (bij Sprint 5-8)
+- [ ] 10 ERPNext agents (bij Sprint 8)
+- [ ] 10 flow & pool templates die agents combineren
+
+### Fase 8: Refactor & Consolidatie (Sprint 10)
+
+> Laatste sprint van de eerste Scrum iteratie. Refactort en consolideert alles.
+
+- [ ] Code audit (P1/P2/P3 rapport)
+- [ ] Backend refactor (utilities, API standaardisatie, types)
+- [ ] Frontend refactor (component decomposition, accessibility)
+- [ ] Test suite uitbreiden
+- [ ] API documentatie (OpenAPI/Swagger)
+- [ ] README + CONTRIBUTING + CHANGELOG
+- [ ] CI/CD pipeline
+- [ ] v0.1.0 release
 
 ---
 

@@ -11,11 +11,6 @@
 |---|-----------|---------|--------|--------|
 | D-001 | Visibility: public of private repo? | Project is nu private, plan is open-source bij stabiel MVP | A) Nu public B) Private tot MVP | Open |
 | D-004 | Lokaal model voor classificatie | Ollama op Hetzner vs alleen cloud API | A) Ollama B) Haiku C) Hybrid | Open |
-| D-006 | Frontend framework keuze | Canvas editor voor agent orchestratie, moet werken in standalone, VS Code en Frappe | A) React + React Flow (35k stars, marktleider) B) Vue + Vue Flow (native Frappe fit) C) Rete.js (framework-agnostisch) | Open |
-| D-007 | Backend framework keuze | API-first backend voor configuratie opslag en agent execution | A) Python (FastAPI) B) Node.js (Fastify) C) Frappe (Python) | Open |
-| D-008 | Mono-repo vs multi-repo | Frontend, backend, VS Code extension, Frappe app - hoe organiseren? | A) Mono-repo (alles samen) B) Multi-repo (per component) C) Hybrid (core mono-repo, wrappers apart) | Open |
-| D-009 | Agent runtime strategie | Welke runtime(s) stuurt het platform aan? | A) Claude Agent SDK only B) Pi agent-core only C) Hybride (beide) | Open |
-| D-010 | Config format voor canvas export | Canvas exporteert naar configuratie - welk format? | A) Eigen JSON schema B) Pi agent definition format C) Claude agents:{} map D) Universeel format dat naar beide kan | Open |
 
 ---
 
@@ -31,6 +26,11 @@
 | D-002 | Pi.dev vs Claude Code als agent framework | Eigen platform met Claude Agent SDK + Pi agent-core als complementaire runtimes | Niet puur Pi.dev of Claude Code, maar eigen visueel platform dat beide als runtime kan aansturen. Claude SDK voor officiële Anthropic integratie, Pi agent-core voor open-source flexibiliteit. | 2026-02-28 |
 | D-003 | Eerste pilot agent kiezen | Generiek platform eerst | Focus verschoven van ERPNext-first naar generiek visueel platform. ERPNext agents worden later een use case, niet de kern. | 2026-02-28 |
 | D-005 | Flowchart tooling voor agent architectuur | In-app visuele editor (eigen canvas) | We bouwen de visuele editor zelf als kernfunctionaliteit van het platform. Geen externe tooling nodig. | 2026-02-28 |
+| D-006 | Frontend framework | React + React Flow (xyflow v12) | Marktleider (24k stars), gebruikt door Langflow/Flowise/Dify, bewezen VS Code webview support, React 19 + Tailwind 4 + shadcn/ui components, dark mode built-in. Frappe embed als standalone SPA (NFR-05). | 2026-02-28 |
+| D-007 | Backend framework | Node.js + Fastify | TypeScript everywhere = shared types in monorepo, 1 toolchain. Claude Agent SDK TS (v0.2.63) met V2 preview async iterators mappen direct op Fastify SSE plugin. Pi agent-core (ook TS) past naadloos bij. 2-3x sneller dan Express. | 2026-02-28 |
+| D-008 | Mono-repo vs multi-repo | Mono-repo met pnpm workspaces | Shared TypeScript types, 1 CI/CD pipeline, eenvoudig dependency management. Packages: shared, frontend, backend, vscode-extension (later), frappe-wrapper (later). Alle concurrenten gebruiken mono-repo. | 2026-02-28 |
+| D-009 | Agent runtime strategie | Claude Agent SDK only (voor PoC) | SDK heeft alles: query(), sessions, hooks, MCP, subagents, streaming. Pi agent-core toevoegen voegt complexiteit toe zonder PoC-voordeel. Later als runtime adapter toevoegen. | 2026-02-28 |
+| D-010 | Config format voor canvas export | Eigen JSON schema met Claude SDK mapping | Canvas exporteert {nodes: [...], edges: [...]}. Backend vertaalt naar Agent SDK calls. Simpel, menselijk leesbaar, vrijheid om later Pi of andere runtimes toe te voegen. | 2026-02-28 |
 
 ---
 
