@@ -105,7 +105,19 @@ Open-Agents is een visueel platform waarmee je AI agent-architecturen bouwt door
 - "Explain this" functie op elk UI element
 - Progressive disclosure: complexiteit tonen wanneer de gebruiker er klaar voor is
 
-### FR-12: API-first
+### FR-12: Switchable Orchestrator Context
+
+- Input venster waar de gebruiker praat met de orchestrator
+- Context selector (dropdown/tabs) bovenaan het input venster
+- Schakelbaar tussen rollen/specialisaties:
+  - Neutraal (algemene orchestrator, routeert naar agents)
+  - Gespecialiseerde contexten (Code Review, Security, ERPNext, etc.)
+- Elke context heeft eigen system prompt, model voorkeur en kennis
+- Custom contexten aanmaken via Factory
+- Claude Code als onderliggende engine voor het input venster
+- Sneltoetsen om snel van context te wisselen
+
+### FR-13: API-first
 
 - REST API voor alle functionaliteit die de UI biedt
 - Gedocumenteerde API (OpenAPI/Swagger)

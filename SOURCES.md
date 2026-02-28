@@ -63,6 +63,12 @@ Deze werkmap bevat 17 gespecialiseerde workflow-modules (Hooks, MCP, Skills, Sub
 | [ComfyUI](https://github.com/comfyanonymous/ComfyUI) | Vue.js | GPL-3.0 | Visuele node-based workflow (Stable Diffusion). Niet LLM-gericht maar inspirerend UI-paradigma voor node editors. |
 | [CrewAI](https://github.com/crewAIInc/crewAI) | -- (code-first) | MIT | Python multi-agent framework. Geen ingebouwde GUI. Referentie voor agent role-definitie en task delegation. |
 
+### Visuele Diagramming Tools
+
+| Platform | Frontend | Licentie | Beschrijving |
+|----------|----------|----------|--------------|
+| [draw.io / diagrams.net](https://github.com/jgraph/drawio-desktop) | mxGraph (JS) | Apache 2.0 | Open-source diagramming tool met desktop app (Electron) en VS Code extensie. Referentie voor complexe visuele editors in desktop + VS Code context. |
+
 ---
 
 ## 6. Visuele Editor Libraries
