@@ -31,6 +31,7 @@
 | D-008 | Mono-repo vs multi-repo | Mono-repo met pnpm workspaces | Shared TypeScript types, 1 CI/CD pipeline, eenvoudig dependency management. Packages: shared, frontend, backend, vscode-extension (later), frappe-wrapper (later). Alle concurrenten gebruiken mono-repo. | 2026-02-28 |
 | D-009 | Agent runtime strategie | Claude Agent SDK only (voor PoC) | SDK heeft alles: query(), sessions, hooks, MCP, subagents, streaming. Pi agent-core toevoegen voegt complexiteit toe zonder PoC-voordeel. Later als runtime adapter toevoegen. | 2026-02-28 |
 | D-010 | Config format voor canvas export | Eigen JSON schema met Claude SDK mapping | Canvas exporteert {nodes: [...], edges: [...]}. Backend vertaalt naar Agent SDK calls. Simpel, menselijk leesbaar, vrijheid om later Pi of andere runtimes toe te voegen. | 2026-02-28 |
+| D-011 | Multi-provider model support | Harde eis: elke agent moet configureerbaar zijn met verschillende LLM providers (Anthropic, OpenAI/Codex, Mistral, Ollama, etc.). Model is een parameter per agent, met default/preset maar altijd aanpasbaar. | Model identifier wordt `provider/model` string (bv. `anthropic/claude-sonnet-4-6`, `mistral/mistral-large`, `openai/o3`). Backend routeert via provider-specifieke adapters. API keys per provider in workspace config. | 2026-02-28 |
 
 ---
 
@@ -46,4 +47,4 @@ Bij het nemen van een beslissing, verplaats naar "Genomen" met rationale en datu
 
 ---
 
-*Laatste update: 2026-02-28*
+*Laatste update: 2026-03-01*

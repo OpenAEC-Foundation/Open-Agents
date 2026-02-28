@@ -48,20 +48,26 @@ Open-Agents is een visueel platform waarmee je AI agent-architecturen bouwt door
 
 ### FR-05: Configuratie Generatie
 
-- Canvas → JSON/YAML configuratie export
+- Canvas → JSON configuratie export (D-010: eigen JSON schema)
 - Configuratie bevat: agents, verbindingen, regels, model routing
 - Import/export van configuraties (delen met team/community)
 - Versioning van configuraties
-- Config compatibel met Claude Agent SDK en Pi agent-core
+- Config compatibel met meerdere runtimes via AgentRuntime interface (D-015):
+  - PoC: Claude Agent SDK (`@anthropic-ai/claude-agent-sdk`)
+  - Later: Pi agent-core als complementaire runtime (D-002)
 
 ### FR-06: Agent Runtime Integratie
 
-- Claude Agent SDK: `query()` met `agents:{}` map
-- Session management: starten, stoppen, hervatten (`--resume`)
-- Real-time output streaming per agent node
-- `--append-system-prompt` per agent node
-- `--allowedTools` per agent node
-- Pi agent-core als alternatieve/complementaire runtime
+- **Runtime adapter pattern** (D-015): AgentRuntime interface abstraheert runtime-specifieke details
+- Claude Agent SDK (PoC runtime, D-009):
+  - `query()` met `agents:{}` map
+  - Session management: starten, stoppen, hervatten (V2 session API, unstable)
+  - Real-time output streaming per agent node
+  - `systemPrompt` per agent node
+  - `tools` allowlist per agent node
+- Pi agent-core (toekomstige runtime, D-002):
+  - Embeddable agent runtime, multi-provider
+  - Extension hooks en custom tools
 - MCP server integratie voor externe systemen
 
 ### FR-07: Safety & Rules
@@ -139,6 +145,17 @@ Open-Agents is een visueel platform waarmee je AI agent-architecturen bouwt door
 - Webhook support voor integraties
 - Essentieel voor Scrum iteratie en extensibility
 
+### FR-15: Multi-Provider Model Support (D-011)
+
+- Elke agent is configureerbaar met een LLM van een willekeurige provider
+- Ondersteunde providers (minimaal): Anthropic (Claude), OpenAI (GPT/o-series/Codex), Mistral AI, Ollama (lokaal)
+- Model is een parameter per agent in `provider/model` formaat (bv. `anthropic/claude-sonnet-4-6`, `openai/o3`, `mistral/codestral`)
+- Presets/defaults per agent, maar altijd door gebruiker aanpasbaar
+- API keys per provider configureerbaar in workspace settings
+- Backend routeert naar de juiste provider SDK op basis van het model-prefix
+- Optioneel: `maxTokens` per agent configureerbaar
+- Toekomst: custom/self-hosted endpoints toevoegen (OpenAI-compatible API)
+
 ---
 
 ## Niet-Functionele Requirements
@@ -180,36 +197,41 @@ Open-Agents is een visueel platform waarmee je AI agent-architecturen bouwt door
 
 ---
 
-## Technologie Opties (Open)
+## Technologie Keuzes
 
-> Deze opties worden afgestreept naarmate beslissingen genomen worden.
-> Zie DECISIONS.md voor de formele besluitvorming.
+> Zie DECISIONS.md voor de formele besluitvorming en rationale.
 
-### Frontend Framework
+### Frontend Framework — **React + React Flow** (D-006)
 
 | Optie | Pro | Con | Frappe fit | Status |
 |-------|-----|-----|------------|--------|
-| React + React Flow | Grootste ecosysteem, 35k+ stars, gebruikt door Langflow/Flowise | Frappe Desk is Vue-based | Via iframe of aparte SPA | Open |
-| Vue + Vue Flow | Native Frappe integratie (Frappe UI = Vue) | Kleiner ecosysteem (~4k stars) | Direct in Frappe Desk | Open |
-| Rete.js (framework-agnostic) | Werkt met React/Vue/Angular, eigen execution engine | Steepere learning curve, kleiner community | Via Vue renderer | Open |
-| Svelte + Svelte Flow | Modern, performant, deel van xyflow monorepo | Geen Frappe fit, kleinste ecosysteem | Lastig | Open |
+| **React + React Flow** | **Grootste ecosysteem, 35k+ stars, gebruikt door Langflow/Flowise** | **Frappe Desk is Vue-based** | **Via standalone SPA embed** | **Gekozen (D-006)** |
+| Vue + Vue Flow | Native Frappe integratie (Frappe UI = Vue) | Kleiner ecosysteem (~4k stars) | Direct in Frappe Desk | Afgevallen |
+| Rete.js (framework-agnostic) | Werkt met React/Vue/Angular, eigen execution engine | Steepere learning curve, kleiner community | Via Vue renderer | Afgevallen |
+| Svelte + Svelte Flow | Modern, performant, deel van xyflow monorepo | Geen Frappe fit, kleinste ecosysteem | Lastig | Afgevallen |
 
-### Backend Framework
-
-| Optie | Pro | Con | Status |
-|-------|-----|-----|--------|
-| Python (FastAPI) | Frappe-compatible, Claude Python SDK | Twee talen (TS frontend + Python backend) | Open |
-| Node.js (Fastify) | Zelfde taal als frontend, Claude TS SDK | Geen native Frappe integratie | Open |
-| Frappe (Python) | Direct ERPNext integratie | Vendor lock-in voor standalone versie | Open |
-
-### Agent Runtime
+### Backend Framework — **Node.js + Fastify** (D-007)
 
 | Optie | Pro | Con | Status |
 |-------|-----|-----|--------|
-| Claude Agent SDK (Python/TS) | Officieel, subagents, hooks, MCP, sessions | Anthropic-only | Open |
-| Pi agent-core (TS) | Embeddable, MIT, multi-provider, extension hooks | Kleiner ecosysteem | Open |
-| Combinatie | Best of both worlds | Meer complexiteit | Open |
+| Python (FastAPI) | Frappe-compatible, Claude Python SDK | Twee talen (TS frontend + Python backend) | Afgevallen |
+| **Node.js (Fastify)** | **Zelfde taal als frontend, Claude TS SDK** | **Geen native Frappe integratie** | **Gekozen (D-007)** |
+| Frappe (Python) | Direct ERPNext integratie | Vendor lock-in voor standalone versie | Afgevallen |
+
+### Agent Runtime — **Claude Agent SDK (PoC) + Pi agent-core (later)** (D-002, D-009)
+
+| Optie | Pro | Con | Status |
+|-------|-----|-----|--------|
+| **Claude Agent SDK (TS)** | **Officieel, subagents, hooks, MCP, sessions** | **Anthropic-only** | **Gekozen voor PoC (D-009)** |
+| Pi agent-core (TS) | Embeddable, MIT, multi-provider, extension hooks | Kleiner ecosysteem | **Product scope (D-002), niet PoC** |
+| **Combinatie via runtime adapter** | **Best of both worlds via AgentRuntime interface** | **Meer complexiteit** | **Architectuur gekozen (D-015)** |
+
+> **Runtime adapter strategie (D-015)**: Een `AgentRuntime` interface abstraheert
+> de communicatie met agent runtimes. Voor de PoC implementeert `ClaudeSDKRuntime`
+> deze interface. Later kan `PiAgentRuntime` dezelfde interface implementeren,
+> waardoor Pi agent-core als complementaire runtime wordt toegevoegd zonder
+> bestaande code te wijzigen.
 
 ---
 
-*Laatste update: 2026-02-28*
+*Laatste update: 2026-03-01*

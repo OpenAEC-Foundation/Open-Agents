@@ -11,7 +11,7 @@
 
 | Bron | Type | Licentie | Beschrijving |
 |------|------|----------|--------------|
-| [Pi.dev](https://pi.dev/) | Platform | MIT | Coding agent platform door Mario Zechner. Extensible via TypeScript, jiti runtime (geen build step). Basis voor Open-Agents Pijler 1. |
+| [Pi.dev](https://pi.dev/) | Platform | MIT | Coding agent platform door Mario Zechner. Extensible via TypeScript, jiti runtime (geen build step). Toekomstige complementaire runtime via AgentRuntime adapter (D-002, D-015). Niet in PoC scope (D-009). |
 | [pi-mono](https://github.com/badlogic/pi-mono) | Monorepo | MIT | Pi monorepo met 7 packages: `pi-ai` (unified LLM API), `pi-agent-core` (embeddable agent runtime), `pi-coding-agent` (CLI + SDK + extension host), `pi-tui` (terminal UI), `pi-web-ui` (web components voor chat), `pi-mom` (Slack bot), `pi-pods` (vLLM op GPU pods). |
 | [pi-vs-claude-code](https://github.com/disler/pi-vs-claude-code) | Referentie | -- | Referentieproject door disler dat agent teams, chains, safety patterns en 15 TypeScript extensions demonstreert. Praktijkvoorbeeld van Pi extensie-architectuur. |
 
@@ -82,7 +82,28 @@ Deze werkmap bevat 17 gespecialiseerde workflow-modules (Hooks, MCP, Skills, Sub
 
 ---
 
-## 7. Key Research Inzichten
+## 7. Gekozen Tech Stack (D-006 t/m D-015)
+
+| Technologie | Versie | Rol | Beslissing |
+|------------|--------|-----|------------|
+| [@xyflow/react](https://www.npmjs.com/package/@xyflow/react) (React Flow v12) | 12.10.1 | Canvas editor | D-006 |
+| [React 19](https://react.dev/) | 19.x | Frontend framework | D-006 |
+| [Tailwind CSS 4](https://tailwindcss.com/) | 4.x | Styling | D-006 |
+| [shadcn/ui](https://ui.shadcn.com/) | -- | UI components | D-006 |
+| [Fastify](https://fastify.dev/) | 5.x | Backend framework | D-007 |
+| [pnpm](https://pnpm.io/) | 9.x | Package manager (workspaces) | D-008 |
+| [@anthropic-ai/claude-agent-sdk](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) | 0.2.63 | Agent runtime (PoC) | D-009 |
+| [Vite](https://vite.dev/) | 6.x | Frontend build tool | D-006 |
+| [Vitest](https://vitest.dev/) | -- | Test framework | D-015 (Fase 1.2a) |
+| [Pino](https://getpino.io/) | -- | Structured logging | D-015 (Fase 1.2a) |
+
+> **Let op**: De Claude Agent SDK package is hernoemd van `@anthropic-ai/claude-code` naar
+> `@anthropic-ai/claude-agent-sdk`. De V2 session API gebruikt `unstable_v2_*` prefix
+> en is nog niet stabiel. Zie D-015 voor de mitigatiestrategie (runtime adapter).
+
+---
+
+## 8. Key Research Inzichten
 
 Onderstaande inzichten komen voort uit het analyseren van bovenstaande bronnen en bepalen de architectuurrichting van Open-Agents.
 

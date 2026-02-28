@@ -3,8 +3,24 @@
 // Canvas, Agent, and Execution types
 // =============================================
 
-/** Available Claude models */
-export type ModelId = "claude-haiku-4-5" | "claude-sonnet-4-6" | "claude-opus-4-6";
+/** Supported model providers */
+export type ModelProvider = "anthropic" | "openai" | "mistral" | "ollama";
+
+/** Provider-specific model identifiers */
+export type AnthropicModel = "claude-haiku-4-5" | "claude-sonnet-4-6" | "claude-opus-4-6";
+export type OpenAIModel = "gpt-4o" | "gpt-4o-mini" | "o3" | "o4-mini" | "codex-mini";
+export type MistralModel = "mistral-large" | "mistral-small" | "codestral" | "mistral-nemo";
+export type OllamaModel = string; // user-installed models, not enumerable
+
+/**
+ * Model identifier in "provider/model" format.
+ * Examples: "anthropic/claude-sonnet-4-6", "mistral/mistral-large", "openai/o3"
+ */
+export type ModelId =
+  | `anthropic/${AnthropicModel}`
+  | `openai/${OpenAIModel}`
+  | `mistral/${MistralModel}`
+  | `ollama/${OllamaModel}`;
 
 /** Tools that an agent can use */
 export type AgentTool =
@@ -22,6 +38,7 @@ export interface AgentNodeData {
   name: string;
   description?: string;
   model: ModelId;
+  maxTokens?: number;
   systemPrompt: string;
   tools: AgentTool[];
 }

@@ -1,27 +1,37 @@
 # Open Questions - Open-Agents
 
-> **Versie**: 0.1
+> **Versie**: 0.2
 > **Datum**: 2026-02-28
 >
 > Open-Agents is een visueel agent-orchestratieplatform waar gebruikers agent-blokken
-> op een canvas slepen en verbinden. De gegenereerde configuratie stuurt Claude Code
-> (via Agent SDK) en Pi agent-core aan. Drie deployment targets: standalone web app,
+> op een canvas slepen en verbinden. De gegenereerde configuratie stuurt agents aan
+> via de Claude Agent SDK (PoC) met Pi agent-core als toekomstige complementaire
+> runtime (D-002, D-009). Drie deployment targets: standalone web app,
 > VS Code extension, Frappe app.
 
 ---
 
 ## Architectuur Vragen
 
-- **Hoe communiceren agents onderling?** Message bus, stdout piping, shared state? Welke combinatie past bij zowel real-time canvas feedback als headless execution?
-- **In-process agents (pi-agent-core) vs process-spawning vs containers** -- welke mix? Wanneer kies je welk isolatieniveau?
-- **Hoe handelen we state management af bij complexe multi-agent flows?** Centraal of gedistribueerd? Wat gebeurt er als een agent halverwege faalt?
-- **Wat is het optimale config format dat naar zowel Claude SDK als Pi agent-core kan exporteren?** JSON, YAML, iets anders? Hoe houden we het menselijk leesbaar en machine-parseable?
-- **Hoe schalen we naar 50+ agents op een canvas zonder performance issues?** Virtualisatie, lazy loading, off-screen culling?
-- **Hoe gaan we om met agent failures mid-flow?** Retry, fallback, skip? Kan de gebruiker dit per connectie configureren op het canvas?
+### Nog Open
+
+- **Hoe communiceren agents onderling?** Message bus, stdout piping, shared state? Welke combinatie past bij zowel real-time canvas feedback als headless execution? *(Deels beantwoord: Sprint 3 gebruikt prompt injection voor sequentieel, Sprint 4 voor parallel. Schaalt dit bij grote outputs? Zie MASTERPLAN Sprint 3.1)*
+- **Hoe schalen we naar 50+ agents op een canvas zonder performance issues?** Virtualisatie, lazy loading, off-screen culling? *(React Flow v12 ondersteunt honderden nodes technisch, maar UX bij 50+ vereist grouping/collapsing)*
+- **Hoe gaan we om met agent failures mid-flow?** *(Gedeeltelijk beantwoord: Sprint 3.4 definieert retry/skip/abort. Nog geen formele beslissing.)*
+
+### Beantwoord (zie DECISIONS.md)
+
+- ~~**In-process agents vs process-spawning vs containers**~~ → D-009 (Claude SDK only voor PoC), D-101 (Docker per agent), D-015 (runtime adapter)
+- ~~**Config format dat naar Claude SDK en Pi kan exporteren?**~~ → D-010 (eigen JSON schema met Claude SDK mapping)
+- ~~**State management bij multi-agent flows?**~~ → D-015 (runtime adapter slaat per-step output op als fallback)
 
 ---
 
 ## Waar Verbeteren We Pi?
+
+> Pi agent-core blijft een inspiratiebron en toekomstige complementaire runtime (D-002).
+> Voor de PoC gebruiken we Claude Agent SDK (D-009). De runtime adapter (D-015)
+> maakt het later toevoegen van Pi een kwestie van één nieuwe implementatie.
 
 | # | Pi (huidige situatie) | Open-Agents (verbetering) |
 |:-:|----------------------|--------------------------|
@@ -40,31 +50,34 @@
 
 ## Technologie Vragen
 
-- **React Flow vs Vue Flow**: welke past beter bij onze 3 deployment targets (standalone, VS Code, Frappe)? React heeft beter VS Code webview ecosysteem, Vue past beter bij Frappe.
-- **Hoe embedden we de canvas UI in een VS Code webview met goede performance?** Welke beperkingen legt de webview API op qua state, communicatie en rendering?
-- **Hoe integreren we de canvas UI in Frappe Desk zonder iframe?** Frappe gebruikt eigen routing en bundling -- hoe voegen we een SPA-achtige canvas toe?
-- **Welke state management past bij multi-target deployment?** Zustand (React), Pinia (Vue), Redux, of een framework-agnostisch alternatief?
-- **Mono-repo of multi-repo?** Frontend, backend, VS Code extension, Frappe app -- hoe organiseren we de codebase? Welke tooling (Turborepo, Nx, pnpm workspaces)?
+### Beantwoord (zie DECISIONS.md)
+
+- ~~**React Flow vs Vue Flow**~~ → D-006: React + React Flow (xyflow v12)
+- ~~**Mono-repo of multi-repo?**~~ → D-008: Mono-repo met pnpm workspaces
+- ~~**Welke state management?**~~ → D-014 (te nemen in Sprint 1.2a). Pinia valt af door D-006 (React, niet Vue).
+
+### Nog Open
+
+- **Hoe embedden we de canvas UI in een VS Code webview met goede performance?** Welke beperkingen legt de webview API op qua state, communicatie en rendering? *(Relevant voor Sprint 7)*
+- **Hoe integreren we de canvas UI in Frappe Desk zonder iframe?** Frappe gebruikt eigen routing en bundling -- hoe voegen we een SPA-achtige canvas toe? *(Relevant voor Sprint 8)*
 
 ---
 
 ## Product Vragen
 
-- **Hoe vullen we de library met 100+ agents?** Community-driven, zelf bouwen, of een combinatie? Wat is de minimale set voor lancering?
-- **Wat is ons verdienmodel?** Open core met premium features? SaaS hosting? Templates marketplace met revenue share?
-- **Hoe positioneren we ons t.o.v. Langflow, Flowise, Dify?** Onze differentiator is de Claude/Pi integratie en ERPNext focus -- is dat genoeg?
-- **Hoe zorgen we dat de semantische laag echt goed werkt?** Niet alleen een chatbot wrapper, maar echte intentie-herkenning naar configuratie-generatie.
-- **Wie zijn onze eerste gebruikers?** Developers die agents bouwen? Consultants die ERPNext inrichten? ERPNext admins die workflows automatiseren?
+- **Hoe vullen we de library met 100+ agents?** *(Deels beantwoord: AGENTS.md definieert 100 agents. Sprint 9 plant het bouwproces. Groeipad: MVP=10, Beta=25, v1.0=50, v2.0=100+)*
+- **Wat is ons verdienmodel?** Open core met premium features? SaaS hosting? Templates marketplace met revenue share? *(Spanning met MIT licentie — zie PRINCIPLES.md #9)*
+- **Hoe positioneren we ons t.o.v. Langflow, Flowise, Dify?** Onze differentiators: atomaire agent filosofie, VS Code embed, Frappe embed, Claude/Pi dual runtime. *(Feature matrix nog niet uitgewerkt)*
+- **Wie zijn onze eerste gebruikers?** *(Voorstel: developers die AI agents bouwen voor eigen projecten. Past bij AGENTS.md library, tech stack, en het feit dat de eerste gebruiker de maker is.)*
 
 ---
 
 ## Research Nog Uit Te Voeren
 
-- **Pi web-ui components**: Pi heeft een eigen TUI -- zijn er web-UI componenten die we kunnen hergebruiken of forken voor onze canvas?
-- **Claude Agent SDK streaming**: hoe tonen we real-time output per agent node op het canvas? Welke streaming primitives biedt de SDK?
-- **OpenAEC open-2d-studio**: heeft een extension system voor canvas-gebaseerde tools -- zijn de patronen herbruikbaar voor ons platform?
+- **Claude Agent SDK V2 stabiliteit**: Wanneer wordt de V2 session API (unstable_v2_*) stable? Welke breaking changes zijn gepland? *(Kritiek voor Sprint 3.3 session management)*
+- **Agent Teams productie-readiness**: Bekende limitaties: session resume werkt niet met lopende teammates, task status kan achterlopen, 3-4x token kosten. *(Risico voor Sprint 4 pool pattern)*
+- **Pi agent-core als runtime adapter**: Hoe mapt pi-agent-core op onze AgentRuntime interface? Welke features biedt het bovenop de Claude SDK? *(Relevant wanneer D-002 geimplementeerd wordt)*
 - **ERPNext_Anthropic_Claude_Development_Skill_Package**: bevat 28 gedefinieerde skills -- kunnen we die importeren als kant-en-klare agent templates?
-- **Claude_Workspace_Development_Workflows**: dynamic workspace building concept -- herbruikbaar voor onze configuratie-generatie vanuit het canvas?
 - **Frappe UI architecture**: hoe embedden we custom web apps het beste in Frappe Desk? Welke hooks en entry points zijn beschikbaar?
 
 ---

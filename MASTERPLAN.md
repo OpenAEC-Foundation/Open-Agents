@@ -1,6 +1,6 @@
 # Masterplan - Open-Agents
 
-> **Versie**: 0.3
+> **Versie**: 0.4
 > **Laatste update**: 2026-02-28
 > **Methodiek**: Scrum (korte sprints, snel waarde leveren)
 > **Zie ook**: REQUIREMENTS.md, PRINCIPLES.md, ROADMAP.md, SOURCES.md
@@ -29,12 +29,14 @@
 | 10 | Refactor & Consolidatie | Refactor van alles uit eerste Scrum iteratie | Sprint 1-9 | Planned |
 
 ```
-Sprint 0 ──→ Sprint 1 ──┬──→ Sprint 2 ──→ Sprint 6
-                         ├──→ Sprint 3 ──→ Sprint 4
+Sprint 0 ──→ Sprint 1 ──┬──→ Sprint 2 ──┬──→ Sprint 6
+                         ├──→ Sprint 3 ──┤
+                         │               └──→ Sprint 4
                          ├──→ Sprint 5
                          ├──→ Sprint 7
                          └──→ Sprint 8
 
+Sprint 6 hangt af van ZOWEL Sprint 2 (Factory) ALS Sprint 3 (Flow pattern)
 Sprint 9 (Agent Library) loopt DOORLOPEND naast alle sprints (vanaf Sprint 2)
 Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 ```
@@ -50,7 +52,7 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 **Status**: Done (commit `c3e4e62`)
 
 - [x] Visie verscherpt: van ERPNext-first naar generiek visueel platform
-- [x] REQUIREMENTS.md geschreven (12 FR + 5 NFR)
+- [x] REQUIREMENTS.md geschreven (14 FR + 5 NFR)
 - [x] MASTERPLAN.md geschreven (dit document)
 - [x] PRINCIPLES.md geschreven (11 design principles)
 - [x] SOURCES.md geschreven (7 secties + research inzichten)
@@ -114,6 +116,90 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 - [x] Docker-compose dev environment
 - [x] Setup instructies (README.md)
 
+### Fase 1.2a: Architecture Foundations `[SEQ]` — na 1.2, voor 1.3
+
+> **Waarom deze fase?** Uit de scope audit (feb 2026) bleken 4 kritieke gaps die
+> Sprint 1 blokkeren als ze niet eerst besloten worden. Daarnaast zijn er
+> infrastructurele keuzes (CI/CD, testing, state management) die het verschil
+> maken tussen "snel bouwen en later alles herschrijven" of "goed beginnen".
+
+> **Prompt**:
+> ```
+> Je bent de architect van Open-Agents. Neem de volgende beslissingen en
+> documenteer ze in DECISIONS.md. Implementeer de infrastructuur direct.
+>
+> BESLISSINGEN:
+>
+> D-011: Database (PoC)
+>   Opties: A) In-memory Map (geen persistentie, simpelst)
+>           B) SQLite via better-sqlite3 (lokaal, geen server)
+>           C) PostgreSQL (productie-ready, meer setup)
+>   Context: Sprint 1.4 heeft POST/GET /api/configs nodig. PoC draait lokaal.
+>
+> D-012: Authenticatie (PoC)
+>   Opties: A) Geen auth (localhost only, documenteer als beperking)
+>           B) Simpele API key in header
+>   Context: PoC draait lokaal. Auth is pas nodig bij deployment.
+>
+> D-013: Claude API Key Beheer
+>   Opties: A) Environment variable (ANTHROPIC_API_KEY in .env)
+>           B) Gebruiker voert key in via UI (BYOK)
+>   Context: Backend roept Claude Agent SDK aan. Key moet ergens vandaan komen.
+>
+> D-014: Frontend State Management
+>   Opties: A) Zustand (klein, simpel, serialiseerbaar, past bij React)
+>           B) Redux Toolkit (groter ecosysteem, meer boilerplate)
+>           C) React context + useReducer (geen extra dependency)
+>   Context: Canvas state (nodes, edges, viewport) + app state (execution,
+>   settings). VS Code webview vereist serialiseerbare state (postMessage).
+>
+> D-015: Agent SDK Interface Strategie
+>   Opties: A) Direct SDK calls vanuit route handlers
+>           B) Runtime adapter interface (abstractie tussen canvas en SDK)
+>   Context: Claude Agent SDK is pre-1.0 (v0.2.63), API wijzigt frequent.
+>   Package is hernoemd van claude-code-sdk naar claude-agent-sdk.
+>   V2 Session API is unstable (unstable_v2_* prefix).
+>   Pi agent-core is product scope (D-002) maar niet PoC scope (D-009).
+>   Een adapter beschermt tegen SDK wijzigingen en maakt Pi later toevoegbaar.
+>
+> INFRASTRUCTUUR (implementeer direct):
+>
+> 1. CI/CD: .github/workflows/ci.yml met pnpm install, lint, typecheck, build
+> 2. Test framework: Vitest configuratie in monorepo + eerste smoke test
+> 3. Logging: Pino logger setup in backend (structured JSON)
+> 4. .env.example met ANTHROPIC_API_KEY placeholder (gitignored .env)
+> 5. Runtime adapter interface in @open-agents/shared:
+>    - AgentRuntime interface { execute(config): AsyncIterable<AgentEvent> }
+>    - ClaudeSDKRuntime implementeert AgentRuntime
+>    - (Later: PiAgentRuntime kan dezelfde interface implementeren)
+>
+> SCOPE NOTITIE (documenteer in DECISIONS.md bij D-015):
+> Pi agent-core blijft in de product-requirements (FR-05, FR-06) als
+> complementaire runtime (D-002). Voor de PoC gebruiken we alleen Claude
+> Agent SDK (D-009). De runtime adapter interface maakt het toevoegen van
+> Pi (of andere runtimes) later een kwestie van één nieuwe implementatie.
+>
+> Update DECISIONS.md met alle 5 beslissingen.
+> Commit als: "feat: architecture foundations — decisions, CI/CD, testing, adapter"
+> ```
+
+**Beslissingen:**
+- [ ] D-011: Database keuze (PoC)
+- [ ] D-012: Auth strategie (PoC)
+- [ ] D-013: Claude API key beheer
+- [ ] D-014: Frontend state management
+- [ ] D-015: Agent SDK interface strategie (runtime adapter)
+
+**Infrastructuur:**
+- [ ] CI/CD pipeline (.github/workflows/ci.yml)
+- [ ] Vitest configuratie + eerste test
+- [ ] Pino logger setup in backend
+- [ ] .env.example + .env in .gitignore
+- [ ] Runtime adapter interface (AgentRuntime) in shared package
+- [ ] ClaudeSDKRuntime implementatie
+
+---
+
 ### Fase 1.3: Canvas UI `[PAR]` — parallel met 1.4
 
 > **Prompt**:
@@ -149,20 +235,31 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > Bouw de minimale backend API voor Open-Agents.
 >
 > Endpoints:
-> - POST /api/configs - sla een canvas configuratie op (JSON)
+> - POST /api/configs - sla een canvas configuratie op (D-011 database)
 > - GET /api/configs/:id - haal een configuratie op
-> - POST /api/execute - voer een configuratie uit via Claude Code Agent SDK
+> - POST /api/execute - voer een configuratie uit via de runtime adapter (D-015)
 > - GET /api/execute/:id/status - status van een executie (streaming via SSE)
 >
 > De /api/execute endpoint moet:
 > 1. De JSON config ontvangen (nodes + edges)
-> 2. Voor elke node een Claude Code `claude -p` aanroep doen met:
->    - --append-system-prompt (de node's system prompt)
->    - --allowedTools (de node's tools)
->    - --output-format stream-json
-> 3. Output streamen via Server-Sent Events
+> 2. De RuntimeAdapter (uit Fase 1.2a) gebruiken om agents uit te voeren:
+>    - ClaudeSDKRuntime.execute() met:
+>      - systemPrompt (de node's system prompt)
+>      - tools (de node's allowed tools)
+>      - model (de node's model keuze)
+>    - Output als AsyncIterable<AgentEvent> streamen via SSE
+> 3. Per node: status events (started, output_delta, completed, error)
 >
-> Gebruik de Claude Agent SDK (@anthropic-ai/claude-agent-sdk, D-009).
+> BELANGRIJK: Gebruik de SDK query() functie, NIET de CLI (`claude -p`).
+> De Claude Agent SDK package heet @anthropic-ai/claude-agent-sdk (D-009).
+> API key via process.env.ANTHROPIC_API_KEY (D-013).
+>
+> Error handling (minimaal voor PoC):
+> - API timeout: 504 na 5 min
+> - Ongeldige config: 400 met validatie errors
+> - SDK error: 500 met error message in SSE stream
+> - Rate limit: 429 met retry-after header
+>
 > Maak ook een health check endpoint: GET /api/health
 > ```
 
@@ -335,10 +432,10 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 >
 > Wanneer een canvas meerdere verbonden nodes heeft (A → B → C):
 > 1. Bepaal executievolgorde via topologische sort op de edges
-> 2. Voer Node A uit via Claude Agent SDK
+> 2. Voer Node A uit via de RuntimeAdapter (D-015)
 > 3. Capture de output van Node A
-> 4. Inject output als context in Node B's prompt: "--append-system-prompt
->    'Vorige agent output: {output_A}'"
+> 4. Inject output als context in Node B via de systemPrompt parameter:
+>    systemPrompt: "Vorige agent output:\n{output_A}\n\n[eigen system prompt]"
 > 5. Voer Node B uit, capture output
 > 6. Herhaal voor Node C etc.
 >
@@ -347,7 +444,9 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > - POST /api/execute start een run, returns runId
 > - GET /api/runs/:id/stream SSE voor real-time updates per step
 >
-> Gebruik `--resume` als een stap moet worden hervat na een pauze.
+> Session management: gebruik de SDK V2 session API (unstable_v2_*) als
+> een stap moet worden hervat. NOTE: deze API is pre-stable (D-015),
+> daarom slaan we per-step output ook op in onze eigen database als fallback.
 > ```
 
 **Taken:**
@@ -385,10 +484,16 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 > Voeg session management toe aan flow execution.
 >
-> 1. Pause knop: stopt executie na huidige stap (slaat session_id op)
-> 2. Resume knop: hervat met `--resume <session_id>` vanaf laatste stap
-> 3. Restart knop: start hele flow opnieuw
+> 1. Pause knop: stopt executie na huidige stap (slaat run state op in DB)
+> 2. Resume knop: hervat vanaf laatste voltooide stap. Twee strategieen:
+>    A) SDK V2 session resume (unstable_v2_resumeSession) als beschikbaar
+>    B) Fallback: herstart node met opgeslagen context uit vorige stap
+> 3. Restart knop: start hele flow opnieuw (nieuwe ExecutionRun)
 > 4. Cancel knop: breekt huidige agent af en stopt flow
+>
+> RISICO (documenteer): Agent Teams session resume werkt NIET betrouwbaar
+> met lopende teammates (bekend SDK issue). Daarom altijd eigen state
+> opslaan per stap als fallback. De runtime adapter (D-015) abstraheert dit.
 >
 > UI: toolbar boven het canvas met Run | Pause | Resume | Restart | Cancel
 > Toon elapsed time per stap en totaal.
