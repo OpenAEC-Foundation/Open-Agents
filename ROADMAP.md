@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-02
-> **Status**: Sprint 6a - Knowledge Base COMPLETE
+> **Laatste update**: 2026-03-03
+> **Status**: Sprint 8 - Frappe App COMPLETE
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -23,8 +23,8 @@
 | Knowledge Base + Snippet Engine | 1 | 1 |
 | Assembly Engine (NL → Graph) | 0 | 1 |
 | AI Assembly Assistant | 0 | 1 |
-| VS Code Extension | 0 | 1 |
-| Frappe App | 0 | 1 |
+| VS Code Extension | 1 | 1 |
+| Frappe App | 1 | 1 |
 | Library Ecosystem (10 types) | 0 | 10 |
 | LLM Asset Generation (Factory) | 1 | 1 |
 | Agent Library (doel: 1000+) | 0 | 1000 |
@@ -32,12 +32,12 @@
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
 **Fase 1 (PoC)**: ████████████████████ **100%** - canvas UI, backend API, e2e wiring, theming, BYOK
 **Fase 2 (Factory)**: ████████████████████ **100%** - tabs, wizard, library, CRUD API, presets, LLM-powered generation
-**Fase 3 (Orchestratie)**: ██████████░░░░░░░░░░ **50%** — flow pattern (Sprint 3) complete
+**Fase 3 (Orchestratie)**: ██████████░░░░░░░░░░ **50%** — Sprint 3 (Flow Pattern) complete, Sprint 4 (Pool Pattern) pending
 **Fase 4 (Intelligence)**: ████████████████████ **100%** - safety & audit (Sprint 5)
 **Fase 4a (Knowledge)**: ████████████████████ **100%** - knowledge base + snippet engine (Sprint 6a)
 **Fase 4b (Assembly)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - NL → agent graph self-assembly (Sprint 6b)
 **Fase 4c (Assistant)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - AI assembly assistant sidebar (Sprint 6c)
-**Fase 5 (Deployment)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
+**Fase 5 (Deployment)**: ████████████████████ **100%** - VS Code extension (Sprint 7) + Frappe app (Sprint 8)
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 7 (Agent Library)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - 1000+ atomaire agents (doorlopend, 1015 gedefinieerd)
 **Fase 8 (Refactor)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - consolidatie eerste Scrum iteratie
@@ -139,13 +139,24 @@
 - [ ] Bidirectionele canvas sync (CanvasAction → canvasStore)
 - [ ] Smart suggestions met one-click Apply
 
-### Fase 5: Deployment Targets (Sprint 7-8)
+### Fase 5: Deployment Targets (Sprint 7-8) — Complete
 
-- [ ] VS Code extension met webview canvas
-- [ ] Integratie met Claude Code extension
-- [ ] Frappe app wrapper
-- [ ] ERPNext use case templates
-- [ ] Docker agent isolation
+**Sprint 7 — VS Code Extension (Complete):**
+- [x] Extension scaffolding: package.json manifest, commands, settings, keybinding
+- [x] Webview panel met React Flow canvas
+- [x] MCP server met 6 tools
+- [x] Status bar met live backend health check
+- [x] Sidebar tree view met Quick Actions + Tips
+- [x] Build pipeline: tsup (extension CJS) + Vite (webview)
+
+**Sprint 8 — Frappe App (Complete):**
+- [x] Frappe app structuur (packages/frappe-app/)
+- [x] Custom DocTypes (Agent Config, Execution Run, Safety Rule)
+- [x] Canvas embedding in Frappe Desk (iframe met postMessage bridge)
+- [x] Whitelisted API endpoints (proxy naar backend)
+- [x] 5 ERPNext templates (Boekhouding, Inkoop, HR, Project, Admin)
+
+> **Nota**: VS Code extension is feature-complete als development build. VSIX packaging en marketplace publicatie vallen onder Sprint 10 (Refactor). MCP tools zijn momenteel hardcoded, niet auto-gegenereerd via D-031 CommandRegistry.
 
 ### Fase 6: Scale & Community
 
@@ -178,6 +189,13 @@
 - [ ] README + CONTRIBUTING + CHANGELOG
 - [ ] CI/CD pipeline
 - [ ] v0.1.0 release
+- [ ] NodeType uitbreiden naar D-023 specificatie (teammate, skill, connector, gate)
+- [ ] ModelDisplayInfo type opruimen (dead code, vervangen door ModelMeta)
+- [ ] AgentDefinition vs AgentNodeData vs AgentPreset type consolidatie
+- [ ] testCommand() wiring in execution engine (D-035 bash enforcement gap)
+- [ ] Memory cleanup voor completed runs in execution-engine.ts (TTL of database)
+- [ ] MCP tool auto-generatie pipeline verbinden met VS Code extension (D-031)
+- [ ] Non-Claude runtime tool use support (D-032 PoC beperking opheffen)
 
 ---
 

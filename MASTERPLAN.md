@@ -1,7 +1,7 @@
 # Masterplan - Open-Agents
 
 > **Versie**: 0.5
-> **Laatste update**: 2026-02-28
+> **Laatste update**: 2026-03-03
 > **Methodiek**: Scrum (korte sprints, snel waarde leveren)
 > **Zie ook**: REQUIREMENTS.md, PRINCIPLES.md, ROADMAP.md, SOURCES.md
 >
@@ -19,14 +19,14 @@
 | 0 | Foundation | Core documenten + dev environment | -- | Done |
 | 1 | Proof of Concept | Minimale canvas → Claude Code, e2e | Sprint 0 | Done |
 | 2 | Factory Portal | Agents aanmaken via UI | Sprint 1 | Done |
-| 3 | Flow Pattern | Sequentiële pipeline werkend | Sprint 1 | Planned |
+| 3 | Flow Pattern | Sequentiële pipeline werkend | Sprint 1 | Done |
 | 4 | Pool Pattern | Dispatcher + parallelle execution | Sprint 3 | Planned |
-| 5 | Safety & Audit | Rules editor + audit trail | Sprint 1 | Planned |
-| 6a | Knowledge Base + Snippet Engine | Kennisbibliotheek: routing patterns, model profiles, principes | Sprint 1 | Planned |
+| 5 | Safety & Audit | Rules editor + audit trail | Sprint 1 | Done |
+| 6a | Knowledge Base + Snippet Engine | Kennisbibliotheek: routing patterns, model profiles, principes | Sprint 1 | Done |
 | 6b | Assembly Engine | NL → Agent Graph self-assembly pipeline | Sprint 6a | Planned |
 | 6c | AI Assembly Assistant | Sidebar kennispartner + pattern library | Sprint 6b | Planned |
-| 7 | VS Code Extension | Canvas als VS Code webview + MCP | Sprint 1 | Planned |
-| 8 | Frappe App | Frappe wrapper + ERPNext templates | Sprint 1 | Planned |
+| 7 | VS Code Extension | Canvas als VS Code webview + MCP | Sprint 1 | Done |
+| 8 | Frappe App | Frappe wrapper + ERPNext templates | Sprint 1 | Done |
 | 9 | Agent Library | 1000+ atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | Planned |
 | 10 | Refactor & Consolidatie | Refactor van alles uit eerste Scrum iteratie | Sprint 1-9 | Planned |
 
@@ -1083,10 +1083,10 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Frappe app structuur
-- [ ] Custom DocTypes
-- [ ] Canvas embedding in Frappe Desk
-- [ ] Whitelisted API endpoints
+- [x] Frappe app structuur
+- [x] Custom DocTypes
+- [x] Canvas embedding in Frappe Desk
+- [x] Whitelisted API endpoints
 
 ### Fase 8.2: ERPNext Templates `[PAR]` — parallel met 8.1
 
@@ -1116,9 +1116,9 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] 5 ERPNext templates (JSON)
+- [x] 5 ERPNext templates (JSON)
 - [ ] MCP server voor ERPNext API
-- [ ] Template loader in Frappe app
+- [x] Template loader in Frappe app
 
 ---
 
