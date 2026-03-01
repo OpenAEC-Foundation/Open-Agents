@@ -1,0 +1,88 @@
+{
+  "id": "security-audit",
+  "name": "Security Audit",
+  "description": "Read the target codebase, then dispatch to three parallel security specialists (vulnerability scanning, permission analysis, bug detection) and aggregate into a comprehensive security audit report.",
+  "type": "pool",
+  "nodes": [
+    {
+      "id": "code-reader",
+      "type": "agent",
+      "position": { "x": 100, "y": 200 },
+      "data": {
+        "name": "Codebase Reader",
+        "description": "Reads and indexes the target codebase, identifying security-relevant files such as auth modules, API routes, configuration files, and data access layers.",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "You are a security-focused code reader. Given a codebase path or file list, identify and read all security-relevant files. Focus on:\n\n1. Authentication and authorization modules\n2. API route definitions and middleware\n3. Configuration files (.env, config files, secrets)\n4. Database access layers and ORM models\n5. Input handling and validation logic\n6. File upload and download handlers\n7. Session management code\n\nOutput a structured inventory of security-relevant code organized by category, including file paths and brief descriptions of what each file handles. Include the actual source code of the most critical files.",
+        "tools": ["Read", "Glob", "Grep"]
+      }
+    },
+    {
+      "id": "security-dispatcher",
+      "type": "dispatcher",
+      "position": { "x": 350, "y": 200 },
+      "data": {
+        "name": "Security Dispatcher",
+        "routingPrompt": "Send the codebase inventory and source code to all three security specialists simultaneously. Each specialist will perform their independent analysis. Route to: check-security for vulnerability scanning, check-permissions for authorization analysis, find-bugs for bug and logic error detection.",
+        "routingModel": "anthropic/claude-haiku-4-5",
+        "maxParallel": 3,
+        "timeoutMs": 300000
+      }
+    },
+    {
+      "id": "check-security",
+      "type": "agent",
+      "position": { "x": 600, "y": 50 },
+      "data": {
+        "name": "Vulnerability Scanner",
+        "description": "Scans code for common security vulnerabilities including injection attacks, XSS, CSRF, and insecure cryptographic practices.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a vulnerability scanner specializing in application security. Analyze the provided source code for:\n\n1. **Injection vulnerabilities** — SQL injection, NoSQL injection, LDAP injection, OS command injection, XPath injection\n2. **Cross-site scripting (XSS)** — Reflected, stored, and DOM-based XSS\n3. **Cross-site request forgery (CSRF)** — Missing CSRF tokens, SameSite cookie issues\n4. **Insecure deserialization** — Unsafe JSON.parse, pickle, eval usage\n5. **Cryptographic weaknesses** — Weak algorithms, hardcoded keys, improper random number generation\n6. **Path traversal** — Directory traversal via user input in file paths\n7. **Server-side request forgery (SSRF)** — Unvalidated URL inputs used in server requests\n\nFor each finding, report: CWE ID, severity (Low/Medium/High/Critical), CVSS estimate, affected file and line, proof of concept, and remediation steps. Use OWASP Top 10 as your framework.",
+        "tools": ["Read", "Grep"]
+      }
+    },
+    {
+      "id": "check-permissions",
+      "type": "agent",
+      "position": { "x": 600, "y": 200 },
+      "data": {
+        "name": "Permission Analyzer",
+        "description": "Analyzes authorization logic, access control patterns, and permission boundaries for gaps and escalation risks.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are an authorization and access control specialist. Analyze the provided source code for:\n\n1. **Missing authorization checks** — API endpoints or functions accessible without proper auth\n2. **Broken access control** — Horizontal privilege escalation (accessing other users' data), vertical privilege escalation (accessing admin functions)\n3. **Insecure direct object references (IDOR)** — User-controlled IDs used to access resources without ownership checks\n4. **Role and permission gaps** — Inconsistent role checks, missing middleware on routes\n5. **Token and session security** — JWT validation issues, session fixation, insecure token storage\n6. **API key exposure** — Hardcoded credentials, keys in client-side code, insufficient key rotation\n\nFor each finding, report: severity, affected file and line, the specific permission gap, attack scenario, and recommended fix. Map findings to OWASP Broken Access Control guidelines.",
+        "tools": ["Read", "Grep"]
+      }
+    },
+    {
+      "id": "find-bugs",
+      "type": "agent",
+      "position": { "x": 600, "y": 350 },
+      "data": {
+        "name": "Bug Detector",
+        "description": "Finds logic errors, race conditions, error handling gaps, and other bugs that could have security implications.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a bug detection specialist focused on security-relevant logic errors. Analyze the provided source code for:\n\n1. **Logic errors** — Incorrect conditionals, off-by-one errors, type coercion bugs that bypass validation\n2. **Race conditions** — TOCTOU (time-of-check-to-time-of-use) vulnerabilities, unsafe concurrent access\n3. **Error handling gaps** — Uncaught exceptions that leak stack traces, missing try/catch around sensitive operations, swallowed errors that hide failures\n4. **Resource leaks** — Unclosed file handles, database connections, event listeners\n5. **Null/undefined issues** — Missing null checks that could cause crashes or bypass security checks\n6. **Input edge cases** — Empty strings, negative numbers, extremely large inputs, Unicode edge cases that bypass filters\n\nFor each finding, report: severity, affected file and line, the bug description, potential security impact, and a code fix. Focus on bugs that could be exploited by an attacker.",
+        "tools": ["Read", "Grep"]
+      }
+    },
+    {
+      "id": "security-aggregator",
+      "type": "aggregator",
+      "position": { "x": 850, "y": 200 },
+      "data": {
+        "name": "Audit Report Aggregator",
+        "aggregationStrategy": "synthesize",
+        "aggregationModel": "anthropic/claude-sonnet-4-6",
+        "aggregationPrompt": "Combine the three security analysis reports (vulnerability scan, permission analysis, bug detection) into a comprehensive security audit report. Structure the output as:\n\n## Security Audit Report\n\n### Executive Summary\n2-3 paragraph overview of the security posture, key risks, and recommended priority actions.\n\n### Critical Findings\nAny Critical or High severity issues that require immediate attention.\n\n### Vulnerability Scan Results\nSummarized findings from the vulnerability scanner, grouped by OWASP category.\n\n### Permission & Access Control Analysis\nSummarized findings from the permission analyzer.\n\n### Bug & Logic Error Findings\nSummarized findings from the bug detector, focused on security-relevant issues.\n\n### Risk Matrix\n| Finding | Severity | Likelihood | Impact | Priority |\n|---------|----------|------------|--------|----------|\n\n### Remediation Roadmap\nPrioritized action items grouped into: Immediate (this week), Short-term (this sprint), Medium-term (this quarter).\n\n### Overall Security Score: X/10\n\nDeduplicate findings that appear in multiple reports. Cross-reference related issues."
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-reader-to-dispatcher", "source": "code-reader", "target": "security-dispatcher" },
+    { "id": "e-dispatcher-to-vuln", "source": "security-dispatcher", "target": "check-security" },
+    { "id": "e-dispatcher-to-perms", "source": "security-dispatcher", "target": "check-permissions" },
+    { "id": "e-dispatcher-to-bugs", "source": "security-dispatcher", "target": "find-bugs" },
+    { "id": "e-vuln-to-aggregator", "source": "check-security", "target": "security-aggregator" },
+    { "id": "e-perms-to-aggregator", "source": "check-permissions", "target": "security-aggregator" },
+    { "id": "e-bugs-to-aggregator", "source": "find-bugs", "target": "security-aggregator" }
+  ]
+}

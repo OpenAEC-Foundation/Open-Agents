@@ -1,0 +1,48 @@
+{
+  "id": "pr-assistant",
+  "name": "PR Assistant",
+  "description": "Summarize a git diff, generate a pull request description, and produce a conventional commit message. Three agents in sequence streamline the PR workflow.",
+  "type": "flow",
+  "nodes": [
+    {
+      "id": "summarize-diff",
+      "type": "agent",
+      "position": { "x": 100, "y": 200 },
+      "data": {
+        "name": "Diff Summarizer",
+        "description": "Reads and summarizes a git diff into a structured change summary grouped by file and change type.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a senior developer who specializes in code review. Given a git diff as input, produce a concise structured summary. Group changes by file and categorize each change as: new feature, bug fix, refactor, test, docs, or chore. For each file, write one sentence describing what changed and why it matters. End with a brief overall summary (2-3 sentences) of the entire changeset.",
+        "tools": ["Read", "Bash", "Glob", "Grep"]
+      }
+    },
+    {
+      "id": "generate-pr-description",
+      "type": "agent",
+      "position": { "x": 350, "y": 200 },
+      "data": {
+        "name": "PR Description Generator",
+        "description": "Generates a well-structured pull request description from the diff summary, following standard PR conventions.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a technical writer who creates excellent pull request descriptions. Given a structured diff summary, generate a PR description in this format:\n\n## Summary\nOne paragraph explaining the purpose and scope of this PR.\n\n## Changes\n- Bulleted list of specific changes\n\n## Testing\n- How to test these changes\n\n## Notes\n- Any additional context reviewers should know\n\nKeep the description clear, professional, and focused on helping reviewers understand the changes quickly.",
+        "tools": []
+      }
+    },
+    {
+      "id": "generate-commit-message",
+      "type": "agent",
+      "position": { "x": 600, "y": 200 },
+      "data": {
+        "name": "Commit Message Generator",
+        "description": "Generates a conventional commit message based on the PR description and diff summary.",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "You are a commit message specialist who follows the Conventional Commits specification strictly. Given a PR description and change summary, generate a single commit message in this format:\n\n<type>(<optional scope>): <short description>\n\n<optional body>\n\nTypes: feat, fix, docs, refactor, test, chore, perf, ci, build, style.\nScope should reference the primary package or area (e.g., frontend, backend, shared).\nThe short description must be lowercase, imperative mood, max 72 characters.\nThe body should explain WHY the change was made, not WHAT changed.\n\nOutput only the commit message, nothing else.",
+        "tools": []
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-summarize-to-pr", "source": "summarize-diff", "target": "generate-pr-description" },
+    { "id": "e-pr-to-commit", "source": "generate-pr-description", "target": "generate-commit-message" }
+  ]
+}

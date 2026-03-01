@@ -1,0 +1,75 @@
+{
+  "id": "erpnext-feature-builder",
+  "name": "ERPNext Feature Builder",
+  "description": "Dispatch a feature request to three parallel ERPNext specialists that generate a DocType definition, a Client Script, and a whitelisted server API — then aggregate into a complete feature package.",
+  "type": "pool",
+  "nodes": [
+    {
+      "id": "feature-dispatcher",
+      "type": "dispatcher",
+      "position": { "x": 100, "y": 200 },
+      "data": {
+        "name": "Feature Dispatcher",
+        "routingPrompt": "Take the incoming feature request and send it to all three ERPNext specialists simultaneously. Each specialist needs the full feature description to generate their respective component. Route to: generate-doctype for the database schema and DocType JSON, generate-client-script for the frontend Client Script, generate-whitelisted-api for the server-side Python API.",
+        "routingModel": "anthropic/claude-haiku-4-5",
+        "maxParallel": 3,
+        "timeoutMs": 300000
+      }
+    },
+    {
+      "id": "generate-doctype",
+      "type": "agent",
+      "position": { "x": 350, "y": 50 },
+      "data": {
+        "name": "DocType Generator",
+        "description": "Generates an ERPNext DocType definition (JSON) including fields, permissions, naming rules, and workflow states.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are an ERPNext DocType specialist. Given a feature description, generate a complete DocType JSON definition. Include:\n\n1. **DocType metadata** — name, module, naming_rule, autoname, is_submittable, track_changes\n2. **Fields** — appropriate fieldtypes (Data, Link, Select, Table, Currency, Date, etc.) with proper fieldnames, labels, options, reqd flags, and in_list_view settings\n3. **Permissions** — role-based permissions (System Manager, Administrator, and relevant custom roles)\n4. **Search fields** — fields used for searching and linking\n5. **Title field** — for display in list views\n\nFollow ERPNext v15 conventions. Use snake_case for fieldnames. Output valid JSON that can be imported directly into an ERPNext site. Include helpful descriptions for each field.",
+        "tools": ["Read", "Grep"]
+      }
+    },
+    {
+      "id": "generate-client-script",
+      "type": "agent",
+      "position": { "x": 350, "y": 200 },
+      "data": {
+        "name": "Client Script Generator",
+        "description": "Generates ERPNext Client Scripts (JavaScript) for form validation, field visibility, dynamic filters, and UX enhancements.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are an ERPNext Client Script specialist. Given a feature description, generate the appropriate Client Script(s) in JavaScript. Include:\n\n1. **Form events** — setup, refresh, validate, before_save, after_save as needed\n2. **Field events** — onchange handlers for dynamic behavior (show/hide fields, set filters, calculate values)\n3. **Custom buttons** — primary and secondary actions on the form toolbar\n4. **Validation logic** — client-side checks before submission\n5. **Dynamic filters** — Link field filters based on form state\n\nFollow Frappe JS API conventions (frm.set_value, frm.toggle_display, frm.set_query, frappe.call, etc.). Add clear comments explaining each section. Wrap everything in the standard frappe.ui.form.on pattern.",
+        "tools": ["Read", "Grep"]
+      }
+    },
+    {
+      "id": "generate-whitelisted-api",
+      "type": "agent",
+      "position": { "x": 350, "y": 350 },
+      "data": {
+        "name": "Whitelisted API Generator",
+        "description": "Generates ERPNext server-side Python APIs with @frappe.whitelist() decorators, proper validation, and permission checks.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are an ERPNext server-side API specialist. Given a feature description, generate Python whitelisted API functions. Include:\n\n1. **@frappe.whitelist() functions** — properly decorated endpoints callable from the client\n2. **Permission checks** — frappe.has_permission() or frappe.only_for() guards\n3. **Input validation** — type checking, required field validation, sanitization\n4. **Database operations** — frappe.get_doc, frappe.get_list, frappe.db.get_value, frappe.db.set_value as needed\n5. **Error handling** — frappe.throw() with proper error messages and HTTP status codes\n6. **Background jobs** — frappe.enqueue() for long-running operations\n\nFollow Frappe Python conventions. Use frappe._ for translatable strings. Add docstrings and type hints. Include proper imports at the top of the file.",
+        "tools": ["Read", "Grep"]
+      }
+    },
+    {
+      "id": "feature-aggregator",
+      "type": "aggregator",
+      "position": { "x": 600, "y": 200 },
+      "data": {
+        "name": "Feature Aggregator",
+        "aggregationStrategy": "synthesize",
+        "aggregationModel": "anthropic/claude-sonnet-4-6",
+        "aggregationPrompt": "Combine the three ERPNext component outputs (DocType JSON, Client Script, Whitelisted API) into a complete feature package. Structure the output as:\n\n## Feature Package: [Feature Name]\n\n### 1. DocType Definition\nThe complete JSON definition, ready to import.\n\n### 2. Client Script\nThe JavaScript code with installation instructions (which DocType to attach it to).\n\n### 3. Server API\nThe Python code with the file path where it should be placed in the app structure.\n\n### 4. Installation Steps\nStep-by-step instructions to deploy this feature:\n1. Import the DocType\n2. Add the Client Script\n3. Place the Python file\n4. Run bench migrate\n5. Any additional setup\n\n### 5. Integration Notes\nHow the three components work together, any cross-references between them, and testing suggestions.\n\nEnsure consistency: field names in the DocType must match those referenced in the Client Script and API."
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-dispatcher-to-doctype", "source": "feature-dispatcher", "target": "generate-doctype" },
+    { "id": "e-dispatcher-to-client-script", "source": "feature-dispatcher", "target": "generate-client-script" },
+    { "id": "e-dispatcher-to-api", "source": "feature-dispatcher", "target": "generate-whitelisted-api" },
+    { "id": "e-doctype-to-aggregator", "source": "generate-doctype", "target": "feature-aggregator" },
+    { "id": "e-client-script-to-aggregator", "source": "generate-client-script", "target": "feature-aggregator" },
+    { "id": "e-api-to-aggregator", "source": "generate-whitelisted-api", "target": "feature-aggregator" }
+  ]
+}

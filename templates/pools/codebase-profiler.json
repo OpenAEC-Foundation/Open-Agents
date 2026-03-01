@@ -1,0 +1,75 @@
+{
+  "id": "codebase-profiler",
+  "name": "Codebase Profiler",
+  "description": "Dispatch a codebase analysis request to three parallel specialists (code profiler, architecture analyzer, dependency lister) and aggregate into a comprehensive codebase profile.",
+  "type": "pool",
+  "nodes": [
+    {
+      "id": "profiler-dispatcher",
+      "type": "dispatcher",
+      "position": { "x": 100, "y": 200 },
+      "data": {
+        "name": "Profiler Dispatcher",
+        "routingPrompt": "Send the codebase path and any context to all three analysis specialists simultaneously. Each specialist will perform their independent analysis of the codebase. Route to: profile-codebase for metrics and statistics, analyze-architecture for structural analysis, list-dependencies for dependency mapping.",
+        "routingModel": "anthropic/claude-haiku-4-5",
+        "maxParallel": 3,
+        "timeoutMs": 300000
+      }
+    },
+    {
+      "id": "profile-codebase",
+      "type": "agent",
+      "position": { "x": 350, "y": 50 },
+      "data": {
+        "name": "Code Profiler",
+        "description": "Profiles the codebase by collecting metrics on file count, lines of code, language distribution, complexity, and code quality indicators.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a code metrics specialist. Analyze the given codebase and produce a detailed profile including:\n\n1. **File statistics** — Total files, files by language/extension, average file size\n2. **Lines of code** — Total LOC, LOC by language, code vs comments vs blank lines ratio\n3. **Complexity indicators** — Largest files, deepest nesting, longest functions, most complex modules\n4. **Code quality signals** — TODO/FIXME/HACK count, commented-out code blocks, duplicate code patterns\n5. **Test coverage indicators** — Test files found, test-to-source ratio, untested modules\n6. **Type safety** — TypeScript strict mode usage, any-type occurrences, untyped functions\n\nPresent findings as structured data with tables and summaries. Use the file system tools to explore the codebase thoroughly.",
+        "tools": ["Read", "Glob", "Grep", "Bash"]
+      }
+    },
+    {
+      "id": "analyze-architecture",
+      "type": "agent",
+      "position": { "x": 350, "y": 200 },
+      "data": {
+        "name": "Architecture Analyzer",
+        "description": "Analyzes the codebase architecture including module boundaries, layer structure, patterns used, and architectural health.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a software architecture analyst. Analyze the given codebase and report on:\n\n1. **Project structure** — Directory layout, module organization, package boundaries\n2. **Architecture pattern** — Monolith, microservices, monorepo, layered, hexagonal, etc.\n3. **Design patterns** — Singleton, factory, observer, strategy, etc. found in the code\n4. **Layer separation** — Clear boundaries between UI, business logic, data access? Cross-cutting concerns?\n5. **API design** — REST conventions, endpoint organization, request/response patterns\n6. **State management** — How state is managed (stores, context, global variables)\n7. **Configuration** — How the app is configured (env vars, config files, feature flags)\n8. **Build system** — Build tools, scripts, CI/CD configuration\n\nProvide an architecture diagram in text/ASCII art format. Highlight strengths and areas for improvement. Rate architectural health from 1-10.",
+        "tools": ["Read", "Glob", "Grep"]
+      }
+    },
+    {
+      "id": "list-dependencies",
+      "type": "agent",
+      "position": { "x": 350, "y": 350 },
+      "data": {
+        "name": "Dependency Analyzer",
+        "description": "Maps all project dependencies including direct, transitive, dev, and internal module dependencies with health and risk assessments.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a dependency analysis specialist. Analyze the given codebase and report on:\n\n1. **Direct dependencies** — List all production dependencies from package.json, requirements.txt, Cargo.toml, etc.\n2. **Dev dependencies** — List development-only dependencies\n3. **Internal dependencies** — How internal packages/modules depend on each other (dependency graph)\n4. **Version analysis** — Pinned vs range versions, outdated indicators, major version mismatches\n5. **Risk assessment** — Dependencies with known issues, unmaintained packages, single-maintainer risks\n6. **Bundle impact** — Largest dependencies by estimated size, tree-shaking opportunities\n7. **Duplicate dependencies** — Same functionality served by multiple packages\n8. **License analysis** — License types of dependencies, any copyleft or restrictive licenses\n\nPresent a dependency tree and risk matrix. Flag any dependencies that warrant attention or replacement.",
+        "tools": ["Read", "Glob", "Grep", "Bash"]
+      }
+    },
+    {
+      "id": "profiler-aggregator",
+      "type": "aggregator",
+      "position": { "x": 600, "y": 200 },
+      "data": {
+        "name": "Profile Aggregator",
+        "aggregationStrategy": "synthesize",
+        "aggregationModel": "anthropic/claude-sonnet-4-6",
+        "aggregationPrompt": "Combine the three codebase analysis reports (code profile, architecture analysis, dependency analysis) into a comprehensive codebase profile document. Structure the output as:\n\n## Codebase Profile\n\n### Overview\nProject name, primary language(s), repository type, and 2-3 sentence summary.\n\n### Key Metrics\n| Metric | Value |\n|--------|-------|\n| Total files | X |\n| Lines of code | X |\n| Languages | X |\n| Dependencies | X |\n| Test coverage | X |\n\n### Architecture Summary\nHow the codebase is structured, key patterns, and architectural health assessment.\n\n### Code Quality\nMetrics on complexity, maintainability, and technical debt indicators.\n\n### Dependency Health\nKey risks, outdated packages, and recommended updates.\n\n### Strengths\nWhat the codebase does well.\n\n### Areas for Improvement\nPrioritized list of recommendations for improving code quality, architecture, and dependency management.\n\n### Health Scores\n| Category | Score |\n|----------|-------|\n| Code Quality | X/10 |\n| Architecture | X/10 |\n| Dependencies | X/10 |\n| **Overall** | **X/10** |"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-dispatcher-to-profiler", "source": "profiler-dispatcher", "target": "profile-codebase" },
+    { "id": "e-dispatcher-to-architecture", "source": "profiler-dispatcher", "target": "analyze-architecture" },
+    { "id": "e-dispatcher-to-dependencies", "source": "profiler-dispatcher", "target": "list-dependencies" },
+    { "id": "e-profiler-to-aggregator", "source": "profile-codebase", "target": "profiler-aggregator" },
+    { "id": "e-architecture-to-aggregator", "source": "analyze-architecture", "target": "profiler-aggregator" },
+    { "id": "e-dependencies-to-aggregator", "source": "list-dependencies", "target": "profiler-aggregator" }
+  ]
+}

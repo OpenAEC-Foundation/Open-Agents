@@ -18,6 +18,19 @@ const libraryTabs: { id: LibraryTab; label: string; available: boolean }[] = [
   { id: "workspaces", label: "Workspaces", available: false },
 ];
 
+const categoryLabels: Record<string, string> = {
+  core: "Core",
+  "text-language": "Text & Language",
+  "code-dev": "Code & Dev",
+  "review-quality": "Review & Quality",
+  "data-transform": "Data & Transform",
+  "git-versioning": "Git & Versioning",
+  research: "Research",
+  communication: "Communication",
+  "file-system": "File & System",
+  erpnext: "ERPNext",
+};
+
 function onDragStart(e: DragEvent, agent: AgentDefinition) {
   const nodeData: AgentNodeData = {
     name: agent.name,
@@ -40,6 +53,9 @@ export function LibraryPage() {
   const deleteAgent = useAppStore((s) => s.deleteAgent);
   const skillLevel = useAppStore((s) => s.skillLevel);
   const setActiveTab = useAppStore((s) => s.setActiveTab);
+  const categories = useAppStore((s) => s.categories);
+  const selectedCategory = useAppStore((s) => s.selectedCategory);
+  const setSelectedCategory = useAppStore((s) => s.setSelectedCategory);
 
   const [activeLibTab, setActiveLibTab] = useState<LibraryTab>("agents");
   const [search, setSearch] = useState("");
@@ -51,6 +67,7 @@ export function LibraryPage() {
   }, [fetchAgents]);
 
   const filteredAgents = agents.filter((a) => {
+    if (selectedCategory && a.category !== selectedCategory) return false;
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -60,6 +77,12 @@ export function LibraryPage() {
       a.tags?.some((t) => t.toLowerCase().includes(q))
     );
   });
+
+  const categoryCounts = agents.reduce<Record<string, number>>((acc, a) => {
+    const cat = a.category ?? "uncategorized";
+    acc[cat] = (acc[cat] ?? 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <div className="flex-1 flex min-h-0">
@@ -119,6 +142,33 @@ export function LibraryPage() {
           </button>
         </div>
 
+        {/* Category filter bar */}
+        <div className="px-6 py-2 border-b border-border-default flex items-center gap-2 overflow-x-auto">
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`px-3 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${
+              selectedCategory === null
+                ? "bg-accent-primary text-text-primary"
+                : "bg-surface-overlay text-text-secondary hover:bg-surface-overlay/80"
+            }`}
+          >
+            All ({agents.length})
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-3 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${
+                selectedCategory === cat
+                  ? "bg-accent-primary text-text-primary"
+                  : "bg-surface-overlay text-text-secondary hover:bg-surface-overlay/80"
+              }`}
+            >
+              {categoryLabels[cat] ?? cat} ({categoryCounts[cat] ?? 0})
+            </button>
+          ))}
+        </div>
+
         {/* Agent grid/list */}
         <div className="flex-1 overflow-y-auto p-6">
           {agentsLoading ? (
@@ -135,7 +185,7 @@ export function LibraryPage() {
                   agent={agent}
                   skillLevel={skillLevel}
                   onSelect={() => setSelectedAgent(agent)}
-                  onDelete={() => deleteAgent(agent.id)}
+                  onDelete={() => !agent.readonly && deleteAgent(agent.id)}
                 />
               ))}
             </div>
@@ -147,7 +197,7 @@ export function LibraryPage() {
                   agent={agent}
                   skillLevel={skillLevel}
                   onSelect={() => setSelectedAgent(agent)}
-                  onDelete={() => deleteAgent(agent.id)}
+                  onDelete={() => !agent.readonly && deleteAgent(agent.id)}
                 />
               ))}
             </div>
@@ -191,21 +241,28 @@ function AgentCard({ agent, skillLevel, onSelect, onDelete }: {
       <div className="flex items-center gap-2 mt-3">
         {agent.category && (
           <span className="text-xs text-text-muted bg-surface-overlay px-1.5 py-0.5 rounded">
-            {agent.category}
+            {categoryLabels[agent.category] ?? agent.category}
+          </span>
+        )}
+        {agent.source === "library" && (
+          <span className="text-xs text-accent-primary bg-accent-primary/10 px-1.5 py-0.5 rounded">
+            Library
           </span>
         )}
         <span className="text-xs text-text-muted ml-auto">
           {agent.tools.length} tools
         </span>
       </div>
-      <div className="flex gap-2 mt-3">
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          className="text-xs text-red-400 hover:text-red-300"
-        >
-          Delete
-        </button>
-      </div>
+      {!agent.readonly && (
+        <div className="flex gap-2 mt-3">
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="text-xs text-red-400 hover:text-red-300"
+          >
+            Delete
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -228,14 +285,19 @@ function AgentListRow({ agent, skillLevel, onSelect, onDelete }: {
       <span className={`text-xs px-1.5 py-0.5 rounded text-white shrink-0 ${meta.color}`}>
         {meta.labels[skillLevel]}
       </span>
+      <span className="text-xs text-text-muted bg-surface-overlay px-1.5 py-0.5 rounded shrink-0">
+        {categoryLabels[agent.category ?? ""] ?? agent.category ?? "—"}
+      </span>
       <p className="text-text-tertiary text-xs flex-1 truncate">{agent.description}</p>
       <span className="text-xs text-text-muted">{agent.tools.length} tools</span>
-      <button
-        onClick={(e) => { e.stopPropagation(); onDelete(); }}
-        className="text-xs text-red-400 hover:text-red-300"
-      >
-        Delete
-      </button>
+      {!agent.readonly && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          className="text-xs text-red-400 hover:text-red-300"
+        >
+          Delete
+        </button>
+      )}
     </div>
   );
 }
@@ -266,6 +328,20 @@ function AgentDetailPanel({ agent, skillLevel, onClose }: {
             </span>
           </div>
         </div>
+        {agent.category && (
+          <div>
+            <label className="text-text-muted text-xs">Category</label>
+            <p className="text-text-secondary text-sm mt-1">
+              {categoryLabels[agent.category] ?? agent.category}
+            </p>
+          </div>
+        )}
+        {agent.source && (
+          <div>
+            <label className="text-text-muted text-xs">Source</label>
+            <p className="text-text-secondary text-sm mt-1 capitalize">{agent.source}</p>
+          </div>
+        )}
         <div>
           <label className="text-text-muted text-xs">Description</label>
           <p className="text-text-secondary text-sm mt-1">{agent.description}</p>
@@ -279,11 +355,13 @@ function AgentDetailPanel({ agent, skillLevel, onClose }: {
         <div>
           <label className="text-text-muted text-xs">Tools</label>
           <div className="flex flex-wrap gap-1 mt-1">
-            {agent.tools.map((tool) => (
+            {agent.tools.length > 0 ? agent.tools.map((tool) => (
               <span key={tool} className="text-xs bg-surface-overlay text-text-secondary px-1.5 py-0.5 rounded">
                 {tool}
               </span>
-            ))}
+            )) : (
+              <span className="text-xs text-text-muted">No tools (text-only)</span>
+            )}
           </div>
         </div>
         {agent.tags && agent.tags.length > 0 && (

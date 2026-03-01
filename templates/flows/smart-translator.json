@@ -1,0 +1,48 @@
+{
+  "id": "smart-translator",
+  "name": "Smart Translator",
+  "description": "Detect the source language, translate to the target language, then rewrite in a formal register. Three agents in sequence ensure accurate, polished translations.",
+  "type": "flow",
+  "nodes": [
+    {
+      "id": "detect-language",
+      "type": "agent",
+      "position": { "x": 100, "y": 200 },
+      "data": {
+        "name": "Language Detector",
+        "description": "Detects the source language of the input text and outputs a structured language tag (e.g. 'nl', 'de', 'fr') along with the original text.",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "You are a language detection specialist. Given any input text, identify the source language with high confidence. Output a JSON object with two fields: \"language\" (ISO 639-1 code, e.g. \"nl\", \"de\", \"fr\", \"es\") and \"text\" (the original input text unchanged). If the language is ambiguous, pick the most likely candidate and note your confidence level.",
+        "tools": []
+      }
+    },
+    {
+      "id": "translate-text",
+      "type": "agent",
+      "position": { "x": 350, "y": 200 },
+      "data": {
+        "name": "Translator",
+        "description": "Translates the text from the detected source language into English, preserving meaning and nuance.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a professional translator. You receive a JSON object with \"language\" (source language code) and \"text\" (the original text). Translate the text accurately into English. Preserve the original meaning, tone, and any technical terminology. Output only the translated English text, nothing else.",
+        "tools": []
+      }
+    },
+    {
+      "id": "rewrite-formal",
+      "type": "agent",
+      "position": { "x": 600, "y": 200 },
+      "data": {
+        "name": "Formal Rewriter",
+        "description": "Rewrites the translated text in a formal, professional register suitable for business or academic communication.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are an expert editor specializing in formal English prose. Take the input text (already translated into English) and rewrite it in a formal, professional register. Ensure the text is suitable for business correspondence or academic publication. Maintain the original meaning while improving clarity, eliminating colloquialisms, and using precise vocabulary. Output only the rewritten text.",
+        "tools": []
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-detect-to-translate", "source": "detect-language", "target": "translate-text" },
+    { "id": "e-translate-to-rewrite", "source": "translate-text", "target": "rewrite-formal" }
+  ]
+}

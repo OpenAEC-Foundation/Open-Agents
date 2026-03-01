@@ -111,6 +111,8 @@ export interface FactorySlice {
   // Library agents (fetched from backend)
   agents: AgentDefinition[];
   agentsLoading: boolean;
+  categories: string[];
+  selectedCategory: string | null;
 
   // LLM Generator state (Fase 2.4)
   generatorOpen: boolean;
@@ -132,6 +134,9 @@ export interface FactorySlice {
   refineAgent: (refinementPrompt: string) => Promise<void>;
   updateGeneratorDraft: (patch: Partial<AgentDefinition>) => void;
   acceptGeneratorDraft: () => Promise<void>;
+
+  // Category filter
+  setSelectedCategory: (category: string | null) => void;
 
   // Agent CRUD
   fetchAgents: () => Promise<void>;

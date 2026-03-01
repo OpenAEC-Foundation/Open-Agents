@@ -11,6 +11,8 @@ export const createFactorySlice: SliceCreator<FactorySlice> = (set, get) => ({
 
   agents: [],
   agentsLoading: false,
+  categories: [],
+  selectedCategory: null,
 
   // Generator state (Fase 2.4)
   generatorOpen: false,
@@ -190,14 +192,20 @@ export const createFactorySlice: SliceCreator<FactorySlice> = (set, get) => ({
     }
   },
 
+  setSelectedCategory: (category) => set((state) => {
+    state.selectedCategory = category;
+  }),
+
   fetchAgents: async () => {
     set((state) => { state.agentsLoading = true; });
     try {
       const res = await fetch(`${getApiBase()}/agents`);
       if (!res.ok) throw new Error("Failed to fetch agents");
       const data: AgentDefinition[] = await res.json();
+      const cats = [...new Set(data.map((a) => a.category).filter(Boolean))] as string[];
       set((state) => {
         state.agents = data;
+        state.categories = cats.sort();
         state.agentsLoading = false;
       });
     } catch {

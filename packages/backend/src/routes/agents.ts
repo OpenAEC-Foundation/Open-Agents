@@ -1,32 +1,42 @@
 import type { FastifyInstance } from "fastify";
-import type { AgentDefinition, ModelId, AgentTool } from "@open-agents/shared";
+import type { AgentDefinition, AgentPreset, ModelId, AgentTool } from "@open-agents/shared";
 import { nanoid } from "nanoid";
 import { loadPresets } from "../preset-loader.js";
+import { loadLibrary } from "../library-loader.js";
 
 // In-memory store for PoC (replace with database later)
 const agents = new Map<string, AgentDefinition>();
 
-// Seed from presets at module load
-loadPresets()
-  .then((presets) => {
-    for (const preset of presets) {
-      const agent: AgentDefinition = {
-        id: nanoid(),
-        name: preset.name,
-        description: preset.description,
-        model: preset.agent.model,
-        systemPrompt: preset.agent.systemPrompt,
-        tools: preset.agent.tools,
-        category: preset.category,
-        tags: preset.tags,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      agents.set(agent.id, agent);
-    }
+function seedFromPresets(presets: AgentPreset[], source: "preset" | "library") {
+  const readonly = source === "library" || source === "preset";
+  for (const preset of presets) {
+    const agent: AgentDefinition = {
+      id: nanoid(),
+      name: preset.name,
+      description: preset.description,
+      model: preset.agent.model,
+      systemPrompt: preset.agent.systemPrompt,
+      tools: preset.agent.tools,
+      category: preset.category,
+      tags: preset.tags,
+      source,
+      readonly,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    agents.set(agent.id, agent);
+  }
+}
+
+// Seed from presets and library at module load
+Promise.all([loadPresets(), loadLibrary()])
+  .then(([presets, library]) => {
+    seedFromPresets(presets, "preset");
+    seedFromPresets(library, "library");
+    console.log(`Seeded ${presets.length} presets + ${library.length} library agents`);
   })
   .catch((err) => {
-    console.warn("Failed to seed agents from presets:", err);
+    console.warn("Failed to seed agents:", err);
   });
 
 export async function agentRoutes(app: FastifyInstance) {
@@ -48,6 +58,7 @@ export async function agentRoutes(app: FastifyInstance) {
       tools: body.tools as AgentTool[],
       category: body.category,
       tags: body.tags,
+      source: "user",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -57,14 +68,17 @@ export async function agentRoutes(app: FastifyInstance) {
   });
 
   // List all agents with optional filtering
-  app.get<{ Querystring: { category?: string; search?: string } }>(
+  app.get<{ Querystring: { category?: string; search?: string; source?: string } }>(
     "/agents",
     async (request) => {
       let result = Array.from(agents.values());
 
-      const { category, search } = request.query;
+      const { category, search, source } = request.query;
       if (category) {
         result = result.filter((a) => a.category === category);
+      }
+      if (source) {
+        result = result.filter((a) => a.source === source);
       }
       if (search) {
         const q = search.toLowerCase();
@@ -111,13 +125,18 @@ export async function agentRoutes(app: FastifyInstance) {
     },
   );
 
-  // Delete an agent
+  // Delete an agent (readonly agents cannot be deleted)
   app.delete<{ Params: { id: string } }>(
     "/agents/:id",
     async (request, reply) => {
-      if (!agents.has(request.params.id)) {
+      const agent = agents.get(request.params.id);
+      if (!agent) {
         reply.code(404);
         return { error: "Agent not found" };
+      }
+      if (agent.readonly) {
+        reply.code(403);
+        return { error: "Cannot delete a read-only library agent" };
       }
       agents.delete(request.params.id);
       reply.code(204);

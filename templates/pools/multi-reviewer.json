@@ -1,0 +1,88 @@
+{
+  "id": "multi-reviewer",
+  "name": "Multi-Reviewer",
+  "description": "Read source code, then dispatch to three parallel reviewers (style, security, performance) and aggregate the results into a unified code review report.",
+  "type": "pool",
+  "nodes": [
+    {
+      "id": "code-reader",
+      "type": "agent",
+      "position": { "x": 100, "y": 200 },
+      "data": {
+        "name": "Code Reader",
+        "description": "Reads and parses the target source code files, preparing a structured representation for the review agents.",
+        "model": "anthropic/claude-haiku-4-5",
+        "systemPrompt": "You are a code reading assistant. Given a file path or code snippet as input, read the code and output it in a structured format that includes: the file name, the programming language, the full source code, and a brief outline of the main functions/classes/modules. If given a directory, list the key files. Your output will be consumed by specialized review agents.",
+        "tools": ["Read", "Glob", "Grep"]
+      }
+    },
+    {
+      "id": "review-dispatcher",
+      "type": "dispatcher",
+      "position": { "x": 350, "y": 200 },
+      "data": {
+        "name": "Review Dispatcher",
+        "routingPrompt": "Send the code to all three review specialists simultaneously. Each reviewer should receive the complete source code for their independent analysis. Route to: style-reviewer for coding standards, security-reviewer for vulnerability analysis, performance-reviewer for optimization opportunities.",
+        "routingModel": "anthropic/claude-haiku-4-5",
+        "maxParallel": 3,
+        "timeoutMs": 300000
+      }
+    },
+    {
+      "id": "style-reviewer",
+      "type": "agent",
+      "position": { "x": 600, "y": 50 },
+      "data": {
+        "name": "Style Reviewer",
+        "description": "Reviews code for style, readability, naming conventions, and adherence to best practices.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a code style reviewer. Analyze the provided source code and report on:\n\n1. **Naming conventions** — Are variables, functions, and classes named clearly and consistently?\n2. **Code structure** — Is the code well-organized with appropriate separation of concerns?\n3. **Readability** — Is the code easy to follow? Are there adequate comments where needed?\n4. **Best practices** — Does the code follow idiomatic patterns for its language?\n5. **DRY principle** — Is there unnecessary duplication?\n\nFor each issue found, provide: severity (info/warning/error), file and line reference, description, and a suggested fix. End with a style score from 1-10.",
+        "tools": ["Read", "Grep"]
+      }
+    },
+    {
+      "id": "security-reviewer",
+      "type": "agent",
+      "position": { "x": 600, "y": 200 },
+      "data": {
+        "name": "Security Reviewer",
+        "description": "Reviews code for security vulnerabilities, injection risks, and unsafe patterns.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a security-focused code reviewer. Analyze the provided source code and check for:\n\n1. **Injection vulnerabilities** — SQL injection, XSS, command injection, path traversal\n2. **Authentication/Authorization** — Missing or weak auth checks, privilege escalation risks\n3. **Data exposure** — Sensitive data in logs, hardcoded secrets, improper error messages\n4. **Input validation** — Missing or insufficient input sanitization\n5. **Dependency risks** — Known vulnerable patterns or unsafe library usage\n\nFor each vulnerability found, provide: severity (low/medium/high/critical), CWE reference if applicable, file and line reference, description, and remediation guidance. End with a security score from 1-10.",
+        "tools": ["Read", "Grep"]
+      }
+    },
+    {
+      "id": "performance-reviewer",
+      "type": "agent",
+      "position": { "x": 600, "y": 350 },
+      "data": {
+        "name": "Performance Reviewer",
+        "description": "Reviews code for performance issues, memory leaks, and optimization opportunities.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a performance-focused code reviewer. Analyze the provided source code and check for:\n\n1. **Algorithmic complexity** — Inefficient loops, unnecessary nested iterations, suboptimal data structures\n2. **Memory usage** — Potential memory leaks, excessive allocations, missing cleanup\n3. **I/O efficiency** — Unnecessary file reads, unoptimized database queries, missing caching opportunities\n4. **Concurrency** — Race conditions, blocking operations, missing async/await patterns\n5. **Bundle/load impact** — Large imports, unused code, lazy loading opportunities\n\nFor each issue found, provide: severity (info/warning/error), file and line reference, estimated impact, description, and a suggested optimization. End with a performance score from 1-10.",
+        "tools": ["Read", "Grep"]
+      }
+    },
+    {
+      "id": "review-aggregator",
+      "type": "aggregator",
+      "position": { "x": 850, "y": 200 },
+      "data": {
+        "name": "Review Aggregator",
+        "aggregationStrategy": "synthesize",
+        "aggregationModel": "anthropic/claude-sonnet-4-6",
+        "aggregationPrompt": "Combine the three code review reports (style, security, performance) into a single unified review document. Structure the output as:\n\n## Code Review Summary\nOverall assessment in 2-3 sentences.\n\n## Critical Issues\nList any high/critical severity items from all reviewers.\n\n## Style Review\nKey findings from the style reviewer.\n\n## Security Review\nKey findings from the security reviewer.\n\n## Performance Review\nKey findings from the performance reviewer.\n\n## Scores\n| Category | Score |\n|----------|-------|\n| Style | X/10 |\n| Security | X/10 |\n| Performance | X/10 |\n| **Overall** | **X/10** |\n\n## Recommended Actions\nPrioritized list of improvements, ordered by impact."
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-reader-to-dispatcher", "source": "code-reader", "target": "review-dispatcher" },
+    { "id": "e-dispatcher-to-style", "source": "review-dispatcher", "target": "style-reviewer" },
+    { "id": "e-dispatcher-to-security", "source": "review-dispatcher", "target": "security-reviewer" },
+    { "id": "e-dispatcher-to-performance", "source": "review-dispatcher", "target": "performance-reviewer" },
+    { "id": "e-style-to-aggregator", "source": "style-reviewer", "target": "review-aggregator" },
+    { "id": "e-security-to-aggregator", "source": "security-reviewer", "target": "review-aggregator" },
+    { "id": "e-performance-to-aggregator", "source": "performance-reviewer", "target": "review-aggregator" }
+  ]
+}

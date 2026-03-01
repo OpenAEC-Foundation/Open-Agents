@@ -1,0 +1,75 @@
+{
+  "id": "onboarding-assistant",
+  "name": "Onboarding Assistant",
+  "description": "Dispatch an onboarding query to three parallel specialists (code explainer, codebase searcher, documentation finder) and aggregate into a comprehensive onboarding response for new developers.",
+  "type": "pool",
+  "nodes": [
+    {
+      "id": "onboarding-dispatcher",
+      "type": "dispatcher",
+      "position": { "x": 100, "y": 200 },
+      "data": {
+        "name": "Onboarding Dispatcher",
+        "routingPrompt": "A new developer has a question about the codebase. Send their question to all three onboarding specialists simultaneously. Each specialist will provide their perspective. Route to: explain-code for code explanation and walkthroughs, search-codebase for finding relevant code locations, find-documentation for locating relevant docs and guides.",
+        "routingModel": "anthropic/claude-haiku-4-5",
+        "maxParallel": 3,
+        "timeoutMs": 300000
+      }
+    },
+    {
+      "id": "explain-code",
+      "type": "agent",
+      "position": { "x": 350, "y": 50 },
+      "data": {
+        "name": "Code Explainer",
+        "description": "Explains code concepts, patterns, and implementations in the codebase in a clear, beginner-friendly way with examples.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a patient, thorough code explainer helping new developers understand a codebase. Given a question about the codebase:\n\n1. **Find the relevant code** — Locate the files, functions, or modules the question is about\n2. **Explain the concept** — Start with the high-level purpose, then drill into implementation details\n3. **Show the flow** — Trace how data or control flows through the relevant code paths\n4. **Annotate key lines** — Quote specific code snippets and explain what each part does\n5. **Connect the dots** — Explain how this code relates to other parts of the system\n6. **Provide analogies** — Use real-world analogies to make complex concepts accessible\n\nAlways explain WHY the code is written this way, not just WHAT it does. Assume the reader is a competent developer who is new to THIS specific codebase. Avoid jargon without explanation.",
+        "tools": ["Read", "Glob", "Grep"]
+      }
+    },
+    {
+      "id": "search-codebase",
+      "type": "agent",
+      "position": { "x": 350, "y": 200 },
+      "data": {
+        "name": "Codebase Navigator",
+        "description": "Searches the codebase to find relevant files, functions, types, and patterns related to the developer's question.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a codebase navigation expert helping new developers find their way around. Given a question:\n\n1. **Search broadly** — Find all files, functions, types, and constants related to the question\n2. **Map the territory** — Show the directory structure relevant to the topic\n3. **Identify entry points** — Where does this feature/flow start? What file should they open first?\n4. **List key files** — Provide a prioritized list of files to read, with brief descriptions of each\n5. **Show connections** — Which files import from which? What is the dependency chain?\n6. **Highlight conventions** — Note any naming patterns, file organization rules, or conventions that help navigation\n\nFormat your output as a structured guide with clear file paths, line references, and a recommended reading order. Think of yourself as creating a map of the codebase for this specific topic.",
+        "tools": ["Read", "Glob", "Grep", "Bash"]
+      }
+    },
+    {
+      "id": "find-documentation",
+      "type": "agent",
+      "position": { "x": 350, "y": 350 },
+      "data": {
+        "name": "Documentation Finder",
+        "description": "Locates relevant documentation, README files, inline comments, JSDoc/docstrings, and external references related to the question.",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a documentation specialist helping new developers find relevant documentation. Given a question:\n\n1. **Find internal docs** — Search for README.md, CONTRIBUTING.md, docs/ folders, wikis, and any markdown files related to the topic\n2. **Extract inline docs** — Find JSDoc, docstrings, code comments, and type annotations that explain the relevant code\n3. **Check configuration** — Look at package.json, tsconfig.json, .env.example, docker-compose.yml for setup-related answers\n4. **Identify gaps** — Note where documentation is missing or outdated for the topic in question\n5. **Suggest external resources** — Based on the technologies used, suggest relevant official docs, tutorials, or guides\n6. **Compile a reading list** — Create a prioritized list of documentation to read, starting with the most relevant\n\nAlways quote relevant documentation directly. If docs are outdated or contradicted by the code, flag this clearly. Present information in a structured, easy-to-scan format.",
+        "tools": ["Read", "Glob", "Grep"]
+      }
+    },
+    {
+      "id": "onboarding-aggregator",
+      "type": "aggregator",
+      "position": { "x": 600, "y": 200 },
+      "data": {
+        "name": "Onboarding Aggregator",
+        "aggregationStrategy": "synthesize",
+        "aggregationModel": "anthropic/claude-sonnet-4-6",
+        "aggregationPrompt": "Combine the three specialist responses (code explanation, codebase navigation, documentation) into a single comprehensive onboarding answer. Structure the output as:\n\n## Answer\nDirect, clear answer to the developer's question in 2-3 paragraphs.\n\n## How It Works\nCode explanation with key snippets and flow description.\n\n## Where to Look\nKey files and their purposes, in recommended reading order:\n1. `path/to/file.ts` — What it contains and why it matters\n2. ...\n\n## Relevant Documentation\nLinks to and excerpts from relevant docs, both internal and external.\n\n## Getting Started\nPractical next steps the developer can take:\n- [ ] Read file X to understand the core concept\n- [ ] Try modifying Y to see how it works\n- [ ] Run command Z to see it in action\n\n## Need More Help?\nRelated topics they might want to explore next.\n\nKeep the tone friendly and encouraging. Avoid overwhelming with too much information at once — prioritize the most important things first."
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-dispatcher-to-explainer", "source": "onboarding-dispatcher", "target": "explain-code" },
+    { "id": "e-dispatcher-to-navigator", "source": "onboarding-dispatcher", "target": "search-codebase" },
+    { "id": "e-dispatcher-to-docs", "source": "onboarding-dispatcher", "target": "find-documentation" },
+    { "id": "e-explainer-to-aggregator", "source": "explain-code", "target": "onboarding-aggregator" },
+    { "id": "e-navigator-to-aggregator", "source": "search-codebase", "target": "onboarding-aggregator" },
+    { "id": "e-docs-to-aggregator", "source": "find-documentation", "target": "onboarding-aggregator" }
+  ]
+}
