@@ -50,12 +50,12 @@
 | D-027 | Library Ecosystem architectuur | 10 browsable libraries (7 atomair + 3 composiet) georganiseerd per D-025 engineering laag | Dekt alle asset types van het platform: patterns, agents, skills, connectors, hooks, rules, models (atomair) + templates, plugins, workspace templates (composiet). Elke library heeft zoeken, filteren, preview, one-click apply. | 2026-02-28 |
 | D-028 | LLM-Powered Asset Generation | Factory gebruikt LLM voor conversational generatie van library assets | LLM kent platform regels (D-023 taxonomie, D-024 workspace stack, D-020 snippet formaat). Automatische validatie bij generatie. Draft-first: gebruiker reviewt voor publicatie. | 2026-02-28 |
 | D-029 | White-Label Theming Architectuur | CSS custom properties + Tailwind v4 `@theme` voor swappable branding | Twee lagen: (1) `@theme` in index.css mapt semantische tokens naar CSS vars, (2) themabestand (bv. impertio.css) definieert de `--oa-*` variabelen. White-labelen = één CSS bestand swappen, geen component code wijzigen. Impertio Studio als default thema. Zie D-029 Details. | 2026-03-01 |
-| D-030 | Zustand slice-compositie met Immer middleware | 7 slices (canvas, selection, history, ui, settings, execution, workspace) gecomponeerd in één appStore met Immer + devtools + persist middleware | Gebaseerd op open-2d-studio patroon (19 slices). Undo/redo via Immer `produceWithPatches`/`applyPatches`. Alleen canvas state (nodes/edges) wordt getrackt in history. Max 50 entries. Vervangt 4 losse stores. | 2026-03-01 |
-| D-031 | Command Registry met auto-MCP tool generatie | CommandDef met JSON Schema params, execute/undo/redo, `getMcpTools()` auto-genereert MCP tool definitions | Gebaseerd op open-2d-studio command patroon. Elke canvas operatie is gedocumenteerd, undoable, en programmatisch aanroepbaar. Fundament voor AI-gestuurde canvas manipulatie via MCP. | 2026-03-01 |
+| D-030 | Zustand slice-compositie met Immer middleware | 10 slices (canvas, selection, history, ui, settings, execution, workspace, factory, safety, audit) gecomponeerd in één appStore met Immer + devtools + persist middleware | Gebaseerd op open-2d-studio patroon (19 slices). Undo/redo via Immer `produceWithPatches`/`applyPatches`. Alleen canvas state (nodes/edges) wordt getrackt in history. Max 50 entries. Vervangt 4 losse stores. | 2026-03-01 |
+| D-031 | Command Registry met auto-MCP tool generatie | CommandDef met JSON Schema params, execute/undo/redo, `getMcpTools()` auto-genereert MCP tool definitions. Fundament gebouwd (CommandRegistry + 4 canvas commands + getMcpTools()). MCP auto-generatie pipeline nog niet end-to-end verbonden met VS Code extension. | Gebaseerd op open-2d-studio command patroon. Elke canvas operatie is gedocumenteerd, undoable, en programmatisch aanroepbaar. Fundament voor AI-gestuurde canvas manipulatie via MCP. | 2026-03-01 |
 | D-032 | Raw fetch voor non-Claude runtime adapters | OpenAI, Mistral en Ollama adapters gebruiken raw `fetch()` zonder SDK dependencies | Geen extra dependencies nodig. Zelfde `AgentRuntime` interface als ClaudeSDKRuntime. Text-in/text-out voor PoC (geen tool use voor non-Claude). Ollama draait lokaal op configurable base URL. | 2026-03-01 |
 | D-033 | Dynamic preset loading van agents/presets/*.json via backend API | GET /api/presets endpoint laadt JSON files uit agents/presets/ met in-memory caching | 10 rijke agent presets beschikbaar in repo werden genegeerd. Nu dynamisch geladen met fallback naar 4 hardcoded presets als backend onbereikbaar is. POST /api/presets/reload voor development hot-reload. | 2026-03-01 |
 | D-034 | VS Code Extension architectuur | 2 packages (vscode-extension CJS/tsup + vscode-webview browser/Vite), webview direct HTTP naar backend, MCP server in extension package, geen backend auto-start | Extension host en webview hebben fundamenteel verschillende build targets. Direct HTTP simpeler dan postMessage proxy. MCP server is thin bridge naar backend REST API. | 2026-03-02 |
-| D-035 | Safety rule enforcement point | execution-engine.ts VOOR runtime.execute() | Eén enforcement punt voor alle providers. Runtime ontvangt pre-gefilterde AgentNodeData met alleen toegestane tools. resolveRules() mergt global + per-node regels met permission mode mapping. | 2026-03-02 |
+| D-035 | Safety rule enforcement point | execution-engine.ts VOOR runtime.execute() | Eén enforcement punt voor alle providers. Runtime ontvangt pre-gefilterde AgentNodeData met alleen toegestane tools. resolveRules() mergt global + per-node regels met permission mode mapping. Beperking: bash blacklist regels worden momenteel alleen gevalideerd via de test API (POST /safety/test). De execution engine filtert tools maar controleert niet de inhoud van bash commands. Acceptabel voor PoC. End-to-end enforcement gepland voor Sprint 10. | 2026-03-02 |
 | D-036 | Audit granularity | Step-niveau (per node in een run), niet per tool-call | Consistent across alle providers. Huidige runtime interface yieldt geen per-tool-call events. Step-level logging hergebruikt bestaande SSE event data. | 2026-03-02 |
 | D-037 | Replay implementatie | Frontend-gecontroleerde playback van bestaande eventBuffers | Geen nieuwe backend infrastructuur nodig. EventBuffers Map bewaart al alle SSE events per run. Frontend fetcht via GET /api/audit/replay/:id en stept lokaal door. | 2026-03-02 |
 
@@ -65,6 +65,7 @@
 
 > **Bron**: Anthropic Agent SDK (`@anthropic-ai/claude-agent-sdk`), Agent Teams documentatie, Skills documentatie.
 > **Kernvraag**: Wanneer noemen we iets een agent? Wanneer een skill? Wat zijn de canvas block types?
+> **Implementatiestatus**: Momenteel geïmplementeerd: Agent Node (`agent`), Dispatcher Node (`dispatcher`), Aggregator (`aggregator` — PoC utility type voor data-merge logica, niet in oorspronkelijke taxonomie). Teammate, Skill Badge, Connector en Gate zijn gepland voor Sprint 4/7-8. Zie `NodeType` in `packages/shared/src/types.ts`.
 
 ### De Vier Entiteittypes
 
@@ -138,6 +139,7 @@
 
 > **Bron**: Claude Workspace Development Workflows (17 modules, 6-layer stack), Docker-first isolatie (D-101, Principle 10).
 > **Kernvraag**: Hoe optimaliseer je de context van elke individuele agent?
+> **Implementatiestatus**: Nog niet gebouwd. Gepland voor Sprint 7-8 (Docker isolatie). Huidig PoC draait alle agents in-process op de backend, niet in Docker containers.
 
 ### Het 6-Layer Stack Model
 
@@ -214,6 +216,7 @@ Van duurste naar goedkoopste per use:
 ## D-025 Details: Multi-Layered Engineering Model
 
 > **Kernidee**: Open-Agents is niet één laag engineering. Het zijn drie lagen die elk apart geoptimaliseerd worden. De combinatie levert output van een fundamenteel hoger niveau.
+> **Implementatiestatus**: Laag 1 (Orchestratie/Canvas) is werkend (Flow pattern, Sprint 3). Laag 2 (Agent Identiteit) is gedeeltelijk werkend (alleen `agent` node type van D-023). Laag 3 (Workspace/Docker) is nog niet geïmplementeerd (gepland Sprint 7-8).
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -309,4 +312,4 @@ Bij het nemen van een beslissing, verplaats naar "Genomen" met rationale en datu
 
 ---
 
-*Laatste update: 2026-03-02*
+*Laatste update: 2026-03-03*

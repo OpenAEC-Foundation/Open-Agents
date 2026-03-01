@@ -18,6 +18,10 @@ import { resolveRules } from "./safety-store.js";
 import { logEntry, createRunSummary, updateRunSummary } from "./audit-store.js";
 import { classifyTask } from "./dispatcher-classifier.js";
 
+// TODO (Sprint 10): Add TTL-based cleanup for completed runs.
+// Current in-memory stores (runs, eventBuffers, emitters, runControls) grow without bound.
+// Risk: memory leak on long-running development servers.
+
 // In-memory stores
 const runs = new Map<string, ExecutionRun>();
 const eventBuffers = new Map<string, SSEEvent[]>();

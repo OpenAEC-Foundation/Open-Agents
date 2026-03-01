@@ -33,7 +33,7 @@ export type AgentTool =
   | "WebSearch"
   | "WebFetch";
 
-/** Agent node data as stored in canvas */
+/** Runtime config for a node on the canvas. Minimal data needed for execution. See also AgentDefinition (library record) and AgentPreset (preset loader). */
 export interface AgentNodeData {
   name: string;
   description?: string;
@@ -43,15 +43,53 @@ export interface AgentNodeData {
   tools: AgentTool[];
 }
 
-/** Node types supported by the canvas */
+/**
+ * Node types supported by the canvas.
+ * Current PoC: agent, dispatcher, aggregator.
+ * Planned (D-023): teammate, skill, connector, gate.
+ * "aggregator" is a PoC utility type for merging parallel outputs (not in D-023 taxonomy).
+ */
 export type NodeType = "agent" | "dispatcher" | "aggregator";
+
+/** Dispatcher node data — routes tasks to specialist agents */
+export interface DispatcherNodeData {
+  name: string;
+  description?: string;
+  routingPrompt: string;
+  routingModel: ModelId;
+  maxParallel: number;
+  timeoutMs: number;
+}
+
+/** Aggregator node data — merges parallel agent outputs */
+export interface AggregatorNodeData {
+  name: string;
+  description?: string;
+  aggregationStrategy: "concatenate" | "synthesize";
+  aggregationModel?: ModelId;
+  aggregationPrompt?: string;
+}
+
+/** Union of all node data types */
+export type CanvasNodeData = AgentNodeData | DispatcherNodeData | AggregatorNodeData;
 
 /** A node on the canvas */
 export interface CanvasNode {
   id: string;
   type: NodeType;
   position: { x: number; y: number };
-  data: AgentNodeData;
+  data: CanvasNodeData;
+}
+
+/** Type guards for canvas node discrimination */
+export function isAgentNode(node: CanvasNode): node is CanvasNode & { type: "agent"; data: AgentNodeData } {
+  return node.type === "agent";
+}
+export function isDispatcherNode(node: CanvasNode): node is CanvasNode & { type: "dispatcher"; data: DispatcherNodeData } {
+  return node.type === "dispatcher";
+}
+export function isAggregatorNode(node: CanvasNode): node is CanvasNode & { type: "aggregator"; data: AggregatorNodeData } {
+  return node.type === "aggregator";
 }
 
 /** An edge (connection) between two nodes */
@@ -104,6 +142,8 @@ export type SSEEventType =
   | "step:error"
   | "step:skipped"
   | "step:timing"
+  | "pool:start"
+  | "pool:complete"
   | "run:complete"
   | "run:paused"
   | "run:cancelled"
@@ -170,7 +210,7 @@ export const TOOL_DISPLAY: Record<SkillLevel, Record<AgentTool, ToolDisplayInfo>
   },
 };
 
-/** Model display info per skill level */
+/** @deprecated Use ModelMeta instead. ModelDisplayInfo is unused — will be removed in v0.2.0. */
 export interface ModelDisplayInfo {
   id: ModelId;
   label: string;
@@ -238,7 +278,11 @@ export interface ChatEvent {
 // Agent Presets (D-033)
 // =============================================
 
-/** Agent preset loaded from agents/presets/*.json */
+/**
+ * A preset agent loaded from agents/presets/*.json.
+ * Wraps AgentNodeData inside an `agent` field with display metadata (name, description, category, tags).
+ * See also AgentDefinition (library record) and AgentNodeData (canvas runtime).
+ */
 export interface AgentPreset {
   /** Unique identifier derived from filename (e.g., "code-reviewer") */
   id: string;
@@ -309,7 +353,11 @@ export type AppTab = "canvas" | "runs" | "factory" | "library" | "settings";
 // Agent Definitions (Sprint 2 — Factory-created agents)
 // =============================================
 
-/** A user-created agent definition stored in the library */
+/**
+ * Library record for a user-created or generated agent.
+ * Includes metadata (id, timestamps, category, tags) for storage and browsing.
+ * See also AgentNodeData (canvas runtime) and AgentPreset (preset loader).
+ */
 export interface AgentDefinition {
   id: string;
   name: string;

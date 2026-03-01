@@ -1,7 +1,7 @@
 # Open Questions - Open-Agents
 
-> **Versie**: 0.2
-> **Datum**: 2026-02-28
+> **Versie**: 0.3
+> **Datum**: 2026-03-03
 >
 > Open-Agents is een visueel agent-orchestratieplatform waar gebruikers agent-blokken
 > op een canvas slepen en verbinden. De gegenereerde configuratie stuurt agents aan
@@ -17,13 +17,17 @@
 
 - **Hoe communiceren agents onderling?** Message bus, stdout piping, shared state? Welke combinatie past bij zowel real-time canvas feedback als headless execution? *(Deels beantwoord: Sprint 3 gebruikt prompt injection voor sequentieel, Sprint 4 voor parallel. Schaalt dit bij grote outputs? Zie MASTERPLAN Sprint 3.1)*
 - **Hoe schalen we naar 50+ agents op een canvas zonder performance issues?** Virtualisatie, lazy loading, off-screen culling? *(React Flow v12 ondersteunt honderden nodes technisch, maar UX bij 50+ vereist grouping/collapsing)*
-- **Hoe gaan we om met agent failures mid-flow?** *(Gedeeltelijk beantwoord: Sprint 3.4 definieert retry/skip/abort. Nog geen formele beslissing.)*
+- **Assembly pipeline tijdlijn**: Sprint 6b (Assembly Engine) en 6c (AI Assistant) zijn gepland maar niet gescheduled. Wat is de prioriteit t.o.v. Sprint 4 (Pool Pattern) en Sprint 8 (Frappe App)? FR-17 en FR-18 staan op 25% en 0%.
+- **Bash safety enforcement gap**: testCommand() in safety-store.ts wordt nooit aangeroepen tijdens executie — alleen via de test API (POST /safety/test). De execution engine filtert tools maar controleert niet de inhoud van bash commands. Is dit acceptabel voor PoC of moet dit voor v0.1.0 opgelost worden? Zie D-035.
+- **Memory management backend**: In-memory stores in execution-engine.ts (runs, eventBuffers, emitters, runControls) groeien onbeperkt. Elke run bewaart alle SSE events. Bij welk punt wordt dit een probleem en moeten we TTL of database-backed storage implementeren? Zie D-026.
+- **NodeType 'aggregator' herkomst**: `NodeType = "agent" | "dispatcher" | "aggregator"` bevat `aggregator` dat niet voorkomt in de D-023 taxonomie (die definieert: agent, teammate, skill, connector, gate, dispatcher). Is aggregator een bewust PoC utility type dat behouden moet worden, of moet het vervangen worden door D-023 types?
 
 ### Beantwoord (zie DECISIONS.md)
 
 - ~~**In-process agents vs process-spawning vs containers**~~ → D-009 (Claude SDK only voor PoC), D-101 (Docker per agent), D-015 (runtime adapter)
 - ~~**Config format dat naar Claude SDK en Pi kan exporteren?**~~ → D-010 (eigen JSON schema met Claude SDK mapping)
 - ~~**State management bij multi-agent flows?**~~ → D-015 (runtime adapter slaat per-step output op als fallback)
+- ~~**Hoe gaan we om met agent failures mid-flow?**~~ → Opgelost in Sprint 3. execution-engine.ts implementeert retry (max 3 pogingen), skip, en abort decision flow. Frontend ErrorDecisionDialog stelt de vraag aan de gebruiker. Zie D-035 voor enforcement punt.
 
 ---
 
@@ -82,4 +86,4 @@
 
 ---
 
-*Laatste update: 2026-02-28*
+*Laatste update: 2026-03-03*

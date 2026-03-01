@@ -1,8 +1,8 @@
 # Requirements - Open-Agents
 
-> **Versie**: 0.1 (concept)
-> **Laatste update**: 2026-02-28
-> **Status**: In ontwikkeling
+> **Versie**: 0.2
+> **Laatste update**: 2026-03-03
+> **Status**: In ontwikkeling — status annotaties toegevoegd per FR
 
 ## Visie
 
@@ -21,6 +21,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-01: Visuele Canvas Editor
 
+> **Status**: 80% — Canvas met drag-drop, zoom, pan, minimap, undo/redo werkt. Snap-to-grid niet geïmplementeerd.
+
 - Drag-and-drop canvas voor agent-blokken
 - Verbindingen (edges) trekken tussen blokken
 - Blokken verplaatsen, groeperen, kopiëren, verwijderen
@@ -29,6 +31,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - Snap-to-grid en alignment helpers
 
 ### FR-02: Agent Blokken (D-023)
+
+> **Status**: 20% — Alleen Agent node en Dispatcher node werken. Teammate, Skill Badge, Connector, Gate niet geïmplementeerd. `NodeType` in types.ts mist 4 van 6 D-023 block types.
 
 - **Zes canvas block types** gebaseerd op Anthropic Agent SDK taxonomie:
   - **Agent Node**: Top-level of subagent — groot blok met status indicator, systemPrompt, tools, model, skills, hooks
@@ -45,6 +49,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-03: Orchestratie Patronen
 
+> **Status**: 50% — Flow pattern (sequentieel) volledig werkend (Sprint 3). Pool pattern (dispatcher) en parallelle execution niet geïmplementeerd (Sprint 4).
+
 - **Flow**: sequentiële pipeline (output A = input B)
 - **Pool**: dispatcher-based (orchestrator routeert naar juiste agent)
 - **Subagent**: fire-and-forget achtergrondtaken
@@ -52,6 +58,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - Complexiteit ontstaat door agents te verbinden, niet door individuele agents complex te maken
 
 ### FR-04: Factory Portal
+
+> **Status**: 90% — Factory tab, 5-stap wizard, LLM-powered generatie werken. Alleen Agent asset type beschikbaar; Template, Rule, Skill marked "Coming soon".
 
 - Dedicated tabblad/portal voor het aanmaken van assets
 - Agent creation wizard (conversational + formulier)
@@ -62,6 +70,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-05: Configuratie Generatie
 
+> **Status**: 70% — Canvas exporteert JSON, import/export werkt. Geen versiebeheer of diff-view.
+
 - Canvas → JSON configuratie export (D-010: eigen JSON schema)
 - Configuratie bevat: agents, verbindingen, regels, model routing
 - Import/export van configuraties (delen met team/community)
@@ -71,6 +81,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
   - Later: Pi agent-core als complementaire runtime (D-002)
 
 ### FR-06: Agent Runtime Integratie
+
+> **Status**: 70% — Claude SDK runtime volledig (tool use, multi-turn, streaming). OpenAI, Mistral, Ollama zijn text-in/text-out only (D-032 PoC beperking).
 
 - **Runtime adapter pattern** (D-015): AgentRuntime interface abstraheert runtime-specifieke details
 - Claude Agent SDK (PoC runtime, D-009):
@@ -86,6 +98,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-07: Safety & Rules
 
+> **Status**: 60% — SafetySettingsView met visuele rule editor werkt. Tool filtering enforced in execution engine. Bash blacklist filtering bestaat maar wordt NIET aangeroepen tijdens runtime (alleen via test API). Audit trail en run history werkend.
+
 - Visueel safety rules definiëren (vergelijkbaar met damage-control in pi-vs-cc)
 - Bash command filtering per agent
 - File access restricties per agent
@@ -95,12 +109,16 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-08: Templates & Presets
 
+> **Status**: 40% — 3 flow templates, 10 agent presets. Geen marketplace, geen template customization wizard.
+
 - Voorgebouwde architectuur templates (team, chain, reviewer, safety audit)
 - Community template sharing / marketplace
 - One-click deploy van templates
 - Template customization wizard
 
 ### FR-09: Semantische Intelligentie
+
+> **Status**: 25% — GeneratePanel doet single-agent NL generatie. Geen auto-architectuur generatie, geen groeiend context systeem.
 
 - App begrijpt natural language intent van de gebruiker
 - Auto-genereert agent architecturen op basis van beschrijving
@@ -111,6 +129,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-10: UI Skill Levels
 
+> **Status**: 80% — 3 niveaus (beginner/intermediate/advanced) sturen UI labels en tooltips aan. Geen gedrag-gebaseerde auto-switch.
+
 - **Beginner**: conversational interface, beschrijf wat je wilt, app bouwt het
 - **Intermediate**: canvas editor, configuratie panels, drag-and-drop
 - **Advanced**: raw YAML/JSON editing, custom agent code, API access
@@ -119,6 +139,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-11: Ingebouwde User Guide
 
+> **Status**: 0% — Niet geïmplementeerd. Geen onboarding, contextual help, of tutorials.
+
 - Interactieve onboarding voor Pi.dev, Claude Code Toolkit, en Open-Agents zelf
 - Contextual help: uitleg verschijnt wanneer relevant
 - Video/tutorial integratie
@@ -126,6 +148,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - Progressive disclosure: complexiteit tonen wanneer de gebruiker er klaar voor is
 
 ### FR-12: Workspace Selectie & Git Integratie
+
+> **Status**: 0% — Niet geïmplementeerd. Geen workspace browser, Git integratie, of branch viewer.
 
 - Gebruiker kan een lokale workspace (map met Git repo) openen/selecteren
 - Ondersteunt `.code-workspace` bestanden (VS Code compatible)
@@ -141,6 +165,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-13: Switchable Orchestrator Context
 
+> **Status**: 0% — Niet geïmplementeerd. Geen context selector of specialized contexts.
+
 - Input venster waar de gebruiker praat met de orchestrator
 - Context selector (dropdown/tabs) bovenaan het input venster
 - Schakelbaar tussen rollen/specialisaties:
@@ -153,6 +179,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-14: API-first
 
+> **Status**: 40% — REST API voor alle operaties. Geen OpenAPI/Swagger docs, geen authenticatie, geen webhooks.
+
 - REST API voor alle functionaliteit die de UI biedt
 - Gedocumenteerde API (OpenAPI/Swagger)
 - API keys / auth voor externe toegang
@@ -160,6 +188,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - Essentieel voor Scrum iteratie en extensibility
 
 ### FR-15: Multi-Provider Model Support (D-011)
+
+> **Status**: 70% — 4 providers werken (Anthropic, OpenAI, Mistral, Ollama). Non-Claude providers zijn text-in/text-out only, geen tool use (D-032 PoC beperking).
 
 - Elke agent is configureerbaar met een LLM van een willekeurige provider
 - Ondersteunde providers (minimaal): Anthropic (Claude), OpenAI (GPT/o-series/Codex), Mistral AI, Ollama (lokaal)
@@ -172,6 +202,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-16: Knowledge Base & Snippet Engine (D-020, D-021)
 
+> **Status**: 60% — @open-agents/knowledge package met 35 patterns, 7 principes, 13 blocks. Backend API endpoints werkend. Geen frontend Knowledge UI (geen browser, geen visualisatie).
+
 - Gestructureerde kennisbibliotheek als apart package (`@open-agents/knowledge`)
 - **Hardcoded engine logic** (TypeScript): model capability profiles (cost/speed/capabilities), tool risico-niveaus, token budget berekening, graph validatie regels
 - **Extensible snippets** (Markdown met YAML frontmatter): 20 routing patterns, 7 orchestratie principes, 13 building block profiles
@@ -181,6 +213,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - Bron: kennis geëxtraheerd uit meta-analyse van 68 ontwikkelsessies (Claude Workspace Development Workflows)
 
 ### FR-17: Self-Assembly Engine - NL naar Agent Graph (D-017, D-022)
+
+> **Status**: 25% — GeneratePanel doet single-agent generatie via Sonnet. 5-staps pipeline (Haiku intent → TS pattern match → Sonnet graph → TS cost → TS validate) niet geïmplementeerd.
 
 - Gebruiker beschrijft gewenste taak in natuurlijke taal
 - **5-staps pipeline**:
@@ -194,6 +228,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - LLM alleen waar creativiteit nodig is; deterministische TypeScript waar betrouwbaarheid cruciaal is
 
 ### FR-18: AI Assembly Assistant - Sidebar (D-018)
+
+> **Status**: 0% — Geen AssistantSidebar component. Geen context-aware chat, canvas sync, of suggesties.
 
 - Chat panel naast het canvas als kennispartner bij het assembleren
 - **Context-aware**: leest huidige canvas state mee bij elke interactie
@@ -210,6 +246,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-19: Pattern Library Browser
 
+> **Status**: 20% — Backend API voor patterns bestaat (GET /api/knowledge/patterns). Geen frontend pattern browser met ASCII diagrammen of drag-to-canvas.
+
 - Visueel doorbladerbare bibliotheek van alle routing patterns uit de knowledge base
 - Per pattern: naam, ASCII diagram, wanneer gebruiken, cost profiel, voorbeeld use case
 - Drag-to-canvas of one-click toepassen van een pattern
@@ -217,6 +255,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - Categorieën: linear, pyramid, parallel, iterative, validation, efficiency, specialist
 
 ### FR-20: Agent Taxonomie & Entiteittypes (D-023)
+
+> **Status**: 30% — D-023 taxonomie gedocumenteerd. Type systeem heeft alleen agent/dispatcher/aggregator. Geen skill progressive loading, geen teammate messaging.
 
 - **Vier entiteittypes** op basis van Anthropic Agent SDK, elk met eigen eigenschappen:
   - **Top-level Agent**: eigen context window, autonome executie-loop, tool use, multi-turn. Minimum: `description` + `prompt` + tools.
@@ -231,6 +271,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - AGENTS.md library (1015 definities) bevat overwegend prompt templates; bij implementatie worden ze skills of prompt templates binnen agent-workspaces. Echte agents ontstaan bij toevoegen van tools + autonome loop.
 
 ### FR-21: Per-Agent Workspace Engineering (D-024, D-025)
+
+> **Status**: 0% — Niet geïmplementeerd. Geen Docker containers, geen 6-layer stack editor, geen CLAUDE.md/rules/skills configuratie per agent. Gepland Sprint 7-8.
 
 - Elke agent draait in een Docker container met een geoptimaliseerde workspace
 - Workspace volgt het **6-layer stack model** (uit Claude Workspace Development Workflows):
@@ -252,6 +294,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - Token efficiency: CLAUDE.md kort houden, skills on-demand laden, hooks zero-cost
 
 ### FR-22: Library Ecosystem (D-025)
+
+> **Status**: 10% — Library pagina toont 10 tabs. Alleen Agent library is actief (grid/lijst view, zoek/filter, drag-to-canvas). 9 andere libraries tonen "Coming soon".
 
 - **Tien browsable libraries** georganiseerd per engineering laag (D-025):
 
@@ -288,6 +332,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-23: LLM-Powered Asset Generation (Factory)
 
+> **Status**: 80% — Conversational generatie, preview/edit, refinement, save to library werken voor agent assets. Niet beschikbaar voor templates, rules, skills of andere asset types.
+
 - Factory portal (FR-04) gebruikt een LLM om nieuwe assets te genereren voor elke library uit FR-22
 - **Generatie modes**:
   - **Conversational**: gebruiker beschrijft in natuurlijke taal wat ze nodig hebben, LLM genereert het asset
@@ -309,6 +355,8 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - Gegenereerde assets verschijnen als draft in de library, gebruiker reviewt en publiceert
 
 ### FR-24: White-Label Theming (D-029)
+
+> **Status**: 100% — Volledig geïmplementeerd: themes.ts, impertio.css, ThemePicker, 3 thema's (impertio, neutral, midnight), CSS custom properties met --oa-* tokens, Tailwind v4 @theme mapping.
 
 - Alle visuele branding (kleuren, fonts, accenten) via **CSS custom properties** (`--oa-*`)
 - Tailwind v4 `@theme` block mapt semantische tokens naar CSS variabelen
@@ -410,4 +458,4 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ---
 
-*Laatste update: 2026-03-02*
+*Laatste update: 2026-03-03*
