@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-04
-> **Status**: Sprint 9 - Agent Library COMPLETE, Sprint 6c + 10 remaining
+> **Laatste update**: 2026-03-05
+> **Status**: Sprint 6c COMPLETE, Sprint 10 remaining
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -22,7 +22,7 @@
 | Safety & Audit | 1 | 1 |
 | Knowledge Base + Snippet Engine | 1 | 1 |
 | Assembly Engine (NL → Graph) | 1 | 1 |
-| AI Assembly Assistant | 0 | 1 |
+| AI Assembly Assistant | 1 | 1 |
 | VS Code Extension | 1 | 1 |
 | Frappe App | 1 | 1 |
 | Library Ecosystem (10 types) | 0 | 10 |
@@ -36,7 +36,7 @@
 **Fase 4 (Intelligence)**: ████████████████████ **100%** - safety & audit (Sprint 5)
 **Fase 4a (Knowledge)**: ████████████████████ **100%** - knowledge base + snippet engine (Sprint 6a)
 **Fase 4b (Assembly)**: ████████████████████ **100%** - NL → agent graph self-assembly (Sprint 6b)
-**Fase 4c (Assistant)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - AI assembly assistant sidebar (Sprint 6c)
+**Fase 4c (Assistant)**: ████████████████████ **100%** - AI assembly assistant sidebar (Sprint 6c)
 **Fase 5 (Deployment)**: ████████████████████ **100%** - VS Code extension (Sprint 7) + Frappe app (Sprint 8)
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 7 (Agent Library)**: ██░░░░░░░░░░░░░░░░░░ **9%** - 90/1000 agents geïmplementeerd (10 categorieën, library loader)
@@ -137,12 +137,12 @@
 - [x] Assembly API routes (POST /api/assembly/generate, POST /api/assembly/classify)
 - [x] Assembly store slice (Zustand) met apply-to-canvas
 
-**Sprint 6c — AI Assembly Assistant (FR-18, FR-19):**
-- [ ] Assistant engine met context-aware prompts
-- [ ] Chat API (SSE streaming)
-- [ ] AssistantSidebar component (chat + suggesties + cost + context selector)
-- [ ] Bidirectionele canvas sync (CanvasAction → canvasStore)
-- [ ] Smart suggestions met one-click Apply
+**Sprint 6c — AI Assembly Assistant (FR-18, FR-19) (Complete):**
+- [x] Assistant engine met context-aware prompts (Sonnet streaming via Anthropic Messages API)
+- [x] Chat API (SSE streaming) — POST /api/assistant/chat + POST /api/assistant/suggestions
+- [x] AssistantSidebar component (chat + suggesties + context selector + action cards)
+- [x] Bidirectionele canvas sync (CanvasAction → canvasStore: add/remove/update node, add edge, replace all)
+- [x] Smart suggestions met one-click Apply (orphan detection, model cost, validation agent)
 
 ### Fase 5: Deployment Targets (Sprint 7-8) — Complete
 
