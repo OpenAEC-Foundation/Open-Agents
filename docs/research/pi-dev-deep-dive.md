@@ -268,15 +268,277 @@ OpenClaw's lane queue pattern: één taak per sessie tegelijk. Parallelisme is o
 
 ---
 
+## 11. Pi-ai: Unified LLM API — Technische Deep Dive
+
+### 11.1 Vier Wire Protocols, 22 Providers
+
+Pi abstraheert niet per-provider, maar per-protocol. De meeste providers spreken OpenAI Completions:
+
+| Wire Protocol | Providers |
+|---------------|-----------|
+| `anthropic-messages` | Anthropic |
+| `openai-completions` | OpenAI, Groq, Cerebras, xAI, Mistral, OpenRouter, Ollama, vLLM, LM Studio, MiniMax, HuggingFace |
+| `openai-responses` | OpenAI (newer), Azure OpenAI, OpenAI Codex |
+| `google-generative-ai` | Google, Google Vertex, Gemini CLI |
+| `bedrock-converse-stream` | Amazon Bedrock |
+
+Eén implementatie per protocol + `compat` object voor quirks = 22 providers gedekt.
+
+### 11.2 Registry Pattern
+
+```typescript
+const apiProviderRegistry = new Map<string, RegisteredApiProvider>();
+
+registerApiProvider({
+  api: "anthropic-messages",
+  stream: streamAnthropic,
+  streamSimple: streamSimpleAnthropic,
+});
+```
+
+Dispatch: `getApiProvider(model.api)` → juiste implementatie. Nieuwe providers toevoegen = 1 file + registratie.
+
+### 11.3 Model Catalog — Auto-Gegenereerd
+
+Het `MODELS` object wordt gegenereerd vanuit 3 bronnen:
+1. **models.dev API** — primaire bron
+2. **OpenRouter `/api/v1/models`** — gefilterd op tool support
+3. **Vercel AI Gateway** — gefilterd op `"tool-use"` tag
+
+300+ modellen, inclusief pricing per provider. Nooit handmatig bewerkt.
+
+### 11.4 `content` vs `details` — Tool Return Scheiding
+
+```typescript
+execute: async (toolCallId, params) => ({
+  content: [{ type: "text", text: "Result voor LLM" }],  // → LLM ziet dit
+  details: { raw: data },                                  // → alleen UI
+})
+```
+
+Tools kunnen ook images retourneren als base64 content blocks. De `convertToLlm` pipeline stript `details` voordat messages naar de provider gaan.
+
+**Relevantie**: Onze execution engine stuurt nu alle tool output naar zowel LLM als UI. Pi's scheiding is eleganter — de UI kan rijkere data tonen (tabellen, grafieken) terwijl de LLM alleen relevante tekst ziet.
+
+### 11.5 Provider Quirks
+
+| Provider | Quirk | Oplossing |
+|----------|-------|-----------|
+| Mistral | Vereist 9-char alphanumerieke tool IDs | `normalizeToolCallId()` |
+| Mistral | Heeft synthetische assistant messages nodig na tool results | Auto-injectie |
+| Google | Geen tool call streaming | Emit start+delta+end in één keer |
+| Google | Duplicate/missende tool call IDs | Eigen ID-generatie met timestamp |
+| OpenAI Responses API | 450+ char tool IDs met `\|` karakters | Normalisatie |
+| xAI (Grok) | Accepteert geen `reasoning_effort` | Conditioneel weglaten |
+
+### 11.6 Cross-Provider Model Switching
+
+Context is provider-agnostisch serialiseerbaar:
+
+```typescript
+interface Context {
+  systemPrompt?: string;
+  messages: Message[];
+  tools?: Tool[];
+}
+```
+
+Bij model-switch:
+- Encrypted thinking blocks worden gedropped (provider-specifiek)
+- Tool call IDs worden genormaliseerd
+- Orphaned tool calls krijgen synthetische error results
+- Aborted assistant messages worden overgeslagen
+
+### 11.7 Cost Tracking
+
+```typescript
+calculateCost(model, usage) → {
+  input: model.cost.input/1M * usage.input,
+  output: model.cost.output/1M * usage.output,
+  cacheRead: model.cost.cacheRead/1M * usage.cacheRead,
+  total: sum
+}
+```
+
+Best-effort — providers rapporteren tokens op verschillende momenten in de stream. Geaborteerde requests missen soms token counts.
+
+---
+
+## 12. Agent Skills Open Standard — Ecosysteem Analyse
+
+### 12.1 Oorsprong en Adoptie
+
+- **Creator**: Anthropic (Barry Zhang, Keith Lazuka, Mahesh Murag)
+- **Launch**: 16 oktober 2025 (Claude-specifiek), 18 december 2025 (open standaard op [agentskills.io](https://agentskills.io/specification))
+- **Adoptie**: Binnen 48 uur door Microsoft (VS Code) en OpenAI (Codex CLI)
+- **Huidige adoptie**: 26+ platforms, 79.5K stars op `anthropics/skills`
+
+### 12.2 SKILL.md Specificatie
+
+**Verplichte velden**:
+
+| Veld | Regels |
+|------|--------|
+| `name` | Max 64 chars, lowercase `a-z`, `0-9`, `-`. Moet matchen met directory naam. |
+| `description` | Max 1024 chars. Beschrijf WAT + WANNEER. |
+
+**Optionele velden**: `license`, `compatibility`, `metadata` (key-value), `allowed-tools`
+
+```yaml
+---
+name: code-review
+description: Reviews code for bugs, performance issues, and style violations. Use when reviewing pull requests or when the user asks for a code review.
+---
+```
+
+### 12.3 Discovery Paths per Agent
+
+| Agent | Project Path | Global Path |
+|-------|-------------|-------------|
+| Claude Code | `.claude/skills/` | `~/.claude/skills/` |
+| OpenAI Codex | `.agents/skills/` | `~/.agents/skills/` |
+| Gemini CLI | `.gemini/skills/` of `.agents/skills/` | `~/.gemini/skills/` |
+| Amp (Sourcegraph) | `.agents/skills/` | `~/.config/amp/tools/` |
+| Cursor | `.cursor/skills/` | `~/.cursor/skills/` |
+| GitHub Copilot | `.github/skills/` | `~/.copilot/skills/` |
+
+`.agents/skills/` is het meest universele pad. Symlinks zijn de praktische oplossing.
+
+### 12.4 Progressive Disclosure (3 Lagen)
+
+1. **Metadata** (~100 tokens): `name` + `description` van ALLE skills altijd geladen
+2. **Instructies** (< 5000 tokens): Volledige SKILL.md body, alleen bij activatie
+3. **Resources** (on-demand): `scripts/`, `references/`, `assets/` — alleen wanneer nodig
+
+Context budget: Claude Code gebruikt 2% van context window voor skill descriptions.
+
+### 12.5 Ecosysteem
+
+| Publisher | Repository | Aantal Skills |
+|-----------|-----------|--------------|
+| Anthropic | `anthropics/skills` | ~20 (DOCX, PDF, PPTX, XLSX, skill-creator) |
+| Microsoft | `microsoft/skills` | 131 (Azure, .NET, Python, TS, Java, Rust) |
+| Vercel | `vercel-labs/agent-skills` | ~10 (React/Next.js best practices) |
+| Community | `VoltAgent/awesome-agent-skills` | 380+ skills |
+| Community | `travisvn/awesome-claude-skills` | 713+ skills |
+
+Marketplaces: [skillsmp.com](https://skillsmp.com), [skillsdirectory.com](https://skillsdirectory.com), [skillhub.club](https://skillhub.club)
+
+### 12.6 Kanttekening: Vercel Evaluatie
+
+Vercel publiceerde "AGENTS.md outperforms skills in our agent evals" — voor sommige use cases presteert één groot AGENTS.md bestand beter dan progressive disclosure via skills. Dit is het evalueren waard voor onze knowledge patterns.
+
+### 12.7 Kans voor Open-Agents
+
+Onze 56 knowledge snippets (`@open-agents/knowledge`: 35 patterns, 7 principes, 13 blocks) zouden herstructureerd kunnen worden als Agent Skills:
+
+- **Cross-agent portabiliteit** — bruikbaar in Claude Code, Codex, Gemini CLI, Cursor
+- **Progressive disclosure** — alleen metadata initieel, volledige content on-demand
+- **Community distributie** — publiceerbaar naar marketplaces
+- **Standaard tooling** — validatie, testing, benchmarking
+
+---
+
+## 13. OpenClaw Production Patronen — Diepere Analyse
+
+### 13.1 Lane Queue — Implementatie Details
+
+Vijf queue modes:
+
+| Mode | Gedrag |
+|------|--------|
+| `collect` (default) | Wachtende berichten samenvoegen tot één follow-up |
+| `followup` | Wacht tot huidige run klaar is |
+| `steer` | Injecteert bericht bij tool boundary tijdens actieve run |
+| `steer-backlog` | Steer + bewaar voor follow-up |
+| `interrupt` | Abort actieve run, verwerk nieuwste bericht |
+
+Backpressure: debouncing, deduplicatie, global throttling, typing indicators.
+
+Pure TypeScript + promises. Geen external workers, geen message brokers.
+
+### 13.2 Memory Systeem — Hybrid Retrieval
+
+| Opslag | Doel | Laden |
+|--------|------|-------|
+| `MEMORY.md` | Gecureerde langetermijn referentie | Private sessies only |
+| `memory/YYYY-MM-DD.md` | Dagelijkse append-only logs | Vandaag + gisteren |
+| `sessions/<id>.jsonl` | Transcripten | Bij resume |
+
+**Hybrid retrieval pipeline**:
+1. Chunking (~400 tokens, 80 overlap)
+2. FTS5 indexing (SQLite BM25)
+3. Vector embedding (lokaal GGUF, OpenAI, Gemini, Voyage, Mistral)
+4. Weighted union: `finalScore = 0.7 * vector + 0.3 * text`
+5. MMR reranking (lambda 0.7)
+6. Temporal decay: `score * e^(-lambda * age)` (30-dag halfwaardetijd)
+
+Alles in SQLite — geen externe services nodig.
+
+### 13.3 Memory Flush Before Compaction
+
+Wanneer context de limiet nadert:
+1. Stille agentic turn: "schrijf notities naar memory/YYYY-MM-DD.md"
+2. Compaction: samenvatting van oudere context
+3. Retry origineel request met gecompacteerde context
+
+Voorkomt informatieverlies bij context-overflow.
+
+### 13.4 Production Lessons Learned
+
+**Agent Drift**: Na 50+ taken in één sessie raakt context vervuild → hard session reset na elke 50 taken.
+
+**Token Costs**: Native heartbeat (elke 30 min) werd grote token-sink → goedkope checks eerst, models alleen wanneer nodig.
+
+**CVE-2026-25253 (RCE)**: Missende WebSocket origin validatie → auth tokens gestolen. Les: origin validatie is niet optioneel.
+
+**Supply Chain**: 12-20% van community skills bevatte malicious prompt injection. Les: skills als untrusted input behandelen.
+
+### 13.5 Anti-Patronen
+
+| Vermijd | Beter |
+|---------|-------|
+| Concurrent execution op shared state | Per-sessie seriële queues |
+| Platform-specifieke logic in agent core | Normaliseer bij adapter laag |
+| Opaque vector databases voor memory | Human-readable files |
+| Code-based plugins | Skills-as-Markdown |
+| Screenshots voor browser automatisering | Accessibility trees |
+| Plaintext credential storage | Platform secret storage |
+| Third-party skills zonder scanning | Content sandboxing + review |
+
+---
+
 ## Bronnen
 
+### Pi.dev Core
 - [Pi.dev GitHub (18.2K stars)](https://github.com/badlogic/pi-mono)
 - [Mario Zechner — What I learned building a minimal coding agent](https://mariozechner.at/posts/2025-11-30-pi-coding-agent/)
 - [Armin Ronacher — Pi: The Minimal Agent Within OpenClaw](https://lucumr.pocoo.org/2026/1/31/pi/)
 - [Nader Dabit — How to Build a Custom Agent Framework with Pi](https://nader.substack.com/p/how-to-build-a-custom-agent-framework)
+- [Ry Walker — Pi Coding Agent Research](https://rywalker.com/research/pi)
+- [DeepWiki — Pi-mono Architecture](https://deepwiki.com/badlogic/pi-mono)
+- [Beyond the API: Scaling AI Workflows with pi-mono](https://typevar.dev/articles/badlogic/pi-mono)
+
+### Agent Skills Standard
+- [Agent Skills Specification](https://agentskills.io/specification)
+- [Anthropic Skills Repository (79.5K stars)](https://github.com/anthropics/skills)
+- [Agent Skills Community Spec](https://github.com/agentskills/agentskills)
+- [Anthropic — Equipping Agents for the Real World](https://claude.com/blog/equipping-agents-for-the-real-world-with-agent-skills)
+- [Microsoft Skills (131 skills)](https://github.com/microsoft/skills)
+- [Vercel Agent Skills](https://github.com/vercel-labs/agent-skills)
+- [VoltAgent — Awesome Agent Skills (380+)](https://github.com/VoltAgent/awesome-agent-skills)
+- [Vercel — AGENTS.md outperforms skills](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals)
+
+### OpenClaw Production
 - [Agentailor — Lessons from OpenClaw's Architecture](https://blog.agentailor.com/posts/openclaw-architecture-lessons-for-agent-builders)
 - [DigitalOcean — What are OpenClaw Skills?](https://www.digitalocean.com/resources/articles/what-are-openclaw-skills)
-- [Ry Walker — Pi Coding Agent Research](https://rywalker.com/research/pi)
+- [OpenClaw Architecture Overview](https://ppaolo.substack.com/p/openclaw-system-architecture-overview)
+- [The Agent Stack — Concurrency](https://theagentstack.substack.com/p/openclaw-architecture-part-2-concurrency)
+- [OpenClaw Docs — Command Queue](https://docs.openclaw.ai/concepts/queue)
+- [OpenClaw Docs — Memory](https://docs.openclaw.ai/concepts/memory)
+- [OpenClaw Docs — Compaction](https://docs.openclaw.ai/concepts/compaction)
+- [PingCAP — Local-First RAG with SQLite](https://www.pingcap.com/blog/local-first-rag-using-sqlite-ai-agent-memory-openclaw/)
+- [SitePoint — OpenClaw Production Lessons](https://www.sitepoint.com/openclaw-production-lessons-4-weeks-self-hosted-ai/)
 
 ---
 
