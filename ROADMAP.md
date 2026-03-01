@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-03
-> **Status**: Sprint 8 - Frappe App COMPLETE
+> **Laatste update**: 2026-03-01
+> **Status**: Sprint 4 - Pool Pattern COMPLETE
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -18,7 +18,7 @@
 | Core Documenten | 7 | 7 |
 | PoC Canvas | 1 | 1 |
 | Factory Portal | 1 | 1 |
-| Orchestratie (Flow + Pool) | 1 | 2 |
+| Orchestratie (Flow + Pool) | 2 | 2 |
 | Safety & Audit | 1 | 1 |
 | Knowledge Base + Snippet Engine | 1 | 1 |
 | Assembly Engine (NL → Graph) | 1 | 1 |
@@ -32,7 +32,7 @@
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
 **Fase 1 (PoC)**: ████████████████████ **100%** - canvas UI, backend API, e2e wiring, theming, BYOK
 **Fase 2 (Factory)**: ████████████████████ **100%** - tabs, wizard, library, CRUD API, presets, LLM-powered generation
-**Fase 3 (Orchestratie)**: ██████████░░░░░░░░░░ **50%** — Sprint 3 (Flow Pattern) complete, Sprint 4 (Pool Pattern) pending
+**Fase 3 (Orchestratie)**: ████████████████████ **100%** — Sprint 3 (Flow Pattern) + Sprint 4 (Pool Pattern) complete
 **Fase 4 (Intelligence)**: ████████████████████ **100%** - safety & audit (Sprint 5)
 **Fase 4a (Knowledge)**: ████████████████████ **100%** - knowledge base + snippet engine (Sprint 6a)
 **Fase 4b (Assembly)**: ████████████████████ **100%** - NL → agent graph self-assembly (Sprint 6b)
@@ -105,10 +105,13 @@
 - [x] 3 flow templates: Code Review Pipeline, Bug Fix Flow, Documentation Generator
 - [x] Runtime adapters: abort signal support (Claude SDK, OpenAI, Mistral, Ollama)
 
-**Sprint 4 — Pool Pattern (Pending):**
-- [ ] Pool pattern: dispatcher-based routing
-- [ ] Parallelle agent execution
-- [ ] Patronen combineerbaar
+**Sprint 4 — Pool Pattern (Complete):**
+- [x] Pool pattern: dispatcher-based routing — DispatcherNode met LLM classificatie, routing prompt, model selector
+- [x] Parallelle agent execution — Promise.allSettled, timeouts, graceful failure, pool:start/pool:complete SSE events
+- [x] AggregatorNode — concatenate/synthesize strategieën, optioneel LLM synthesis
+- [x] Frontend: DispatcherNode + AggregatorNode componenten, Sidebar orchestratie sectie, OutputPanel pool icons
+- [x] 2 pool templates: Code Review Pool, Multi-Expert Analysis
+- [x] Patronen combineerbaar — flow + pool nodes op hetzelfde canvas
 
 ### Fase 4: Intelligence (Sprint 5, 6a, 6b, 6c)
 

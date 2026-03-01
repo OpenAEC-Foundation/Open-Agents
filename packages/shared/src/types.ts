@@ -367,6 +367,8 @@ export interface AgentDefinition {
   tools: AgentTool[];
   category?: string;
   tags?: string[];
+  source?: "preset" | "library" | "user" | "generated";
+  readonly?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -465,11 +467,12 @@ export interface AuditFilter {
 // Flow Templates (Sprint 3 — D-003)
 // =============================================
 
-/** A reusable flow template */
+/** A reusable flow or pool template */
 export interface FlowTemplate {
   id: string;
   name: string;
   description: string;
+  type?: "flow" | "pool";
   nodes: CanvasNode[];
   edges: CanvasEdge[];
 }

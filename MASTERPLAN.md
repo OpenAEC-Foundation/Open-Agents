@@ -20,7 +20,7 @@
 | 1 | Proof of Concept | Minimale canvas → Claude Code, e2e | Sprint 0 | Done |
 | 2 | Factory Portal | Agents aanmaken via UI | Sprint 1 | Done |
 | 3 | Flow Pattern | Sequentiële pipeline werkend | Sprint 1 | Done |
-| 4 | Pool Pattern | Dispatcher + parallelle execution | Sprint 3 | Planned |
+| 4 | Pool Pattern | Dispatcher + parallelle execution | Sprint 3 | Done |
 | 5 | Safety & Audit | Rules editor + audit trail | Sprint 1 | Done |
 | 6a | Knowledge Base + Snippet Engine | Kennisbibliotheek: routing patterns, model profiles, principes | Sprint 1 | Done |
 | 6b | Assembly Engine | NL → Agent Graph self-assembly pipeline | Sprint 6a | Done |
@@ -573,7 +573,9 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 
 ---
 
-## Sprint 4: Pool Pattern
+## Sprint 4: Pool Pattern ✅
+
+**Status**: Done (commit `d274a3e`)
 
 **Doel**: Dispatcher-based orchestratie.
 
@@ -581,60 +583,21 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 
 ### Fase 4.1: Dispatcher Node `[SEQ]` — eerst
 
-> **Prompt**:
-> ```
-> Maak een nieuw node type: Dispatcher.
->
-> De Dispatcher is een speciaal canvas blok dat:
-> 1. Meerdere uitgaande edges heeft (naar pool agents)
-> 2. Een inkomend verzoek ontvangt
-> 3. Via Claude classificeert welke agent(s) het moeten afhandelen
-> 4. Het verzoek doorstuurt naar de juiste agent(s)
->
-> Visueel: Dispatcher node is groter, heeft een ander icoon (router symbool),
-> en toont welke agents in zijn pool zitten.
->
-> Config: dispatcher node heeft een "routing prompt" die Claude gebruikt
-> om te bepalen welke connected agents relevant zijn.
->
-> Voorbeeld routing prompt:
-> "Classificeer het volgende verzoek en bepaal welke specialist(en) het
-> moeten afhandelen. Beschikbare specialisten: {connected_agent_names}.
-> Antwoord met een JSON array van agent namen."
-> ```
-
 **Taken:**
-- [ ] Dispatcher node type
-- [ ] Routing prompt configuratie
-- [ ] Classificatie via Claude
-- [ ] Doorsturen naar juiste agent(s)
+- [x] Dispatcher node type — DispatcherNodeData, DispatcherNode.tsx (amber/oranje thema)
+- [x] Routing prompt configuratie — routingPrompt textarea, routingModel selector
+- [x] Classificatie via Claude — dispatcher-classifier.ts met LLM routing + fallback
+- [x] Doorsturen naar juiste agent(s) — executeDispatcherGroup() in execution-engine.ts
 
 ### Fase 4.2: Parallel Execution `[SEQ]` — na 4.1
 
-> **Prompt**:
-> ```
-> Voeg parallelle agent execution toe aan de pool pattern.
->
-> Wanneer de dispatcher meerdere agents selecteert:
-> 1. Start alle geselecteerde agents gelijktijdig (Promise.all of worker threads)
-> 2. Toon op canvas: alle actieve agents blauw, idle agents grijs
-> 3. Verzamel alle outputs
-> 4. Als er een "aggregator" node na de pool zit: combineer outputs als context
->
-> Beperkingen:
-> - Max 5 parallelle agents (configureerbaar)
-> - Timeout per agent: 5 min (configureerbaar)
-> - Als 1 agent faalt: andere gaan door, fout wordt gelogd
->
-> API: POST /api/execute met mode: "pool"
-> SSE stream bevat events per parallel agent.
-> ```
-
 **Taken:**
-- [ ] Parallelle agent execution
-- [ ] Canvas status voor meerdere actieve agents
-- [ ] Output aggregatie
-- [ ] Max concurrency + timeout
+- [x] Parallelle agent execution — Promise.allSettled + per-agent timeouts via Promise.race
+- [x] Canvas status voor meerdere actieve agents — pool:start/pool:complete SSE events, edge kleuring
+- [x] Output aggregatie — AggregatorNode (concatenate/synthesize), AggregatorNode.tsx (cyan/teal thema)
+- [x] Max concurrency + timeout — maxParallel + timeoutMs configureerbaar per dispatcher
+- [x] 2 pool templates: Code Review Pool, Multi-Expert Analysis
+- [x] Sidebar: orchestratie sectie met draggable Dispatcher + Aggregator
 
 ---
 
