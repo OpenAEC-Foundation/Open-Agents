@@ -212,7 +212,7 @@
 - [x] CHANGELOG.md aangemaakt (Keep a Changelog format, Sprint 1-10)
 - [x] v0.1.0 release — CHANGELOG, DECISIONS (D-043, D-044), git tag
 - [ ] NodeType uitbreiden naar D-023 specificatie (teammate, skill, connector, gate) → v0.2.0
-- [ ] testCommand() wiring in execution engine (D-035 bash enforcement gap) → v0.2.0
+- [x] testCommand() wiring in execution engine (D-035) — prompt injectie + post-hoc scanning + audit logging, 15 tests
 - [ ] MCP tool auto-generatie pipeline verbinden met VS Code extension (D-031) → v0.2.0
 - [ ] Non-Claude runtime tool use support (D-032 PoC beperking opheffen) → v0.2.0
 - [ ] Test suite verdere uitbreiding (execution engine state machine, frontend components) → v0.2.0
