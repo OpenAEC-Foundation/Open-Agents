@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-01
-> **Status**: Sprint 4 - Pool Pattern COMPLETE
+> **Laatste update**: 2026-03-04
+> **Status**: Sprint 9 - Agent Library COMPLETE, Sprint 6c + 10 remaining
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -27,7 +27,7 @@
 | Frappe App | 1 | 1 |
 | Library Ecosystem (10 types) | 0 | 10 |
 | LLM Asset Generation (Factory) | 1 | 1 |
-| Agent Library (doel: 1000+) | 0 | 1000 |
+| Agent Library (doel: 1000+) | 90 | 1000 |
 
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
 **Fase 1 (PoC)**: ████████████████████ **100%** - canvas UI, backend API, e2e wiring, theming, BYOK
@@ -39,7 +39,7 @@
 **Fase 4c (Assistant)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - AI assembly assistant sidebar (Sprint 6c)
 **Fase 5 (Deployment)**: ████████████████████ **100%** - VS Code extension (Sprint 7) + Frappe app (Sprint 8)
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
-**Fase 7 (Agent Library)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - 1000+ atomaire agents (doorlopend, 1015 gedefinieerd)
+**Fase 7 (Agent Library)**: ██░░░░░░░░░░░░░░░░░░ **9%** - 90/1000 agents geïmplementeerd (10 categorieën, library loader)
 **Fase 8 (Refactor)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - consolidatie eerste Scrum iteratie
 
 ---
@@ -176,11 +176,11 @@
 > Referentiemodel: Anthropic Agent Teams. Zie AGENTS.md voor de volledige library.
 
 - [x] 1015 atomaire agents gedefinieerd in AGENTS.md (20 categorieën A-T)
-- [ ] 10 core agents geïmplementeerd (bij Sprint 2)
-- [ ] 50 category agents geïmplementeerd: text, code, review, data (bij Sprint 3-5)
-- [ ] 100 specialist agents geïmplementeerd: git, research, API, DevOps (bij Sprint 5-8)
-- [ ] 65 ERPNext agents geïmplementeerd (bij Sprint 8)
-- [ ] 10 flow & pool templates die agents combineren
+- [x] 10 core agents geïmplementeerd: summarize, translate, explain-code, find-bugs, generate-test, format-code, generate-commit-msg, check-security, read-file, search-in-files
+- [x] 80 category + specialist agents geïmplementeerd: text-language (10), code-dev (10), review-quality (10), data-transform (10), git-versioning (8), research (10), communication (7), file-system (5), erpnext (10)
+- [x] Library loader (library-loader.ts) + source/readonly tracking + category filter UI
+- [x] 7 flow & pool templates (PR Assistant, Smart Translator, Multi-Reviewer, Security Audit, Codebase Profiler, ERPNext Feature Builder, Onboarding Assistant)
+- [ ] Overige 910+ agents (doorlopend)
 
 ### Fase 8: Refactor & Consolidatie (Sprint 10)
 
