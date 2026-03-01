@@ -13,6 +13,7 @@
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.63",
     "@anthropic-ai/sdk": "^0.78.0",
+    "@dagrejs/dagre": "^2.0.4",
     "@fastify/cors": "^11.0.0",
     "@open-agents/knowledge": "workspace:*",
     "@open-agents/shared": "workspace:*",
@@ -20,6 +21,7 @@
     "nanoid": "^5.1.0"
   },
   "devDependencies": {
+    "@types/dagre": "^0.7.54",
     "@types/node": "^22.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0"

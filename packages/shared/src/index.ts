@@ -23,7 +23,6 @@ export type {
   HealthResponse,
   SkillLevel,
   ToolDisplayInfo,
-  ModelDisplayInfo,
   ModelMeta,
   ConnectionStatus,
   ConnectRequest,
@@ -60,6 +59,17 @@ export type {
   AssemblyResult,
   AssemblyRequest,
 } from "./assembly-types.js";
+
+export type {
+  AssistantContext,
+  AssistantMessage,
+  CanvasAction,
+  AssistantEventType,
+  AssistantEvent,
+  AssistantChatRequest,
+  AssistantSuggestion,
+  AssistantSuggestionsResponse,
+} from "./assistant-types.js";
 
 export type {
   LatencyTier,

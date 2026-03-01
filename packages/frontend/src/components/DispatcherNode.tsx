@@ -3,15 +3,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import type { DispatcherNodeData, ModelId, ExecutionStatus } from "@open-agents/shared";
 import { MODEL_CATALOG, getModelMeta } from "@open-agents/shared";
 import { useAppStore } from "../stores/appStore";
-
-const statusColors: Record<string, string> = {
-  idle: "bg-border-default",
-  running: "bg-yellow-400 animate-pulse",
-  completed: "bg-green-500",
-  error: "bg-red-500",
-  paused: "bg-yellow-400",
-  cancelled: "bg-zinc-500",
-};
+import { STATUS_COLORS } from "../constants";
 
 export function DispatcherNode({ id, data }: NodeProps) {
   const d = data as unknown as DispatcherNodeData;
@@ -63,7 +55,7 @@ export function DispatcherNode({ id, data }: NodeProps) {
 
       {/* Header */}
       <div className="px-3 py-2 border-b border-amber-800/40 flex items-center gap-2">
-        <div className={`w-2 h-2 rounded-full shrink-0 ${statusColors[nodeStatus] ?? "bg-border-default"}`} />
+        <div className={`w-2 h-2 rounded-full shrink-0 ${STATUS_COLORS[nodeStatus] ?? "bg-border-default"}`} />
         {nodeStatus === "completed" && (
           <span className="text-green-500 text-xs shrink-0" title="Completed">&#10003;</span>
         )}

@@ -19,10 +19,6 @@ import { logEntry, createRunSummary, updateRunSummary } from "./audit-store.js";
 import { classifyTask } from "./dispatcher-classifier.js";
 import { getInstructionText } from "./instructions-store.js";
 
-// TODO (Sprint 10): Add TTL-based cleanup for completed runs.
-// Current in-memory stores (runs, eventBuffers, emitters, runControls) grow without bound.
-// Risk: memory leak on long-running development servers.
-
 // In-memory stores
 const runs = new Map<string, ExecutionRun>();
 const eventBuffers = new Map<string, SSEEvent[]>();
@@ -36,6 +32,44 @@ interface RunControl {
 }
 const runControls = new Map<string, RunControl>();
 const configs = new Map<string, CanvasConfig>();
+
+// Sprint 10: TTL-based cleanup for completed runs to prevent memory leaks.
+const RUN_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // check every 5 minutes
+const MAX_COMPLETED_RUNS = 50; // hard cap on stored completed runs
+
+function cleanupCompletedRuns(): void {
+  const now = Date.now();
+  const completedStatuses = new Set(["completed", "error", "cancelled"]);
+
+  for (const [runId, run] of runs) {
+    if (!completedStatuses.has(run.status) || !run.completedAt) continue;
+    const completedAt = new Date(run.completedAt).getTime();
+    if (now - completedAt > RUN_TTL_MS) {
+      runs.delete(runId);
+      eventBuffers.delete(runId);
+      emitters.delete(runId);
+      runControls.delete(runId);
+      configs.delete(runId);
+    }
+  }
+
+  // Hard cap: if still too many completed runs, remove oldest first
+  const completedRuns = [...runs.entries()]
+    .filter(([, r]) => completedStatuses.has(r.status))
+    .sort((a, b) => (a[1].completedAt ?? "").localeCompare(b[1].completedAt ?? ""));
+
+  while (completedRuns.length > MAX_COMPLETED_RUNS) {
+    const [runId] = completedRuns.shift()!;
+    runs.delete(runId);
+    eventBuffers.delete(runId);
+    emitters.delete(runId);
+    runControls.delete(runId);
+    configs.delete(runId);
+  }
+}
+
+setInterval(cleanupCompletedRuns, CLEANUP_INTERVAL_MS);
 
 // Runtime registry: provider → AgentRuntime
 const runtimes = new Map<string, AgentRuntime>();

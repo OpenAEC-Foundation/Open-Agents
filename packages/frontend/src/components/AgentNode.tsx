@@ -3,15 +3,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import type { AgentNodeData, ModelId, AgentTool, ExecutionStatus } from "@open-agents/shared";
 import { TOOL_DISPLAY, MODEL_CATALOG, getModelMeta } from "@open-agents/shared";
 import { useAppStore } from "../stores/appStore";
-
-const statusColors: Record<string, string> = {
-  idle: "bg-border-default",
-  running: "bg-yellow-400 animate-pulse",
-  completed: "bg-green-500",
-  error: "bg-red-500",
-  paused: "bg-yellow-400",
-  cancelled: "bg-zinc-500",
-};
+import { STATUS_COLORS } from "../constants";
 
 const allTools: AgentTool[] = [
   "Read",
@@ -85,7 +77,7 @@ export function AgentNode({ id, data }: NodeProps) {
 
       {/* Header: editable name + model selector */}
       <div className="px-3 py-2 border-b border-border-default flex items-center gap-2">
-        <div className={`w-2 h-2 rounded-full shrink-0 ${statusColors[nodeStatus] ?? "bg-border-default"}`} />
+        <div className={`w-2 h-2 rounded-full shrink-0 ${STATUS_COLORS[nodeStatus] ?? "bg-border-default"}`} />
         {nodeStatus === "completed" && (
           <span className="text-green-500 text-xs shrink-0" title="Completed">&#10003;</span>
         )}

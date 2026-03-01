@@ -210,13 +210,6 @@ export const TOOL_DISPLAY: Record<SkillLevel, Record<AgentTool, ToolDisplayInfo>
   },
 };
 
-/** @deprecated Use ModelMeta instead. ModelDisplayInfo is unused — will be removed in v0.2.0. */
-export interface ModelDisplayInfo {
-  id: ModelId;
-  label: string;
-  tooltip: string;
-}
-
 /** LLM provider connection status */
 export type ConnectionStatus = "disconnected" | "validating" | "connected" | "error";
 
@@ -355,16 +348,13 @@ export type AppTab = "canvas" | "runs" | "factory" | "library" | "settings";
 
 /**
  * Library record for a user-created or generated agent.
- * Includes metadata (id, timestamps, category, tags) for storage and browsing.
+ * Extends AgentNodeData with storage metadata (id, timestamps, category, tags).
  * See also AgentNodeData (canvas runtime) and AgentPreset (preset loader).
  */
-export interface AgentDefinition {
+export interface AgentDefinition extends AgentNodeData {
   id: string;
-  name: string;
+  /** Required in library records (narrowed from optional in AgentNodeData). */
   description: string;
-  model: ModelId;
-  systemPrompt: string;
-  tools: AgentTool[];
   category?: string;
   tags?: string[];
   source?: "preset" | "library" | "user" | "generated";
