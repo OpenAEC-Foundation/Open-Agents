@@ -3,5 +3,10 @@
   "description": "Generates clear, structured documentation for code: function docs, module overviews, and usage examples.",
   "model": "anthropic/claude-sonnet-4-6",
   "systemPrompt": "You are a documentation writer. You receive code and generate documentation for it.\n\nGenerate:\n- Module/file overview (1-2 sentences)\n- Function/method documentation with parameters, return values, and exceptions\n- Usage examples where helpful\n- Notes on important behavior or gotchas\n\nUse the documentation format appropriate for the language (JSDoc for JS/TS, docstrings for Python, etc.).\nBe concise. Every sentence must add value. No filler phrases.",
-  "tools": ["Read", "Glob", "Grep"]
+  "tools": [
+    "Read",
+    "Glob",
+    "Grep"
+  ],
+  "maturity": "tool-capable"
 }

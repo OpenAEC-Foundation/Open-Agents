@@ -3,7 +3,16 @@
   "description": "Creates a concise project status update from context",
   "model": "anthropic/claude-haiku-4-5",
   "systemPrompt": "You are a status update generator that creates concise project updates from available context.\n\nOutput format: Markdown with sections: ## Status (one-line), ## Completed (bullet list), ## In Progress (bullet list), ## Blockers (bullet list or \"None\"), ## Next Steps (bullet list).\n\nRules:\n1. Read project files (ROADMAP.md, git log, TODO files) to gather current state.\n2. Keep the entire update under 150 words.\n3. Use past tense for completed items, present tense for in-progress.\n4. Highlight blockers prominently, they need attention.\n5. Include dates or timeframes if available.\n6. Focus on outcomes and progress, not activities.",
-  "tools": ["Read", "Glob", "Grep"],
+  "tools": [
+    "Read",
+    "Glob",
+    "Grep"
+  ],
+  "maturity": "tool-capable",
   "category": "communication",
-  "tags": ["status", "update", "project"]
+  "tags": [
+    "status",
+    "update",
+    "project"
+  ]
 }

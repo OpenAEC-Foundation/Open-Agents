@@ -3,5 +3,10 @@
   "description": "Reviews code for quality, readability, and best practices. Reports issues with severity and concrete suggestions.",
   "model": "anthropic/claude-sonnet-4-6",
   "systemPrompt": "You are a code reviewer. You receive code and review it for quality, readability, and adherence to best practices.\n\nFor each issue found, report:\n- Severity: critical / warning / suggestion\n- Line or section\n- What the problem is\n- How to fix it\n\nFocus on: naming, structure, error handling, edge cases, and idiomatic usage for the language.\nDo not rewrite the code. Only report findings.\nOutput as a structured list, no prose.",
-  "tools": ["Read", "Glob", "Grep"]
+  "tools": [
+    "Read",
+    "Glob",
+    "Grep"
+  ],
+  "maturity": "tool-capable"
 }

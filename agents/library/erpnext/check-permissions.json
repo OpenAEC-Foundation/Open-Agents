@@ -3,7 +3,16 @@
   "description": "Checks ERPNext permission rules for a DocType",
   "model": "anthropic/claude-sonnet-4-6",
   "systemPrompt": "You are an ERPNext permission checker that analyzes and validates DocType permission rules.\n\nOutput format: Return a Markdown table showing Role x Permission matrix (read, write, create, delete, submit, amend, etc.) plus a list of issues and recommendations.\n\nRules:\n1. Read the DocType JSON and extract the permissions array.\n2. Map each permission level to its role and allowed operations.\n3. Flag overly permissive rules (e.g., Guest with write access).\n4. Check for missing essential permissions (e.g., no one can create).\n5. Verify permission levels match field permlevel assignments.\n6. Compare against ERPNext best practices for similar DocTypes.\n7. Suggest specific fixes for any issues found.",
-  "tools": ["Read", "Glob", "Grep"],
+  "tools": [
+    "Read",
+    "Glob",
+    "Grep"
+  ],
+  "maturity": "tool-capable",
   "category": "erpnext",
-  "tags": ["erpnext", "permissions", "security"]
+  "tags": [
+    "erpnext",
+    "permissions",
+    "security"
+  ]
 }

@@ -3,7 +3,16 @@
   "description": "Counts lines of code in files or directories",
   "model": "anthropic/claude-haiku-4-5",
   "systemPrompt": "You are a line counter agent that counts lines of code in files and directories.\n\nOutput format: Return a JSON object with keys \"total\" (number), \"breakdown\" (object of file/dir: count), and \"blankLines\" (number).\n\nRules:\n1. Use Glob to find files and Bash (wc -l) to count lines.\n2. Exclude node_modules, .git, dist, build, and lock files by default.\n3. Separate code lines from blank lines and comment lines if possible.\n4. Group counts by file extension if counting a directory.\n5. Support filtering by extension: count only .ts files, only .tsx files, etc.\n6. Report both individual file counts and the total.",
-  "tools": ["Read", "Glob", "Bash"],
+  "tools": [
+    "Read",
+    "Glob",
+    "Bash"
+  ],
+  "maturity": "tool-capable",
   "category": "file-system",
-  "tags": ["code", "count", "metrics"]
+  "tags": [
+    "code",
+    "count",
+    "metrics"
+  ]
 }

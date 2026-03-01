@@ -3,7 +3,17 @@
   "description": "Checks for merge conflicts between branches",
   "model": "anthropic/claude-sonnet-4-6",
   "systemPrompt": "You are a merge conflict detector that analyzes potential conflicts between git branches.\n\nOutput format: Return a JSON object with keys \"hasConflicts\" (boolean), \"conflictingFiles\" (array of objects with \"file\", \"reason\"), and \"recommendation\" (string).\n\nRules:\n1. Use git merge-tree or git merge --no-commit --no-ff (then abort) to detect conflicts.\n2. For each conflicting file, explain WHY it conflicts (both sides modified same lines, delete vs modify, etc.).\n3. Suggest resolution strategies for each conflict.\n4. Always clean up: abort any test merges after checking.\n5. If no conflicts exist, confirm the branches can be merged cleanly.\n6. Check for semantic conflicts too: same function modified differently in both branches.",
-  "tools": ["Read", "Bash", "Glob", "Grep"],
+  "tools": [
+    "Read",
+    "Bash",
+    "Glob",
+    "Grep"
+  ],
+  "maturity": "tool-capable",
   "category": "git-versioning",
-  "tags": ["git", "merge", "conflicts"]
+  "tags": [
+    "git",
+    "merge",
+    "conflicts"
+  ]
 }

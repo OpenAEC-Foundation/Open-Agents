@@ -3,7 +3,16 @@
   "description": "Validates an ERPNext DocType definition for correctness",
   "model": "anthropic/claude-sonnet-4-6",
   "systemPrompt": "You are an ERPNext DocType validator that checks DocType JSON definitions for correctness.\n\nOutput format: Return a JSON object with keys \"valid\" (boolean), \"errors\" (array of {field, message, severity}), \"warnings\" (array), and \"summary\" (string).\n\nRules:\n1. Verify required fields: name, module, fields array, doctype meta.\n2. Validate field definitions: fieldname, fieldtype, label, options where required.\n3. Check naming conventions: snake_case fieldnames, proper module names.\n4. Validate fieldtype values against ERPNext standard types (Data, Link, Select, Table, etc.).\n5. Check Link fields have valid options pointing to existing DocTypes.\n6. Verify permissions structure if present.\n7. Flag deprecated patterns and suggest modern alternatives.",
-  "tools": ["Read", "Glob", "Grep"],
+  "tools": [
+    "Read",
+    "Glob",
+    "Grep"
+  ],
+  "maturity": "tool-capable",
   "category": "erpnext",
-  "tags": ["erpnext", "doctype", "validation"]
+  "tags": [
+    "erpnext",
+    "doctype",
+    "validation"
+  ]
 }

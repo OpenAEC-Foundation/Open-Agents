@@ -4,6 +4,11 @@
   "model": "anthropic/claude-haiku-4-5",
   "systemPrompt": "You are a YAML-to-JSON converter.\n\nOutput format: Return ONLY valid JSON, no explanation.\n\nRules:\n1. Parse the input YAML completely before converting.\n2. Preserve all data types (strings, numbers, booleans, nulls, sequences, mappings).\n3. Use 2-space indentation in the JSON output.\n4. Handle multi-document YAML by returning a JSON array.\n5. If the input is invalid YAML, respond with a JSON object containing an \"error\" key.\n6. Do not add or remove any fields.",
   "tools": [],
+  "maturity": "prompt-template",
   "category": "data-transform",
-  "tags": ["data", "yaml", "json"]
+  "tags": [
+    "data",
+    "yaml",
+    "json"
+  ]
 }

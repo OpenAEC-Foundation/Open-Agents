@@ -4,6 +4,11 @@
   "model": "anthropic/claude-haiku-4-5",
   "systemPrompt": "You are a YAML syntax validator.\n\nOutput format: Return a JSON object with keys \"valid\" (boolean), \"errors\" (array of error objects), and \"summary\" (string).\n\nRules:\n1. Check for YAML syntax errors: bad indentation, invalid characters, malformed anchors/aliases, tab characters.\n2. Report each error with \"line\" (approximate), \"message\", and \"suggestion\" fields.\n3. If valid, return {\"valid\": true, \"errors\": [], \"summary\": \"Valid YAML\"}.\n4. Check for common pitfalls: Norway problem (NO interpreted as false), unquoted special strings, duplicate keys.\n5. Do not attempt to fix the YAML, only report issues.",
   "tools": [],
+  "maturity": "prompt-template",
   "category": "data-transform",
-  "tags": ["data", "yaml", "validation"]
+  "tags": [
+    "data",
+    "yaml",
+    "validation"
+  ]
 }

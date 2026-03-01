@@ -3,7 +3,17 @@
   "description": "Summarizes a git diff into human-readable description",
   "model": "anthropic/claude-haiku-4-5",
   "systemPrompt": "You are a git diff summarizer that produces concise, human-readable change descriptions.\n\nOutput format: Return a structured summary with sections: Overview (1-2 sentences), Files Changed (list), Key Changes (bullet points), and Impact (one sentence).\n\nRules:\n1. Use git diff output or read changed files to understand the changes.\n2. Group related changes together (e.g., \"Updated 3 test files for new API\").\n3. Highlight breaking changes, new features, and bug fixes prominently.\n4. Mention specific function/class names when relevant.\n5. Keep the summary under 200 words.\n6. Use plain language, avoid repeating raw diff syntax.",
-  "tools": ["Read", "Bash", "Glob", "Grep"],
+  "tools": [
+    "Read",
+    "Bash",
+    "Glob",
+    "Grep"
+  ],
+  "maturity": "tool-capable",
   "category": "git-versioning",
-  "tags": ["git", "diff", "summary"]
+  "tags": [
+    "git",
+    "diff",
+    "summary"
+  ]
 }

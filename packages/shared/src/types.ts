@@ -4,7 +4,7 @@
 // =============================================
 
 /** Supported model providers */
-export type ModelProvider = "anthropic" | "openai" | "mistral" | "ollama";
+export type ModelProvider = "anthropic" | "openai" | "mistral" | "ollama" | "cli";
 
 /** Provider-specific model identifiers */
 export type AnthropicModel = "claude-haiku-4-5" | "claude-sonnet-4-6" | "claude-opus-4-6";
@@ -16,11 +16,15 @@ export type OllamaModel = string; // user-installed models, not enumerable
  * Model identifier in "provider/model" format.
  * Examples: "anthropic/claude-sonnet-4-6", "mistral/mistral-large", "openai/o3"
  */
+/** CLI-based model (runs via VS Code bridge terminal) */
+export type CLIModel = "claude";
+
 export type ModelId =
   | `anthropic/${AnthropicModel}`
   | `openai/${OpenAIModel}`
   | `mistral/${MistralModel}`
-  | `ollama/${OllamaModel}`;
+  | `ollama/${OllamaModel}`
+  | `cli/${CLIModel}`;
 
 /** Tools that an agent can use */
 export type AgentTool =
@@ -33,6 +37,14 @@ export type AgentTool =
   | "WebSearch"
   | "WebFetch";
 
+/** Agent maturity level — describes how autonomous the agent is (D-042) */
+export type AgentMaturity = "prompt-template" | "tool-capable" | "autonomous";
+
+/** Derive maturity level from tools array when not explicitly set */
+export function deriveMaturity(tools: AgentTool[]): AgentMaturity {
+  return tools.length === 0 ? "prompt-template" : "tool-capable";
+}
+
 /** Runtime config for a node on the canvas. Minimal data needed for execution. See also AgentDefinition (library record) and AgentPreset (preset loader). */
 export interface AgentNodeData {
   name: string;
@@ -41,6 +53,7 @@ export interface AgentNodeData {
   maxTokens?: number;
   systemPrompt: string;
   tools: AgentTool[];
+  maturity?: AgentMaturity;
 }
 
 /**
@@ -147,7 +160,8 @@ export type SSEEventType =
   | "run:complete"
   | "run:paused"
   | "run:cancelled"
-  | "run:error:awaiting-decision";
+  | "run:error:awaiting-decision"
+  | "safety:violation";
 
 /** SSE event payload */
 export interface SSEEvent {
@@ -207,6 +221,35 @@ export const TOOL_DISPLAY: Record<SkillLevel, Record<AgentTool, ToolDisplayInfo>
     Grep:      { id: "Grep",      label: "Grep",      tooltip: "Grep tool — regex content search" },
     WebSearch: { id: "WebSearch", label: "WebSearch", tooltip: "WebSearch tool — web search" },
     WebFetch:  { id: "WebFetch",  label: "WebFetch",  tooltip: "WebFetch tool — fetch URL content" },
+  },
+};
+
+// =============================================
+// Maturity Display Metadata (D-042)
+// =============================================
+
+export interface MaturityDisplayInfo {
+  id: AgentMaturity;
+  label: string;
+  tooltip: string;
+  color: string;
+}
+
+export const MATURITY_DISPLAY: Record<SkillLevel, Record<AgentMaturity, MaturityDisplayInfo>> = {
+  beginner: {
+    "prompt-template": { id: "prompt-template", label: "Text only", tooltip: "Takes text in, gives text out", color: "bg-zinc-500" },
+    "tool-capable":    { id: "tool-capable",    label: "Has tools", tooltip: "Can use tools like reading files", color: "bg-blue-500" },
+    autonomous:        { id: "autonomous",      label: "Autonomous", tooltip: "Makes its own decisions", color: "bg-purple-500" },
+  },
+  intermediate: {
+    "prompt-template": { id: "prompt-template", label: "Template",    tooltip: "Single-turn prompt template", color: "bg-zinc-500" },
+    "tool-capable":    { id: "tool-capable",    label: "Tool-capable", tooltip: "Has tools, single-purpose", color: "bg-blue-500" },
+    autonomous:        { id: "autonomous",      label: "Autonomous",  tooltip: "Multi-turn with own decisions", color: "bg-purple-500" },
+  },
+  advanced: {
+    "prompt-template": { id: "prompt-template", label: "prompt-template", tooltip: "No tools, single-turn, text in/out", color: "bg-zinc-500" },
+    "tool-capable":    { id: "tool-capable",    label: "tool-capable",    tooltip: "Tools + single-purpose + limited autonomy", color: "bg-blue-500" },
+    autonomous:        { id: "autonomous",      label: "autonomous",      tooltip: "Tools + multi-turn loop + own decisions + skills", color: "bg-purple-500" },
   },
 };
 
@@ -287,6 +330,8 @@ export interface AgentPreset {
   category?: string;
   /** Tags for filtering */
   tags?: string[];
+  /** Agent maturity level (D-042) */
+  maturity?: AgentMaturity;
   /** Full agent configuration for the canvas */
   agent: AgentNodeData;
 }

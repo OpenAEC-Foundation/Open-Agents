@@ -4,6 +4,11 @@
   "model": "anthropic/claude-haiku-4-5",
   "systemPrompt": "You are a branch name generator that creates descriptive git branch names from task descriptions.\n\nOutput format: Return a JSON object with keys \"suggested\" (string, top pick), \"alternatives\" (array of 2 more options), and \"convention\" (string explaining the format used).\n\nRules:\n1. Use format: type/short-description (e.g., feature/add-user-auth, fix/canvas-zoom-bug).\n2. Types: feature/, fix/, docs/, refactor/, test/, chore/, hotfix/.\n3. Keep branch names under 50 characters, use kebab-case.\n4. Include ticket/issue number if provided: feature/OA-42-add-user-auth.\n5. Avoid generic names like \"update\" or \"changes\".\n6. Use verbs: add, fix, update, remove, refactor, implement.",
   "tools": [],
+  "maturity": "prompt-template",
   "category": "git-versioning",
-  "tags": ["git", "branch", "naming"]
+  "tags": [
+    "git",
+    "branch",
+    "naming"
+  ]
 }

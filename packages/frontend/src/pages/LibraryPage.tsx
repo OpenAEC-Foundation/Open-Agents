@@ -1,6 +1,6 @@
 import { useEffect, useState, type DragEvent } from "react";
-import type { AgentDefinition, AgentNodeData, SkillLevel } from "@open-agents/shared";
-import { getModelMeta } from "@open-agents/shared";
+import type { AgentDefinition, AgentNodeData, SkillLevel, AgentMaturity } from "@open-agents/shared";
+import { getModelMeta, MATURITY_DISPLAY } from "@open-agents/shared";
 import { useAppStore } from "../stores/appStore";
 
 type LibraryTab = "agents" | "patterns" | "skills" | "connectors" | "hooks" | "rules" | "models" | "templates" | "plugins" | "workspaces";
@@ -38,6 +38,7 @@ function onDragStart(e: DragEvent, agent: AgentDefinition) {
     systemPrompt: agent.systemPrompt,
     tools: agent.tools,
     description: agent.description,
+    maturity: agent.maturity,
   };
   e.dataTransfer.setData(
     "application/open-agents-preset",
@@ -56,6 +57,8 @@ export function LibraryPage() {
   const categories = useAppStore((s) => s.categories);
   const selectedCategory = useAppStore((s) => s.selectedCategory);
   const setSelectedCategory = useAppStore((s) => s.setSelectedCategory);
+  const selectedMaturity = useAppStore((s) => s.selectedMaturity);
+  const setSelectedMaturity = useAppStore((s) => s.setSelectedMaturity);
 
   const [activeLibTab, setActiveLibTab] = useState<LibraryTab>("agents");
   const [search, setSearch] = useState("");
@@ -66,8 +69,15 @@ export function LibraryPage() {
     fetchAgents();
   }, [fetchAgents]);
 
+  const maturityCounts = agents.reduce<Record<string, number>>((acc, a) => {
+    const mat = a.maturity ?? "unknown";
+    acc[mat] = (acc[mat] ?? 0) + 1;
+    return acc;
+  }, {});
+
   const filteredAgents = agents.filter((a) => {
     if (selectedCategory && a.category !== selectedCategory) return false;
+    if (selectedMaturity && a.maturity !== selectedMaturity) return false;
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -169,6 +179,38 @@ export function LibraryPage() {
           ))}
         </div>
 
+        {/* Maturity filter bar */}
+        <div className="px-6 py-2 border-b border-border-default flex items-center gap-2 overflow-x-auto">
+          <span className="text-text-muted text-xs shrink-0 mr-1">Maturity:</span>
+          <button
+            onClick={() => setSelectedMaturity(null)}
+            className={`px-3 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${
+              selectedMaturity === null
+                ? "bg-accent-primary text-text-primary"
+                : "bg-surface-overlay text-text-secondary hover:bg-surface-overlay/80"
+            }`}
+          >
+            All
+          </button>
+          {(["prompt-template", "tool-capable", "autonomous"] as AgentMaturity[]).map((mat) => {
+            const display = MATURITY_DISPLAY[skillLevel][mat];
+            return (
+              <button
+                key={mat}
+                onClick={() => setSelectedMaturity(mat)}
+                className={`px-3 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${
+                  selectedMaturity === mat
+                    ? "bg-accent-primary text-text-primary"
+                    : "bg-surface-overlay text-text-secondary hover:bg-surface-overlay/80"
+                }`}
+                title={display.tooltip}
+              >
+                {display.label} ({maturityCounts[mat] ?? 0})
+              </button>
+            );
+          })}
+        </div>
+
         {/* Agent grid/list */}
         <div className="flex-1 overflow-y-auto p-6">
           {agentsLoading ? (
@@ -244,9 +286,9 @@ function AgentCard({ agent, skillLevel, onSelect, onDelete }: {
             {categoryLabels[agent.category] ?? agent.category}
           </span>
         )}
-        {agent.source === "library" && (
-          <span className="text-xs text-accent-primary bg-accent-primary/10 px-1.5 py-0.5 rounded">
-            Library
+        {agent.maturity && (
+          <span className={`text-xs text-white px-1.5 py-0.5 rounded ${MATURITY_DISPLAY[skillLevel][agent.maturity].color}`}>
+            {MATURITY_DISPLAY[skillLevel][agent.maturity].label}
           </span>
         )}
         <span className="text-xs text-text-muted ml-auto">
@@ -286,8 +328,13 @@ function AgentListRow({ agent, skillLevel, onSelect, onDelete }: {
         {meta.labels[skillLevel]}
       </span>
       <span className="text-xs text-text-muted bg-surface-overlay px-1.5 py-0.5 rounded shrink-0">
-        {categoryLabels[agent.category ?? ""] ?? agent.category ?? "—"}
+        {categoryLabels[agent.category ?? ""] ?? agent.category ?? "\u2014"}
       </span>
+      {agent.maturity && (
+        <span className={`text-xs text-white px-1.5 py-0.5 rounded shrink-0 ${MATURITY_DISPLAY[skillLevel][agent.maturity].color}`}>
+          {MATURITY_DISPLAY[skillLevel][agent.maturity].label}
+        </span>
+      )}
       <p className="text-text-tertiary text-xs flex-1 truncate">{agent.description}</p>
       <span className="text-xs text-text-muted">{agent.tools.length} tools</span>
       {!agent.readonly && (
@@ -340,6 +387,17 @@ function AgentDetailPanel({ agent, skillLevel, onClose }: {
           <div>
             <label className="text-text-muted text-xs">Source</label>
             <p className="text-text-secondary text-sm mt-1 capitalize">{agent.source}</p>
+          </div>
+        )}
+        {agent.maturity && (
+          <div>
+            <label className="text-text-muted text-xs">Maturity</label>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`text-xs text-white px-1.5 py-0.5 rounded ${MATURITY_DISPLAY[skillLevel][agent.maturity].color}`}>
+                {MATURITY_DISPLAY[skillLevel][agent.maturity].label}
+              </span>
+              <span className="text-xs text-text-muted">{MATURITY_DISPLAY[skillLevel][agent.maturity].tooltip}</span>
+            </div>
           </div>
         )}
         <div>

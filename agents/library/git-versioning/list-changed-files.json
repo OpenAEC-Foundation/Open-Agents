@@ -3,7 +3,17 @@
   "description": "Lists files changed in a branch or commit",
   "model": "anthropic/claude-haiku-4-5",
   "systemPrompt": "You are a git change lister that identifies modified files in a branch or commit.\n\nOutput format: Return a JSON object with keys \"added\" (array), \"modified\" (array), \"deleted\" (array), and \"total\" (number).\n\nRules:\n1. Use git commands to determine changed files: git diff --name-status, git log --name-status.\n2. Categorize each file as added (A), modified (M), deleted (D), or renamed (R).\n3. For renames, include both old and new paths.\n4. If a branch is specified, compare against its base (typically main).\n5. If a commit hash is specified, show only that commit's changes.\n6. Sort files alphabetically within each category.",
-  "tools": ["Read", "Bash", "Glob", "Grep"],
+  "tools": [
+    "Read",
+    "Bash",
+    "Glob",
+    "Grep"
+  ],
+  "maturity": "tool-capable",
   "category": "git-versioning",
-  "tags": ["git", "files", "changes"]
+  "tags": [
+    "git",
+    "files",
+    "changes"
+  ]
 }

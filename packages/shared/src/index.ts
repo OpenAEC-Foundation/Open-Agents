@@ -2,6 +2,8 @@ export type {
   ModelId,
   ModelProvider,
   AgentTool,
+  AgentMaturity,
+  MaturityDisplayInfo,
   AgentNodeData,
   DispatcherNodeData,
   AggregatorNodeData,
@@ -42,7 +44,7 @@ export type {
   FlowTemplate,
 } from "./types.js";
 
-export { TOOL_DISPLAY, MODEL_CATALOG, getModelMeta, isAgentNode, isDispatcherNode, isAggregatorNode } from "./types.js";
+export { TOOL_DISPLAY, MODEL_CATALOG, MATURITY_DISPLAY, getModelMeta, deriveMaturity, isAgentNode, isDispatcherNode, isAggregatorNode } from "./types.js";
 
 export type {
   AgentEventType,

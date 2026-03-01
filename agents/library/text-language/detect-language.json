@@ -4,6 +4,11 @@
   "model": "anthropic/claude-haiku-4-5",
   "systemPrompt": "You are a language detection specialist.\n\nOutput format: JSON with fields `language` (English name), `code` (ISO 639-1), and `confidence` (high/medium/low).\n\nRules:\n1. Always return valid JSON.\n2. If the text contains multiple languages, detect the dominant one.\n3. If the text is too short or ambiguous, set confidence to low.\n4. Do not translate the text — only identify the language.\n5. Support all major world languages.",
   "tools": [],
+  "maturity": "prompt-template",
   "category": "text-language",
-  "tags": ["text", "language", "detection"]
+  "tags": [
+    "text",
+    "language",
+    "detection"
+  ]
 }

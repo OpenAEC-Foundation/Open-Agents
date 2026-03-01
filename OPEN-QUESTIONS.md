@@ -77,6 +77,16 @@
 
 ---
 
+## Strategische Vragen (uit platform beoordeling 2026-03-05)
+
+- **Niche keuze / differentiatie**: Waarom Open-Agents i.p.v. Dify (180K devs), Langflow (IBM-backed, 100K stars), of n8n (200K community)? Huidige kandidaat-differentiators: (1) Laag 3 workspace engineering, (2) Claude Code native, (3) ERPNext focus. Welke kiezen we?
+- **Laag 3 (D-024/D-025) realisme**: Docker workspace engineering (6-layer stack per container) is het enige dat ons echt onderscheidt van concurrenten (zij doen alleen Laag 1). Maar het is nog 0% gebouwd. Is dit haalbaar, en zo ja wanneer? Docker Sandboxes (microVMs) als mogelijke shortcut evalueren.
+- **Non-Claude tool calling gap (D-032)**: 3 van 4 runtime adapters (OpenAI, Mistral, Ollama) zijn text-in/text-out only — geen tool calling. In een platform gebouwd rond agent orchestratie is dit een fundamentele beperking. OpenAI Agents SDK en Google ADK ondersteunen beide tool calling. Prioriteit voor v0.1.0?
+- **Google A2A protocol**: Agent-to-Agent protocol standaardiseert agent communicatie (discovery, capabilities, interactie). Google positioneert MCP (tools) + A2A (agent-agent) als complementaire standaarden. Moeten we A2A ondersteunen naast MCP?
+- **Agent Maturity Model implementatie (D-042)**: Hoe migreren we de 90 bestaande library agents naar het maturity model? Handmatig taggen of automatisch afleiden op basis van tools array?
+
+---
+
 ## Research Nog Uit Te Voeren
 
 - **Claude Agent SDK V2 stabiliteit**: Wanneer wordt de V2 session API (unstable_v2_*) stable? Welke breaking changes zijn gepland? *(Kritiek voor Sprint 3.3 session management)*

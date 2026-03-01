@@ -116,6 +116,7 @@ export interface FactorySlice {
   agentsLoading: boolean;
   categories: string[];
   selectedCategory: string | null;
+  selectedMaturity: string | null;
 
   // LLM Generator state (Fase 2.4)
   generatorOpen: boolean;
@@ -138,8 +139,9 @@ export interface FactorySlice {
   updateGeneratorDraft: (patch: Partial<AgentDefinition>) => void;
   acceptGeneratorDraft: () => Promise<void>;
 
-  // Category filter
+  // Category + maturity filter
   setSelectedCategory: (category: string | null) => void;
+  setSelectedMaturity: (maturity: string | null) => void;
 
   // Agent CRUD
   fetchAgents: () => Promise<void>;

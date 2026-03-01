@@ -13,6 +13,7 @@ export const createFactorySlice: SliceCreator<FactorySlice> = (set, get) => ({
   agentsLoading: false,
   categories: [],
   selectedCategory: null,
+  selectedMaturity: null,
 
   // Generator state (Fase 2.4)
   generatorOpen: false,
@@ -194,6 +195,10 @@ export const createFactorySlice: SliceCreator<FactorySlice> = (set, get) => ({
 
   setSelectedCategory: (category) => set((state) => {
     state.selectedCategory = category;
+  }),
+
+  setSelectedMaturity: (maturity) => set((state) => {
+    state.selectedMaturity = maturity;
   }),
 
   fetchAgents: async () => {

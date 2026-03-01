@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { AgentDefinition, AgentPreset, ModelId, AgentTool } from "@open-agents/shared";
+import { deriveMaturity } from "@open-agents/shared";
 import { nanoid } from "nanoid";
 import { loadPresets } from "../preset-loader.js";
 import { loadLibrary } from "../library-loader.js";
@@ -17,6 +18,7 @@ function seedFromPresets(presets: AgentPreset[], source: "preset" | "library") {
       model: preset.agent.model,
       systemPrompt: preset.agent.systemPrompt,
       tools: preset.agent.tools,
+      maturity: preset.maturity ?? preset.agent.maturity ?? deriveMaturity(preset.agent.tools),
       category: preset.category,
       tags: preset.tags,
       source,
@@ -49,13 +51,15 @@ export async function agentRoutes(app: FastifyInstance) {
       return { error: "Required fields: name, systemPrompt, model, tools" };
     }
 
+    const tools = body.tools as AgentTool[];
     const agent: AgentDefinition = {
       id: nanoid(),
       name: body.name,
       description: body.description ?? "",
       model: body.model as ModelId,
       systemPrompt: body.systemPrompt,
-      tools: body.tools as AgentTool[],
+      tools,
+      maturity: body.maturity ?? deriveMaturity(tools),
       category: body.category,
       tags: body.tags,
       source: "user",
@@ -68,17 +72,20 @@ export async function agentRoutes(app: FastifyInstance) {
   });
 
   // List all agents with optional filtering
-  app.get<{ Querystring: { category?: string; search?: string; source?: string } }>(
+  app.get<{ Querystring: { category?: string; search?: string; source?: string; maturity?: string } }>(
     "/agents",
     async (request) => {
       let result = Array.from(agents.values());
 
-      const { category, search, source } = request.query;
+      const { category, search, source, maturity } = request.query;
       if (category) {
         result = result.filter((a) => a.category === category);
       }
       if (source) {
         result = result.filter((a) => a.source === source);
+      }
+      if (maturity) {
+        result = result.filter((a) => a.maturity === maturity);
       }
       if (search) {
         const q = search.toLowerCase();
