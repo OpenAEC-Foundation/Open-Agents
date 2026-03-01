@@ -40,7 +40,7 @@
 **Fase 5 (Deployment)**: ████████████████████ **100%** - VS Code extension (Sprint 7) + Frappe app (Sprint 8)
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 7 (Agent Library)**: ██░░░░░░░░░░░░░░░░░░ **9%** - 90/1000 agents geïmplementeerd (10 categorieën, library loader)
-**Fase 8 (Refactor)**: ████████████░░░░░░░░ **56%** - 9/16 taken afgerond (audit, types, memory, CI/CD, backend + frontend DRY)
+**Fase 8 (Refactor)**: ██████████████░░░░░░ **67%** - 12/18 taken afgerond (audit, types, memory, CI/CD, DRY, tests, README, CHANGELOG)
 
 ---
 
@@ -195,9 +195,11 @@
 - [x] Missing @dagrejs/dagre dependency fix (backend typecheck)
 - [x] Backend refactor — SSE utilities (sse.ts), KnowledgeRegistry singleton, assemblyRoutes registration fix
 - [x] Frontend refactor — getNodeBorderStyle extractie, nodeBorderStyle DRY across 3 node components
-- [ ] Test suite uitbreiden
+- [x] Test suite basis (types.test.ts — 15 tests voor type guards, MODEL_CATALOG, getModelMeta, TOOL_DISPLAY)
+- [ ] Test suite uitbreiden (execution engine, routes, frontend components)
 - [ ] API documentatie (OpenAPI/Swagger)
-- [ ] README + CONTRIBUTING + CHANGELOG
+- [x] README.md herschreven (features, architectuur, API endpoints, setup)
+- [x] CHANGELOG.md aangemaakt (Keep a Changelog format, Sprint 1-10)
 - [ ] v0.1.0 release
 - [ ] NodeType uitbreiden naar D-023 specificatie (teammate, skill, connector, gate)
 - [ ] testCommand() wiring in execution engine (D-035 bash enforcement gap)
