@@ -1,5 +1,5 @@
 import { type DragEvent, useEffect, useState } from "react";
-import type { AgentNodeData, AgentPreset } from "@open-agents/shared";
+import type { AgentPreset, DispatcherNodeData, AggregatorNodeData, NodeType } from "@open-agents/shared";
 import { getModelMeta } from "@open-agents/shared";
 import { useAppStore } from "../stores/appStore";
 import { getApiBase } from "../services/apiConfig";
@@ -53,10 +53,25 @@ const fallbackPresets: AgentPreset[] = [
   },
 ];
 
-function onDragStart(e: DragEvent, agent: AgentNodeData) {
+const defaultDispatcher: DispatcherNodeData & { _nodeType: NodeType } = {
+  _nodeType: "dispatcher",
+  name: "Dispatcher",
+  routingPrompt: "Classify the following task and determine which specialist(s) should handle it. Available specialists: {connected_agent_names}. Respond with a JSON object: { \"selectedAgents\": [\"agent-id\"], \"reasoning\": \"...\" }",
+  routingModel: "anthropic/claude-haiku-4-5",
+  maxParallel: 3,
+  timeoutMs: 300000,
+};
+
+const defaultAggregator: AggregatorNodeData & { _nodeType: NodeType } = {
+  _nodeType: "aggregator",
+  name: "Aggregator",
+  aggregationStrategy: "concatenate",
+};
+
+function onDragStart(e: DragEvent, data: object) {
   e.dataTransfer.setData(
     "application/open-agents-preset",
-    JSON.stringify(agent),
+    JSON.stringify(data),
   );
   e.dataTransfer.effectAllowed = "move";
 }
@@ -78,6 +93,45 @@ export function Sidebar() {
 
   return (
     <aside className="w-60 bg-surface-raised border-r border-border-default flex flex-col shrink-0 overflow-y-auto">
+      {/* Orchestration nodes */}
+      <div className="px-4 py-3 border-b border-border-default">
+        <h2 className="text-text-secondary text-sm font-semibold">Orchestration</h2>
+        <p className="text-text-muted text-xs mt-1">
+          Drag to canvas
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2 p-3 border-b border-border-default">
+        <div
+          className="bg-surface-overlay border border-amber-800/40 rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-amber-500/50 transition-colors"
+          draggable
+          onDragStart={(e) => onDragStart(e, defaultDispatcher)}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-amber-400 text-sm">&#8644;</span>
+            <span className="text-text-primary text-sm font-medium">Dispatcher</span>
+          </div>
+          <p className="text-text-tertiary text-xs mt-1">
+            {skillLevel === "beginner" ? "Routes tasks to the right agents" : "LLM-based task routing"}
+          </p>
+        </div>
+
+        <div
+          className="bg-surface-overlay border border-cyan-800/40 rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-cyan-500/50 transition-colors"
+          draggable
+          onDragStart={(e) => onDragStart(e, defaultAggregator)}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-cyan-400 text-sm">&#8721;</span>
+            <span className="text-text-primary text-sm font-medium">Aggregator</span>
+          </div>
+          <p className="text-text-tertiary text-xs mt-1">
+            {skillLevel === "beginner" ? "Combines agent outputs" : "Merge parallel outputs"}
+          </p>
+        </div>
+      </div>
+
+      {/* Agent presets */}
       <div className="px-4 py-3 border-b border-border-default">
         <h2 className="text-text-secondary text-sm font-semibold">Agent Types</h2>
         <p className="text-text-muted text-xs mt-1">

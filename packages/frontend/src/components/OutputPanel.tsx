@@ -16,6 +16,13 @@ const statusBadgeClasses: Record<ExecutionStatus, string> = {
   cancelled: "bg-zinc-600 text-zinc-300",
 };
 
+/** Derive a display label from a node ID (e.g. "dispatcher-3" → "Dispatcher 3") */
+function nodeLabel(nodeId: string): { label: string; icon: string | null } {
+  if (nodeId.startsWith("dispatcher-")) return { label: `Dispatcher ${nodeId.split("-")[1]}`, icon: "\u21C4" };
+  if (nodeId.startsWith("aggregator-")) return { label: `Aggregator ${nodeId.split("-")[1]}`, icon: "\u2211" };
+  return { label: nodeId, icon: null };
+}
+
 export function OutputPanel() {
   const activeRun = useAppStore((s) => s.activeRun);
   const nodeStatuses = useAppStore((s) => s.nodeStatuses);
@@ -140,8 +147,13 @@ export function OutputPanel() {
                 >
                   {status}
                 </span>
+                {nodeLabel(step.nodeId).icon && (
+                  <span className={`text-xs shrink-0 ${
+                    step.nodeId.startsWith("dispatcher") ? "text-amber-400" : "text-cyan-400"
+                  }`}>{nodeLabel(step.nodeId).icon}</span>
+                )}
                 <span className="text-text-primary text-sm font-medium truncate">
-                  {step.nodeId}
+                  {nodeLabel(step.nodeId).label}
                 </span>
                 {elapsed !== undefined && (
                   <span className="ml-auto text-xs text-text-muted tabular-nums">

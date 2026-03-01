@@ -4,7 +4,7 @@ import {
   applyEdgeChanges,
   type Node,
 } from "@xyflow/react";
-import type { AgentNodeData, CanvasConfig } from "@open-agents/shared";
+import type { CanvasNodeData, CanvasConfig, NodeType } from "@open-agents/shared";
 import type { SliceCreator, CanvasSlice } from "../types";
 
 const initialNodes: Node[] = [
@@ -67,12 +67,13 @@ export const createCanvasSlice: SliceCreator<CanvasSlice> = (set, get) => ({
     get().pushHistory("Edge added");
   },
 
-  addNode: (data, position) => {
+  addNode: (data, position, type: NodeType = "agent") => {
     const counter = get().nodeIdCounter;
-    const id = `agent-${counter}`;
+    const prefix = type === "dispatcher" ? "dispatcher" : type === "aggregator" ? "aggregator" : "agent";
+    const id = `${prefix}-${counter}`;
     const newNode: Node = {
       id,
-      type: "agent",
+      type,
       position,
       data: data as unknown as Record<string, unknown>,
     };
@@ -117,7 +118,7 @@ export const createCanvasSlice: SliceCreator<CanvasSlice> = (set, get) => ({
         id: n.id,
         type: (n.type ?? "agent") as CanvasConfig["nodes"][number]["type"],
         position: n.position,
-        data: n.data as unknown as AgentNodeData,
+        data: n.data as unknown as CanvasNodeData,
       })),
       edges: edges.map((e) => ({
         id: e.id,

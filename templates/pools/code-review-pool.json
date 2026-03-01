@@ -1,0 +1,71 @@
+{
+  "id": "code-review-pool",
+  "name": "Code Review Pool",
+  "description": "Dispatcher routes code to specialist reviewers (security, quality, performance), Aggregator merges findings.",
+  "nodes": [
+    {
+      "id": "dispatcher-1",
+      "type": "dispatcher",
+      "position": { "x": 100, "y": 200 },
+      "data": {
+        "name": "Review Router",
+        "routingPrompt": "Classify the code review task. Determine which specialist reviewers should analyze it based on the code type and concerns. Available specialists: {connected_agent_names}. Respond with JSON: { \"selectedAgents\": [...ids], \"reasoning\": \"...\" }",
+        "routingModel": "anthropic/claude-haiku-4-5",
+        "maxParallel": 3,
+        "timeoutMs": 300000
+      }
+    },
+    {
+      "id": "agent-1",
+      "type": "agent",
+      "position": { "x": 450, "y": 50 },
+      "data": {
+        "name": "Security Reviewer",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "Review the code for security vulnerabilities: injection attacks, authentication issues, data exposure, OWASP top 10. Provide specific findings with severity ratings.",
+        "tools": ["Read", "Glob", "Grep"]
+      }
+    },
+    {
+      "id": "agent-2",
+      "type": "agent",
+      "position": { "x": 450, "y": 200 },
+      "data": {
+        "name": "Quality Reviewer",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "Review the code for quality: naming conventions, code duplication, complexity, SOLID principles, error handling. Suggest concrete improvements.",
+        "tools": ["Read", "Glob", "Grep"]
+      }
+    },
+    {
+      "id": "agent-3",
+      "type": "agent",
+      "position": { "x": 450, "y": 350 },
+      "data": {
+        "name": "Performance Reviewer",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "Review the code for performance issues: N+1 queries, unnecessary allocations, blocking operations, missing caching, inefficient algorithms. Provide benchmarks where possible.",
+        "tools": ["Read", "Glob", "Grep"]
+      }
+    },
+    {
+      "id": "aggregator-1",
+      "type": "aggregator",
+      "position": { "x": 800, "y": 200 },
+      "data": {
+        "name": "Review Summary",
+        "aggregationStrategy": "synthesize",
+        "aggregationModel": "anthropic/claude-sonnet-4-6",
+        "aggregationPrompt": "Synthesize the specialist code review findings into a unified report. Organize by severity (critical → info). Deduplicate overlapping findings. Include an executive summary and actionable next steps."
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-d-a1", "source": "dispatcher-1", "target": "agent-1" },
+    { "id": "e-d-a2", "source": "dispatcher-1", "target": "agent-2" },
+    { "id": "e-d-a3", "source": "dispatcher-1", "target": "agent-3" },
+    { "id": "e-a1-agg", "source": "agent-1", "target": "aggregator-1" },
+    { "id": "e-a2-agg", "source": "agent-2", "target": "aggregator-1" },
+    { "id": "e-a3-agg", "source": "agent-3", "target": "aggregator-1" }
+  ]
+}

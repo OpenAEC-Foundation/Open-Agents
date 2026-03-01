@@ -11,6 +11,8 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import { AgentNode } from "../components/AgentNode";
+import { DispatcherNode } from "../components/DispatcherNode";
+import { AggregatorNode } from "../components/AggregatorNode";
 import { Sidebar } from "../components/Sidebar";
 import { ChatPanel } from "../components/ChatPanel";
 import { OutputPanel } from "../components/OutputPanel";
@@ -18,9 +20,9 @@ import { ExecutionToolbar } from "../components/ExecutionToolbar";
 import { ErrorDecisionDialog } from "../components/ErrorDecisionDialog";
 import { GenerateBar } from "../components/GenerateBar";
 import { useAppStore } from "../stores/appStore";
-import type { AgentNodeData } from "@open-agents/shared";
+import type { CanvasNodeData, NodeType } from "@open-agents/shared";
 
-const nodeTypes = { agent: AgentNode };
+const nodeTypes = { agent: AgentNode, dispatcher: DispatcherNode, aggregator: AggregatorNode };
 
 export function CanvasPage() {
   const nodes = useAppStore((s) => s.nodes);
@@ -46,14 +48,17 @@ export function CanvasPage() {
       const raw = e.dataTransfer.getData("application/open-agents-preset");
       if (!raw) return;
 
-      const data = JSON.parse(raw) as AgentNodeData;
+      const parsed = JSON.parse(raw) as { _nodeType?: NodeType } & CanvasNodeData;
+      const nodeType: NodeType = parsed._nodeType ?? "agent";
+      // Strip the meta field before passing to store
+      const { _nodeType, ...data } = parsed;
       const bounds = reactFlowWrapper.current?.getBoundingClientRect();
       if (!bounds) return;
 
-      addNode(data, {
+      addNode(data as CanvasNodeData, {
         x: e.clientX - bounds.left - 120,
         y: e.clientY - bounds.top - 40,
-      });
+      }, nodeType);
     },
     [addNode],
   );

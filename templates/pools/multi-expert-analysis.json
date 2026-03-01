@@ -1,0 +1,71 @@
+{
+  "id": "multi-expert-analysis",
+  "name": "Multi-Expert Analysis",
+  "description": "Dispatcher routes questions to domain experts (technical, business, UX), Aggregator synthesizes perspectives.",
+  "nodes": [
+    {
+      "id": "dispatcher-1",
+      "type": "dispatcher",
+      "position": { "x": 100, "y": 150 },
+      "data": {
+        "name": "Expert Router",
+        "routingPrompt": "Analyze the question or task. Determine which domain expert(s) are best suited to answer. Consider whether multiple perspectives are needed. Available experts: {connected_agent_names}. Respond with JSON: { \"selectedAgents\": [...ids], \"reasoning\": \"...\" }",
+        "routingModel": "anthropic/claude-haiku-4-5",
+        "maxParallel": 3,
+        "timeoutMs": 300000
+      }
+    },
+    {
+      "id": "agent-1",
+      "type": "agent",
+      "position": { "x": 450, "y": 50 },
+      "data": {
+        "name": "Technical Expert",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a senior software architect. Analyze from a technical perspective: architecture, implementation feasibility, technical debt, scalability, and engineering best practices.",
+        "tools": ["Read", "Glob", "Grep", "WebSearch"]
+      }
+    },
+    {
+      "id": "agent-2",
+      "type": "agent",
+      "position": { "x": 450, "y": 200 },
+      "data": {
+        "name": "Business Analyst",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a business analyst. Analyze from a business perspective: ROI, market fit, user impact, competitive advantage, and strategic alignment.",
+        "tools": ["Read", "WebSearch"]
+      }
+    },
+    {
+      "id": "agent-3",
+      "type": "agent",
+      "position": { "x": 450, "y": 350 },
+      "data": {
+        "name": "UX Researcher",
+        "model": "anthropic/claude-sonnet-4-6",
+        "systemPrompt": "You are a UX researcher. Analyze from a user experience perspective: usability, accessibility, user flows, pain points, and design patterns.",
+        "tools": ["Read", "WebSearch"]
+      }
+    },
+    {
+      "id": "aggregator-1",
+      "type": "aggregator",
+      "position": { "x": 800, "y": 200 },
+      "data": {
+        "name": "Synthesis",
+        "aggregationStrategy": "synthesize",
+        "aggregationModel": "anthropic/claude-sonnet-4-6",
+        "aggregationPrompt": "Synthesize the expert perspectives into a balanced recommendation. Highlight consensus points, note disagreements, and provide a prioritized action plan that addresses technical, business, and UX concerns."
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-d-a1", "source": "dispatcher-1", "target": "agent-1" },
+    { "id": "e-d-a2", "source": "dispatcher-1", "target": "agent-2" },
+    { "id": "e-d-a3", "source": "dispatcher-1", "target": "agent-3" },
+    { "id": "e-a1-agg", "source": "agent-1", "target": "aggregator-1" },
+    { "id": "e-a2-agg", "source": "agent-2", "target": "aggregator-1" },
+    { "id": "e-a3-agg", "source": "agent-3", "target": "aggregator-1" }
+  ]
+}

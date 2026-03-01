@@ -134,6 +134,22 @@ export const createExecutionSlice: SliceCreator<ExecutionSlice> = (set, get) => 
               } catch { /* ignore parse errors */ }
             }
             break;
+          case "pool:start":
+            if (event.nodeId) {
+              set((state) => {
+                state.nodeStatuses[event.nodeId!] = "completed";
+                state.nodeOutputs[event.nodeId!] = event.data ?? "Pool routing complete";
+              });
+            }
+            break;
+          case "pool:complete":
+            if (event.nodeId) {
+              set((state) => {
+                state.nodeOutputs[event.nodeId!] =
+                  (state.nodeOutputs[event.nodeId!] ?? "") + "\n" + (event.data ?? "");
+              });
+            }
+            break;
           case "run:paused":
             set((state) => {
               state.isRunning = false;
@@ -242,7 +258,7 @@ export const createExecutionSlice: SliceCreator<ExecutionSlice> = (set, get) => 
 
     const nodes: Node[] = template.nodes.map((n) => ({
       id: idMap.get(n.id)!,
-      type: "agent",
+      type: n.type ?? "agent",
       position: n.position,
       data: n.data as unknown as Record<string, unknown>,
     }));
