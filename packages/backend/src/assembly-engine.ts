@@ -14,6 +14,7 @@ import type {
   RoutingPattern,
   ModelId,
   AgentTool,
+  AgentNodeData,
 } from "@open-agents/shared";
 import {
   KnowledgeRegistry,
@@ -335,8 +336,9 @@ Generate a concrete agent graph for this task following the pattern structure.`;
 
   // Ensure at least basic tools if none survived validation
   for (const node of nodes) {
-    if (node.data.tools.length === 0) {
-      node.data.tools = ["Read", "Glob", "Grep"];
+    const agentData = node.data as AgentNodeData;
+    if (agentData.tools.length === 0) {
+      agentData.tools = ["Read", "Glob", "Grep"];
     }
   }
 

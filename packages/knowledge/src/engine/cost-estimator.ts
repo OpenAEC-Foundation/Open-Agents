@@ -8,7 +8,9 @@ import type {
   ModelId,
   ModelProfile,
   NodeCostBreakdown,
+  AgentNodeData,
 } from "@open-agents/shared";
+import { isAgentNode } from "@open-agents/shared";
 import { estimateSystemTokens } from "./token-budget.js";
 
 /** Estimated tokens produced by each predecessor node as inbound context */
@@ -44,14 +46,18 @@ export function estimateCost(
   let totalCostUSD = 0;
 
   for (const node of config.nodes) {
-    const profile = getModelProfile(node.data.model);
+    // Cost estimation only applies to agent nodes (dispatcher/aggregator costs not yet modeled)
+    if (!isAgentNode(node)) continue;
+    const agentData = node.data as AgentNodeData;
+
+    const profile = getModelProfile(agentData.model);
 
     if (!profile) {
       // Unknown model — include in breakdown with zero cost
       breakdown.push({
         nodeId: node.id,
-        nodeName: node.data.name,
-        model: node.data.model,
+        nodeName: agentData.name,
+        model: agentData.model,
         estimatedInputTokens: 0,
         estimatedOutputTokens: 0,
         costUSD: 0,
@@ -61,8 +67,8 @@ export function estimateCost(
 
     // Input tokens: system prompt + tools + inbound context from predecessors
     const systemTokens = estimateSystemTokens(
-      node.data.systemPrompt,
-      node.data.tools,
+      agentData.systemPrompt,
+      agentData.tools,
     );
     const predecessors = inboundCount.get(node.id) ?? 0;
     const inboundContextTokens = predecessors * PREDECESSOR_OUTPUT_TOKENS;
@@ -70,7 +76,7 @@ export function estimateCost(
 
     // Output tokens: explicit maxTokens or half of model max output
     const outputTokens =
-      node.data.maxTokens ?? Math.floor(profile.maxOutput / 2);
+      agentData.maxTokens ?? Math.floor(profile.maxOutput / 2);
 
     // Cost calculation
     const costUSD =
@@ -79,8 +85,8 @@ export function estimateCost(
 
     breakdown.push({
       nodeId: node.id,
-      nodeName: node.data.name,
-      model: node.data.model,
+      nodeName: agentData.name,
+      model: agentData.model,
       estimatedInputTokens: inputTokens,
       estimatedOutputTokens: outputTokens,
       costUSD,

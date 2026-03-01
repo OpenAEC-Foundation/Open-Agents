@@ -58,9 +58,9 @@ export const createAssemblySlice: SliceCreator<AssemblySlice> = (set, get) => ({
     // Convert to React Flow nodes/edges
     const rfNodes: Node[] = configNodes.map((n) => ({
       id: n.id,
-      type: "agent",
+      type: "agent" as const,
       position: n.position,
-      data: n.data,
+      data: n.data as unknown as Record<string, unknown>,
     }));
 
     const rfEdges: Edge[] = configEdges.map((e) => ({

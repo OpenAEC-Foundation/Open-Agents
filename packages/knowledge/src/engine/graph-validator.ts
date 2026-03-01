@@ -8,7 +8,10 @@ import type {
   ModelProfile,
   ValidationIssue,
   ValidationResult,
+  AgentNodeData,
+  AgentTool,
 } from "@open-agents/shared";
+import { isAgentNode } from "@open-agents/shared";
 import { estimateSystemTokens } from "./token-budget.js";
 
 /**
@@ -144,52 +147,55 @@ export function validateGraph(
     }
   }
 
-  // ---- Node-level rules ----
+  // ---- Node-level rules (agent nodes only — dispatcher/aggregator have different rules) ----
   for (const node of config.nodes) {
-    const profile = getModelProfile(node.data.model);
+    if (!isAgentNode(node)) continue;
+    const agentData = node.data as AgentNodeData;
+
+    const profile = getModelProfile(agentData.model);
 
     // Rule: invalid-model
     if (!profile) {
       errors.push({
         severity: "error",
         nodeId: node.id,
-        message: `Unknown model "${node.data.model}" on node "${node.data.name}"`,
+        message: `Unknown model "${agentData.model}" on node "${agentData.name}"`,
         rule: "invalid-model",
       });
     }
 
     // Rule: missing-system-prompt
-    if (!node.data.systemPrompt || node.data.systemPrompt.trim().length === 0) {
+    if (!agentData.systemPrompt || agentData.systemPrompt.trim().length === 0) {
       errors.push({
         severity: "error",
         nodeId: node.id,
-        message: `Node "${node.data.name}" has no system prompt`,
+        message: `Node "${agentData.name}" has no system prompt`,
         rule: "missing-system-prompt",
       });
     }
 
     // Rule: empty-tools
-    if (node.data.tools.length === 0) {
+    if (agentData.tools.length === 0) {
       warnings.push({
         severity: "warning",
         nodeId: node.id,
-        message: `Node "${node.data.name}" has no tools assigned`,
+        message: `Node "${agentData.name}" has no tools assigned`,
         rule: "empty-tools",
       });
     }
 
     // Rule: dangerous-tools-without-prompt
-    const hasDangerous = node.data.tools.some(
-      (t) => t === "Bash" || t === "Write",
+    const hasDangerous = agentData.tools.some(
+      (t: AgentTool) => t === "Bash" || t === "Write",
     );
     if (
       hasDangerous &&
-      (node.data.systemPrompt ?? "").length < 50
+      (agentData.systemPrompt ?? "").length < 50
     ) {
       warnings.push({
         severity: "warning",
         nodeId: node.id,
-        message: `Node "${node.data.name}" uses dangerous tools (Bash/Write) with a short system prompt`,
+        message: `Node "${agentData.name}" uses dangerous tools (Bash/Write) with a short system prompt`,
         rule: "dangerous-tools-without-prompt",
       });
     }
@@ -197,15 +203,15 @@ export function validateGraph(
     // Rule: context-overflow
     if (profile) {
       const systemTokens = estimateSystemTokens(
-        node.data.systemPrompt,
-        node.data.tools,
+        agentData.systemPrompt,
+        agentData.tools,
       );
       const halfContext = profile.contextWindow / 2;
       if (systemTokens > halfContext) {
         warnings.push({
           severity: "warning",
           nodeId: node.id,
-          message: `Node "${node.data.name}" system tokens (~${systemTokens}) exceed 50% of context window (${profile.contextWindow})`,
+          message: `Node "${agentData.name}" system tokens (~${systemTokens}) exceed 50% of context window (${profile.contextWindow})`,
           rule: "context-overflow",
         });
       }

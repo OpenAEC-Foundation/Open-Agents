@@ -21,7 +21,7 @@
 | Orchestratie (Flow + Pool) | 1 | 2 |
 | Safety & Audit | 1 | 1 |
 | Knowledge Base + Snippet Engine | 1 | 1 |
-| Assembly Engine (NL → Graph) | 0 | 1 |
+| Assembly Engine (NL → Graph) | 1 | 1 |
 | AI Assembly Assistant | 0 | 1 |
 | VS Code Extension | 1 | 1 |
 | Frappe App | 1 | 1 |
@@ -35,7 +35,7 @@
 **Fase 3 (Orchestratie)**: ██████████░░░░░░░░░░ **50%** — Sprint 3 (Flow Pattern) complete, Sprint 4 (Pool Pattern) pending
 **Fase 4 (Intelligence)**: ████████████████████ **100%** - safety & audit (Sprint 5)
 **Fase 4a (Knowledge)**: ████████████████████ **100%** - knowledge base + snippet engine (Sprint 6a)
-**Fase 4b (Assembly)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - NL → agent graph self-assembly (Sprint 6b)
+**Fase 4b (Assembly)**: ████████████████████ **100%** - NL → agent graph self-assembly (Sprint 6b)
 **Fase 4c (Assistant)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - AI assembly assistant sidebar (Sprint 6c)
 **Fase 5 (Deployment)**: ████████████████████ **100%** - VS Code extension (Sprint 7) + Frappe app (Sprint 8)
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
@@ -124,13 +124,15 @@
 - [x] Markdown loader + knowledge registry
 - [x] Knowledge API routes (patterns, principles, blocks, models, tools, estimate-cost, validate)
 
-**Sprint 6b — Assembly Engine (FR-17, D-022):**
-- [ ] Intent classificatie (Haiku) — NL → TaskIntent
-- [ ] Pattern matching (TypeScript) — intent → top 3 patterns
-- [ ] Graph generatie (Sonnet) — pattern → CanvasConfig met nodes, edges, prompts
-- [ ] Cost estimatie + graph validatie
-- [ ] GenerateBar, PatternLibrary, CostEstimatePanel componenten
-- [ ] Auto-layout met dagre
+**Sprint 6b — Assembly Engine (FR-17, D-022) (Complete):**
+- [x] Intent classificatie (Haiku) — NL → TaskIntent
+- [x] Pattern matching (TypeScript) — intent → top 3 patterns
+- [x] Graph generatie (Sonnet) — pattern → CanvasConfig met nodes, edges, prompts
+- [x] Cost estimatie + graph validatie
+- [x] GenerateBar, PatternLibrary, CostEstimatePanel componenten
+- [x] Auto-layout met dagre
+- [x] Assembly API routes (POST /api/assembly/generate, POST /api/assembly/classify)
+- [x] Assembly store slice (Zustand) met apply-to-canvas
 
 **Sprint 6c — AI Assembly Assistant (FR-18, FR-19):**
 - [ ] Assistant engine met context-aware prompts

@@ -23,7 +23,7 @@
 | 4 | Pool Pattern | Dispatcher + parallelle execution | Sprint 3 | Planned |
 | 5 | Safety & Audit | Rules editor + audit trail | Sprint 1 | Done |
 | 6a | Knowledge Base + Snippet Engine | Kennisbibliotheek: routing patterns, model profiles, principes | Sprint 1 | Done |
-| 6b | Assembly Engine | NL → Agent Graph self-assembly pipeline | Sprint 6a | Planned |
+| 6b | Assembly Engine | NL → Agent Graph self-assembly pipeline | Sprint 6a | Done |
 | 6c | AI Assembly Assistant | Sidebar kennispartner + pattern library | Sprint 6b | Planned |
 | 7 | VS Code Extension | Canvas als VS Code webview + MCP | Sprint 1 | Done |
 | 8 | Frappe App | Frappe wrapper + ERPNext templates | Sprint 1 | Done |

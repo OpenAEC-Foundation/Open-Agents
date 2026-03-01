@@ -14,13 +14,21 @@ export async function executeRoutes(app: FastifyInstance) {
       return { error: "Config must contain at least one node" };
     }
 
-    // Validate: each node needs id and systemPrompt
+    // Validate: each node needs id and type-specific required fields
     for (const node of config.nodes) {
-      if (!node.id || !node.data?.systemPrompt) {
+      if (!node.id) {
         reply.code(400);
-        return {
-          error: `Node ${node.id ?? "(missing id)"} requires id and data.systemPrompt`,
-        };
+        return { error: `Node is missing required 'id' field` };
+      }
+      const d = node.data as unknown as Record<string, unknown>;
+      const nodeType = node.type ?? "agent";
+      if (nodeType === "agent" && !d.systemPrompt) {
+        reply.code(400);
+        return { error: `Agent node "${node.id}" requires data.systemPrompt` };
+      }
+      if (nodeType === "dispatcher" && !d.routingPrompt) {
+        reply.code(400);
+        return { error: `Dispatcher node "${node.id}" requires data.routingPrompt` };
       }
     }
 
@@ -35,9 +43,14 @@ export async function executeRoutes(app: FastifyInstance) {
       }
     }
 
-    // Check that provider keys are available (Anthropic + Ollama can work without BYOK key:
-    // Anthropic uses Claude Code OAuth, Ollama is local)
-    const providers = new Set(config.nodes.map((n) => n.data.model.split("/")[0]));
+    // Check that provider keys are available for nodes that use a model
+    const modelFields = config.nodes
+      .map((n) => {
+        const d = n.data as unknown as Record<string, unknown>;
+        return (d.model ?? d.routingModel) as string | undefined;
+      })
+      .filter(Boolean) as string[];
+    const providers = new Set(modelFields.map((m) => m.split("/")[0]));
     for (const provider of providers) {
       const key = getApiKey(provider as "anthropic" | "openai" | "mistral" | "ollama");
       if (!key && provider !== "ollama" && provider !== "anthropic") {

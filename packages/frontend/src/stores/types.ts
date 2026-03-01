@@ -30,6 +30,8 @@ import type {
   RunSummary,
   AuditEntry,
   AuditFilter,
+  AssemblyResult,
+  RoutingPattern,
 } from "@open-agents/shared";
 import type { Patch } from "immer";
 
@@ -246,6 +248,21 @@ export interface AuditSlice {
   stopReplay: () => void;
 }
 
+export interface AssemblySlice {
+  assemblyLoading: boolean;
+  assemblyError: string | null;
+  assemblyResult: AssemblyResult | null;
+  patternLibraryOpen: boolean;
+  allPatterns: RoutingPattern[];
+  patternsLoading: boolean;
+
+  generateFromDescription: (description: string, patternId?: string, budgetSensitive?: boolean) => Promise<void>;
+  clearAssembly: () => void;
+  applyAssemblyResult: () => void;
+  setPatternLibraryOpen: (open: boolean) => void;
+  fetchPatterns: () => Promise<void>;
+}
+
 // =============================================
 // Combined state
 // =============================================
@@ -259,7 +276,8 @@ export type AppState = CanvasSlice &
   WorkspaceSlice &
   FactorySlice &
   SafetySlice &
-  AuditSlice;
+  AuditSlice &
+  AssemblySlice;
 
 /** Typed slice creator — each slice can access the full AppState */
 export type SliceCreator<T> = StateCreator<
