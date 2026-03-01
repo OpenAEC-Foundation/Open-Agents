@@ -3,7 +3,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import type { AggregatorNodeData, ModelId, ExecutionStatus } from "@open-agents/shared";
 import { MODEL_CATALOG, getModelMeta } from "@open-agents/shared";
 import { useAppStore } from "../stores/appStore";
-import { STATUS_COLORS } from "../constants";
+import { STATUS_COLORS, getNodeBorderStyle } from "../constants";
 
 export function AggregatorNode({ id, data }: NodeProps) {
   const d = data as unknown as AggregatorNodeData;
@@ -23,18 +23,7 @@ export function AggregatorNode({ id, data }: NodeProps) {
     }
   }, [id, nodeStatus, setSelectedOutputNodeId]);
 
-  const nodeBorderStyle = useMemo((): React.CSSProperties => ({
-    boxShadow:
-      nodeStatus === "running"
-        ? undefined
-        : nodeStatus === "completed"
-          ? "0 0 0 2px #22c55e"
-          : nodeStatus === "error"
-            ? "0 0 0 2px #ef4444"
-            : nodeStatus === "paused"
-              ? "0 0 0 2px #eab308"
-              : "0 0 0 1px #0e7490",
-  }), [nodeStatus]);
+  const nodeBorderStyle = useMemo(() => getNodeBorderStyle(nodeStatus, "#0e7490"), [nodeStatus]);
 
   const isSynthesize = d.aggregationStrategy === "synthesize";
   const modelMeta = d.aggregationModel ? getModelMeta(d.aggregationModel) : null;

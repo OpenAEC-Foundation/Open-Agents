@@ -40,7 +40,7 @@
 **Fase 5 (Deployment)**: ████████████████████ **100%** - VS Code extension (Sprint 7) + Frappe app (Sprint 8)
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 7 (Agent Library)**: ██░░░░░░░░░░░░░░░░░░ **9%** - 90/1000 agents geïmplementeerd (10 categorieën, library loader)
-**Fase 8 (Refactor)**: ████████░░░░░░░░░░░░ **41%** - 7/17 taken afgerond (code audit, type consolidatie, memory fix, CI/CD)
+**Fase 8 (Refactor)**: ████████████░░░░░░░░ **56%** - 9/16 taken afgerond (audit, types, memory, CI/CD, backend + frontend DRY)
 
 ---
 
@@ -193,8 +193,8 @@
 - [x] CI/CD pipeline — GitHub Actions (typecheck, test, build)
 - [x] Duplicated statusColors extractie → shared STATUS_COLORS constant
 - [x] Missing @dagrejs/dagre dependency fix (backend typecheck)
-- [ ] Backend refactor (utilities, API standaardisatie)
-- [ ] Frontend refactor (component decomposition, accessibility)
+- [x] Backend refactor — SSE utilities (sse.ts), KnowledgeRegistry singleton, assemblyRoutes registration fix
+- [x] Frontend refactor — getNodeBorderStyle extractie, nodeBorderStyle DRY across 3 node components
 - [ ] Test suite uitbreiden
 - [ ] API documentatie (OpenAPI/Swagger)
 - [ ] README + CONTRIBUTING + CHANGELOG

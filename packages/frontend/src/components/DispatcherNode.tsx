@@ -3,7 +3,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import type { DispatcherNodeData, ModelId, ExecutionStatus } from "@open-agents/shared";
 import { MODEL_CATALOG, getModelMeta } from "@open-agents/shared";
 import { useAppStore } from "../stores/appStore";
-import { STATUS_COLORS } from "../constants";
+import { STATUS_COLORS, getNodeBorderStyle } from "../constants";
 
 export function DispatcherNode({ id, data }: NodeProps) {
   const d = data as unknown as DispatcherNodeData;
@@ -23,18 +23,7 @@ export function DispatcherNode({ id, data }: NodeProps) {
     }
   }, [id, nodeStatus, setSelectedOutputNodeId]);
 
-  const nodeBorderStyle = useMemo((): React.CSSProperties => ({
-    boxShadow:
-      nodeStatus === "running"
-        ? undefined
-        : nodeStatus === "completed"
-          ? "0 0 0 2px #22c55e"
-          : nodeStatus === "error"
-            ? "0 0 0 2px #ef4444"
-            : nodeStatus === "paused"
-              ? "0 0 0 2px #eab308"
-              : "0 0 0 1px #b45309",
-  }), [nodeStatus]);
+  const nodeBorderStyle = useMemo(() => getNodeBorderStyle(nodeStatus, "#b45309"), [nodeStatus]);
 
   const modelMeta = getModelMeta(d.routingModel);
   const modelLabel = modelMeta.labels[skillLevel];

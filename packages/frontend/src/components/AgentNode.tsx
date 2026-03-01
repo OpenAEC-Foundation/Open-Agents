@@ -3,7 +3,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import type { AgentNodeData, ModelId, AgentTool, ExecutionStatus } from "@open-agents/shared";
 import { TOOL_DISPLAY, MODEL_CATALOG, getModelMeta } from "@open-agents/shared";
 import { useAppStore } from "../stores/appStore";
-import { STATUS_COLORS } from "../constants";
+import { STATUS_COLORS, getNodeBorderStyle } from "../constants";
 
 const allTools: AgentTool[] = [
   "Read",
@@ -34,18 +34,7 @@ export function AgentNode({ id, data }: NodeProps) {
     }
   }, [id, nodeStatus, setSelectedOutputNodeId]);
 
-  const nodeBorderStyle = useMemo((): React.CSSProperties => ({
-    boxShadow:
-      nodeStatus === "running"
-        ? undefined // handled by CSS class .node-running
-        : nodeStatus === "completed"
-          ? "0 0 0 2px #22c55e"
-          : nodeStatus === "error"
-            ? "0 0 0 2px #ef4444"
-            : nodeStatus === "paused"
-              ? "0 0 0 2px #eab308"
-              : "0 0 0 1px #333333",
-  }), [nodeStatus]);
+  const nodeBorderStyle = useMemo(() => getNodeBorderStyle(nodeStatus, "#333333"), [nodeStatus]);
 
   const modelMeta = getModelMeta(agentData.model);
   const modelLabel = modelMeta.labels[skillLevel];
