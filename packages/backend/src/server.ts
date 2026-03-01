@@ -24,6 +24,7 @@ import { generateRoutes } from "./routes/generate.js";
 import { knowledgeRoutes } from "./routes/knowledge.js";
 import { instructionRoutes } from "./routes/instructions.js";
 import { assistantRoutes } from "./routes/assistant.js";
+import { assemblyRoutes } from "./routes/assembly.js";
 import { registerRuntime } from "./execution-engine.js";
 import { ClaudeSDKRuntime } from "./runtimes/claude-sdk.js";
 import { OpenAIRuntime } from "./runtimes/openai.js";
@@ -57,6 +58,7 @@ app.register(generateRoutes, { prefix: "/api" });
 app.register(knowledgeRoutes, { prefix: "/api" });
 app.register(instructionRoutes, { prefix: "/api" });
 app.register(assistantRoutes, { prefix: "/api" });
+app.register(assemblyRoutes, { prefix: "/api" });
 
 try {
   await app.listen({ port: PORT, host: "0.0.0.0" });

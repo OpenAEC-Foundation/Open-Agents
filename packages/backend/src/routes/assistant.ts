@@ -5,12 +5,9 @@
 // =============================================
 
 import type { FastifyInstance } from "fastify";
-import type { AssistantChatRequest, AssistantEvent } from "@open-agents/shared";
+import type { AssistantChatRequest } from "@open-agents/shared";
 import { streamAssistantChat, generateQuickSuggestions } from "../assistant-engine.js";
-
-function sseWrite(raw: import("http").ServerResponse, event: AssistantEvent): void {
-  raw.write(`data: ${JSON.stringify(event)}\n\n`);
-}
+import { SSE_HEADERS, sseWrite } from "../sse.js";
 
 export async function assistantRoutes(app: FastifyInstance) {
   // =============================================
@@ -32,13 +29,7 @@ export async function assistantRoutes(app: FastifyInstance) {
     // Hijack response for SSE streaming
     reply.hijack();
     const raw = reply.raw;
-    raw.writeHead(200, {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-      "Access-Control-Allow-Origin": "*",
-      "X-Accel-Buffering": "no",
-    });
+    raw.writeHead(200, SSE_HEADERS);
 
     try {
       for await (const event of streamAssistantChat(

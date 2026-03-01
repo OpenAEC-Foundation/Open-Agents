@@ -6,7 +6,6 @@
 import type { FastifyInstance } from "fastify";
 import type { AssemblyRequest, AssemblyResult } from "@open-agents/shared";
 import {
-  KnowledgeRegistry,
   getModelProfile,
   getModelProfiles,
   estimateCost,
@@ -16,16 +15,7 @@ import { classifyIntent } from "../assembly/classify-intent.js";
 import { matchPatterns } from "../assembly/match-patterns.js";
 import { generateGraph } from "../assembly/generate-graph.js";
 import { applyAutoLayout } from "../assembly/auto-layout.js";
-
-let registry: KnowledgeRegistry | null = null;
-
-async function getRegistry(): Promise<KnowledgeRegistry> {
-  if (!registry) {
-    registry = new KnowledgeRegistry();
-    await registry.initialize();
-  }
-  return registry;
-}
+import { getKnowledgeRegistry as getRegistry } from "../knowledge-registry.js";
 
 export async function assemblyRoutes(app: FastifyInstance) {
   /**

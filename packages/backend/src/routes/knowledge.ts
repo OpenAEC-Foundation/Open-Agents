@@ -1,23 +1,13 @@
 import type { FastifyInstance } from "fastify";
 import type { CanvasConfig } from "@open-agents/shared";
 import {
-  KnowledgeRegistry,
   getModelProfiles,
   getModelProfile,
   getToolProfiles,
   estimateCost,
   validateGraph,
 } from "@open-agents/knowledge";
-
-let registry: KnowledgeRegistry | null = null;
-
-async function getRegistry(): Promise<KnowledgeRegistry> {
-  if (!registry) {
-    registry = new KnowledgeRegistry();
-    await registry.initialize();
-  }
-  return registry;
-}
+import { getKnowledgeRegistry as getRegistry } from "../knowledge-registry.js";
 
 export async function knowledgeRoutes(app: FastifyInstance) {
   // Patterns

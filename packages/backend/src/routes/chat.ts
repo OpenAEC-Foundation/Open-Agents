@@ -1,15 +1,12 @@
 import type { FastifyInstance } from "fastify";
-import type { AgentNodeData, ChatEvent } from "@open-agents/shared";
+import type { AgentNodeData } from "@open-agents/shared";
 import { getApiKey } from "../key-store.js";
+import { SSE_HEADERS, sseWrite } from "../sse.js";
 
 interface ChatBody {
   message: string;
   agent: AgentNodeData;
   sessionId?: string;
-}
-
-function sseWrite(raw: import("http").ServerResponse, event: ChatEvent): void {
-  raw.write(`data: ${JSON.stringify(event)}\n\n`);
 }
 
 export async function chatRoutes(app: FastifyInstance) {
@@ -43,13 +40,7 @@ export async function chatRoutes(app: FastifyInstance) {
     // Hijack response for SSE streaming
     reply.hijack();
     const raw = reply.raw;
-    raw.writeHead(200, {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-      "Access-Control-Allow-Origin": "*",
-      "X-Accel-Buffering": "no",
-    });
+    raw.writeHead(200, SSE_HEADERS);
 
     try {
       // Set API key in env for Agent SDK

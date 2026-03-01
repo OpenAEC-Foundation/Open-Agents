@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type { CanvasConfig, SSEEvent } from "@open-agents/shared";
 import * as engine from "../execution-engine.js";
 import { getApiKey } from "../key-store.js";
+import { SSE_HEADERS, sseWrite } from "../sse.js";
 
 export async function executeRoutes(app: FastifyInstance) {
   // Start execution of a canvas configuration
@@ -78,18 +79,12 @@ export async function executeRoutes(app: FastifyInstance) {
       reply.hijack();
 
       const raw = reply.raw;
-      raw.writeHead(200, {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-        "Access-Control-Allow-Origin": "*",
-        "X-Accel-Buffering": "no",
-      });
+      raw.writeHead(200, SSE_HEADERS);
 
       // Send buffered events (catch-up for late-connecting clients)
       const buffered = engine.getEvents(request.params.id);
       for (const event of buffered) {
-        raw.write(`data: ${JSON.stringify(event)}\n\n`);
+        sseWrite(raw, event);
       }
 
       // If run is already finished, close immediately
@@ -100,7 +95,7 @@ export async function executeRoutes(app: FastifyInstance) {
 
       // Subscribe to new events
       const unsubscribe = engine.subscribe(request.params.id, (event) => {
-        raw.write(`data: ${JSON.stringify(event)}\n\n`);
+        sseWrite(raw, event);
 
         // Close SSE stream on terminal events
         if (
@@ -123,7 +118,7 @@ export async function executeRoutes(app: FastifyInstance) {
           data: "Execution timed out after 5 minutes",
           timestamp: new Date().toISOString(),
         };
-        raw.write(`data: ${JSON.stringify(timeoutEvent)}\n\n`);
+        sseWrite(raw, timeoutEvent);
         raw.end();
       }, 5 * 60 * 1000);
 
