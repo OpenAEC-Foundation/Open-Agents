@@ -28,6 +28,7 @@
 - ~~**Config format dat naar Claude SDK en Pi kan exporteren?**~~ → D-010 (eigen JSON schema met Claude SDK mapping)
 - ~~**State management bij multi-agent flows?**~~ → D-015 (runtime adapter slaat per-step output op als fallback)
 - ~~**Hoe gaan we om met agent failures mid-flow?**~~ → Opgelost in Sprint 3. execution-engine.ts implementeert retry (max 3 pogingen), skip, en abort decision flow. Frontend ErrorDecisionDialog stelt de vraag aan de gebruiker. Zie D-035 voor enforcement punt.
+- ~~**Permission-gated vs autonomous-first agent executie?**~~ → D-040: Autonomous-first met container isolation. Veiligheid via architectuur (4 isolatie-dimensies: filesystem, network, secrets, resources), niet via permission dialogen. Geïnspireerd door Pi Dev.
 
 ---
 

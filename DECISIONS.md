@@ -60,6 +60,7 @@
 | D-037 | Replay implementatie | Frontend-gecontroleerde playback van bestaande eventBuffers | Geen nieuwe backend infrastructuur nodig. EventBuffers Map bewaart al alle SSE events per run. Frontend fetcht via GET /api/audit/replay/:id en stept lokaal door. | 2026-03-02 |
 | D-038 | User Instructions systeem | Globale instructies in `agents/USER_INSTRUCTIONS.md` worden als `<user-instructions>` prefix geïnjecteerd in alle agent system prompts bij uitvoering | Markdown met YAML frontmatter (`injectIntoExecution: true`). Backend store met file caching. API: `GET/PUT /api/instructions`, `GET /api/instructions/section/:name`. Injectie op 2 punten in execution-engine (flow + pool pattern). Frontend: UserInstructionsEditor in SettingsPage met auto-save (1.5s debounce). Bewust geen aparte shared type — backend-only parsing, frontend ziet alleen raw markdown string. | 2026-03-03 |
 | D-039 | Agent library bestandsformaat: JSON | 90 atomaire agents als JSON in `agents/library/{category}/*.json`, geladen door `library-loader.ts` | JSON consistent met bestaande presets en templates (geen YAML dependency). Category afgeleid van subdirectory naam. ID prefix `lib-{category}-{filename}`. Agents krijgen `source: "library"` en `readonly: true`. Frontend toont category filter bar met count badges. Delete geblokkeerd voor readonly agents (backend 403 + frontend hide). | 2026-03-04 |
+| D-040 | Agent executie-model: autonomous-first met container isolation | Agents draaien autonoom zonder permission dialogen. Veiligheid via container isolation, niet via UX gates. Geïnspireerd door Pi Dev's autonomous-first aanpak vs Claude Code's permission-gated model. Bouwt voort op D-101 (Docker per agent) en D-024 (per-agent workspace). Zie D-040 Details. | 2026-03-04 |
 
 ---
 
@@ -299,6 +300,49 @@ Van duurste naar goedkoopste per use:
 - **Model badge kleuren** (emerald, blue, purple, teal, orange): semantisch per model, niet per brand
 - **React Flow dark mode**: eigen theming via `colorMode="dark"`
 - **Layout/spacing**: vaste UX, niet per brand aanpasbaar
+
+---
+
+## D-040 Details: Autonomous-First Agent Execution
+
+> **Kernvraag**: Hoe garanderen we veiligheid bij agent executie?
+> **Twee modellen**: Permission-gated (Claude Code: vraag toestemming per tool call) vs Autonomous-first (Pi Dev: agents draaien door, isolatie biedt veiligheid).
+> **Gekozen**: Autonomous-first. Geen permission dialogen. Container isolation als veiligheidsgrens.
+> **Rationale**: Permission gates introduceren friction die complexe agent chains breekt. Veiligheid hoort in de architectuur, niet in de UX.
+
+### Fundamenteel Verschil
+
+| Aspect | Permission-gated (Claude Code) | Autonomous-first (Open-Agents) |
+|--------|-------------------------------|-------------------------------|
+| Veiligheid zit in | UX (approve/deny per tool call) | Architectuur (container boundary) |
+| Agent autonomie | Beperkt — wacht op gebruiker | Volledig — chain loopt door |
+| Friction | Hoog — constant onderbroken | Laag — resultaat achteraf reviewen |
+| Blast radius bij fouten | Onbeperkt (agent draait op host) | Begrensd (alleen binnen container) |
+| Geschikt voor | Developer tooling (1 agent, interactief) | Orchestratie (multi-agent flows, headless) |
+
+### Vier Isolatie-Dimensies
+
+Elke container wordt afgebakend op vier assen:
+
+| Dimensie | Wat | Implementatie |
+|----------|-----|---------------|
+| **1. Filesystem** | Temp workspace per run, geen toegang tot host filesystem | Docker volume mount (read/write) voor workspace, read-only voor agent config. Workspace wordt weggegooid na run tenzij output expliciet gepersisteerd wordt. |
+| **2. Network** | Welke APIs mag de agent aanroepen? | Network policy per container. Default: geen outbound. Whitelist per agent config (bv. alleen `api.github.com`, `openai.api.com`). |
+| **3. Secrets** | API keys veilig in container zonder lekmogelijkheid | Secrets als environment variables geïnjecteerd bij container start. Niet zichtbaar in agent output. Geen shell access tot `/proc/*/environ`. Secret rotation via orchestrator. |
+| **4. Resources** | CPU, memory, time caps | Docker resource limits (`--memory`, `--cpus`). Hard timeout per run (configureerbaar, default 5 min). OOM-kill als fallback. |
+
+### Relatie met Bestaande Beslissingen
+
+- **D-101** (Docker per agent): Bevestigd en uitgebreid. Docker is niet alleen voor schaalbaarheid maar is nu de primaire veiligheidsgrens.
+- **D-024** (Per-agent workspace): Het 6-layer stack model draait nu binnen een container met strict gedefinieerde grenzen.
+- **D-035** (Safety enforcement): Verschuift van tool-filtering in de execution engine naar container-level isolation. Safety rules worden container policies (network whitelist, resource limits) in plaats van tool blacklists.
+
+### Implementatie Implicaties
+
+1. **Execution engine** refactor: `runtime.execute()` start een container i.p.v. een in-process call
+2. **Output capture**: Agent output (files, logs, artifacts) wordt uit de container gehaald na afloop
+3. **Canvas UX**: Geen permission modals meer. Status indicators tonen: running → completed/failed. Review achteraf.
+4. **Safety settings**: Worden container policies (network whitelist, resource limits, allowed mounts) i.p.v. tool blacklists
 
 ---
 
