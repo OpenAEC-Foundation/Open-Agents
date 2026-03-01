@@ -58,6 +58,7 @@
 | D-035 | Safety rule enforcement point | execution-engine.ts VOOR runtime.execute() | Eén enforcement punt voor alle providers. Runtime ontvangt pre-gefilterde AgentNodeData met alleen toegestane tools. resolveRules() mergt global + per-node regels met permission mode mapping. Beperking: bash blacklist regels worden momenteel alleen gevalideerd via de test API (POST /safety/test). De execution engine filtert tools maar controleert niet de inhoud van bash commands. Acceptabel voor PoC. End-to-end enforcement gepland voor Sprint 10. | 2026-03-02 |
 | D-036 | Audit granularity | Step-niveau (per node in een run), niet per tool-call | Consistent across alle providers. Huidige runtime interface yieldt geen per-tool-call events. Step-level logging hergebruikt bestaande SSE event data. | 2026-03-02 |
 | D-037 | Replay implementatie | Frontend-gecontroleerde playback van bestaande eventBuffers | Geen nieuwe backend infrastructuur nodig. EventBuffers Map bewaart al alle SSE events per run. Frontend fetcht via GET /api/audit/replay/:id en stept lokaal door. | 2026-03-02 |
+| D-038 | User Instructions systeem | Globale instructies in `agents/USER_INSTRUCTIONS.md` worden als `<user-instructions>` prefix geïnjecteerd in alle agent system prompts bij uitvoering | Markdown met YAML frontmatter (`injectIntoExecution: true`). Backend store met file caching. API: `GET/PUT /api/instructions`, `GET /api/instructions/section/:name`. Injectie op 2 punten in execution-engine (flow + pool pattern). Frontend: UserInstructionsEditor in SettingsPage met auto-save (1.5s debounce). Bewust geen aparte shared type — backend-only parsing, frontend ziet alleen raw markdown string. | 2026-03-03 |
 
 ---
 
@@ -65,7 +66,7 @@
 
 > **Bron**: Anthropic Agent SDK (`@anthropic-ai/claude-agent-sdk`), Agent Teams documentatie, Skills documentatie.
 > **Kernvraag**: Wanneer noemen we iets een agent? Wanneer een skill? Wat zijn de canvas block types?
-> **Implementatiestatus**: Momenteel geïmplementeerd: Agent Node (`agent`), Dispatcher Node (`dispatcher`), Aggregator (`aggregator` — PoC utility type voor data-merge logica, niet in oorspronkelijke taxonomie). Teammate, Skill Badge, Connector en Gate zijn gepland voor Sprint 4/7-8. Zie `NodeType` in `packages/shared/src/types.ts`.
+> **Implementatiestatus**: Momenteel geïmplementeerd: Agent Node (`agent`), Dispatcher Node (`dispatcher`), Aggregator (`aggregator` — PoC utility type voor data-merge logica, niet in oorspronkelijke taxonomie). Teammate, Skill Badge, Connector en Gate zijn gepland voor Sprint 10 (Refactor) of een toekomstige iteratie. Zie `NodeType` in `packages/shared/src/types.ts`.
 
 ### De Vier Entiteittypes
 
@@ -139,7 +140,7 @@
 
 > **Bron**: Claude Workspace Development Workflows (17 modules, 6-layer stack), Docker-first isolatie (D-101, Principle 10).
 > **Kernvraag**: Hoe optimaliseer je de context van elke individuele agent?
-> **Implementatiestatus**: Nog niet gebouwd. Gepland voor Sprint 7-8 (Docker isolatie). Huidig PoC draait alle agents in-process op de backend, niet in Docker containers.
+> **Implementatiestatus**: Nog niet gebouwd. Sprint 7 (VS Code) en 8 (Frappe) zijn voltooid maar Docker per-agent isolatie was niet in scope voor die sprints. Gepland voor een toekomstige iteratie (post-v0.1.0). Huidig PoC draait alle agents in-process op de backend, niet in Docker containers.
 
 ### Het 6-Layer Stack Model
 
@@ -216,7 +217,7 @@ Van duurste naar goedkoopste per use:
 ## D-025 Details: Multi-Layered Engineering Model
 
 > **Kernidee**: Open-Agents is niet één laag engineering. Het zijn drie lagen die elk apart geoptimaliseerd worden. De combinatie levert output van een fundamenteel hoger niveau.
-> **Implementatiestatus**: Laag 1 (Orchestratie/Canvas) is werkend (Flow pattern, Sprint 3). Laag 2 (Agent Identiteit) is gedeeltelijk werkend (alleen `agent` node type van D-023). Laag 3 (Workspace/Docker) is nog niet geïmplementeerd (gepland Sprint 7-8).
+> **Implementatiestatus**: Laag 1 (Orchestratie/Canvas) is werkend (Flow pattern Sprint 3, Assembly Engine Sprint 6b). Laag 2 (Agent Identiteit) is gedeeltelijk werkend (agent + dispatcher + aggregator node types). Laag 3 (Workspace/Docker) is nog niet geïmplementeerd (gepland post-v0.1.0).
 
 ```
 ┌─────────────────────────────────────────────────────────┐

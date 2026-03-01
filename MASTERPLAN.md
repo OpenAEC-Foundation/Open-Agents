@@ -234,11 +234,11 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Canvas component met drag-and-drop
-- [ ] Agent node type (naam, model, system prompt)
-- [ ] Edge connections
-- [ ] JSON export functie
-- [ ] Sidebar met agent types
+- [x] Canvas component met drag-and-drop
+- [x] Agent node type (naam, model, system prompt)
+- [x] Edge connections
+- [x] JSON export functie
+- [x] Sidebar met agent types
 
 ### Fase 1.4: Backend API `[PAR]` — parallel met 1.3
 
@@ -276,10 +276,10 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Config CRUD endpoints
-- [ ] Execute endpoint met Claude Code integratie
-- [ ] SSE streaming voor real-time output
-- [ ] Health check
+- [x] Config CRUD endpoints
+- [x] Execute endpoint met Claude Code integratie
+- [x] SSE streaming voor real-time output
+- [x] Health check
 
 ### Fase 1.5: End-to-End Wiring `[SEQ]` — na 1.3 + 1.4
 
@@ -299,11 +299,11 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Frontend ↔ Backend API connectie
-- [ ] Run knop + output panel
-- [ ] Per-node status indicators
-- [ ] E2E test met 2-node flow
-- [ ] Demo bewijs (screenshot/video)
+- [x] Frontend ↔ Backend API connectie
+- [x] Run knop + output panel
+- [x] Per-node status indicators
+- [x] E2E test met 2-node flow
+- [x] Demo bewijs (screenshot/video)
 
 ### Acceptatiecriteria
 
@@ -489,10 +489,10 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Topologische sort voor executievolgorde
-- [ ] Sequentiële execution met output passing
-- [ ] ExecutionRun data model
-- [ ] SSE streaming per step
+- [x] Topologische sort voor executievolgorde
+- [x] Sequentiële execution met output passing
+- [x] ExecutionRun data model
+- [x] SSE streaming per step
 
 ### Fase 3.2: Visual Flow Status `[PAR]` — parallel met 3.3
 
@@ -512,10 +512,10 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Node status kleuring (idle/running/done/error)
-- [ ] Edge animatie
-- [ ] Output preview per node
-- [ ] SSE event listener
+- [x] Node status kleuring (idle/running/done/error)
+- [x] Edge animatie
+- [x] Output preview per node
+- [x] SSE event listener
 
 ### Fase 3.3: Session Management `[PAR]` — parallel met 3.2
 
@@ -539,10 +539,10 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Pause/Resume met session_id
-- [ ] Restart en Cancel functionaliteit
-- [ ] Execution toolbar
-- [ ] Elapsed time tracking
+- [x] Pause/Resume met session_id
+- [x] Restart en Cancel functionaliteit
+- [x] Execution toolbar
+- [x] Elapsed time tracking
 
 ### Fase 3.4: Error Handling & Templates `[SEQ]` — na 3.1-3.3
 
@@ -567,9 +567,9 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Error handling (retry/skip/abort)
-- [ ] 3 flow templates
-- [ ] Template laden functionaliteit
+- [x] Error handling (retry/skip/abort)
+- [x] 3 flow templates
+- [x] Template laden functionaliteit
 
 ---
 
@@ -678,11 +678,11 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] `[PAR]` Safety rules editor UI
-- [ ] `[PAR]` Safety rules backend (opslaan + meegeven aan Claude)
-- [ ] `[PAR]` Audit trail data model + logging
-- [ ] `[PAR]` Run history pagina
-- [ ] `[SEQ]` Replay modus (na audit trail)
+- [x] `[PAR]` Safety rules editor UI
+- [x] `[PAR]` Safety rules backend (opslaan + meegeven aan Claude)
+- [x] `[PAR]` Audit trail data model + logging
+- [x] `[PAR]` Run history pagina
+- [x] `[SEQ]` Replay modus (na audit trail)
 
 ---
 
@@ -720,14 +720,14 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] `packages/knowledge/` package aanmaken in monorepo
-- [ ] `knowledge-types.ts` in shared package
-- [ ] `model-profiles.ts` — alle model cost/speed/capability data
-- [ ] `tool-profiles.ts` — tool beschrijvingen en risico-niveaus
-- [ ] `token-budget.ts` — budget berekening functies
-- [ ] `graph-validator.ts` — structurele validatie
-- [ ] `cost-estimator.ts` — USD cost berekening
-- [ ] Vitest tests voor alle engine functies
+- [x] `packages/knowledge/` package aanmaken in monorepo
+- [x] `knowledge-types.ts` in shared package
+- [x] `model-profiles.ts` — alle model cost/speed/capability data
+- [x] `tool-profiles.ts` — tool beschrijvingen en risico-niveaus
+- [x] `token-budget.ts` — budget berekening functies
+- [x] `graph-validator.ts` — structurele validatie
+- [x] `cost-estimator.ts` — USD cost berekening
+- [x] Vitest tests voor alle engine functies
 
 ### Fase 6a.2: Snippet Library `[SEQ]` — na 6a.1
 
@@ -756,16 +756,16 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] 20 routing pattern markdown snippets schrijven
-- [ ] 7 orchestratie principes als snippets
-- [ ] 13 building block profiles als snippets
-- [ ] Markdown loader met YAML frontmatter parsing
-- [ ] Knowledge registry (index + search by tags)
-- [ ] API routes: `GET /api/knowledge/patterns`, `/principles`, `/blocks`
-- [ ] Tests voor loader en registry
+- [x] 35 routing pattern markdown snippets schrijven (20 gepland + 15 bonus)
+- [x] 7 orchestratie principes als snippets
+- [x] 13 building block profiles als snippets
+- [x] Markdown loader met YAML frontmatter parsing
+- [x] Knowledge registry (index + search by tags)
+- [x] API routes: `GET /api/knowledge/patterns`, `/principles`, `/blocks`
+- [x] Tests voor loader en registry
 
 **Acceptatiecriteria:**
-- `GET /api/knowledge/patterns` retourneert alle 20 patterns met metadata
+- `GET /api/knowledge/patterns` retourneert alle 35 patterns met metadata (20 gepland + 15 bonus)
 - `GET /api/knowledge/patterns/diamond` retourneert diamond pattern met node/edge templates
 - Cost estimator produceert realistische USD schattingen
 - Graph validator vangt cycles, orphans, ongeldige models/tools
@@ -804,11 +804,11 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] `classifyIntent()` met Haiku
-- [ ] System prompt voor intent classificatie
-- [ ] `matchPatterns()` score-based matching (pure TypeScript)
-- [ ] `POST /api/assembly/generate` endpoint (stap 1+2)
-- [ ] Tests met 10+ NL beschrijvingen
+- [x] `classifyIntent()` met Haiku
+- [x] System prompt voor intent classificatie
+- [x] `matchPatterns()` score-based matching (pure TypeScript)
+- [x] `POST /api/assembly/generate` endpoint (stap 1+2)
+- [x] Tests met 10+ NL beschrijvingen
 
 ### Fase 6b.2: Graph Generation + Frontend `[SEQ]` — na 6b.1
 
@@ -837,20 +837,20 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] `generateGraph()` met Sonnet
-- [ ] Cost estimator en graph validator in pipeline wiren
-- [ ] Auto-layout met `@dagrejs/dagre` (D-019)
-- [ ] `GenerateBar.tsx` — NL input boven canvas
-- [ ] `PatternLibrary.tsx` — browseable pattern bibliotheek
-- [ ] `CostEstimatePanel.tsx` — cost visualisatie
-- [ ] E2E test: NL beschrijving → graph op canvas
+- [x] `generateGraph()` met Sonnet
+- [x] Cost estimator en graph validator in pipeline wiren
+- [x] Auto-layout met `@dagrejs/dagre` (D-019)
+- [x] `GenerateBar.tsx` — NL input boven canvas
+- [x] `PatternLibrary.tsx` — browseable pattern bibliotheek
+- [x] `CostEstimatePanel.tsx` — cost visualisatie
+- [x] E2E test: NL beschrijving → graph op canvas
 
 **Acceptatiecriteria:**
 - "I want a team that reviews code for quality, security and performance" → dispatcher + 3 specialists + aggregator
 - "Build a simple code analysis pipeline" → 2-3 node chain
 - Cost estimate getoond bij elk gegenereerd graph
 - Gebruiker kan gegenereerd graph bewerken na creatie
-- Pattern library toont alle 20 patterns met diagrammen
+- Pattern library toont alle 35 patterns met diagrammen
 
 ---
 
@@ -971,11 +971,11 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Extension scaffolding met yeoman
-- [ ] Webview project (React + Vite)
-- [ ] Build pipeline (extension + webview)
-- [ ] postMessage bridge
-- [ ] VS Code commands registreren
+- [x] Extension scaffolding met yeoman
+- [x] Webview project (React + Vite)
+- [x] Build pipeline (extension + webview)
+- [x] postMessage bridge
+- [x] VS Code commands registreren
 
 ### Fase 7.2: Canvas in Webview `[SEQ]` — na 7.1
 
@@ -995,11 +995,11 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Canvas component porten
-- [ ] Vite bundle voor webview
-- [ ] CSP headers correct
-- [ ] State sync via postMessage
-- [ ] Workspace storage persistentie
+- [x] Canvas component porten
+- [x] Vite bundle voor webview
+- [x] CSP headers correct
+- [x] State sync via postMessage
+- [x] Workspace storage persistentie
 
 ### Fase 7.3: MCP Server `[PAR]` — parallel met 7.2
 
@@ -1025,10 +1025,10 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] MCP server (stdio transport)
-- [ ] 6 MCP tools implementeren
-- [ ] Registratie in .claude/settings.json
-- [ ] Bidirectionele sync (MCP ↔ webview)
+- [x] MCP server (stdio transport)
+- [x] 6 MCP tools implementeren
+- [x] Registratie in .claude/settings.json
+- [x] Bidirectionele sync (MCP ↔ webview)
 
 ### Fase 7.4: Claude Code Integratie `[SEQ]` — na 7.2 + 7.3
 
@@ -1051,9 +1051,9 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] MCP → Extension → Webview sync pipeline
-- [ ] File watcher op agents/ directory
-- [ ] End-to-end test
+- [x] MCP → Extension → Webview sync pipeline
+- [x] File watcher op agents/ directory
+- [x] End-to-end test
 - [ ] Demo video
 
 ---

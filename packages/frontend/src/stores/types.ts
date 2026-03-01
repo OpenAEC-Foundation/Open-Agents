@@ -142,12 +142,16 @@ export interface SettingsSlice {
   skillLevel: SkillLevel;
   themeId: string;
   providers: ProviderConnection[];
+  userInstructions: string;
+  userInstructionsLoading: boolean;
 
   setSkillLevel: (level: SkillLevel) => void;
   setThemeId: (id: string) => void;
   fetchConnections: () => Promise<void>;
   connectProvider: (provider: ModelProvider, apiKey: string) => Promise<{ ok: boolean; error?: string }>;
   disconnectProvider: (provider: ModelProvider) => Promise<void>;
+  fetchUserInstructions: () => Promise<void>;
+  saveUserInstructions: (content: string) => Promise<void>;
 }
 
 export interface ExecutionSlice {

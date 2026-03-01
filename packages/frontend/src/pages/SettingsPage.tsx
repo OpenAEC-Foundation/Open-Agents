@@ -4,6 +4,7 @@ import { useAppStore } from "../stores/appStore";
 import { ThemePicker } from "../components/ThemePicker";
 import { SkillLevelToggle } from "../components/SkillLevelToggle";
 import { SafetySettingsView } from "../components/SafetySettingsView";
+import { UserInstructionsEditor } from "../components/UserInstructionsEditor";
 
 const providerInfo: { id: ModelProvider; name: string; placeholder: string; helpUrl: string }[] = [
   {
@@ -147,6 +148,19 @@ export function SettingsPage() {
               <ProviderRow key={p.id} {...p} />
             ))}
           </div>
+        </section>
+
+        {/* User Instructions section (D-038) */}
+        <section className="mt-10">
+          <h3 className="text-text-primary text-lg font-medium mb-4">
+            {skillLevel === "beginner" ? "Agent Instructions" : "User Instructions"}
+          </h3>
+          <p className="text-text-muted text-xs mb-4">
+            {skillLevel === "beginner"
+              ? "Write global instructions that all your agents will follow when they run."
+              : "Global instructions prepended to all agent system prompts at execution time (D-038)."}
+          </p>
+          <UserInstructionsEditor />
         </section>
 
         {/* Safety Rules section */}

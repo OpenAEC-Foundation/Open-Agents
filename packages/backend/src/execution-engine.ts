@@ -17,6 +17,7 @@ import { isAgentNode, isDispatcherNode, isAggregatorNode } from "@open-agents/sh
 import { resolveRules } from "./safety-store.js";
 import { logEntry, createRunSummary, updateRunSummary } from "./audit-store.js";
 import { classifyTask } from "./dispatcher-classifier.js";
+import { getInstructionText } from "./instructions-store.js";
 
 // TODO (Sprint 10): Add TTL-based cleanup for completed runs.
 // Current in-memory stores (runs, eventBuffers, emitters, runControls) grow without bound.
@@ -275,6 +276,7 @@ async function executeDispatcherGroup(
   nodeMap: Map<string, CanvasNode>,
   processedInParallel: Set<string>,
   signal: AbortSignal,
+  userInstructions?: string,
 ): Promise<void> {
   const dispatcherData = dispatcherNode.data as DispatcherNodeData;
   const step = run.steps.find((s) => s.nodeId === dispatcherNode.id);
@@ -342,7 +344,7 @@ async function executeDispatcherGroup(
     const agentPromises = selectedNodes.map((agentNode) => {
       processedInParallel.add(agentNode.id);
       return executeAgentNodeWithTimeout(
-        agentNode, run, outputs, inputContext, dispatcherData.timeoutMs, signal,
+        agentNode, run, outputs, inputContext, dispatcherData.timeoutMs, signal, userInstructions,
       );
     });
 
@@ -395,6 +397,7 @@ async function executeAgentNodeWithTimeout(
   inputContext: string,
   timeoutMs: number,
   parentSignal: AbortSignal,
+  userInstructions?: string,
 ): Promise<void> {
   const step = run.steps.find((s) => s.nodeId === node.id);
   if (!step) return;
@@ -415,7 +418,13 @@ async function executeAgentNodeWithTimeout(
   try {
     // Apply safety rules
     const effectiveRules = resolveRules(node.id, agentData.tools);
-    const safeAgent: AgentNodeData = { ...agentData, tools: effectiveRules.allowedTools };
+
+    // Prepend user instructions to system prompt (D-038)
+    const enrichedPrompt = userInstructions
+      ? `<user-instructions>\n${userInstructions}\n</user-instructions>\n\n${agentData.systemPrompt}`
+      : agentData.systemPrompt;
+
+    const safeAgent: AgentNodeData = { ...agentData, systemPrompt: enrichedPrompt, tools: effectiveRules.allowedTools };
 
     const runtime = getRuntimeForModel(agentData.model);
     let lastOutput = "";
@@ -620,6 +629,9 @@ async function runExecution(
   const orderedIds = topologicalSort(config.nodes, config.edges);
   const nodeMap = new Map(config.nodes.map((n) => [n.id, n]));
 
+  // Load user instructions once per run (D-038: injected into all agent system prompts)
+  const userInstructions = await getInstructionText();
+
   // Track outputs per node for passing context along edges
   const outputs = new Map<string, string>();
 
@@ -670,7 +682,7 @@ async function runExecution(
     // Sprint 4: Route based on node type
     if (isDispatcherNode(node)) {
       await executeDispatcherGroup(
-        node, config, run, outputs, nodeMap, processedInParallel, signal,
+        node, config, run, outputs, nodeMap, processedInParallel, signal, userInstructions,
       );
       continue;
     }
@@ -699,8 +711,15 @@ async function runExecution(
         // Apply safety rules before execution (D-034)
         const agentData = node.data as AgentNodeData;
         const effectiveRules = resolveRules(nodeId, agentData.tools);
+
+        // Prepend user instructions to system prompt (D-038)
+        const enrichedPrompt = userInstructions
+          ? `<user-instructions>\n${userInstructions}\n</user-instructions>\n\n${agentData.systemPrompt}`
+          : agentData.systemPrompt;
+
         const safeAgent: AgentNodeData = {
           ...agentData,
+          systemPrompt: enrichedPrompt,
           tools: effectiveRules.allowedTools,
         };
 
