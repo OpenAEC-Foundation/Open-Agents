@@ -14,8 +14,9 @@ import type {
   ModelProvider,
 } from "@open-agents/shared";
 import { isAgentNode, isDispatcherNode, isAggregatorNode } from "@open-agents/shared";
-import { resolveRules } from "./safety-store.js";
+import { resolveRules, buildSafetyPromptBlock } from "./safety-store.js";
 import { logEntry, createRunSummary, updateRunSummary } from "./audit-store.js";
+import { scanOutputForViolations } from "./safety-scanner.js";
 import { classifyTask } from "./dispatcher-classifier.js";
 import { getInstructionText } from "./instructions-store.js";
 
@@ -450,13 +451,18 @@ async function executeAgentNodeWithTimeout(
   parentSignal.addEventListener("abort", onParentAbort, { once: true });
 
   try {
-    // Apply safety rules
+    // Apply safety rules (D-035)
     const effectiveRules = resolveRules(node.id, agentData.tools);
 
-    // Prepend user instructions to system prompt (D-038)
-    const enrichedPrompt = userInstructions
-      ? `<user-instructions>\n${userInstructions}\n</user-instructions>\n\n${agentData.systemPrompt}`
-      : agentData.systemPrompt;
+    // Build layered system prompt: user instructions + safety constraints + original
+    const safetyBlock = buildSafetyPromptBlock(effectiveRules);
+    let enrichedPrompt = agentData.systemPrompt;
+    if (safetyBlock) {
+      enrichedPrompt = `${safetyBlock}\n\n${enrichedPrompt}`;
+    }
+    if (userInstructions) {
+      enrichedPrompt = `<user-instructions>\n${userInstructions}\n</user-instructions>\n\n${enrichedPrompt}`;
+    }
 
     const safeAgent: AgentNodeData = { ...agentData, systemPrompt: enrichedPrompt, tools: effectiveRules.allowedTools };
 
@@ -468,12 +474,35 @@ async function executeAgentNodeWithTimeout(
       agent: safeAgent,
       previousOutput: inputContext,
       abortSignal: controller.signal,
+      safetyRules: {
+        bashBlacklist: effectiveRules.bashBlacklist,
+        fileWhitelist: effectiveRules.fileWhitelist,
+      },
     })) {
       if (controller.signal.aborted) break;
 
       if (event.type === "output" && event.data) {
         lastOutput = event.data;
         emitEvent(run.id, "step:output", node.id, event.data);
+
+        // Post-hoc bash blacklist scanning (D-035)
+        if (effectiveRules.bashBlacklist.length > 0) {
+          const violations = scanOutputForViolations(event.data, effectiveRules.bashBlacklist);
+          for (const v of violations) {
+            emitEvent(run.id, "safety:violation", node.id, JSON.stringify(v));
+            logEntry({
+              runId: run.id,
+              nodeId: node.id,
+              agentName: agentData.name,
+              tool: "Bash",
+              input: v.match,
+              output: `Blacklist violation detected: /${v.pattern}/`,
+              status: "blocked",
+              timestamp: new Date().toISOString(),
+              durationMs: 0,
+            });
+          }
+        }
       } else if (event.type === "error") {
         throw new Error(event.data ?? "Runtime error");
       }
@@ -742,14 +771,19 @@ async function runExecution(
       emitEvent(run.id, "step:start", nodeId);
 
       try {
-        // Apply safety rules before execution (D-034)
+        // Apply safety rules before execution (D-035)
         const agentData = node.data as AgentNodeData;
         const effectiveRules = resolveRules(nodeId, agentData.tools);
 
-        // Prepend user instructions to system prompt (D-038)
-        const enrichedPrompt = userInstructions
-          ? `<user-instructions>\n${userInstructions}\n</user-instructions>\n\n${agentData.systemPrompt}`
-          : agentData.systemPrompt;
+        // Build layered system prompt: user instructions + safety constraints + original
+        const safetyBlock = buildSafetyPromptBlock(effectiveRules);
+        let enrichedPrompt = agentData.systemPrompt;
+        if (safetyBlock) {
+          enrichedPrompt = `${safetyBlock}\n\n${enrichedPrompt}`;
+        }
+        if (userInstructions) {
+          enrichedPrompt = `<user-instructions>\n${userInstructions}\n</user-instructions>\n\n${enrichedPrompt}`;
+        }
 
         const safeAgent: AgentNodeData = {
           ...agentData,
@@ -766,12 +800,35 @@ async function runExecution(
           agent: safeAgent,
           previousOutput,
           abortSignal: signal,
+          safetyRules: {
+            bashBlacklist: effectiveRules.bashBlacklist,
+            fileWhitelist: effectiveRules.fileWhitelist,
+          },
         })) {
           if (signal.aborted) break;
 
           if (event.type === "output" && event.data) {
             lastOutput = event.data;
             emitEvent(run.id, "step:output", nodeId, event.data);
+
+            // Post-hoc bash blacklist scanning (D-035)
+            if (effectiveRules.bashBlacklist.length > 0) {
+              const violations = scanOutputForViolations(event.data, effectiveRules.bashBlacklist);
+              for (const v of violations) {
+                emitEvent(run.id, "safety:violation", nodeId, JSON.stringify(v));
+                logEntry({
+                  runId: run.id,
+                  nodeId,
+                  agentName: agentData.name,
+                  tool: "Bash",
+                  input: v.match,
+                  output: `Blacklist violation detected: /${v.pattern}/`,
+                  status: "blocked",
+                  timestamp: new Date().toISOString(),
+                  durationMs: 0,
+                });
+              }
+            }
           } else if (event.type === "error") {
             throw new Error(event.data ?? "Runtime error");
           }

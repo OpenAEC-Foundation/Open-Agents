@@ -151,3 +151,38 @@ export function testCommand(
 
   return { allowed: true };
 }
+
+/**
+ * Build a system prompt safety block from resolved rules (D-035).
+ * Instructs the model to avoid blacklisted bash commands.
+ * Returns empty string if no constraints exist.
+ */
+export function buildSafetyPromptBlock(rules: AgentSafetyRules): string {
+  if (rules.bashBlacklist.length === 0 && rules.fileWhitelist.length === 0) {
+    return "";
+  }
+
+  const parts: string[] = ["<safety-constraints>"];
+
+  if (rules.bashBlacklist.length > 0) {
+    parts.push(
+      "You MUST NOT execute bash commands matching these patterns:",
+    );
+    for (const pattern of rules.bashBlacklist) {
+      parts.push(`  - /${pattern}/`);
+    }
+    parts.push(
+      "If a task requires a blocked command, refuse and suggest an alternative.",
+    );
+  }
+
+  if (rules.fileWhitelist.length > 0) {
+    parts.push("You may ONLY access files matching these patterns:");
+    for (const pattern of rules.fileWhitelist) {
+      parts.push(`  - ${pattern}`);
+    }
+  }
+
+  parts.push("</safety-constraints>");
+  return parts.join("\n");
+}

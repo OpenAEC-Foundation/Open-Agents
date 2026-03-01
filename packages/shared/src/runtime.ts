@@ -22,6 +22,11 @@ export interface RuntimeExecutionConfig {
   agent: AgentNodeData;
   previousOutput?: string;
   abortSignal?: AbortSignal;
+  /** Resolved bash/file safety rules for post-hoc scanning (D-035) */
+  safetyRules?: {
+    bashBlacklist: string[];
+    fileWhitelist: string[];
+  };
 }
 
 /**

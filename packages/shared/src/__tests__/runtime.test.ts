@@ -24,4 +24,35 @@ describe('runtime types', () => {
     };
     expect(config.nodeId).toBe('node-1');
   });
+
+  it('RuntimeExecutionConfig supports optional safetyRules (D-035)', () => {
+    const config: RuntimeExecutionConfig = {
+      nodeId: 'node-1',
+      agent: {
+        name: 'Test',
+        model: 'anthropic/claude-sonnet-4-6',
+        systemPrompt: 'Hello',
+        tools: ['Bash'],
+      },
+      safetyRules: {
+        bashBlacklist: ['rm -rf', 'sudo .*'],
+        fileWhitelist: [],
+      },
+    };
+    expect(config.safetyRules?.bashBlacklist).toContain('rm -rf');
+    expect(config.safetyRules?.bashBlacklist).toHaveLength(2);
+  });
+
+  it('RuntimeExecutionConfig works without safetyRules', () => {
+    const config: RuntimeExecutionConfig = {
+      nodeId: 'node-1',
+      agent: {
+        name: 'Test',
+        model: 'anthropic/claude-sonnet-4-6',
+        systemPrompt: 'Hello',
+        tools: [],
+      },
+    };
+    expect(config.safetyRules).toBeUndefined();
+  });
 });
