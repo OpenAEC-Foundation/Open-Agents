@@ -27,7 +27,7 @@
 | 6c | AI Assembly Assistant | Sidebar kennispartner + pattern library | Sprint 6b | Planned |
 | 7 | VS Code Extension | Canvas als VS Code webview + MCP | Sprint 1 | Done |
 | 8 | Frappe App | Frappe wrapper + ERPNext templates | Sprint 1 | Done |
-| 9 | Agent Library | 1000+ atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | Planned |
+| 9 | Agent Library | 1000+ atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | Done (90/1000) |
 | 10 | Refactor & Consolidatie | Refactor van alles uit eerste Scrum iteratie | Sprint 1-9 | Planned |
 
 ```
@@ -1134,9 +1134,9 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] 10 core agent YAML bestanden
-- [ ] Agent loader in backend (leest YAML, maakt beschikbaar via API)
-- [ ] Agents zichtbaar in Factory library
+- [x] 10 core agent JSON bestanden (agents/library/core/)
+- [x] Agent loader in backend (library-loader.ts, leest JSON, maakt beschikbaar via API)
+- [x] Agents zichtbaar in Factory library met category filters
 
 ### Fase 9.2: Category Agents (40) `[PAR]` — parallel, bij Sprint 3-5
 
@@ -1166,10 +1166,10 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] `[PAR]` 10 Text & Taal agents
-- [ ] `[PAR]` 10 Code & Development agents
-- [ ] `[PAR]` 10 Review & Kwaliteit agents
-- [ ] `[PAR]` 10 Data & Transformatie agents
+- [x] `[PAR]` 10 Text & Taal agents (agents/library/text-language/)
+- [x] `[PAR]` 10 Code & Development agents (agents/library/code-dev/)
+- [x] `[PAR]` 10 Review & Kwaliteit agents (agents/library/review-quality/)
+- [x] `[PAR]` 10 Data & Transformatie agents (agents/library/data-transform/)
 
 ### Fase 9.3: Specialist Agents (30) `[PAR]` — parallel, bij Sprint 5-8
 
@@ -1197,10 +1197,10 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] `[PAR]` 8 Git & Versioning agents
-- [ ] `[PAR]` 10 Research & Analyse agents
-- [ ] `[PAR]` 7 Communicatie & Rapportage agents
-- [ ] `[PAR]` 5 File & System agents
+- [x] `[PAR]` 8 Git & Versioning agents (agents/library/git-versioning/)
+- [x] `[PAR]` 10 Research & Analyse agents (agents/library/research/)
+- [x] `[PAR]` 7 Communicatie & Rapportage agents (agents/library/communication/)
+- [x] `[PAR]` 5 File & System agents (agents/library/file-system/)
 
 ### Fase 9.4: ERPNext Agents (10) `[SEQ]` — bij Sprint 8
 
@@ -1225,8 +1225,8 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] 10 ERPNext agent YAML bestanden
-- [ ] ERPNext MCP server integratie (voor API calls naar ERPNext)
+- [x] 10 ERPNext agent JSON bestanden (agents/library/erpnext/)
+- [ ] ERPNext MCP server integratie (voor API calls naar ERPNext) — gepland voor latere iteratie
 
 ### Fase 9.5: Flow & Pool Templates `[SEQ]` — na 9.1-9.4
 
@@ -1264,9 +1264,9 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] 5 flow templates (JSON canvas configs)
-- [ ] 5 pool templates (JSON canvas configs)
-- [ ] Templates laden via Factory portal
+- [x] 5 flow templates (templates/flows/)
+- [x] 7 pool templates (templates/pools/)
+- [x] Templates laden via Factory portal (template-loader.ts scant flows/ + pools/)
 
 ### Retroactieve Vulling per Sprint
 

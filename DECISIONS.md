@@ -59,6 +59,7 @@
 | D-036 | Audit granularity | Step-niveau (per node in een run), niet per tool-call | Consistent across alle providers. Huidige runtime interface yieldt geen per-tool-call events. Step-level logging hergebruikt bestaande SSE event data. | 2026-03-02 |
 | D-037 | Replay implementatie | Frontend-gecontroleerde playback van bestaande eventBuffers | Geen nieuwe backend infrastructuur nodig. EventBuffers Map bewaart al alle SSE events per run. Frontend fetcht via GET /api/audit/replay/:id en stept lokaal door. | 2026-03-02 |
 | D-038 | User Instructions systeem | Globale instructies in `agents/USER_INSTRUCTIONS.md` worden als `<user-instructions>` prefix geïnjecteerd in alle agent system prompts bij uitvoering | Markdown met YAML frontmatter (`injectIntoExecution: true`). Backend store met file caching. API: `GET/PUT /api/instructions`, `GET /api/instructions/section/:name`. Injectie op 2 punten in execution-engine (flow + pool pattern). Frontend: UserInstructionsEditor in SettingsPage met auto-save (1.5s debounce). Bewust geen aparte shared type — backend-only parsing, frontend ziet alleen raw markdown string. | 2026-03-03 |
+| D-039 | Agent library bestandsformaat: JSON | 90 atomaire agents als JSON in `agents/library/{category}/*.json`, geladen door `library-loader.ts` | JSON consistent met bestaande presets en templates (geen YAML dependency). Category afgeleid van subdirectory naam. ID prefix `lib-{category}-{filename}`. Agents krijgen `source: "library"` en `readonly: true`. Frontend toont category filter bar met count badges. Delete geblokkeerd voor readonly agents (backend 403 + frontend hide). | 2026-03-04 |
 
 ---
 
@@ -313,4 +314,4 @@ Bij het nemen van een beslissing, verplaats naar "Genomen" met rationale en datu
 
 ---
 
-*Laatste update: 2026-03-03*
+*Laatste update: 2026-03-04*
