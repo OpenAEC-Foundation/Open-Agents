@@ -143,7 +143,7 @@ export const createAssistantSlice: SliceCreator<AssistantSlice> = (set, get) => 
             id: n.id,
             type: n.type,
             position: n.position,
-            data: n.data,
+            data: n.data as unknown as Record<string, unknown>,
           }));
           const rfEdges = action.config.edges.map((e) => ({
             id: e.id,

@@ -8,7 +8,9 @@ import type {
   AssistantEvent,
   CanvasConfig,
   CanvasAction,
+  CanvasNode,
 } from "@open-agents/shared";
+import { isAgentNode } from "@open-agents/shared";
 import { getAnthropicAuthHeaders } from "./anthropic-auth.js";
 
 // =============================================
@@ -58,16 +60,21 @@ function buildCanvasDescription(config: CanvasConfig): string {
     return "The canvas is currently empty — no agents or connections.";
   }
 
+  const nodeName = (n: CanvasNode): string =>
+    isAgentNode(n) ? n.data.name : ("name" in n.data ? String(n.data.name) : n.id);
+
   const nodeDescs = config.nodes.map((n) => {
-    const data = n.data as Record<string, unknown>;
-    return `- ${data.name ?? n.id} (${n.type}, model: ${data.model ?? "unknown"}, tools: ${(data.tools as string[])?.join(", ") ?? "none"})`;
+    if (isAgentNode(n)) {
+      return `- ${n.data.name} (${n.type}, model: ${n.data.model}, tools: ${n.data.tools.join(", ")})`;
+    }
+    return `- ${nodeName(n)} (${n.type})`;
   });
 
   const edgeDescs = config.edges.map((e) => {
     const src = config.nodes.find((n) => n.id === e.source);
     const tgt = config.nodes.find((n) => n.id === e.target);
-    const srcName = (src?.data as Record<string, unknown>)?.name ?? e.source;
-    const tgtName = (tgt?.data as Record<string, unknown>)?.name ?? e.target;
+    const srcName = src ? nodeName(src) : e.source;
+    const tgtName = tgt ? nodeName(tgt) : e.target;
     return `- ${srcName} → ${tgtName}`;
   });
 
@@ -255,6 +262,9 @@ export function generateQuickSuggestions(config: CanvasConfig): string[] {
     return suggestions;
   }
 
+  const getName = (n: CanvasNode): string =>
+    isAgentNode(n) ? n.data.name : ("name" in n.data ? String(n.data.name) : n.id);
+
   // Check for disconnected nodes
   const connectedNodeIds = new Set<string>();
   for (const edge of config.edges) {
@@ -263,21 +273,20 @@ export function generateQuickSuggestions(config: CanvasConfig): string[] {
   }
   const orphans = config.nodes.filter((n) => !connectedNodeIds.has(n.id));
   if (orphans.length > 0) {
-    suggestions.push(`Connect orphan node "${(orphans[0].data as Record<string, unknown>).name}" to the pipeline`);
+    suggestions.push(`Connect orphan node "${getName(orphans[0])}" to the pipeline`);
   }
 
   // Check for expensive models that could be cheaper
   const expensiveNodes = config.nodes.filter((n) => {
-    const model = (n.data as Record<string, unknown>).model as string;
-    return model?.includes("opus");
+    return isAgentNode(n) && n.data.model.includes("opus");
   });
   if (expensiveNodes.length > 0) {
-    suggestions.push(`Consider downgrading "${(expensiveNodes[0].data as Record<string, unknown>).name}" from Opus to Sonnet for cost savings`);
+    suggestions.push(`Consider downgrading "${getName(expensiveNodes[0])}" from Opus to Sonnet for cost savings`);
   }
 
   // Suggest validation if not present
   const hasValidator = config.nodes.some((n) => {
-    const name = ((n.data as Record<string, unknown>).name as string)?.toLowerCase() ?? "";
+    const name = getName(n).toLowerCase();
     return name.includes("valid") || name.includes("review") || name.includes("check");
   });
   if (!hasValidator && config.nodes.length >= 2) {
