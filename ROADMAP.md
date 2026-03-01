@@ -40,7 +40,7 @@
 **Fase 5 (Deployment)**: ████████████████████ **100%** - VS Code extension (Sprint 7) + Frappe app (Sprint 8)
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 7 (Agent Library)**: ██░░░░░░░░░░░░░░░░░░ **9%** - 90/1000 agents geïmplementeerd (10 categorieën, library loader)
-**Fase 8 (Refactor)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - consolidatie eerste Scrum iteratie
+**Fase 8 (Refactor)**: ████████░░░░░░░░░░░░ **41%** - 7/17 taken afgerond (code audit, type consolidatie, memory fix, CI/CD)
 
 ---
 
@@ -186,19 +186,21 @@
 
 > Laatste sprint van de eerste Scrum iteratie. Refactort en consolideert alles.
 
-- [ ] Code audit (P1/P2/P3 rapport)
-- [ ] Backend refactor (utilities, API standaardisatie, types)
+- [x] Code audit (P1/P2/P3 rapport) — backend 26 issues, frontend ~50 issues, shared Grade A
+- [x] ModelDisplayInfo type opruimen (dead code, vervangen door ModelMeta)
+- [x] AgentDefinition vs AgentNodeData vs AgentPreset type consolidatie — AgentDefinition extends AgentNodeData
+- [x] Memory cleanup voor completed runs in execution-engine.ts (TTL + hard cap)
+- [x] CI/CD pipeline — GitHub Actions (typecheck, test, build)
+- [x] Duplicated statusColors extractie → shared STATUS_COLORS constant
+- [x] Missing @dagrejs/dagre dependency fix (backend typecheck)
+- [ ] Backend refactor (utilities, API standaardisatie)
 - [ ] Frontend refactor (component decomposition, accessibility)
 - [ ] Test suite uitbreiden
 - [ ] API documentatie (OpenAPI/Swagger)
 - [ ] README + CONTRIBUTING + CHANGELOG
-- [ ] CI/CD pipeline
 - [ ] v0.1.0 release
 - [ ] NodeType uitbreiden naar D-023 specificatie (teammate, skill, connector, gate)
-- [ ] ModelDisplayInfo type opruimen (dead code, vervangen door ModelMeta)
-- [ ] AgentDefinition vs AgentNodeData vs AgentPreset type consolidatie
 - [ ] testCommand() wiring in execution engine (D-035 bash enforcement gap)
-- [ ] Memory cleanup voor completed runs in execution-engine.ts (TTL of database)
 - [ ] MCP tool auto-generatie pipeline verbinden met VS Code extension (D-031)
 - [ ] Non-Claude runtime tool use support (D-032 PoC beperking opheffen)
 
