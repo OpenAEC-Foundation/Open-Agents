@@ -62,6 +62,61 @@
 | D-039 | Agent library bestandsformaat: JSON | 90 atomaire agents als JSON in `agents/library/{category}/*.json`, geladen door `library-loader.ts` | JSON consistent met bestaande presets en templates (geen YAML dependency). Category afgeleid van subdirectory naam. ID prefix `lib-{category}-{filename}`. Agents krijgen `source: "library"` en `readonly: true`. Frontend toont category filter bar met count badges. Delete geblokkeerd voor readonly agents (backend 403 + frontend hide). | 2026-03-04 |
 | D-040 | Agent executie-model: autonomous-first met container isolation | Agents draaien autonoom zonder permission dialogen. Veiligheid via container isolation, niet via UX gates. Geïnspireerd door Pi Dev's autonomous-first aanpak vs Claude Code's permission-gated model. Bouwt voort op D-101 (Docker per agent) en D-024 (per-agent workspace). Zie D-040 Details. | 2026-03-04 |
 | D-041 | Open-VSCode-Controller als toekomstig integratiepunt | Open-VSCode-Controller biedt 40+ HTTP endpoints en 25 MCP tools voor programmatische VS Code controle (editor, terminal, files, git, debug, agent spawning). Integratie met Open-Agents zou canvas-agents in staat stellen VS Code aan te sturen. Drie opties: A) Compose (twee extensions, HTTP/MCP communicatie), B) Absorb (features overnemen in OA extension), C) Extension Pack (bundelen). Status: OPEN — beslissing uitgesteld tot Open-VSCode-Controller Phase 1-3 stabiel is. Zie docs/PARALLEL-SESSIONS.md Sessie E. | 2026-03-05 |
+| D-042 | Agent Maturity Model: drielaags groeipad voor library agents | Elk agent JSON krijgt een `maturity` veld: `prompt-template`, `tool-capable`, `autonomous`. Platform gebruikt maturity voor runtime-optimalisatie. Zie D-042 Details. | Doel blijft 1000+ bouwblokken. Maturity tracking maakt het groeipad expliciet en meetbaar. Voorkomt verwarring over wat een "agent" is vs een prompt template (versterkt D-023 taxonomie). | 2026-03-05 |
+| D-043 | Sprint 10 DRY-refactor strategie | Gedupliceerde code elimineren via extractie naar gedeelde utilities, niet via abstractie-lagen | Concrete extracties: SSE utilities (sse.ts), KnowledgeRegistry singleton, STATUS_COLORS constant, getNodeBorderStyle(). Minimale blast radius, maximale herbruikbaarheid. | 2026-03-05 |
+| D-044 | v0.1.0 release scope | Eerste milestone: alle 10 sprints afgerond, 155 tests groen, alle packages op 0.1.0 | PoC-beperkingen geaccepteerd: geen auth (D-012), in-memory storage (D-026), beperkte non-Claude tool use (D-032). Productie-hardening uitgesteld naar v0.2.0. | 2026-03-05 |
+
+---
+
+## D-042 Details: Agent Maturity Model
+
+> **Bron**: Platform beoordeling sessie 2026-03-05. Analyse van huidige library (90 agents) tegen D-023 taxonomie en marktpraktijk.
+> **Kernvraag**: De library bevat 1015 gedefinieerde "agents" maar D-023 erkent zelf dat de meeste prompt templates zijn. Hoe maken we het groeipad expliciet?
+
+### Drie Maturity Niveaus
+
+| Niveau | Naam | Kenmerken | Voorbeeld | Runtime Gedrag |
+|:------:|------|-----------|-----------|---------------|
+| 1 | `prompt-template` | Geen tools, single-turn, tekst in → tekst uit | `summarize`, `translate`, `fix-grammar` | Eén LLM-call, goedkoopst |
+| 2 | `tool-capable` | Heeft tools, maar single-purpose, beperkte autonomie | `read-file`, `search-in-files`, `find-bugs` (huidig) | LLM-call met tool use, meerdere turns mogelijk |
+| 3 | `autonomous` | Volledige agent: tools + multi-turn loop + eigen beslissingen + skills | `find-bugs` (doel), `code-reviewer`, `security-auditor` | Autonome executie-loop, duurste maar krachtigste |
+
+### Relatie met D-023 Taxonomie
+
+| D-023 Type | Typische Maturity | Toelichting |
+|------------|:-:|---|
+| Skill | `prompt-template` | Deelt parent's context, geen autonomie |
+| Subagent | `tool-capable` → `autonomous` | Eigen context, fire-and-forget |
+| Agent (top-level) | `autonomous` | Volledige executie-loop |
+| Teammate | `autonomous` | Peer-to-peer, altijd volledig autonoom |
+
+### Implementatie
+
+Agent JSON formaat wordt uitgebreid:
+```json
+{
+  "name": "Summarize Text",
+  "maturity": "prompt-template",
+  "tools": [],
+  ...
+}
+```
+
+Platform kan maturity gebruiken voor:
+- **Runtime optimalisatie**: prompt-template → enkele API call; autonomous → agent loop
+- **Cost schatting**: maturity bepaalt geschatte turns en kosten
+- **Library filtering**: gebruikers filteren op maturity niveau
+- **Groeipad dashboard**: hoeveel agents zijn op welk niveau?
+
+### Huidige Status (90 agents, schatting)
+
+| Maturity | Aantal | % |
+|----------|:------:|:-:|
+| `prompt-template` | ~55 | 61% |
+| `tool-capable` | ~30 | 33% |
+| `autonomous` | ~5 | 6% |
+
+> **Doel**: Alle 1000+ bouwblokken groeien naar `tool-capable` of `autonomous`. Maturity tracking maakt dit meetbaar.
 
 ---
 
@@ -359,4 +414,4 @@ Bij het nemen van een beslissing, verplaats naar "Genomen" met rationale en datu
 
 ---
 
-*Laatste update: 2026-03-04*
+*Laatste update: 2026-03-05*

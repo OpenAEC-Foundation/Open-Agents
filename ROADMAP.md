@@ -4,7 +4,7 @@
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
 > **Laatste update**: 2026-03-05
-> **Status**: Sprint 6c COMPLETE, Sprint 10 remaining
+> **Status**: v0.1.0 released — Sprint 1-10 eerste Scrum iteratie complete
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -40,7 +40,7 @@
 **Fase 5 (Deployment)**: ████████████████████ **100%** - VS Code extension (Sprint 7) + Frappe app (Sprint 8)
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 7 (Agent Library)**: ██░░░░░░░░░░░░░░░░░░ **9%** - 90/1000 agents geïmplementeerd (10 categorieën, library loader)
-**Fase 8 (Refactor)**: ███████████████░░░░░ **72%** - 13/18 taken afgerond (audit, types, memory, CI/CD, DRY, tests, README, CHANGELOG, loader fix)
+**Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond, 6 doorgeschoven naar v0.2.0)
 
 ---
 
@@ -208,15 +208,15 @@
 - [x] Frontend refactor — getNodeBorderStyle extractie, nodeBorderStyle DRY across 3 node components
 - [x] Test suite basis (types.test.ts — 15 tests voor type guards, MODEL_CATALOG, getModelMeta, TOOL_DISPLAY)
 - [x] Test suite uitbreiden — match-patterns (16 tests), SSE utilities (7 tests), CRLF bugfix in loader
-- [ ] Test suite verdere uitbreiding (execution engine state machine, frontend components)
-- [ ] API documentatie (OpenAPI/Swagger)
 - [x] README.md herschreven (features, architectuur, API endpoints, setup)
 - [x] CHANGELOG.md aangemaakt (Keep a Changelog format, Sprint 1-10)
-- [ ] v0.1.0 release
-- [ ] NodeType uitbreiden naar D-023 specificatie (teammate, skill, connector, gate)
-- [ ] testCommand() wiring in execution engine (D-035 bash enforcement gap)
-- [ ] MCP tool auto-generatie pipeline verbinden met VS Code extension (D-031)
-- [ ] Non-Claude runtime tool use support (D-032 PoC beperking opheffen)
+- [x] v0.1.0 release — CHANGELOG, DECISIONS (D-043, D-044), git tag
+- [ ] NodeType uitbreiden naar D-023 specificatie (teammate, skill, connector, gate) → v0.2.0
+- [ ] testCommand() wiring in execution engine (D-035 bash enforcement gap) → v0.2.0
+- [ ] MCP tool auto-generatie pipeline verbinden met VS Code extension (D-031) → v0.2.0
+- [ ] Non-Claude runtime tool use support (D-032 PoC beperking opheffen) → v0.2.0
+- [ ] Test suite verdere uitbreiding (execution engine state machine, frontend components) → v0.2.0
+- [ ] API documentatie (OpenAPI/Swagger) → v0.2.0
 
 ---
 
