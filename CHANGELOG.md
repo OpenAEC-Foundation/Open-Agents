@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Claude Code workspace configuration (CLAUDE.md, .claude/)
 - Project documentation: README, ROADMAP, DECISIONS, CONTRIBUTING
 - GitHub labels for project management
-- Research documents: openagents-plan.md, pi-dev-onderzoek-compleet.md
+- Research documents: _archive/openagents-plan.md, _archive/pi-dev-onderzoek-compleet.md (archived)
 
 ---
 
