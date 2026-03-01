@@ -27,7 +27,7 @@ const SNIPPETS_DIR = join(__dirname, "..", "snippets");
  */
 function parseSections(markdown: string): Map<string, string> {
   const sections = new Map<string, string>();
-  const lines = markdown.split("\n");
+  const lines = markdown.replace(/\r\n/g, "\n").split("\n");
   let currentHeading = "";
   let currentContent: string[] = [];
 
