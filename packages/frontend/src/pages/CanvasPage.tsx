@@ -19,6 +19,7 @@ import { OutputPanel } from "../components/OutputPanel";
 import { ExecutionToolbar } from "../components/ExecutionToolbar";
 import { ErrorDecisionDialog } from "../components/ErrorDecisionDialog";
 import { GenerateBar } from "../components/GenerateBar";
+import { AssistantSidebar } from "../components/AssistantSidebar";
 import { useAppStore } from "../stores/appStore";
 import type { CanvasNodeData, NodeType } from "@open-agents/shared";
 
@@ -177,6 +178,7 @@ export function CanvasPage() {
       </div>
 
       <ChatPanel />
+      <AssistantSidebar />
       </div>
     </div>
   );

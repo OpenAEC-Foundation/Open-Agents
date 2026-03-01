@@ -11,6 +11,25 @@ import { LibraryPage } from "./pages/LibraryPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { RunHistoryView } from "./components/RunHistoryView";
 
+function AssistantToggle() {
+  const visible = useAppStore((s) => s.assistantVisible);
+  const toggle = useAppStore((s) => s.toggleAssistant);
+
+  return (
+    <button
+      onClick={toggle}
+      className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+        visible
+          ? "bg-accent-primary/15 text-accent-primary font-medium"
+          : "text-text-tertiary hover:text-text-secondary hover:bg-surface-overlay/50"
+      }`}
+      title="Toggle AI Assistant"
+    >
+      Assistant
+    </button>
+  );
+}
+
 const tabs: { id: AppTab; label: string }[] = [
   { id: "canvas", label: "Canvas" },
   { id: "runs", label: "Runs" },
@@ -71,6 +90,7 @@ export function App() {
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
+          {activeTab === "canvas" && <AssistantToggle />}
           <ConnectionIndicator />
         </div>
       </header>

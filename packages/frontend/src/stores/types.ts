@@ -32,6 +32,9 @@ import type {
   AuditFilter,
   AssemblyResult,
   RoutingPattern,
+  AssistantContext,
+  AssistantMessage,
+  CanvasAction,
 } from "@open-agents/shared";
 import type { Patch } from "immer";
 
@@ -272,6 +275,24 @@ export interface AssemblySlice {
   fetchPatterns: () => Promise<void>;
 }
 
+export interface AssistantSlice {
+  assistantVisible: boolean;
+  assistantContext: AssistantContext;
+  assistantMessages: AssistantMessage[];
+  assistantStreaming: boolean;
+  assistantStreamingContent: string;
+  pendingActions: CanvasAction[];
+  assistantSuggestions: string[];
+
+  toggleAssistant: () => void;
+  setAssistantContext: (context: AssistantContext) => void;
+  sendAssistantMessage: (message: string) => Promise<void>;
+  applyAction: (action: CanvasAction) => void;
+  applyAllActions: () => void;
+  clearAssistantChat: () => void;
+  fetchAssistantSuggestions: () => Promise<void>;
+}
+
 // =============================================
 // Combined state
 // =============================================
@@ -286,7 +307,8 @@ export type AppState = CanvasSlice &
   FactorySlice &
   SafetySlice &
   AuditSlice &
-  AssemblySlice;
+  AssemblySlice &
+  AssistantSlice;
 
 /** Typed slice creator — each slice can access the full AppState */
 export type SliceCreator<T> = StateCreator<

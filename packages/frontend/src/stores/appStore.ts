@@ -13,6 +13,7 @@ import { createFactorySlice } from "./slices/factorySlice";
 import { createSafetySlice } from "./slices/safetySlice";
 import { createAuditSlice } from "./slices/auditSlice";
 import { createAssemblySlice } from "./slices/assemblySlice";
+import { createAssistantSlice } from "./slices/assistantSlice";
 
 export const useAppStore: UseBoundStore<StoreApi<AppState>> = create<AppState>()(
   immer(
@@ -30,6 +31,7 @@ export const useAppStore: UseBoundStore<StoreApi<AppState>> = create<AppState>()
           ...createSafetySlice(...a),
           ...createAuditSlice(...a),
           ...createAssemblySlice(...a),
+          ...createAssistantSlice(...a),
         }),
         {
           name: "open-agents-store",
