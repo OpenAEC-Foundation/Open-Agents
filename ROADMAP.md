@@ -170,6 +170,17 @@
 - [ ] Performance optimalisatie
 - [ ] Documentatie en tutorials
 
+### Toekomstige Integratie: Open-VSCode-Controller (D-041)
+
+> Open-VSCode-Controller biedt programmatische VS Code controle via HTTP Bridge
+> (40+ endpoints), MCP Server (25 tools), CLI en Agent Orchestrator.
+> Repo: `OpenAEC-Foundation/Open-VSCode-Controller`
+
+- [ ] Open-VSCode-Controller stabiliseren (Phase 1-3) — zie `docs/PARALLEL-SESSIONS.md` Sessie E
+- [ ] Integratiestrategie bepalen (D-041: compose / absorb / extension pack)
+- [ ] Bridge client of MCP proxy implementeren in Open-Agents
+- [ ] Agent execution via VS Code terminals als alternatief runtime
+
 ### Fase 7: Agent Library (Doorlopend — Sprint 9)
 
 > Loopt parallel naast alle sprints. Vult retroactief agents aan per fase.

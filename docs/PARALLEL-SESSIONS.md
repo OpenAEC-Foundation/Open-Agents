@@ -429,6 +429,124 @@ Update ROADMAP.md: Agent Library teller bijwerken (90 → nieuw totaal).
 
 ---
 
+## Sessie E: Open-VSCode-Controller Stabiliseren
+
+**Repository**: `C:\Users\Freek Heijting\Documents\GitHub\Open-VSCode-Controller` (APART project)
+**Focus**: HTTP Bridge testen, CLI testen, MCP Server testen, .vsix bouwen
+**Raakt**: Alleen Open-VSCode-Controller repo — GEEN wijzigingen in Open-Agents
+
+> **Toekomst**: Open-VSCode-Controller wordt een integratiepunt voor Open-Agents (D-041).
+> Agents op het canvas kunnen straks VS Code programmatisch aansturen via HTTP Bridge / MCP.
+> Integratiestrategie (compose/absorb/extension pack) wordt later bepaald.
+
+### Wat is Open-VSCode-Controller?
+
+Programmatische VS Code controle via:
+- **HTTP Bridge** (port 7483) — 40+ endpoints: editor, terminal, files, git, debug, extensions
+- **MCP Server** (25 tools) — stdio transport, proxy naar HTTP bridge
+- **CLI** (`vscode-ctrl`) — command-line interface voor alle endpoints
+- **WebSocket** — real-time events (editor changes, terminal events, agent lifecycle)
+- **Agent Orchestrator** — spawnt autonome Claude Code agents in sandboxed terminals
+
+### Huidige status
+
+| Phase | Status |
+|-------|--------|
+| Phase 0: Foundation | COMPLETE |
+| Phase 1: HTTP Bridge | ~30% getest |
+| Phase 2: CLI | Niet gestart |
+| Phase 3: MCP Server | Niet gestart |
+| Phase 4: WebSocket Events | Niet gestart |
+
+### Instructie
+
+```
+Je werkt aan Open-VSCode-Controller, een VS Code extension die programmatische
+controle over VS Code biedt via HTTP Bridge + MCP Server + CLI.
+
+=== SESSION PROTOCOL ===
+1. Lees MASTERPLAN.md → welke fases zijn af, welke niet
+2. Lees ROADMAP.md → huidige status
+3. Lees packages/shared/src/types.ts → API contract (23 interfaces)
+4. Lees packages/vscode-extension/src/httpServer.ts → route definities
+5. WERK IN: C:/Users/Freek Heijting/Documents/GitHub/Open-VSCode-Controller
+
+=== CONTEXT ===
+Phase 0 (Foundation) is COMPLETE. Phase 1 (HTTP Bridge) is ~30% getest.
+Phase 2 (CLI), 3 (MCP), 4 (WebSocket) zijn nog niet gestart.
+
+Monorepo met 3 packages:
+- packages/shared/ — API types + constants
+- packages/vscode-extension/ — HTTP bridge + handlers + MCP server
+- packages/cli/ — CLI tool
+
+8 handler modules:
+- handlers/editor.ts (9 functies: open, close, getText, insertText, etc.)
+- handlers/files.ts (7 functies: read, write, create, delete, list, etc.)
+- handlers/terminal.ts (4 functies: list, create, send, kill)
+- handlers/window.ts (3 functies: workspace, window state, execute command)
+- handlers/extensions.ts (1 functie: list extensions)
+- handlers/debug.ts (3 functies: state, start, stop)
+- handlers/scm.ts (1 functie: git status)
+- handlers/tasks.ts (2 functies: list, run)
+- handlers/orchestrator.ts (5 functies: spawn, status, list, kill, results)
+
+=== OPDRACHT: Phase 1-3 afronden ===
+
+**Phase 1: HTTP Bridge testen en stabiliseren**
+1. Start Extension Development Host (F5 in VS Code)
+2. Test ALLE handler modules systematisch:
+   - Editor: GET /editor/active, POST /editor/open, POST /editor/insert,
+     POST /editor/replace, GET /editor/text, POST /editor/cursor,
+     POST /editor/selection, GET /editor/tabs, POST /editor/close
+   - Files: GET /files/read, POST /files/write, POST /files/create,
+     DELETE /files/delete, POST /files/rename, GET /files/exists,
+     GET /files/list
+   - Terminal: GET /terminal/list, POST /terminal/create,
+     POST /terminal/send, DELETE /terminal/kill
+   - Window: GET /workspace/state, GET /window/state,
+     POST /commands/execute
+   - Other: GET /extensions/list, GET /debug/state, GET /scm/status,
+     GET /tasks/list
+3. Fix bugs die je vindt
+4. Documenteer wat werkt en wat niet in ROADMAP.md
+
+**Phase 2: CLI testen**
+1. Build CLI package: pnpm --filter @vscode-ctrl/cli build
+2. Test basiscommando's:
+   - vscode-ctrl status
+   - vscode-ctrl editor open <file>
+   - vscode-ctrl files read <path>
+   - vscode-ctrl terminal create --name test
+3. Fix eventuele client.ts issues
+
+**Phase 3: MCP Server testen**
+1. Configureer .mcp.json in een test workspace
+2. Start MCP server via Claude Code
+3. Test minimaal deze tools: health, workspace_state, open_file,
+   get_active_editor, create_terminal, read_file, list_directory
+4. Fix tool parameter validatie issues (Zod schemas)
+
+**Bonus: .vsix bouwen**
+1. npm install -g @vscode/vsce
+2. cd packages/vscode-extension && vsce package
+3. Test installatie in productie VS Code (niet Extension Dev Host)
+
+=== WERKWIJZE ===
+- Gebruik subagents (Task tool) voor parallel testen:
+  * Agent 1: Editor + Files handlers testen
+  * Agent 2: Terminal + Window + Extensions handlers testen
+  * Agent 3: CLI commands testen
+- Commit per handler groep: "test: verify editor handlers",
+  "fix: terminal create handler", etc.
+
+=== NA AFRONDING ===
+Update ROADMAP.md met Phase 1-3 status.
+Commit als: "feat: stabilize HTTP bridge + CLI + MCP (Phase 1-3)"
+```
+
+---
+
 ## Uitvoeringsplan
 
 ### Stap 1: Branches aanmaken
@@ -485,6 +603,7 @@ Elke sessie moet subagents (Task tool) gebruiken voor parallellisatie:
 | B | Agent 1: D-023 type definitions. Agent 2: D-031 MCP pipeline. |
 | C | Agent 1: OpenAPI scan. Agent 2: README. Agent 3: CONTRIBUTING. Agent 4: CHANGELOG. |
 | D | Agent 1-4: Elk een categorie agents (50 per agent). Herhaal voor alle batches. |
+| E | Agent 1: Editor+Files handlers. Agent 2: Terminal+Window handlers. Agent 3: CLI commands. |
 
 ### Wanneer STOPPEN en overleggen
 - Als je een bestand moet wijzigen dat een andere sessie ook wijzigt → STOP
