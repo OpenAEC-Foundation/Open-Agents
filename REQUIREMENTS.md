@@ -1,7 +1,7 @@
 # Requirements - Open-Agents
 
-> **Versie**: 0.2
-> **Laatste update**: 2026-03-03
+> **Versie**: 0.4
+> **Laatste update**: 2026-03-02
 > **Status**: In ontwikkeling — status annotaties toegevoegd per FR
 
 ## Visie
@@ -49,7 +49,7 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-03: Orchestratie Patronen
 
-> **Status**: 50% — Flow pattern (sequentieel) volledig werkend (Sprint 3). Pool pattern (dispatcher) en parallelle execution niet geïmplementeerd (Sprint 4).
+> **Status**: 100% — Flow pattern (sequentieel) volledig werkend (Sprint 3). Pool pattern (dispatcher-based routing) en parallelle execution volledig werkend (Sprint 4). Patronen combineerbaar op één canvas.
 
 - **Flow**: sequentiële pipeline (output A = input B)
 - **Pool**: dispatcher-based (orchestrator routeert naar juiste agent)
@@ -118,7 +118,7 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-09: Semantische Intelligentie
 
-> **Status**: 25% — GeneratePanel doet single-agent NL generatie. Geen auto-architectuur generatie, geen groeiend context systeem.
+> **Status**: 65% — Sprint 6b: volledige 5-staps assembly pipeline werkend (GenerateBar, intent classificatie, pattern matching, graph generatie, cost estimatie). Sprint 6c: AI Assembly Assistant sidebar met context-aware prompts, canvas sync, smart suggestions. Groeiend context systeem en in-app user guide nog niet geïmplementeerd.
 
 - App begrijpt natural language intent van de gebruiker
 - Auto-genereert agent architecturen op basis van beschrijving
@@ -165,7 +165,7 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-13: Switchable Orchestrator Context
 
-> **Status**: 0% — Niet geïmplementeerd. Geen context selector of specialized contexts.
+> **Status**: 20% — Context selector geïmplementeerd in AI Assembly Assistant sidebar (Sprint 6c): neutral, code-review, security, ERPNext, custom. Losgekoppeld input venster en sneltoetsen voor context wisselen nog niet geïmplementeerd.
 
 - Input venster waar de gebruiker praat met de orchestrator
 - Context selector (dropdown/tabs) bovenaan het input venster
@@ -202,7 +202,7 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-16: Knowledge Base & Snippet Engine (D-020, D-021)
 
-> **Status**: 60% — @open-agents/knowledge package met 35 patterns, 7 principes, 13 blocks. Backend API endpoints werkend. Geen frontend Knowledge UI (geen browser, geen visualisatie).
+> **Status**: 75% — @open-agents/knowledge package volledig werkend (Sprint 6a): 35 patterns, 7 principes, 13 blocks, alle API routes. Kennis gebruikt door AI Assembly Assistant (Sprint 6c) via pattern queries en suggesties. Geen standalone frontend Knowledge UI (geen browser, geen visualisatie).
 
 - Gestructureerde kennisbibliotheek als apart package (`@open-agents/knowledge`)
 - **Hardcoded engine logic** (TypeScript): model capability profiles (cost/speed/capabilities), tool risico-niveaus, token budget berekening, graph validatie regels
@@ -214,7 +214,7 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-17: Self-Assembly Engine - NL naar Agent Graph (D-017, D-022)
 
-> **Status**: 25% — GeneratePanel doet single-agent generatie via Sonnet. 5-staps pipeline (Haiku intent → TS pattern match → Sonnet graph → TS cost → TS validate) niet geïmplementeerd.
+> **Status**: 100% — Sprint 6b complete: volledige 5-staps pipeline geïmplementeerd. Intent classificatie (Haiku), pattern matching (TypeScript score-based), graph generatie (Sonnet), cost estimatie (TypeScript), graph validatie (TypeScript). GenerateBar + PatternLibrary + CostEstimatePanel componenten. Auto-layout met dagre. Assembly API routes (`POST /api/assembly/generate`, `POST /api/assembly/classify`) werkend.
 
 - Gebruiker beschrijft gewenste taak in natuurlijke taal
 - **5-staps pipeline**:
@@ -229,7 +229,7 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-18: AI Assembly Assistant - Sidebar (D-018)
 
-> **Status**: 0% — Geen AssistantSidebar component. Geen context-aware chat, canvas sync, of suggesties.
+> **Status**: 90% — Sprint 6c complete: AssistantSidebar component met context-aware prompts (Sonnet streaming via Anthropic Messages API). Chat + suggesties + context selector + action cards. Bidirectionele canvas sync (add/remove/update node, add edge, replace all via CanvasAction objecten). Smart suggestions met one-click Apply (orphan detection, model cost, validation agent). Alle zes query modes geïmplementeerd. Nog niet: opgeslagen chat history, export van suggesties.
 
 - Chat panel naast het canvas als kennispartner bij het assembleren
 - **Context-aware**: leest huidige canvas state mee bij elke interactie
@@ -246,7 +246,7 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-19: Pattern Library Browser
 
-> **Status**: 20% — Backend API voor patterns bestaat (GET /api/knowledge/patterns). Geen frontend pattern browser met ASCII diagrammen of drag-to-canvas.
+> **Status**: 30% — Backend API voor patterns volledig werkend (GET /api/knowledge/patterns, Sprint 6a). Pattern informatie beschikbaar via AI Assembly Assistant query mode "Pattern" (Sprint 6c). Geen standalone frontend pattern browser met ASCII diagrammen of drag-to-canvas.
 
 - Visueel doorbladerbare bibliotheek van alle routing patterns uit de knowledge base
 - Per pattern: naam, ASCII diagram, wanneer gebruiken, cost profiel, voorbeeld use case
@@ -272,7 +272,7 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-21: Per-Agent Workspace Engineering (D-024, D-025)
 
-> **Status**: 0% — Niet geïmplementeerd. Geen Docker containers, geen 6-layer stack editor, geen CLAUDE.md/rules/skills configuratie per agent. Gepland Sprint 7-8.
+> **Status**: 0% — Niet geïmplementeerd voor canvas. Geen Docker containers, geen 6-layer stack editor, geen CLAUDE.md/rules/skills configuratie per agent in de canvas UI. Nota: oa-cli (Sprint 12, FR-25) implementeert workspace builder met CLAUDE.md generatie per agent als alternatieve aanpak buiten de canvas. Docker isolatie gepland in Sprint 13.
 
 - Elke agent draait in een Docker container met een geoptimaliseerde workspace
 - Workspace volgt het **6-layer stack model** (uit Claude Workspace Development Workflows):
@@ -371,6 +371,43 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - Geen component code wijzigen nodig bij branding wissel
 - Model badge kleuren (per LLM provider) blijven los van het themasysteem
 
+### FR-25: CLI Multi-Agent Orchestrator (D-045)
+
+> **Status**: 100% — `oa-cli` Python package volledig werkend met 12 commando's.
+
+- **Tmux-based agent orchestratie**: elke agent draait als Claude Code sessie in een tmux window
+- Geen API calls — gebruikt Claude subscription via `claude --dangerously-skip-permissions`
+- 12 CLI commando's: `start`, `run`, `status`, `dashboard`, `attach`, `watch`, `kill`, `collect`, `clean`, `pipeline`, `web`, `version`
+- State management via `~/.oa/agents.json`
+- Workspace builder met auto-generated CLAUDE.md per agent
+- Timeout detectie (30 min default)
+- Agent lifecycle: spawn → running → done/error/timeout/killed
+- Model selectie: `claude` (default) of `ollama/<model>`
+- Agent hiërarchie via `--parent` parameter
+
+### FR-26: Web UI voor Agent Monitoring (D-050)
+
+> **Status**: 100% — React SPA + Flask bridge werkend via `oa web`.
+
+- React SPA web UI (`oa-cli/web/`) met dark theme
+- Flask bridge server op localhost — wraps CLI functies als REST API
+- Agent lijst met status, taak, duration
+- Live session viewing: terminal output van running agents via `tmux capture-pane`
+- Agent spawnen vanuit web UI
+- Kill en clean operaties vanuit web UI
+- Auto-refresh: agent lijst elke 2s, geselecteerde agent output elke 1.5s
+
+### FR-27: Multi-Interface Architectuur (D-048)
+
+> **Status**: 100% — Drie interfaces delen één state (`~/.oa/agents.json`).
+
+- **CLI**: typer commando's voor scriptbare operaties
+- **TUI**: Textual dashboard met interactieve DataTable, auto-refresh, key bindings (D-046)
+- **Web UI**: React SPA met Flask bridge voor browser-based monitoring (D-050)
+- Alle drie lezen/schrijven dezelfde `~/.oa/agents.json` state
+- Tmux als gedeelde execution layer — agents draaien onafhankelijk van welke interface ze spawnt
+- Pipeline orchestrator beschikbaar via CLI (`oa pipeline`) met planner → subtasks → combiner flow (D-047)
+
 ---
 
 ## Niet-Functionele Requirements
@@ -458,4 +495,4 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ---
 
-*Laatste update: 2026-03-03*
+*Laatste update: 2026-03-02*

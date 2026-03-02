@@ -4,7 +4,7 @@
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
 > **Laatste update**: 2026-03-02
-> **Status**: Sprint 12 (oa-cli Agentic Layer) actief — CLI + TUI + Pipeline werkend
+> **Status**: Sprint 12 (oa-cli) Done — Sprint 11 (VS Code Bridge) In Progress — Sprint 13+ Planned
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -29,6 +29,7 @@
 | LLM Asset Generation (Factory) | 1 | 1 |
 | Agent Library (doel: 1000+) | 90 | 1000 |
 | CLI Agentic Layer (oa-cli) | 1 | 1 |
+| VS Code Bridge (Sprint 11) | 0 | 1 |
 
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
 **Fase 1 (PoC)**: ████████████████████ **100%** - canvas UI, backend API, e2e wiring, theming, BYOK
@@ -42,7 +43,8 @@
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 7 (Agent Library)**: ██░░░░░░░░░░░░░░░░░░ **9%** - 90/1000 agents geïmplementeerd (10 categorieën, library loader)
 **Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond, 6 doorgeschoven naar v0.2.0)
-**Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 9 commando's, Textual TUI, pipeline orchestrator
+**Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 12 commando's, Textual TUI, pipeline orchestrator, React web UI
+**Fase 10 (VS Code Bridge)**: ██████████░░░░░░░░░░ **50%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator werkend; package migratie + E2E verificatie nog open
 
 ---
 
@@ -259,7 +261,7 @@
 - [x] State management via ~/.oa/agents.json
 - [x] Workspace builder met CLAUDE.md generatie
 - [x] Timeout detectie (30 min default)
-- [x] Alle 7 commando's getest en werkend
+- [x] Alle 9 basis commando's getest en werkend
 
 **Prompt 2 — TUI Dashboard + Pipeline (Complete):**
 - [x] Textual TUI dashboard (D-046): 60/40 split, DataTable + detail panel, auto-refresh 2s
@@ -273,6 +275,90 @@
 - [x] Error handling per pipeline fase
 - [x] `oa pipeline "<taak>"` commando werkend
 - [x] `pip install -e .` succesvol met textual>=0.80
+
+**Prompt 2b — Web UI + Extra Commands (Complete):**
+- [x] React SPA web UI (`oa-cli/web/`) met Vite + React 19 + TypeScript
+- [x] Flask bridge server (`bridge.py`) — localhost-only, serveert React SPA + API endpoints
+- [x] `oa web` — start web UI op localhost (React SPA + Flask bridge)
+- [x] `oa attach <naam>` — tmux window selecteren voor live sessie
+- [x] `oa watch <naam>` — real-time output streaming in terminal
+- [x] `oa run --model` parameter — model selectie (claude, ollama/<model>)
+- [x] `oa run --parent` parameter — agent hiërarchie
+- [x] Live session viewing via `tmux capture-pane` in web UI en TUI
+- [x] UI beslissingen: D-048 (3 interfaces), D-049 (live viewing), D-050 (React SPA)
+- [x] Totaal 12 CLI commando's: start, run, status, dashboard, attach, watch, kill, collect, clean, pipeline, web, version
+
+---
+
+---
+
+## Sprint 13+: Planning
+
+### Sprint 13: Docker Isolation + Non-Claude Tool Use — Planned
+
+**Doel**: Container isolatie per agent (D-040) + non-Claude runtime tool use (D-032 PoC-beperking opheffen)
+
+**Prioriteit**: Hoog — blokkeert productie-inzet
+**Afhankelijk van**: Sprint 10 (v0.1.0)
+
+**Docker Container Isolation (D-040):**
+- [ ] Docker runtime adapter (`docker-runtime.ts`) — container start, logs streamen, cleanup
+- [ ] Workspace builder voor Docker volume mount (D-024 6-layer stack in container)
+- [ ] Network policy per agent (whitelist in agent JSON config)
+- [ ] Resource limits (memory, CPU, timeout) via Docker flags
+- [ ] Secret injection als Docker env vars
+- [ ] Output capture: artifacts uit container na afloop
+- [ ] Execution engine refactor: `runtime.execute()` → docker-runtime
+- [ ] Safety settings: tool blacklists → container policies (D-035 + D-040 convergentie)
+
+**Non-Claude Runtime Tool Use (D-032):**
+- [ ] OpenAI adapter: function calling API
+- [ ] Mistral adapter: tool_calls in chat completions
+- [ ] Ollama adapter: tool_calls (conditioneel, ondersteunde modellen)
+- [ ] AgentRuntime interface: tool definitions parameter
+- [ ] Tool result handling in execution engine
+- [ ] Canvas: model selector toont tool use support per adapter
+
+---
+
+### Sprint 14: Agent Library Scale-up — Planned
+
+**Doel**: Van 90 naar 300+ agents (categorieën J-M als eerste batch)
+**Afhankelijk van**: Sprint 9 (library infrastructuur)
+
+- [ ] 50 Infrastructure & DevOps agents (agents/library/infra-devops/)
+- [ ] 50 Testing & QA agents (agents/library/testing-qa/)
+- [ ] 50 API & Integration agents (agents/library/api-integration/)
+- [ ] 50 Database & Data agents (agents/library/database-data/)
+- [ ] Maturity veld (D-042) toevoegen aan alle 90 bestaande agents
+- [ ] Library filter UI: filter op maturity niveau
+- [ ] Groeipad dashboard in UI
+
+---
+
+### Sprint 15: oa-cli × packages/ Convergentie — Planned
+
+**Doel**: oa-cli als derde execution runtime naast API en VS Code bridge
+**Afhankelijk van**: Sprint 12 (oa-cli Done), Sprint 11 (VS Code bridge)
+
+- [ ] `OaCLIRuntime` adapter in `packages/backend/src/runtimes/oa-cli.ts`
+- [ ] `tmux/claude` als ModelProvider + ModelId in shared types
+- [ ] Status polling: agents.json → SSE stream naar frontend
+- [ ] Flask bridge: POST /api/canvas voor canvas config
+- [ ] Canvas model selector: API | CLI (bridge) | Tmux als drie opties
+- [ ] E2E test: canvas → tmux/claude → oa-cli → result in UI
+
+---
+
+### Sprint 16: Google A2A Protocol Evaluatie — Planned
+
+**Doel**: Evalueer Google A2A als interoperabiliteitsstandaard
+**Afhankelijk van**: Sprint 13 (Docker isolation stabiel)
+
+- [ ] A2A spec analyse vs huidige canvas JSON + SSE architectuur
+- [ ] PoC A2A server adapter (één Open-Agents agent als A2A service)
+- [ ] Test met A2A-compatible client
+- [ ] Beslissing D-051 documenteren in DECISIONS.md
 
 ---
 

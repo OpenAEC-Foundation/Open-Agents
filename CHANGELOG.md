@@ -7,16 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-03-02
+
 ### Added
-- **Sprint 12 (oa-cli)**: Tmux-based multi-agent CLI orchestrator (`oa-cli/` Python package)
-  - 9 CLI commands: `oa start`, `run`, `status`, `dashboard`, `kill`, `collect`, `clean`, `pipeline`, `version`
-  - Textual TUI dashboard with live agent monitoring (60/40 split, DataTable + detail panel, auto-refresh, key bindings)
-  - Pipeline orchestrator: planner → subtasks (parallel) → combiner with custom CLAUDE.md templates per phase
-  - Agent lifecycle management via tmux (spawn, check, kill, timeout detection)
-  - Workspace builder with auto-generated CLAUDE.md per agent
-  - State persistence in `~/.oa/agents.json`
-  - Live output capture via `tmux capture-pane`
-  - Dependencies: typer, rich, textual (≥0.80)
+- oa-cli: Python CLI orchestrator with 12+ commands (`oa start/run/status/dashboard/kill/collect/clean/pipeline/web/attach/watch/version`)
+- oa-cli: Textual TUI dashboard with live agent monitoring (60/40 split, DataTable + detail panel, auto-refresh, key bindings)
+- oa-cli: Pipeline orchestrator (planner → subtasks → combiner) with custom CLAUDE.md templates per phase
+- oa-cli: React SPA web UI (Command Centre) on localhost:5174 with Vite + React 19 + TypeScript (dark theme, live session viewer, agent spawn form)
+- oa-cli: Flask bridge server (`bridge.py`) — localhost-only API wrapping oa-cli functions for web UI
+- oa-cli: Proposal mode — agents write proposals instead of direct file modifications
+- oa-cli: `review` and `apply` commands for proposal approval workflow
+- oa-cli: `--workspace` flag for custom agent workspaces
+- oa-cli: Multi-model support (`claude/opus`, `claude/sonnet`, `claude/haiku`, `ollama/*`)
+- oa-cli: Agent lifecycle management via tmux (spawn, check, kill, timeout detection)
+- oa-cli: Workspace builder with auto-generated CLAUDE.md per agent
+- oa-cli: State persistence in `~/.oa/agents.json`
+- oa-cli: Live output capture via `tmux capture-pane` (TUI, web UI, and `oa watch`)
+- oa-cli: Three UI interfaces sharing one state: CLI, Textual TUI, React SPA (D-048)
+
+### Changed
+- CLAUDE.md v4: oa-cli as primary orchestration, Session Recovery Protocol updated
+- MASTERPLAN.md: Sprint 6c/10 status fixed, Sprint 13-16 added
+- ROADMAP.md: Phase 9 (CLI Agentic Layer) at 100%
+- Project focus shifted from packages/ (visual canvas) to oa-cli (CLI orchestration)
+- `oa run --model` expanded with additional model options (claude/opus, claude/sonnet, claude/haiku, ollama/*)
+
+### Fixed
+- REQUIREMENTS.md: Outdated percentages corrected
+- OPEN-QUESTIONS.md: Answered questions marked as resolved
+- Dependencies: typer, rich, textual (≥0.80), flask (≥3.0), flask-cors (≥5.0)
+
+---
 
 ## [0.1.0] - 2026-03-05
 

@@ -1,7 +1,7 @@
 # Principles - Open-Agents
 
-> **Versie**: 0.1
-> **Laatste update**: 2026-02-28
+> **Versie**: 0.2
+> **Laatste update**: 2026-03-02
 > **Doel**: Design uitgangspunten die elke beslissing sturen
 
 ---
@@ -71,6 +71,24 @@ Alleen de orchestratie optimaliseren levert "werkende" agents. Alle drie de lage
 
 We volgen de Anthropic Agent SDK definitie van wat een agent is. Een agent heeft een autonome executie-loop met tool use. Iets dat in één LLM-call kan (tekst in → tekst uit) is een skill of prompt template, geen agent. Dit bepaalt welke block types op het canvas verschijnen en hoe ze zich gedragen.
 
+## 14. Subscription-first (geen API-kosten voor orchestratie)
+
+We prioriteren workflows die de **Claude subscription** gebruiken boven directe API-aanroepen. oa-cli orkestreert agents via de `claude` CLI — subscription-gebaseerd, geen per-token kosten. Dit maakt het platform toegankelijk voor iedereen die al een Claude-abonnement heeft, en elimineert API-kosten voor het zware orchestratiewerk.
+
+API-aanroepen reserveren we voor situaties waar de subscription niet volstaat: server-side batch processing, niet-interactieve omgevingen, of integraties waarbij geen claude CLI beschikbaar is. De keuze tussen subscription en API is een bewuste afweging per deployment-context, niet een technische beperking.
+
+## 15. CLI/tmux orchestratie als primaire interface
+
+Naast de canvas UI is **CLI- en tmux-gebaseerde orchestratie een first-class citizen**. oa-cli spawnt agents als Claude Code sessies in tmux windows — direct zichtbaar, attachbaar, inspecteerbaar en killbaar. Dit past bij ontwikkelaars die al in de terminal werken en maakt agentic workflows transparant en debuggable zonder browser.
+
+De drie interfaces (CLI, TUI, Web UI) zijn gelijkwaardig en delen één state (`~/.oa/agents.json`) via de tmux execution layer. Geen interface is "de echte" — de juiste keuze hangt af van de context: scripting, monitoring of visuele exploratie.
+
+## 16. Proposal-based workflow
+
+**Agents schrijven proposals, eigenaar keurt goed.** Een agent werkt nooit direct op productiebestanden buiten zijn workspace. In plaats daarvan schrijft hij `output/proposals/<bestand>.proposal.md` met: (1) welk bestand, (2) waarom wijzigen, (3) de volledige nieuwe inhoud. De eigenaar reviewt en keurt goed voordat wijzigingen worden toegepast.
+
+Dit principe borgt **autonomie binnen expliciete grenzen**: de agent werkt zelfstandig en volledig, maar externe effecten vereisen altijd menselijke goedkeuring. Het maakt agentic workflows veilig in te zetten op gevoelige codebases, en creëert een natuurlijk reviewmoment voor architecturale beslissingen die buiten het directe werkdomein van de agent vallen.
+
 ---
 
 ## Samenvatting
@@ -79,4 +97,4 @@ We volgen de Anthropic Agent SDK definitie van wat een agent is. Een agent heeft
 
 ---
 
-*Laatste update: 2026-03-01*
+*Laatste update: 2026-03-02*

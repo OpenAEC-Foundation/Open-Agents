@@ -1,7 +1,7 @@
 # Open Questions - Open-Agents
 
-> **Versie**: 0.3
-> **Datum**: 2026-03-03
+> **Versie**: 0.5
+> **Datum**: 2026-03-02
 >
 > Open-Agents is een visueel agent-orchestratieplatform waar gebruikers agent-blokken
 > op een canvas slepen en verbinden. De gegenereerde configuratie stuurt agents aan
@@ -17,8 +17,8 @@
 
 - **Hoe communiceren agents onderling?** Message bus, stdout piping, shared state? Welke combinatie past bij zowel real-time canvas feedback als headless execution? *(Deels beantwoord: Sprint 3 gebruikt prompt injection voor sequentieel, Sprint 4 voor parallel. Schaalt dit bij grote outputs? Zie MASTERPLAN Sprint 3.1)*
 - **Hoe schalen we naar 50+ agents op een canvas zonder performance issues?** Virtualisatie, lazy loading, off-screen culling? *(React Flow v12 ondersteunt honderden nodes technisch, maar UX bij 50+ vereist grouping/collapsing)*
-- **Assembly pipeline tijdlijn**: Sprint 6b (Assembly Engine) en 6c (AI Assistant) zijn gepland maar niet gescheduled. Wat is de prioriteit t.o.v. Sprint 4 (Pool Pattern) en Sprint 8 (Frappe App)? FR-17 en FR-18 staan op 25% en 0%.
-- **Bash safety enforcement gap**: testCommand() in safety-store.ts wordt nooit aangeroepen tijdens executie — alleen via de test API (POST /safety/test). De execution engine filtert tools maar controleert niet de inhoud van bash commands. Is dit acceptabel voor PoC of moet dit voor v0.1.0 opgelost worden? Zie D-035.
+- ~~**Assembly pipeline tijdlijn**: Sprint 6b (Assembly Engine) en 6c (AI Assistant) zijn gepland maar niet gescheduled.~~ → Afgerond in Sprint 6b en 6c.
+- ~~**Bash safety enforcement gap**: testCommand() in safety-store.ts werd nooit aangeroepen tijdens executie.~~ → Opgelost in Sprint 10 (D-035): bash blacklist enforcement in execution engine.
 - **Memory management backend**: In-memory stores in execution-engine.ts (runs, eventBuffers, emitters, runControls) groeien onbeperkt. Elke run bewaart alle SSE events. Bij welk punt wordt dit een probleem en moeten we TTL of database-backed storage implementeren? Zie D-026.
 - **NodeType 'aggregator' herkomst**: `NodeType = "agent" | "dispatcher" | "aggregator"` bevat `aggregator` dat niet voorkomt in de D-023 taxonomie (die definieert: agent, teammate, skill, connector, gate, dispatcher). Is aggregator een bewust PoC utility type dat behouden moet worden, of moet het vervangen worden door D-023 types?
 
@@ -60,11 +60,12 @@
 - ~~**React Flow vs Vue Flow**~~ → D-006: React + React Flow (xyflow v12)
 - ~~**Mono-repo of multi-repo?**~~ → D-008: Mono-repo met pnpm workspaces
 - ~~**Welke state management?**~~ → D-014 (te nemen in Sprint 1.2a). Pinia valt af door D-006 (React, niet Vue).
+- ~~**Hoe embedden we de canvas UI in een VS Code webview met goede performance?**~~ → Beantwoord door Sprint 7. Oplossing: webview panel met React build (Vite), communicatie via VS Code postMessage API. Build pipeline: tsup (extension CJS) + Vite (webview). Beperkingen: webview heeft geen directe DOM-toegang, state sync loopt via extension host.
+- ~~**Hoe integreren we de canvas UI in Frappe Desk zonder iframe?**~~ → Beantwoord door Sprint 8. Oplossing bleek toch iframe te zijn: canvas embedding in Frappe Desk via iframe met postMessage bridge. Frappe's routing en bundling zijn te complex voor directe SPA-integratie; iframe geeft de beste isolatie en herbruikbaarheid.
 
 ### Nog Open
 
-- **Hoe embedden we de canvas UI in een VS Code webview met goede performance?** Welke beperkingen legt de webview API op qua state, communicatie en rendering? *(Relevant voor Sprint 7)*
-- **Hoe integreren we de canvas UI in Frappe Desk zonder iframe?** Frappe gebruikt eigen routing en bundling -- hoe voegen we een SPA-achtige canvas toe? *(Relevant voor Sprint 8)*
+*(Geen nieuwe onbeantwoorde technologie vragen na Sprint 12)*
 
 ---
 
@@ -87,14 +88,28 @@
 
 ---
 
+## oa-cli Vragen (Sprint 12)
+
+### Nog Open
+
+- **Hoe integreren we de oude TypeScript packages/* met oa-cli?** Het canvas, knowledge engine, assembly pipeline etc. bevatten waardevolle elementen. Cherry-pick strategie nog niet bepaald.
+- **Tauri desktop app**: Is Tauri een goede keuze voor een standalone desktop app die CLI + TUI + web UI combineert? Versus Electron? (D-048 noemt dit als toekomstige optie)
+- **Pipeline afhankelijkheden**: plan.json `depends_on` wordt geparsed maar niet afgedwongen in v1. Wanneer implementeren we dependency-aware scheduling?
+- **Ollama model routing**: `oa run --model ollama/qwen3:8b` werkt, maar er is geen automatische model selectie op basis van taak complexiteit. Moet dit?
+- **oa-cli en packages/ convergentie**: Twee ecosystemen (Python CLI + TypeScript web platform) die dezelfde agents beheren. Wat wordt de uiteindelijke architectuur?
+- **oa-cli als primaire execution layer**: Wordt oa-cli de dominante runtime en packages/* een UI-only laag? Sprint 15 plant een `OaCLIRuntime` adapter, maar de bredere architecturale richting — welk ecosysteem "wint" als primaire orchestrator — is nog niet besloten.
+- **Proposal-based workflow formaliseren**: oa-cli agents schrijven al proposals naar `output/proposals/`. Moet dit een first-class feature worden met eigen commando's (`oa propose`, `oa approve`, `oa apply`)? Hoe integreren we dit met git-gebaseerde review workflows?
+- **Security bij --dangerously-skip-permissions**: Alle oa-cli agents draaien met volledige Claude permissies. Hoe beperken we blast radius zonder API-gebaseerde tool filtering? Is workspace isolatie (temp directory per agent) voldoende, of hebben we toch Docker sandboxing nodig (Sprint 13)?
+
+---
+
 ## Research Nog Uit Te Voeren
 
-- **Claude Agent SDK V2 stabiliteit**: Wanneer wordt de V2 session API (unstable_v2_*) stable? Welke breaking changes zijn gepland? *(Kritiek voor Sprint 3.3 session management)*
-- **Agent Teams productie-readiness**: Bekende limitaties: session resume werkt niet met lopende teammates, task status kan achterlopen, 3-4x token kosten. *(Risico voor Sprint 4 pool pattern)*
-- **Pi agent-core als runtime adapter**: Hoe mapt pi-agent-core op onze AgentRuntime interface? Welke features biedt het bovenop de Claude SDK? *(Relevant wanneer D-002 geimplementeerd wordt)*
+- **Claude Agent SDK V2 stabiliteit**: Wanneer wordt de V2 session API (unstable_v2_*) stable? Welke breaking changes zijn gepland?
+- **Pi agent-core als runtime adapter**: Hoe mapt pi-agent-core op onze AgentRuntime interface? Welke features biedt het bovenop de Claude SDK?
 - **ERPNext_Anthropic_Claude_Development_Skill_Package**: bevat 28 gedefinieerde skills -- kunnen we die importeren als kant-en-klare agent templates?
 - **Frappe UI architecture**: hoe embedden we custom web apps het beste in Frappe Desk? Welke hooks en entry points zijn beschikbaar?
 
 ---
 
-*Laatste update: 2026-03-03*
+*Laatste update: 2026-03-02*
