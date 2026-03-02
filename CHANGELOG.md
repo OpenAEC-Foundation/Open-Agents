@@ -5,6 +5,19 @@ All notable changes to Open-Agents will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Sprint 12 (oa-cli)**: Tmux-based multi-agent CLI orchestrator (`oa-cli/` Python package)
+  - 9 CLI commands: `oa start`, `run`, `status`, `dashboard`, `kill`, `collect`, `clean`, `pipeline`, `version`
+  - Textual TUI dashboard with live agent monitoring (60/40 split, DataTable + detail panel, auto-refresh, key bindings)
+  - Pipeline orchestrator: planner → subtasks (parallel) → combiner with custom CLAUDE.md templates per phase
+  - Agent lifecycle management via tmux (spawn, check, kill, timeout detection)
+  - Workspace builder with auto-generated CLAUDE.md per agent
+  - State persistence in `~/.oa/agents.json`
+  - Live output capture via `tmux capture-pane`
+  - Dependencies: typer, rich, textual (≥0.80)
+
 ## [0.1.0] - 2026-03-05
 
 First milestone release — 10 sprints of the first Scrum iteration complete.

@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "open-agents-cli"
+version = "0.1.0"
+description = "CLI orchestrator for multi-agent Claude Code sessions via tmux"
+requires-python = ">=3.10"
+dependencies = [
+    "typer>=0.12",
+    "rich>=13.0",
+    "textual>=0.80",
+    "flask>=3.0",
+    "flask-cors>=5.0",
+]
+
+[project.scripts]
+oa = "open_agents.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]

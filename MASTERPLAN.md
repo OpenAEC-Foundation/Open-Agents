@@ -1,7 +1,7 @@
 # Masterplan - Open-Agents
 
-> **Versie**: 0.5
-> **Laatste update**: 2026-03-03
+> **Versie**: 0.6
+> **Laatste update**: 2026-03-02
 > **Methodiek**: Scrum (korte sprints, snel waarde leveren)
 > **Zie ook**: REQUIREMENTS.md, PRINCIPLES.md, ROADMAP.md, SOURCES.md
 >
@@ -30,6 +30,7 @@
 | 9 | Agent Library | 1000+ atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | Done (90/1000) |
 | 10 | Refactor & Consolidatie | Refactor van alles uit eerste Scrum iteratie | Sprint 1-9 | Planned |
 | 11 | VS Code Bridge & Terminal Agents | Echte Claude CLI agents via VS Code bridge. Gemigreerd van Open-VSCode-Controller | Sprint 1 | In Progress |
+| 12 | CLI Agentic Layer (oa-cli) | Tmux-based multi-agent orchestrator op subscription. Python CLI + Textual TUI + Pipeline | -- | Done |
 
 ```
 Sprint 0 ──→ Sprint 1 ──→ Sprint 1.2a ──→ Sprint 1.5
@@ -1490,6 +1491,78 @@ VS Code Extension Host (:7483)  ← headless backend
 | **Zichtbaarheid** | Onzichtbaar (API) | Live terminal, gebruiker kan meekijken |
 | **Filesystem** | Geen directe toegang | Volledige toegang via VS Code |
 | **Model selector** | `anthropic/claude-sonnet-4-6` | `cli/claude` |
+
+---
+
+## Sprint 12: CLI Agentic Layer (oa-cli)
+
+**Status**: Done
+**Beslissingen**: D-045, D-046, D-047
+**Architectuur**: claude-code-agentic-layer.md
+**Prompts**: open-agents-prompts.md
+
+### Context
+
+De bestaande Open-Agents codebase draait agents via API (ClaudeSDKRuntime). Sprint 12 voegt een fundamenteel andere aanpak toe: **directe Claude Code CLI sessies** georkestreerd via tmux. Dit draait op je subscription — geen API tokens, geen kosten per call. Temp folders als isolatie, CLAUDE.md als context mechanisme.
+
+### Architectuur
+
+```
+Gebruiker
+    │
+    ▼
+oa CLI (Python/typer)
+    │
+    ├── oa start → tmux session "oa"
+    ├── oa run   → temp workspace + CLAUDE.md + tmux window + claude CLI
+    ├── oa status → ~/.oa/agents.json → rich tabel
+    ├── oa dashboard → Textual TUI (live monitoring)
+    ├── oa pipeline → planner → subtasks → combiner
+    └── oa kill/collect/clean → lifecycle management
+```
+
+### Prompt 1: Core CLI
+
+> **Prompt**: Zie `open-agents-prompts.md` Prompt 1
+>
+> Bouw een terminal-applicatie genaamd "open-agents" — een orchestrator die Claude Code CLI sessies aanstuurt via tmux.
+
+**Taken:**
+- [x] `[PAR]` pyproject.toml + projectstructuur (oa-cli/src/open_agents/)
+- [x] `[PAR]` state.py — ~/.oa/agents.json CRUD
+- [x] `[PAR]` workspace.py — temp folder + CLAUDE.md builder
+- [x] `[PAR]` orchestrator.py — agent lifecycle via tmux (spawn, check, kill, clean)
+- [x] `[PAR]` monitor.py — rich status tabel
+- [x] `[SEQ]` cli.py — 7 typer commando's (start, run, status, dashboard, kill, collect, clean, version)
+- [x] `[SEQ]` pip install -e . + testen
+
+### Prompt 2: Textual TUI + Pipeline
+
+> **Prompt**: Zie `open-agents-prompts.md` Prompt 2
+>
+> Upgrade het dashboard naar Textual TUI en voeg multi-agent pipeline toe.
+
+**Taken:**
+- [x] `[PAR]` textual>=0.80 dependency
+- [x] `[PAR]` orchestrator.py — `capture_agent_output()` + `workspace` param op `spawn_agent()`
+- [x] `[SEQ]` dashboard.py — Textual app: DataTable + DetailPanel, 60/40 split, auto-refresh, key bindings
+- [x] `[SEQ]` pipeline.py — 4-fase pipeline: planner → parse → parallel subtasks → combiner
+- [x] `[SEQ]` cli.py — dashboard() herwired + pipeline() commando
+- [x] `[SEQ]` pip install -e . + testen
+
+### Prompt 3 (Gepland): Polish + Templates
+
+> `oa attach`, workspace templates (YAML), history & replay
+
+### Acceptatiecriteria Sprint 12
+
+- [x] `oa --help` toont 9 commando's
+- [x] `oa start` + `oa run "test"` spawnt agent in tmux
+- [x] `oa status` toont agent tabel
+- [x] `oa dashboard` start Textual TUI
+- [x] `oa pipeline "complexe taak"` draait planner → subtasks → combiner
+- [x] Alle Python imports succesvol
+- [x] `pip install -e .` zonder errors
 
 ---
 

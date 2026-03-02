@@ -65,6 +65,12 @@
 | D-042 | Agent Maturity Model: drielaags groeipad voor library agents | Elk agent JSON krijgt een `maturity` veld: `prompt-template`, `tool-capable`, `autonomous`. Platform gebruikt maturity voor runtime-optimalisatie. Zie D-042 Details. | Doel blijft 1000+ bouwblokken. Maturity tracking maakt het groeipad expliciet en meetbaar. Voorkomt verwarring over wat een "agent" is vs een prompt template (versterkt D-023 taxonomie). | 2026-03-05 |
 | D-043 | Sprint 10 DRY-refactor strategie | Gedupliceerde code elimineren via extractie naar gedeelde utilities, niet via abstractie-lagen | Concrete extracties: SSE utilities (sse.ts), KnowledgeRegistry singleton, STATUS_COLORS constant, getNodeBorderStyle(). Minimale blast radius, maximale herbruikbaarheid. | 2026-03-05 |
 | D-044 | v0.1.0 release scope | Eerste milestone: alle 10 sprints afgerond, 155 tests groen, alle packages op 0.1.0 | PoC-beperkingen geaccepteerd: geen auth (D-012), in-memory storage (D-026), beperkte non-Claude tool use (D-032). Productie-hardening uitgesteld naar v0.2.0. | 2026-03-05 |
+| D-045 | oa-cli: Tmux Agentic Layer als apart Python pakket | CLI orchestrator die Claude Code sessies aanstuurt via tmux. Draait op subscription, geen API. Temp folder isolatie, CLAUDE.md als context mechanisme. | Python 3.10+, typer CLI, rich output. 9 commando's: start, run, status, dashboard, kill, collect, clean, pipeline, version. State in ~/.oa/agents.json. Workspaces in /tmp/oa-agent-*. Zie D-045 Details. | 2026-03-02 |
+| D-046 | Textual TUI dashboard vervangt tmux attach | Interactieve terminal UI met Textual (≥0.80) vervangt simpele `tmux attach-session`. 60/40 split layout met DataTable + detail panel. | Auto-refresh elke 2s, live output capture via tmux capture-pane, keyboard bindings (K=Kill, C=Collect, R=Refresh, Q=Quit). Lazy import in cli.py voor snelle CLI startup. | 2026-03-02 |
+| D-047 | Pipeline orchestrator: planner → subtasks → combiner | Multi-agent orchestratie als 4-fase pipeline. Planner agent splitst taak op, subtasks draaien parallel, combiner voegt samen. | Planner timeout 5min, subtasks 30min, combiner 10min. Max 10 subtasks. plan.json als tussenformaat. Custom CLAUDE.md templates per fase. Error handling: planner faalt → stop, subtask faalt → placeholder, combiner faalt → subtask outputs beschikbaar. | 2026-03-02 |
+| D-048 | UI Strategie: drie interfaces, één state | Drie manieren om oa te gebruiken: CLI (terminal), TUI (Textual), React SPA (browser). Allemaal lezen/schrijven dezelfde ~/.oa/agents.json state en roepen dezelfde Python functies aan. Geen cloud, geen Claude API — alles lokaal op subscription. Tauri desktop app als toekomstige vierde optie. Zie D-048 Details. | 2026-03-02 |
+| D-049 | Live Session Viewing via tmux capture-pane | Gebruikers kunnen meekijken met draaiende agents. `tmux capture-pane` vangt terminal output op. TUI toont dit in detail panel, React SPA toont het in een streaming terminal view met polling elke 1-2s. Geen WebSocket nodig voor v1 — HTTP polling volstaat. | 2026-03-02 |
+| D-050 | React SPA met lokale Python bridge (geen API) | React SPA op localhost praat met een Flask bridge server die de oa-cli Python functies wrapt. Bridge serveert agent state + live tmux output. Geen cloud endpoints, geen token kosten. Bridge start via `oa web`. Later wrappable in Tauri voor native desktop. | 2026-03-02 |
 
 ---
 
@@ -418,6 +424,95 @@ Elke container wordt afgebakend op vier assen:
 - Agents zichtbaar als live terminals (transparantie)
 
 **Impact**: Nieuwe ModelProvider `"cli"`, nieuw package `@open-agents/vscode-bridge`, Sprint 11 in MASTERPLAN.
+
+---
+
+## D-048 Details: UI Strategie — Drie Interfaces, Één State
+
+> **Kernprincipe**: Alle interfaces delen dezelfde state (~/.oa/agents.json) en dezelfde Python functies. Geen duplicatie van logica.
+
+### Architectuur
+
+```
+~/.oa/agents.json  ←── Shared State
+/tmp/oa-agent-*    ←── Workspaces
+tmux sessions      ←── Agent Processen
+        │
+        ├── CLI (oa run/status/kill/...)     ← Python direct
+        ├── TUI (oa dashboard)               ← Python direct (Textual)
+        ├── React SPA (oa web)               ← Python via Flask bridge
+        └── Tauri Desktop (toekomst)         ← Rust → Python bridge
+```
+
+### Drie Interfaces Vergeleken
+
+| | CLI | TUI (Textual) | React SPA |
+|---|---|---|---|
+| Start | `oa <command>` | `oa dashboard` | `oa web` |
+| Live meekijken | `oa attach <naam>` | Detail panel (20 regels) | Terminal view (full output) |
+| Agent spawnen | `oa run "<taak>"` | N-toets → dialoog | Formulier in UI |
+| Pipeline | `oa pipeline "<taak>"` | P-toets → dialoog | Pipeline panel |
+| Best voor | Scripting, quick actions | Monitoring, keyboard users | Visueel overzicht, browsing |
+
+### Geen API, Geen Cloud
+
+- **Absoluut geen Claude API** — alles draait op subscription via Claude Code CLI
+- **Lokale bridge** — Flask op localhost, alleen voor React SPA ↔ Python communicatie
+- **Geen externe services** — alles draait op de host machine
+- **Tauri later** — dezelfde React SPA in native window, Rust backend roept `oa` CLI aan
+
+---
+
+## D-045 Details: oa-cli — Tmux Agentic Layer
+
+> **Bron**: claude-code-agentic-layer.md (architectuurdocument) + open-agents-prompts.md (implementatieprompts)
+> **Kernidee**: Claude Code CLI op je subscription als agent runtime, tmux als orchestratielaag, temp folders als isolatie.
+
+### Waarom een apart Python pakket?
+
+De bestaande Open-Agents codebase (TypeScript monorepo) is gericht op het visuele platform met React frontend en Fastify backend. De tmux agentic layer is fundamenteel anders:
+- **Runtime**: Python CLI, geen webserver
+- **Interface**: Terminal/tmux, niet browser
+- **Kosten**: Subscription-based (geen API tokens)
+- **Isolatie**: Temp folders, niet Docker (v1)
+
+### Pakketstructuur
+
+```
+oa-cli/
+├── pyproject.toml              # open-agents-cli v0.1.0
+├── src/open_agents/
+│   ├── __init__.py
+│   ├── cli.py                  # 9 typer commando's
+│   ├── orchestrator.py         # Agent lifecycle via tmux
+│   ├── workspace.py            # Temp folder + CLAUDE.md builder
+│   ├── state.py                # ~/.oa/agents.json CRUD
+│   ├── monitor.py              # Rich status tabellen
+│   ├── dashboard.py            # Textual TUI app (D-046)
+│   └── pipeline.py             # Pipeline orchestrator (D-047)
+```
+
+### 9 CLI Commando's
+
+| Commando | Functie |
+|----------|---------|
+| `oa start` | Start tmux session 'oa' met dashboard window |
+| `oa run "<taak>"` | Spawn agent: workspace → tmux window → claude CLI |
+| `oa status` | Rich tabel met alle agents |
+| `oa dashboard` | Textual TUI (D-046) |
+| `oa kill <naam>` | Stop agent + close tmux window |
+| `oa collect <naam>` | Toon output van voltooide agent |
+| `oa clean` | Ruim voltooide workspaces op |
+| `oa pipeline "<taak>"` | Multi-agent pipeline (D-047) |
+| `oa version` | Versie tonen |
+
+### Relatie met bestaande codebase
+
+De oa-cli is complementair aan het TypeScript platform:
+- **Platform** (packages/*): Visueel ontwerpen van agent flows, API-based execution
+- **oa-cli**: Direct terminal-based agent spawning op subscription
+
+Toekomstige integratie: oa-cli als alternatieve execution backend voor het platform, naast ClaudeSDKRuntime en ClaudeCLIRuntime (D-043).
 
 ---
 

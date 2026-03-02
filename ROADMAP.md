@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-05
-> **Status**: v0.1.0 released — Sprint 1-10 eerste Scrum iteratie complete
+> **Laatste update**: 2026-03-02
+> **Status**: Sprint 12 (oa-cli Agentic Layer) actief — CLI + TUI + Pipeline werkend
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -28,6 +28,7 @@
 | Library Ecosystem (10 types) | 0 | 10 |
 | LLM Asset Generation (Factory) | 1 | 1 |
 | Agent Library (doel: 1000+) | 90 | 1000 |
+| CLI Agentic Layer (oa-cli) | 1 | 1 |
 
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
 **Fase 1 (PoC)**: ████████████████████ **100%** - canvas UI, backend API, e2e wiring, theming, BYOK
@@ -41,6 +42,7 @@
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 7 (Agent Library)**: ██░░░░░░░░░░░░░░░░░░ **9%** - 90/1000 agents geïmplementeerd (10 categorieën, library loader)
 **Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond, 6 doorgeschoven naar v0.2.0)
+**Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 9 commando's, Textual TUI, pipeline orchestrator
 
 ---
 
@@ -236,6 +238,41 @@
 - [ ] test-workspace migreren
 - [ ] CLI tool integreren
 - [ ] E2E verificatie: canvas → cli/claude agent → terminal → result
+
+---
+
+## Sprint 12: CLI Agentic Layer (oa-cli) — Complete
+
+**Bron**: claude-code-agentic-layer.md + open-agents-prompts.md
+**Beslissingen**: D-045 (oa-cli architectuur), D-046 (Textual TUI), D-047 (Pipeline orchestrator)
+
+**Prompt 1 — Core CLI (Complete):**
+- [x] Python pakket `oa-cli/` met pyproject.toml (open-agents-cli v0.1.0)
+- [x] `oa start` — tmux session 'oa' aanmaken met dashboard window
+- [x] `oa run "<taak>"` — agent spawnen: temp workspace + CLAUDE.md + tmux window + claude CLI
+- [x] `oa status` — rich tabel met alle agents (naam, status, taak, duration, workspace)
+- [x] `oa dashboard` — tmux attach (later vervangen door TUI in prompt 2)
+- [x] `oa kill <naam>` — agent stoppen + tmux window sluiten
+- [x] `oa collect <naam>` — output tonen van voltooide agent
+- [x] `oa clean` — workspaces opruimen van voltooide agents
+- [x] `oa version` — versie tonen
+- [x] State management via ~/.oa/agents.json
+- [x] Workspace builder met CLAUDE.md generatie
+- [x] Timeout detectie (30 min default)
+- [x] Alle 7 commando's getest en werkend
+
+**Prompt 2 — TUI Dashboard + Pipeline (Complete):**
+- [x] Textual TUI dashboard (D-046): 60/40 split, DataTable + detail panel, auto-refresh 2s
+- [x] `capture_agent_output()` — live tmux pane capture
+- [x] `oa dashboard` herwired naar Textual app (vervangt tmux attach)
+- [x] Key bindings: K=Kill, C=Collect, R=Refresh, Q=Quit
+- [x] Pipeline orchestrator (D-047): planner → parse plan.json → parallel subtasks → combiner
+- [x] `spawn_agent()` uitgebreid met optioneel `workspace` parameter
+- [x] Custom CLAUDE.md templates voor planner en combiner
+- [x] Timeouts: planner 5min, subtasks 30min, combiner 10min
+- [x] Error handling per pipeline fase
+- [x] `oa pipeline "<taak>"` commando werkend
+- [x] `pip install -e .` succesvol met textual>=0.80
 
 ---
 
