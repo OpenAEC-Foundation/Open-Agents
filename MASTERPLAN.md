@@ -29,6 +29,7 @@
 | 8 | Frappe App | Frappe wrapper + ERPNext templates | Sprint 1 | Done |
 | 9 | Agent Library | 1000+ atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | Done (90/1000) |
 | 10 | Refactor & Consolidatie | Refactor van alles uit eerste Scrum iteratie | Sprint 1-9 | Planned |
+| 11 | VS Code Bridge & Terminal Agents | Echte Claude CLI agents via VS Code bridge. Gemigreerd van Open-VSCode-Controller | Sprint 1 | In Progress |
 
 ```
 Sprint 0 ──→ Sprint 1 ──→ Sprint 1.2a ──→ Sprint 1.5
@@ -1420,6 +1421,75 @@ De prompts in dit document zijn ontworpen om te kopiëren naar een Claude Code s
 **Sequentieel:**
 - `[SEQ]` taken moeten wachten tot dependencies klaar zijn
 - Check dat de vorige fase gecommit en werkend is
+
+---
+
+## Sprint 11: VS Code Bridge & Terminal Agents
+
+**Status**: In Progress
+**Bron**: Gemigreerd van `Open-VSCode-Controller` repository
+**Migratie-instructies**: Zie `MIGRATION-VSCODE-BRIDGE.md`
+
+### Context
+
+Open-Agents had tot nu toe één manier om agents uit te voeren: via de Anthropic API (ClaudeSDKRuntime). Sprint 11 voegt een tweede runtime toe: **echte Claude Code CLI sessies** in VS Code terminals. Dit geeft agents toegang tot het volledige filesystem, tools (Read/Write/Edit/Bash), en werkt met de gebruiker's Claude subscription — geen API key nodig.
+
+De code komt uit het `Open-VSCode-Controller` project dat als apart prototype is ontwikkeld en nu wordt geïntegreerd als `packages/vscode-bridge`.
+
+### Architectuur
+
+```
+Open-Agents Frontend (:5173)
+        ↕ HTTP
+Open-Agents Backend (:3001)
+   ├─ ClaudeSDKRuntime   → Anthropic API (bestaand)
+   ├─ OpenAIRuntime       → OpenAI API (bestaand)
+   ├─ MistralRuntime      → Mistral API (bestaand)
+   ├─ OllamaRuntime       → Local Ollama (bestaand)
+   └─ ClaudeCLIRuntime    → VS Code Bridge (NIEUW)
+        ↕ HTTP + WebSocket
+VS Code Extension Host (:7483)  ← headless backend
+   ├─ HTTP Bridge (35+ endpoints)
+   ├─ WebSocket events (real-time)
+   ├─ MCP Server (25 tools)
+   └─ Agent Orchestrator
+        ↕ Terminal
+   Claude CLI sessies (interactief, zichtbaar)
+```
+
+### Taken
+
+**[SEQ] Taak 11.1: Package migratie**
+> Kopieer `Open-VSCode-Controller/packages/vscode-extension` naar `packages/vscode-bridge`. Update package.json naam naar `@open-agents/vscode-bridge`. Merge shared types (bridge events, agent types, constants) naar `@open-agents/shared`.
+
+**[SEQ] Taak 11.2: Launch configuratie**
+> Maak `.vscode/launch.json` entry voor bridge Extension Host. Kopieer `test-workspace/` met headless settings.
+
+**[PAR] Taak 11.3: ClaudeCLIRuntime (al gedaan)**
+> `packages/backend/src/runtimes/claude-cli.ts` — runtime adapter die agents spawnt via bridge. Registratie in `server.ts` met bridge health check.
+
+**[PAR] Taak 11.4: Frontend bridge integratie (al gedaan)**
+> `bridgeService.ts` — health check + WebSocket events. `ConnectionIndicator.tsx` — blauw bridge status bolletje.
+
+**[PAR] Taak 11.5: cli/claude model type (al gedaan)**
+> `ModelProvider` uitgebreid met `"cli"`. `ModelId` uitgebreid met `"cli/claude"`.
+
+**[SEQ] Taak 11.6: CLI tool migreren**
+> `vscode-ctrl` CLI integreren als script of apart package. `init` command voor workspace bootstrap.
+
+**[SEQ] Taak 11.7: E2E verificatie**
+> F5 → bridge start → `pnpm dev` → backend detecteert bridge → canvas agent met `cli/claude` → terminal opent → result verschijnt in UI.
+
+### Wat ClaudeCLIRuntime anders maakt dan ClaudeSDKRuntime
+
+| | ClaudeSDKRuntime | ClaudeCLIRuntime |
+|---|---|---|
+| **Executie** | API call via Anthropic SDK | Echte `claude` CLI in terminal |
+| **Auth** | API key (BYOK) | Claude subscription (OAuth) |
+| **Tools** | SDK tool use | Read, Write, Edit, Bash (filesystem) |
+| **Zichtbaarheid** | Onzichtbaar (API) | Live terminal, gebruiker kan meekijken |
+| **Filesystem** | Geen directe toegang | Volledige toegang via VS Code |
+| **Model selector** | `anthropic/claude-sonnet-4-6` | `cli/claude` |
 
 ---
 

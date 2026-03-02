@@ -14,6 +14,8 @@
 			"**/node_modules": true,
 			"**/dist": true
 		},
-		"typescript.tsdk": "node_modules/typescript/lib"
+		"typescript.tsdk": "node_modules/typescript/lib",
+		"claudeCode.allowDangerouslySkipPermissions": true,
+		"claudeCode.useTerminal": false
 	}
 }

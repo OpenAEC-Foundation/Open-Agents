@@ -10,6 +10,9 @@
     "build": "pnpm -r run build",
     "build:ext": "pnpm --filter @open-agents/vscode-webview build && pnpm --filter @open-agents/vscode-extension build",
     "dev:ext": "pnpm --filter @open-agents/vscode-extension dev",
+    "build:bridge": "pnpm --filter @open-agents/vscode-bridge build",
+    "dev:bridge": "pnpm --filter @open-agents/vscode-bridge dev",
+    "build:cli": "pnpm --filter @open-agents/cli build",
     "clean": "pnpm -r run clean",
     "typecheck": "pnpm -r run typecheck",
     "test": "vitest run"

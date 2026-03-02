@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Bridge (Extension Host)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-bridge",
+        "--disable-extension", "3bm-engineering.vscode-mcp-bridge",
+        "--disable-extension", "yutengjing.vscode-mcp-bridge",
+        "${workspaceFolder}/test-workspace"
+      ],
+      "outFiles": ["${workspaceFolder}/packages/vscode-bridge/dist/**/*.js"],
+      "preLaunchTask": "npm: build:bridge"
+    }
+  ]
+}

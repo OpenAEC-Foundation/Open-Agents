@@ -402,6 +402,25 @@ Elke container wordt afgebakend op vier assen:
 
 ---
 
+## D-043 Details: VS Code Bridge Integration (Open-VSCode-Controller → Open-Agents)
+
+**Datum**: 2026-03-01
+**Status**: Genomen
+**Context**: Agents in Open-Agents draaiden alleen via API (ClaudeSDKRuntime). Voor echte filesystem-toegang en geauthenticeerde Claude Code sessies is een VS Code bridge nodig. Dit was apart ontwikkeld als `Open-VSCode-Controller`.
+
+**Beslissing**: Open-VSCode-Controller wordt geïntegreerd in Open-Agents als `packages/vscode-bridge`. Nieuwe `ClaudeCLIRuntime` adapter verbindt via HTTP met de bridge.
+
+**Rationale**:
+- Eén monorepo, gedeelde types, één build pipeline
+- Bridge is geen los product maar execution backend van Open-Agents
+- `cli/claude` als model selector naast `anthropic/claude-sonnet-4-6`
+- Gebruiker's Claude subscription (geen API key nodig)
+- Agents zichtbaar als live terminals (transparantie)
+
+**Impact**: Nieuwe ModelProvider `"cli"`, nieuw package `@open-agents/vscode-bridge`, Sprint 11 in MASTERPLAN.
+
+---
+
 ## Decision Template
 
 ```markdown

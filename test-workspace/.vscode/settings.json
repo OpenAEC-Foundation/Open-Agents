@@ -1,0 +1,8 @@
+{
+  "workbench.startupEditor": "none",
+  "workbench.tips.enabled": false,
+  "workbench.welcomePage.walkthroughs.openOnInstall": false,
+  "workbench.activityBar.location": "hidden",
+  "window.menuBarVisibility": "hidden",
+  "workbench.layoutControl.enabled": false
+}

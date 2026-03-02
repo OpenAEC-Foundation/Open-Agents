@@ -1,0 +1,24 @@
+{
+  "name": "@open-agents/cli",
+  "version": "0.1.0",
+  "description": "CLI to control VS Code externally via the Open-Agents bridge",
+  "private": true,
+  "bin": {
+    "oa-bridge": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@open-agents/shared": "workspace:*",
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.0"
+  }
+}

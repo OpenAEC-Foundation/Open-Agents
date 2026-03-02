@@ -1,0 +1,6 @@
+{
+  "enabledMcpjsonServers": [
+    "open-agents-bridge"
+  ],
+  "enableAllProjectMcpServers": true
+}

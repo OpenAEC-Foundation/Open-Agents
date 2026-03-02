@@ -1,0 +1,80 @@
+{
+  "name": "@open-agents/vscode-bridge",
+  "displayName": "Open-Agents VS Code Bridge",
+  "description": "HTTP bridge for VS Code control — execution backend for Open-Agents",
+  "version": "0.1.0",
+  "publisher": "impertio-studio",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "open-agents.bridge.start",
+        "title": "Start Bridge",
+        "category": "Open-Agents"
+      },
+      {
+        "command": "open-agents.bridge.stop",
+        "title": "Stop Bridge",
+        "category": "Open-Agents"
+      },
+      {
+        "command": "open-agents.bridge.status",
+        "title": "Show Bridge Status",
+        "category": "Open-Agents"
+      }
+    ],
+    "configuration": {
+      "title": "Open-Agents Bridge",
+      "properties": {
+        "open-agents.bridge.port": {
+          "type": "number",
+          "default": 7483,
+          "description": "HTTP bridge port"
+        },
+        "open-agents.bridge.autoStart": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-start bridge on VS Code startup"
+        },
+        "open-agents.bridge.autoOpenClaude": {
+          "type": "boolean",
+          "default": false,
+          "description": "Auto-open Claude Code chat after bridge starts (disable for headless backend mode)"
+        },
+        "open-agents.bridge.anthropicApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Anthropic API key for autonomous agent terminals (avoids interactive auth)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "package": "vsce package",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@open-agents/shared": "workspace:*",
+    "ws": "^8.18.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.95.0",
+    "@types/ws": "^8.5.0",
+    "@vscode/vsce": "^3.0.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.0"
+  }
+}

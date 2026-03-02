@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code Agentic Layer — Architectuur & Todo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0d1117;
+            --bg-card: #161b22;
+            --bg-elevated: #21262d;
+            --border: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent-green: #3fb950;
+            --accent-blue: #58a6ff;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+            --accent-purple: #a371f7;
+            --accent-cyan: #39d5ff;
+            --accent-yellow: #d29922;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* --- HEADER --- */
+        header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 3rem;
+        }
+
+        .eyebrow {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--accent-orange);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 300;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .meta-info {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .meta-item strong {
+            color: var(--accent-blue);
+        }
+
+        /* --- NAV --- */
+        nav {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 3rem;
+        }
+
+        nav h3 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        nav a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-size: 0.95rem;
+            padding: 0.3rem 0;
+            display: block;
+        }
+
+        nav a:hover { text-decoration: underline; }
+
+        /* --- SECTIONS --- */
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 3rem 0 1rem;
+            color: var(--accent-cyan);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--text-primary);
+        }
+
+        h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            margin: 1rem 0 0.5rem;
+        }
+
+        p { margin-bottom: 1rem; color: var(--text-secondary); }
+
+        /* --- CARDS --- */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 700px) {
+            .card-grid { grid-template-columns: 1fr; }
+            nav ul { grid-template-columns: 1fr; }
+        }
+
+        /* --- HIGHLIGHT BOXES --- */
+        .highlight-box {
+            background: var(--bg-card);
+            border-left: 4px solid var(--accent-blue);
+            padding: 1.25rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+
+        .highlight-box strong { color: var(--accent-blue); }
+
+        .waarschuwing {
+            background: var(--bg-card);
+            border-left: 4px solid var(--accent-orange);
+            padding: 1.25rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+
+        .waarschuwing strong { color: var(--accent-orange); }
+
+        .aanbeveling {
+            background: var(--bg-card);
+            border-left: 4px solid var(--accent-green);
+            padding: 1.25rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+
+        .aanbeveling strong { color: var(--accent-green); }
+
+        .idee-box {
+            background: var(--bg-card);
+            border-left: 4px solid var(--accent-purple);
+            padding: 1.25rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+
+        .idee-box strong { color: var(--accent-purple); }
+
+        /* --- CODE --- */
+        pre {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        p code, li code {
+            background: var(--bg-elevated);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: var(--accent-cyan);
+        }
+
+        .code-comment { color: var(--text-secondary); }
+        .code-key { color: var(--accent-cyan); }
+        .code-value { color: var(--accent-green); }
+        .code-func { color: var(--accent-purple); }
+
+        /* --- LISTS --- */
+        ul, ol {
+            margin: 0.5rem 0 1rem 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        li { margin-bottom: 0.4rem; }
+        li strong { color: var(--text-primary); }
+
+        /* --- TABLES --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--bg-elevated);
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        /* --- BADGES --- */
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-critical { background: var(--accent-red); color: #fff; }
+        .badge-high { background: var(--accent-orange); color: #fff; }
+        .badge-medium { background: var(--accent-yellow); color: #000; }
+        .badge-low { background: var(--accent-green); color: #000; }
+        .badge-idea { background: var(--accent-purple); color: #fff; }
+        .badge-research { background: var(--accent-cyan); color: #000; }
+
+        /* --- ARCHITECTURE DIAGRAM --- */
+        .arch-diagram {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.8;
+            overflow-x: auto;
+            white-space: pre;
+            color: var(--text-primary);
+        }
+
+        /* --- FLOW STEPS --- */
+        .flow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin: 1rem 0;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 0.75rem 0;
+        }
+
+        .flow-num {
+            background: var(--accent-cyan);
+            color: var(--bg-dark);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .flow-text { color: var(--text-secondary); }
+        .flow-text strong { color: var(--text-primary); }
+
+        /* --- TODO ITEMS --- */
+        .todo-section {
+            margin: 1.5rem 0;
+        }
+
+        .todo-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin: 0.75rem 0;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .todo-item:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .todo-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .todo-content {
+            flex: 1;
+        }
+
+        .todo-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .todo-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .todo-meta {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* --- SEPARATOR --- */
+        hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 2rem 0;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        footer .gen-date {
+            font-size: 0.75rem;
+            color: var(--border);
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- ═══════════════ HEADER ═══════════════ -->
+        <header>
+            <div class="eyebrow">Impertio Studio — AI Architecture Research</div>
+            <h1>Claude Code Agentic Layer</h1>
+            <p class="subtitle">Tmux + Docker + Claude Code Subscription: een zelfsturend multi-agent systeem zonder API-kosten</p>
+            <div class="meta-info">
+                <span class="meta-item"><strong>Eigenaar:</strong> Freek</span>
+                <span class="meta-item"><strong>Aangemaakt:</strong> 2 maart 2026</span>
+                <span class="meta-item"><strong>Status:</strong> Conceptfase / Brainstorm</span>
+                <span class="meta-item"><strong>Prioriteit:</strong> <span class="badge badge-high">Hoog</span></span>
+            </div>
+        </header>
+
+        <!-- ═══════════════ NAV ═══════════════ -->
+        <nav>
+            <h3>Inhoud</h3>
+            <ul>
+                <li><a href="#kernidee">1. Kernidee & Motivatie</a></li>
+                <li><a href="#architectuur">2. Architectuur</a></li>
+                <li><a href="#orchestrator">3. De Orchestrator</a></li>
+                <li><a href="#workspace-assembly">4. Workspace Assembly</a></li>
+                <li><a href="#claude-md">5. CLAUDE.md als Context</a></li>
+                <li><a href="#docker-containers">6. Isolatie: Docker vs Temp Folders</a></li>
+                <li><a href="#tmux-laag">7. Tmux UI — Sessions, Windows & Panes</a></li>
+                <li><a href="#data-flow">8. Data Flow & Output</a></li>
+                <li><a href="#security">9. Security & Auth</a></li>
+                <li><a href="#beperkingen">10. Beperkingen & Risico's</a></li>
+                <li><a href="#vs-alternatieven">11. Vergelijking Alternatieven</a></li>
+                <li><a href="#use-cases">12. Use Cases voor Impertio</a></li>
+                <li><a href="#poc-plan">13. Proof of Concept Plan</a></li>
+                <li><a href="#todos">14. Alle Todo's</a></li>
+                <li><a href="#open-vragen">15. Open Vragen</a></li>
+                <li><a href="#bronnen">16. Bronnen & Referenties</a></li>
+            </ul>
+        </nav>
+
+        <!-- ═══════════════ 1. KERNIDEE ═══════════════ -->
+        <section id="kernidee">
+            <h2>1. Kernidee & Motivatie</h2>
+
+            <div class="highlight-box">
+                <strong>In één zin:</strong> Gebruik je betaalde Claude subscription (Max plan) om via Claude Code CLI + tmux + Docker een volledig multi-agent systeem te draaien, zonder API-kosten.
+            </div>
+
+            <h3>Het probleem</h3>
+            <p>De Anthropic API is krachtig maar duur bij intensief agentic gebruik — al snel tientallen euro's per dag. Claude Code CLI draait echter op je Max subscription tegen een vast maandelijks bedrag. Hoe meer je het gebruikt, hoe meer waarde je eruit haalt.</p>
+
+            <h3>Het inzicht</h3>
+            <p>Claude Code is al een volledige "agent runtime": het heeft file I/O, bash access, git integratie, en tool use ingebouwd. Als je daar een orchestratielaag bovenop bouwt die meerdere Claude Code sessies kan aansturen, heb je een multi-agent systeem op je subscription.</p>
+
+            <h3>De drie pijlers</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Tmux</h4>
+                    <p>Programmatische controle over terminalsessies. Kan sessies aanmaken, commando's sturen, output uitlezen — de "glue" laag.</p>
+                </div>
+                <div class="card">
+                    <h4>Docker</h4>
+                    <p>Isolatie per agent. Elke taak draait in een schone container met een op maat gemaakte workspace. Geen context-vervuiling, reproduceerbaar.</p>
+                </div>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Claude Code CLI</h4>
+                    <p>De agent runtime. Draait op subscription, heeft bash/file/git tools ingebouwd, leest automatisch CLAUDE.md als systeeminstructies.</p>
+                </div>
+                <div class="card">
+                    <h4>CLAUDE.md</h4>
+                    <p>Het context-mechanisme. De orchestrator bouwt per taak een CLAUDE.md die precies beschrijft wat de agent moet doen, weten en opleveren.</p>
+                </div>
+            </div>
+
+            <div class="aanbeveling">
+                <strong>Kernvoordeel:</strong> Je krijgt Claude Code's volledige toolkit gratis mee als runtime, en je betaalt niks extra per token. De Docker containers zijn je "specialized agents", de gemounte workspace is je "smart context assembly", en tmux is je interface om erin te kijken en te monitoren.
+            </div>
+        </section>
+
+        <!-- ═══════════════ 2. ARCHITECTUUR ═══════════════ -->
+        <section id="architectuur">
+            <h2>2. Architectuur</h2>
+
+            <h3>Visueel overzicht</h3>
+            <div class="arch-diagram">
+<span class="code-comment">┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="code-key">│                    HOST MACHINE (Linux)                         │</span>
+<span class="code-comment">│                                                                 │</span>
+<span class="code-comment">│  ┌──────────────────────────────────────────────────────────┐   │</span>
+<span class="code-func">│  │  ORCHESTRATOR (Claude Code sessie in tmux)              │   │</span>
+<span class="code-comment">│  │  ┌─────────────────────────────────────────────────┐     │   │</span>
+<span class="code-comment">│  │  │  Taken ontvangen → Context bouwen → Agents      │     │   │</span>
+<span class="code-comment">│  │  │  spawnen → Output verzamelen → Rapporteren       │     │   │</span>
+<span class="code-comment">│  │  └─────────────────────────────────────────────────┘     │   │</span>
+<span class="code-comment">│  └──────────────┬───────────────────────┬──────────────────┘   │</span>
+<span class="code-comment">│                  │                       │                      │</span>
+<span class="code-comment">│          ┌───────▼──────┐        ┌───────▼──────┐               │</span>
+<span class="code-value">│          │  Container 1 │        │  Container 2 │    ...        │</span>
+<span class="code-comment">│          │  ┌─────────┐ │        │  ┌─────────┐ │               │</span>
+<span class="code-comment">│          │  │CLAUDE.md│ │        │  │CLAUDE.md│ │               │</span>
+<span class="code-comment">│          │  │workspace│ │        │  │workspace│ │               │</span>
+<span class="code-comment">│          │  │  files   │ │        │  │  files   │ │               │</span>
+<span class="code-comment">│          │  └─────────┘ │        │  └─────────┘ │               │</span>
+<span class="code-comment">│          │              │        │              │               │</span>
+<span class="code-comment">│          │ Claude Code  │        │ Claude Code  │               │</span>
+<span class="code-comment">│          │  in tmux     │        │  in tmux     │               │</span>
+<span class="code-comment">│          └──────┬───────┘        └──────┬───────┘               │</span>
+<span class="code-comment">│                 │                        │                      │</span>
+<span class="code-comment">│          ┌──────▼────────────────────────▼──────┐               │</span>
+<span class="code-comment">│          │         Shared Output Volume          │               │</span>
+<span class="code-comment">│          │  /shared/output/ (resultaten)          │               │</span>
+<span class="code-comment">│          └──────────────────────────────────────┘               │</span>
+<span class="code-comment">└─────────────────────────────────────────────────────────────────┘</span></div>
+
+            <h3>Lagenmodel</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Laag</th>
+                        <th>Technologie</th>
+                        <th>Verantwoordelijkheid</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Presentatie</strong></td>
+                        <td>Tmux panes / dashboard</td>
+                        <td>Live monitoring, debugging, handmatige interventie</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Orchestratie</strong></td>
+                        <td>Claude Code sessie + bash scripts</td>
+                        <td>Taakanalyse, workspace-bouw, agent-spawning, output-routing</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Isolatie</strong></td>
+                        <td>Docker containers</td>
+                        <td>Schone omgeving per agent, resource-beperking</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Runtime</strong></td>
+                        <td>Claude Code CLI</td>
+                        <td>AI-executie, file editing, bash commands, git operations</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Context</strong></td>
+                        <td>CLAUDE.md + gemounte bestanden</td>
+                        <td>Taakinstructies, domeinkennis, constraints</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Persistentie</strong></td>
+                        <td>Shared volumes + state files</td>
+                        <td>Output, inter-agent communicatie, logging</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- ═══════════════ 3. ORCHESTRATOR ═══════════════ -->
+        <section id="orchestrator">
+            <h2>3. De Orchestrator</h2>
+
+            <div class="highlight-box">
+                <strong>Cruciaal inzicht:</strong> De orchestrator is zelf ook een Claude Code sessie. Het is een "meta-agent" die via tmux en Docker de andere agents aanstuurt. Dit maakt het systeem self-orchestrating op je vaste subscription.
+            </div>
+
+            <h3>Verantwoordelijkheden</h3>
+            <ul>
+                <li><strong>Taakdecompositie</strong> — Breekt een complexe opdracht op in subtaken die parallel of sequentieel kunnen draaien</li>
+                <li><strong>Context assembly</strong> — Bepaalt per subtaak welke bestanden, documentatie en instructies de agent nodig heeft</li>
+                <li><strong>Workspace building</strong> — Maakt per agent een directory aan met CLAUDE.md + relevante bestanden</li>
+                <li><strong>Agent spawning</strong> — Start Docker containers met tmux sessies waarin Claude Code draait</li>
+                <li><strong>Output monitoring</strong> — Leest via <code>tmux capture-pane</code> de voortgang en detecteert fouten</li>
+                <li><strong>Output routing</strong> — Verzamelt resultaten en stuurt die naar de volgende agent of terug naar de gebruiker</li>
+                <li><strong>Error recovery</strong> — Herstart agents die vastlopen, past context aan bij fouten</li>
+            </ul>
+
+            <h3>Orchestrator CLAUDE.md</h3>
+            <p>De orchestrator zelf heeft een CLAUDE.md die beschrijft hoe hij moet werken:</p>
+            <pre><code><span class="code-comment"># Voorbeeld orchestrator CLAUDE.md</span>
+
+<span class="code-key">Je bent de orchestrator van een multi-agent systeem.</span>
+
+<span class="code-key">## Beschikbare tools</span>
+- <span class="code-func">spawn_agent.sh</span> &lt;naam&gt; &lt;workspace-dir&gt;  → Start een agent container
+- <span class="code-func">check_agent.sh</span> &lt;naam&gt;                → Lees agent output
+- <span class="code-func">kill_agent.sh</span> &lt;naam&gt;                 → Stop een agent
+- <span class="code-func">build_workspace.sh</span> &lt;taak-json&gt;       → Bouw workspace directory
+
+<span class="code-key">## Workflow</span>
+1. Lees de taak uit /tasks/incoming/
+2. Analyseer welke subtaken nodig zijn
+3. Bouw per subtaak een workspace met relevante bestanden
+4. Spawn agents en monitor hun voortgang
+5. Verzamel output in /output/final/
+6. Schrijf samenvatting naar /output/report.md
+
+<span class="code-key">## Constraints</span>
+- Maximaal 3 gelijktijdige agents (subscription limit)
+- Wacht op agent-completion voordat je output verwerkt
+- Log alle acties naar /logs/orchestrator.log</code></pre>
+
+            <div class="idee-box">
+                <strong>Idee — Cascading orchestration:</strong> De orchestrator kan ook een "sub-orchestrator" spawnen voor complexe domeintaken. Bijvoorbeeld: een ERPNext-orchestrator die zelf weer fiscale-module-agents, API-agents en test-agents aanstuurt.
+            </div>
+        </section>
+
+        <!-- ═══════════════ 4. WORKSPACE ASSEMBLY ═══════════════ -->
+        <section id="workspace-assembly">
+            <h2>4. Workspace Assembly</h2>
+
+            <p>Dit is het hart van het systeem. De kwaliteit van de output hangt direct af van hoe goed de workspace is samengesteld. De orchestrator moet slim genoeg zijn om per taak precies de juiste context mee te geven — niet te veel (ruis), niet te weinig (gemiste info).</p>
+
+            <h3>Workspace structuur per agent</h3>
+            <pre><code><span class="code-comment"># Elke agent krijgt een directory die in de container gemount wordt:</span>
+
+/workspace/
+├── <span class="code-key">CLAUDE.md</span>              <span class="code-comment"># Taakinstructies + constraints</span>
+├── <span class="code-key">context/</span>               <span class="code-comment"># Relevante documentatie</span>
+│   ├── domain-info.md         <span class="code-comment"># Domeinkennis (bv. ERPNext docs)</span>
+│   ├── existing-code/         <span class="code-comment"># Relevante bestaande code</span>
+│   └── examples/              <span class="code-comment"># Voorbeelden van gewenste output</span>
+├── <span class="code-key">input/</span>                 <span class="code-comment"># Input data voor de taak</span>
+│   └── task-spec.json         <span class="code-comment"># Gestructureerde taakomschrijving</span>
+├── <span class="code-key">src/</span>                   <span class="code-comment"># Werkdirectory voor code</span>
+└── <span class="code-key">output/</span>                <span class="code-comment"># Hier schrijft de agent resultaten</span>
+    └── .done                  <span class="code-comment"># Sentinel file: agent is klaar</span></code></pre>
+
+            <h3>Context assembly strategieën</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Statisch</h4>
+                    <p>Vaste sets bestanden per taaktype. Bv. voor "ERPNext module" altijd de Frappe docs, coding standards, en app-structuur includeren.</p>
+                </div>
+                <div class="card">
+                    <h4>Dynamisch</h4>
+                    <p>De orchestrator analyseert de taak en selecteert relevante bestanden uit een kennisbank. Kan met embeddings of keyword matching.</p>
+                </div>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Template-based</h4>
+                    <p>Voorgedefinieerde workspace-templates per taaktype die de orchestrator parameteriseert. Snel en voorspelbaar.</p>
+                </div>
+                <div class="card">
+                    <h4>Hybrid</h4>
+                    <p>Templates als basis + dynamische toevoegingen op basis van taakanalyse. Beste balans tussen snelheid en relevantie.</p>
+                </div>
+            </div>
+
+            <div class="waarschuwing">
+                <strong>Let op:</strong> Context window limits van Claude Code gelden nog steeds. Een workspace vol met 500 bestanden helpt niet — de agent kan het niet allemaal verwerken. Selectiviteit is key.
+            </div>
+        </section>
+
+        <!-- ═══════════════ 5. CLAUDE.MD ALS CONTEXT ═══════════════ -->
+        <section id="claude-md">
+            <h2>5. CLAUDE.md als Context-mechanisme</h2>
+
+            <p>Claude Code leest automatisch de <code>CLAUDE.md</code> in de working directory. Dit is het primaire mechanisme om een agent te "programmeren" — geen ingewikkelde prompt injection via <code>tmux send-keys</code> nodig.</p>
+
+            <h3>Anatomie van een goede CLAUDE.md</h3>
+            <pre><code><span class="code-key"># Agent: Fiscale Module Builder</span>
+
+<span class="code-key">## Jouw rol</span>
+Je bent een ERPNext developer die de Nederlandse fiscale compliance module bouwt.
+
+<span class="code-key">## Taak</span>
+Bouw het RGS-compliant Chart of Accounts (rekeningschema) als ERPNext fixture.
+
+<span class="code-key">## Context</span>
+- Je werkt in het Frappe framework (Python + JS)
+- Bestaande app structuur staat in /workspace/context/app-structure.md
+- RGS specificatie staat in /workspace/context/rgs-spec.csv
+- Voorbeeld fixtures staan in /workspace/context/examples/
+
+<span class="code-key">## Constraints</span>
+- Volg de Frappe coding conventions (zie context/coding-standards.md)
+- Gebruik ALLEEN de standaard Frappe API — geen raw SQL
+- Output naar /workspace/output/
+- Maak een .done file aan als je klaar bent
+
+<span class="code-key">## Verwachte output</span>
+1. `chart_of_accounts_nl.json` — Het rekeningschema als fixture
+2. `CHANGELOG.md` — Wat je hebt gedaan en waarom
+3. `.done` — Sentinel file</code></pre>
+
+            <h3>Best practices</h3>
+            <ul>
+                <li><strong>Wees specifiek over output</strong> — Claude Code werkt beter als het exact weet wat het moet opleveren</li>
+                <li><strong>Verwijs naar context bestanden</strong> — Noem expliciet welke bestanden in de workspace relevant zijn</li>
+                <li><strong>Definieer constraints</strong> — Voorkom dat de agent afdwaalt met heldere grenzen</li>
+                <li><strong>Sentinel files</strong> — Gebruik een <code>.done</code> file zodat de orchestrator kan detecteren wanneer een agent klaar is</li>
+                <li><strong>Geen secrets</strong> — CLAUDE.md is plaintext, zet er geen tokens of wachtwoorden in</li>
+            </ul>
+        </section>
+
+        <!-- ═══════════════ 6. ISOLATIE: DOCKER VS TEMP FOLDERS ═══════════════ -->
+        <section id="docker-containers">
+            <h2>6. Isolatie: Docker vs Temp Folders</h2>
+
+            <div class="waarschuwing">
+                <strong>Open vraag (2 maart 2026):</strong> Het is nog niet duidelijk of Docker containers nodig zijn. Claude Code draait prima in een gewone directory — een tijdelijke folder met een CLAUDE.md is misschien alles wat je nodig hebt. Docker voegt complexiteit toe die mogelijk niet gerechtvaardigd is.
+            </div>
+
+            <h3>Twee aanpakken vergeleken</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Aspect</th>
+                        <th>Temp Folder (simpel)</th>
+                        <th>Docker Container (zwaar)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Hoe het werkt</strong></td>
+                        <td><code>mktemp -d</code> → CLAUDE.md erin → <code>cd</code> ernaar → <code>claude</code> starten in tmux</td>
+                        <td>Docker image met Claude Code → mount workspace → start container</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Startup tijd</strong></td>
+                        <td>Instant (< 1 sec)</td>
+                        <td>Seconden tot tientallen seconden</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Isolatie</strong></td>
+                        <td>Beperkt — agents delen host filesystem, PATH, env vars</td>
+                        <td>Volledig — eigen filesystem, netwerk, processen</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Auth</strong></td>
+                        <td>Automatisch — erft host Claude login</td>
+                        <td>Moet geconfigureerd worden per container</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Complexiteit</strong></td>
+                        <td>Minimaal — bash scripts zijn genoeg</td>
+                        <td>Hoog — Dockerfile, volumes, networking, secrets</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cleanup</strong></td>
+                        <td><code>rm -rf /tmp/agent-xyz</code></td>
+                        <td><code>docker rm -f agent-xyz</code> + image management</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Veiligheid</strong></td>
+                        <td>Agent kan theoretisch buiten z'n folder komen</td>
+                        <td>Agent is opgesloten in container</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dependencies</strong></td>
+                        <td>Alleen tmux + claude CLI</td>
+                        <td>Docker daemon + images + orchestratie</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="aanbeveling">
+                <strong>Aanbeveling voor v1:</strong> Begin met temp folders. De CLAUDE.md + gerichte bestanden in een temp directory geven voldoende "isolatie" van context. Docker is een optimalisatie voor later, als je merkt dat agents elkaar in de weg zitten of als je harde resource-isolatie nodig hebt. "Robuust zonder overkill."
+            </div>
+
+            <h3>Temp folder aanpak — hoe het werkt</h3>
+            <pre><code><span class="code-comment">#!/bin/bash</span>
+<span class="code-comment"># spawn-agent.sh — Simpelste versie: temp folder + tmux</span>
+
+<span class="code-key">AGENT_NAME</span>=$1
+<span class="code-key">TASK_PROMPT</span>=$2
+
+<span class="code-comment"># Maak een temp workspace</span>
+<span class="code-key">WORKSPACE</span>=$(mktemp -d /tmp/agent-${AGENT_NAME}-XXXXX)
+
+<span class="code-comment"># Bouw de context: CLAUDE.md + eventuele bestanden</span>
+/scripts/build-workspace.sh "$WORKSPACE" "$TASK_PROMPT"
+
+<span class="code-comment"># Start Claude Code in een tmux window</span>
+tmux new-window -t agents -n "$AGENT_NAME"
+tmux send-keys -t "agents:$AGENT_NAME" "cd $WORKSPACE && claude" Enter
+
+<span class="code-comment"># Log</span>
+echo "$(date +%H:%M:%S) ● $AGENT_NAME spawned in $WORKSPACE" >> /logs/events.log</code></pre>
+
+            <h3>Wanneer wél Docker overwegen</h3>
+            <ul>
+                <li><strong>Productie</strong> — Als agents draaien op een shared server waar meerdere mensen bij kunnen</li>
+                <li><strong>Onbetrouwbare agents</strong> — Als agents bash commando's uitvoeren die de host kunnen beschadigen</li>
+                <li><strong>Reproduceerbare omgevingen</strong> — Als agents specifieke tool-versies nodig hebben (bv. Python 3.11 vs 3.12)</li>
+                <li><strong>Resource limiting</strong> — Als je harde CPU/memory caps nodig hebt per agent</li>
+            </ul>
+
+            <div class="idee-box">
+                <strong>Hybride pad:</strong> Begin met temp folders voor snelle iteratie. Als het systeem matuur wordt, kun je Docker als opt-in toevoegen voor specifieke agent-types die zwaardere isolatie nodig hebben. De orchestrator-logica (workspace bouwen, CLAUDE.md genereren, output ophalen) blijft identiek — alleen de "start agent" stap verandert.
+            </div>
+        </section>
+
+        <!-- ═══════════════ 7. TMUX LAAG ═══════════════ -->
+        <section id="tmux-laag">
+            <h2>7. Tmux Architectuur — Sessions, Windows & Panes</h2>
+
+            <div class="highlight-box">
+                <strong>Kernprincipe:</strong> Tmux heeft drie hiërarchische lagen — <em>sessions</em>, <em>windows</em>, en <em>panes</em> — die elk een andere rol vervullen in het agentic systeem. We gebruiken alle drie de lagen voor zowel executie als monitoring.
+            </div>
+
+            <h3>Hiërarchie & Mapping</h3>
+
+            <div class="arch-diagram">
+<span class="code-key">SESSION</span> = Project / Taakgroep context
+<span class="code-comment">│</span>
+<span class="code-comment">├──</span> <span class="code-func">WINDOW</span> = View / Functie (tab-achtig, je switcht ertussen)
+<span class="code-comment">│   │</span>
+<span class="code-comment">│   ├──</span> <span class="code-value">PANE</span> = Individueel zichtbaar paneel (simultaan naast elkaar)
+<span class="code-comment">│   ├──</span> <span class="code-value">PANE</span>
+<span class="code-comment">│   └──</span> <span class="code-value">PANE</span>
+<span class="code-comment">│</span>
+<span class="code-comment">├──</span> <span class="code-func">WINDOW</span>
+<span class="code-comment">│   ├──</span> <span class="code-value">PANE</span>
+<span class="code-comment">│   └──</span> <span class="code-value">PANE</span>
+<span class="code-comment">│</span>
+<span class="code-comment">└──</span> <span class="code-func">WINDOW</span>
+    <span class="code-comment">└──</span> <span class="code-value">PANE</span></div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tmux laag</th>
+                        <th>Mapping in ons systeem</th>
+                        <th>Voorbeeld</th>
+                        <th>Switch methode</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Session</strong></td>
+                        <td>Projectcontext of taakgroep</td>
+                        <td><code>erpnext-fiscaal</code>, <code>showroom-demo</code>, <code>code-review-pr42</code></td>
+                        <td><code>Ctrl+B s</code> (session picker)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Window</strong></td>
+                        <td>Functionele view (tabs)</td>
+                        <td><code>dashboard</code>, <code>orchestrator</code>, <code>agent-detail</code>, <code>logs</code></td>
+                        <td><code>Ctrl+B w</code> (window picker) of <code>Ctrl+B 0-9</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pane</strong></td>
+                        <td>Individuele feed / agent / metric</td>
+                        <td>Agent output, CPU graph, task queue, live log</td>
+                        <td><code>Ctrl+B pijltjes</code> (focus switch)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- SESSION ARCHITECTUUR -->
+            <h3>Session Architectuur</h3>
+            <p>Elke taakgroep of project krijgt een eigen tmux session. Dit geeft volledige isolatie — je kunt tussen projecten switchen zonder dat ze elkaars schermindeling verstoren.</p>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Permanente sessions</h4>
+                    <p><code>control</code> — Altijd actief. Bevat het hoofddashboard, systeemstatus, en queue overzicht. Dit is je "home base".</p>
+                    <p><code>orchestrator</code> — De meta-agent sessie. Hier draait de Claude Code orchestrator die andere agents aanstuurt.</p>
+                </div>
+                <div class="card">
+                    <h4>Dynamische sessions</h4>
+                    <p>Per taakgroep aangemaakt, bv. <code>fiscaal-module-2026-03-02</code>. Bevat alle agents en monitoring voor die specifieke opdracht. Wordt opgeruimd na completion.</p>
+                </div>
+            </div>
+
+            <!-- WINDOW LAYOUTS -->
+            <h3>Window Layouts per Session</h3>
+
+            <h4>🖥️ Control Session — "Missiecontrole"</h4>
+            <p>De control session is altijd actief en geeft je totaaloverzicht. Vier windows:</p>
+
+            <div class="arch-diagram">
+<span class="code-key">Session: control</span>
+<span class="code-comment">│</span>
+<span class="code-comment">├──</span> <span class="code-func">Window 0: dashboard</span>    ← Hoofdoverzicht (standaard zichtbaar)
+<span class="code-comment">├──</span> <span class="code-func">Window 1: queue</span>        ← Taakwachtrij & planning
+<span class="code-comment">├──</span> <span class="code-func">Window 2: resources</span>    ← Systeem resources & rate limits
+<span class="code-comment">└──</span> <span class="code-func">Window 3: logs</span>         ← Gefilterde log views</span></div>
+
+            <h4>Window 0: Dashboard — Het zenuwcentrum</h4>
+            <p>Het dashboard window geeft in één oogopslag alles wat je moet weten. Zes panes in een doordachte layout:</p>
+
+            <div class="arch-diagram">
+<span class="code-key">┌─────────────────────────────────┬──────────────────────────┐</span>
+<span class="code-key">│                                 │                          │</span>
+<span class="code-key">│   <span class="code-func">PANE 1: Agent Status Board</span>    │  <span class="code-value">PANE 2: Orchestrator</span>    │</span>
+<span class="code-key">│                                 │  <span class="code-value">Live Output</span>             │</span>
+<span class="code-key">│   agent-fiscaal  ● RUNNING 3m   │                          │</span>
+<span class="code-key">│   agent-tests    ● RUNNING 1m   │  > Analyzing task...     │</span>
+<span class="code-key">│   agent-docs     ○ QUEUED       │  > Spawning agent-btw    │</span>
+<span class="code-key">│   agent-review   ✓ DONE 12m     │  > Waiting for output    │</span>
+<span class="code-key">│                                 │                          │</span>
+<span class="code-key">├─────────────────────────────────┼──────────────────────────┤</span>
+<span class="code-key">│                                 │                          │</span>
+<span class="code-key">│   <span class="code-func">PANE 3: Active Agent Preview</span> │  <span class="code-value">PANE 4: Task Pipeline</span>   │</span>
+<span class="code-key">│                                 │                          │</span>
+<span class="code-key">│   [capture-pane van de agent    │  [1] fiscaal ━━━━━▶ [2]  │</span>
+<span class="code-key">│    waar je focus op hebt,       │  [2] btw     ━━▶ WAIT    │</span>
+<span class="code-key">│    laatste 15 regels output]    │  [3] tests   ━━━▶ [4]    │</span>
+<span class="code-key">│                                 │  [4] rapport ○ PENDING   │</span>
+<span class="code-key">│                                 │                          │</span>
+<span class="code-key">├─────────────────┬───────────────┴──────────────────────────┤</span>
+<span class="code-key">│                 │                                          │</span>
+<span class="code-key">│ <span class="code-func">PANE 5: Docker</span> │  <span class="code-value">PANE 6: Event Feed / Notificaties</span>       │</span>
+<span class="code-key">│                 │                                          │</span>
+<span class="code-key">│ CPU: ▓▓▓░░ 34% │  14:32 ✓ agent-review completed (12m)     │</span>
+<span class="code-key">│ MEM: ▓▓░░░ 22% │  14:33 → agent-docs queued                │</span>
+<span class="code-key">│ Containers: 2/5│  14:35 ● agent-btw spawned                │</span>
+<span class="code-key">│                 │  14:36 ⚠ rate limit: 2/5 slots used      │</span>
+<span class="code-key">│                 │                                          │</span>
+<span class="code-key">└─────────────────┴──────────────────────────────────────────┘</span></div>
+
+            <h4>Window 1: Queue — Taakplanning</h4>
+            <div class="arch-diagram">
+<span class="code-key">┌──────────────────────────────────────────────────────────────┐</span>
+<span class="code-key">│                                                              │</span>
+<span class="code-key">│   <span class="code-func">PANE 1: Wachtrij (tasks/incoming/)</span>                       │</span>
+<span class="code-key">│                                                              │</span>
+<span class="code-key">│   Pending:  3 taken                                          │</span>
+<span class="code-key">│   ┌────┬──────────────────────────┬──────────┬────────────┐  │</span>
+<span class="code-key">│   │ #  │ Taak                     │ Priorit. │ Geschatte  │  │</span>
+<span class="code-key">│   │    │                          │          │ agents     │  │</span>
+<span class="code-key">│   ├────┼──────────────────────────┼──────────┼────────────┤  │</span>
+<span class="code-key">│   │ 7  │ SBR Export module        │ HIGH     │ 2 parallel │  │</span>
+<span class="code-key">│   │ 8  │ Readme update alle repos │ LOW      │ 4 parallel │  │</span>
+<span class="code-key">│   │ 9  │ API docs genereren       │ MEDIUM   │ 3 sequent. │  │</span>
+<span class="code-key">│   └────┴──────────────────────────┴──────────┴────────────┘  │</span>
+<span class="code-key">│                                                              │</span>
+<span class="code-key">├──────────────────────────────────────────────────────────────┤</span>
+<span class="code-key">│                                                              │</span>
+<span class="code-key">│   <span class="code-value">PANE 2: Completion History</span>                                │</span>
+<span class="code-key">│                                                              │</span>
+<span class="code-key">│   Vandaag: 4 taken afgerond, 1 gefaald, 3 in queue           │</span>
+<span class="code-key">│   ✓ 14:12  PR #38 code review         8m   2 agents          │</span>
+<span class="code-key">│   ✓ 13:45  Fiscaal chart of accounts  22m  3 agents          │</span>
+<span class="code-key">│   ✗ 12:30  BIM export script          15m  1 agent (timeout) │</span>
+<span class="code-key">│   ✓ 11:15  Unit tests betaalmodule    11m  1 agent           │</span>
+<span class="code-key">│                                                              │</span>
+<span class="code-key">└──────────────────────────────────────────────────────────────┘</span></div>
+
+            <h4>Window 2: Resources — Capaciteitsbewaking</h4>
+            <div class="arch-diagram">
+<span class="code-key">┌──────────────────────────────┬───────────────────────────────┐</span>
+<span class="code-key">│                              │                               │</span>
+<span class="code-key">│  <span class="code-func">PANE 1: Rate Limit Tracker</span> │  <span class="code-value">PANE 2: Docker Resources</span>     │</span>
+<span class="code-key">│                              │                               │</span>
+<span class="code-key">│  Subscription: Max Plan      │  docker stats --no-stream     │</span>
+<span class="code-key">│  Sessies actief: 2/5         │                               │</span>
+<span class="code-key">│  Tokens vandaag: ~45k        │  NAME          CPU    MEM     │</span>
+<span class="code-key">│  Geschat resterend: ~155k    │  agent-fiscaal 23%   1.2GB    │</span>
+<span class="code-key">│                              │  agent-btw     12%   0.8GB    │</span>
+<span class="code-key">│  ▓▓▓▓▓▓▓░░░░░░░░░░░░░ 35%   │  orchestrator  3%    0.4GB    │</span>
+<span class="code-key">│  Cooldown: geen               │                               │</span>
+<span class="code-key">│                              │  Host total: 4.1/16GB         │</span>
+<span class="code-key">│                              │                               │</span>
+<span class="code-key">└──────────────────────────────┴───────────────────────────────┘</span></div>
+
+            <h4>Window 3: Logs — Gefilterde views</h4>
+            <div class="arch-diagram">
+<span class="code-key">┌──────────────────────────────────────────────────────────────┐</span>
+<span class="code-key">│  <span class="code-func">PANE 1: Orchestrator decisions log</span>                        │</span>
+<span class="code-key">│  tail -f /logs/orchestrator.log | grep "DECISION\|SPAWN"     │</span>
+<span class="code-key">├──────────────────────────────────────────────────────────────┤</span>
+<span class="code-key">│  <span class="code-value">PANE 2: Agent errors & warnings</span>                            │</span>
+<span class="code-key">│  tail -f /logs/agents/*.log | grep "ERROR\|WARN\|TIMEOUT"    │</span>
+<span class="code-key">├──────────────────────────────────────────────────────────────┤</span>
+<span class="code-key">│  <span class="code-comment">PANE 3: Full combined log (scroll door alles heen)</span>         │</span>
+<span class="code-key">│  tail -f /logs/**/*.log                                      │</span>
+<span class="code-key">└──────────────────────────────────────────────────────────────┘</span></div>
+
+            <!-- DYNAMISCHE PROJECT SESSIONS -->
+            <h3>Dynamische Project Sessions</h3>
+            <p>Als de orchestrator een taakgroep start, maakt hij een project-session aan. Hier kun je direct inzoomen op wat de agents voor die specifieke opdracht aan het doen zijn.</p>
+
+            <div class="arch-diagram">
+<span class="code-key">Session: fiscaal-module-20260302</span>
+<span class="code-comment">│</span>
+<span class="code-comment">├──</span> <span class="code-func">Window 0: overview</span>       ← Alle agents voor deze taak naast elkaar
+<span class="code-comment">│   ├──</span> <span class="code-value">Pane: agent-rgs (capture-pane, live output)</span>
+<span class="code-comment">│   ├──</span> <span class="code-value">Pane: agent-btw (capture-pane, live output)</span>
+<span class="code-comment">│   └──</span> <span class="code-value">Pane: agent-tests (capture-pane, live output)</span>
+<span class="code-comment">│</span>
+<span class="code-comment">├──</span> <span class="code-func">Window 1: agent-rgs</span>      ← Fullscreen view van één agent
+<span class="code-comment">│   └──</span> <span class="code-value">Pane: direct tmux attach naar de agent container</span>
+<span class="code-comment">│</span>
+<span class="code-comment">├──</span> <span class="code-func">Window 2: agent-btw</span>      ← Fullscreen view van één agent
+<span class="code-comment">│   └──</span> <span class="code-value">Pane: direct tmux attach naar de agent container</span>
+<span class="code-comment">│</span>
+<span class="code-comment">├──</span> <span class="code-func">Window 3: agent-tests</span>    ← Fullscreen view van één agent
+<span class="code-comment">│   └──</span> <span class="code-value">Pane: direct tmux attach naar de agent container</span>
+<span class="code-comment">│</span>
+<span class="code-comment">├──</span> <span class="code-func">Window 4: files</span>          ← Output bestanden monitoren
+<span class="code-comment">│   ├──</span> <span class="code-value">Pane: watch -n2 'tree /shared/output/fiscaal/'</span>
+<span class="code-comment">│   └──</span> <span class="code-value">Pane: inotifywait op nieuwe output files</span>
+<span class="code-comment">│</span>
+<span class="code-comment">└──</span> <span class="code-func">Window 5: intervene</span>      ← Handmatige interventie terminal
+    <span class="code-comment">└──</span> <span class="code-value">Pane: vrije bash voor debugging/fixes</span></div>
+
+            <div class="idee-box">
+                <strong>Idee — Drill-down navigatie:</strong> Vanuit het control dashboard (Pane 1: Agent Status Board) kun je met een keybinding direct naar de project-session en het juiste agent-window springen. Denk aan: selecteer agent → <code>Ctrl+B</code> shortcut → je zit in de fullscreen view van die agent. Terug naar dashboard met <code>Ctrl+B s</code> → control session.
+            </div>
+
+            <!-- PANE TYPES -->
+            <h3>Pane Types — Bouwblokken voor je UI</h3>
+            <p>Elk pane heeft een specifiek doel. Dit zijn de herbruikbare "bouwblokken" waaruit je windows samenstelt:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pane Type</th>
+                        <th>Implementatie</th>
+                        <th>Doel</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Agent Status Board</strong></td>
+                        <td>Custom bash/python script met <code>watch</code></td>
+                        <td>Overzichtstabel van alle agents: naam, status, runtime, container health</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Agent Live Preview</strong></td>
+                        <td><code>tmux capture-pane -t &lt;agent&gt; -p | tail -N</code></td>
+                        <td>Laatste N regels output van een specifieke agent</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Agent Fullscreen</strong></td>
+                        <td><code>docker exec -it &lt;container&gt; tmux attach</code></td>
+                        <td>Direct meekijken/interacteren met een agent</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pipeline Visualisatie</strong></td>
+                        <td>Custom script dat task-graph toont met ASCII</td>
+                        <td>Welke agents wachten op wie, dependency graph</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Docker Stats</strong></td>
+                        <td><code>docker stats --format "table ..."</code></td>
+                        <td>CPU, memory, network per container</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Rate Limit Meter</strong></td>
+                        <td>Custom script met progress bar</td>
+                        <td>Subscription gebruik, cooldown timer, slots beschikbaar</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Event Feed</strong></td>
+                        <td><code>tail -f /logs/events.log</code> met kleurcodes</td>
+                        <td>Chronologisch: spawns, completions, errors, decisions</td>
+                    </tr>
+                    <tr>
+                        <td><strong>File Watcher</strong></td>
+                        <td><code>inotifywait -mr /shared/output/</code></td>
+                        <td>Real-time zien wanneer agents output produceren</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Queue View</strong></td>
+                        <td>Custom script dat <code>/tasks/incoming/</code> toont</td>
+                        <td>Wachtende taken met prioriteit en geschatte agents</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Filtered Log</strong></td>
+                        <td><code>tail -f ... | grep "PATTERN"</code></td>
+                        <td>Specifieke logstream: errors, decisions, completions</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Free Terminal</strong></td>
+                        <td>Gewone bash</td>
+                        <td>Handmatig ingrijpen, debugging, ad-hoc commando's</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- SETUP SCRIPTS -->
+            <h3>Setup Scripts</h3>
+            <p>De hele tmux UI wordt programmatisch opgezet. Eén script bouwt de volledige layout:</p>
+
+            <pre><code><span class="code-comment">#!/bin/bash</span>
+<span class="code-comment"># setup-control-session.sh — Bouwt de "missiecontrole" UI</span>
+
+<span class="code-key">SESSION</span>=<span class="code-value">"control"</span>
+
+<span class="code-comment"># Kill bestaande sessie als die er is</span>
+tmux kill-session -t $SESSION 2>/dev/null
+
+<span class="code-comment"># ═══════ Window 0: Dashboard ═══════</span>
+tmux new-session -d -s $SESSION -n <span class="code-value">"dashboard"</span> -x 200 -y 50
+
+<span class="code-comment"># Pane 0 (links boven): Agent Status Board</span>
+tmux send-keys -t $SESSION:0.0 <span class="code-value">"watch -t -n3 '/scripts/agent-status-board.sh'"</span> Enter
+
+<span class="code-comment"># Pane 1 (rechts boven): Orchestrator output</span>
+tmux split-window -h -t $SESSION:0.0 -p 40
+tmux send-keys -t $SESSION:0.1 <span class="code-value">"tail -f /logs/orchestrator.log"</span> Enter
+
+<span class="code-comment"># Pane 2 (links onder): Active Agent Preview</span>
+tmux split-window -v -t $SESSION:0.0 -p 40
+tmux send-keys -t $SESSION:0.2 <span class="code-value">"/scripts/agent-preview.sh --follow-active"</span> Enter
+
+<span class="code-comment"># Pane 3 (rechts midden): Pipeline Visualisatie</span>
+tmux split-window -v -t $SESSION:0.1 -p 50
+tmux send-keys -t $SESSION:0.3 <span class="code-value">"watch -t -n5 '/scripts/pipeline-view.sh'"</span> Enter
+
+<span class="code-comment"># Pane 4 (links klein): Docker stats</span>
+tmux split-window -v -t $SESSION:0.2 -p 30
+tmux send-keys -t $SESSION:0.4 <span class="code-value">"docker stats --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}'"</span> Enter
+
+<span class="code-comment"># Pane 5 (rechts onder): Event Feed</span>
+tmux split-window -v -t $SESSION:0.3 -p 40
+tmux send-keys -t $SESSION:0.5 <span class="code-value">"tail -f /logs/events.log | /scripts/colorize-events.sh"</span> Enter
+
+<span class="code-comment"># ═══════ Window 1: Queue ═══════</span>
+tmux new-window -t $SESSION -n <span class="code-value">"queue"</span>
+tmux send-keys -t $SESSION:1.0 <span class="code-value">"watch -t -n5 '/scripts/queue-view.sh'"</span> Enter
+tmux split-window -v -t $SESSION:1.0 -p 40
+tmux send-keys -t $SESSION:1.1 <span class="code-value">"/scripts/completion-history.sh"</span> Enter
+
+<span class="code-comment"># ═══════ Window 2: Resources ═══════</span>
+tmux new-window -t $SESSION -n <span class="code-value">"resources"</span>
+tmux send-keys -t $SESSION:2.0 <span class="code-value">"watch -t -n10 '/scripts/rate-limit-meter.sh'"</span> Enter
+tmux split-window -h -t $SESSION:2.0 -p 50
+tmux send-keys -t $SESSION:2.1 <span class="code-value">"docker stats"</span> Enter
+
+<span class="code-comment"># ═══════ Window 3: Logs ═══════</span>
+tmux new-window -t $SESSION -n <span class="code-value">"logs"</span>
+tmux send-keys -t $SESSION:3.0 <span class="code-value">"tail -f /logs/orchestrator.log | grep --color 'DECISION\|SPAWN\|ERROR'"</span> Enter
+tmux split-window -v -t $SESSION:3.0 -p 60
+tmux send-keys -t $SESSION:3.1 <span class="code-value">"tail -f /logs/agents/*.log | grep --color 'ERROR\|WARN\|TIMEOUT'"</span> Enter
+tmux split-window -v -t $SESSION:3.1 -p 50
+tmux send-keys -t $SESSION:3.2 <span class="code-value">"tail -f /logs/**/*.log"</span> Enter
+
+<span class="code-comment"># Focus op dashboard</span>
+tmux select-window -t $SESSION:0
+tmux select-pane -t $SESSION:0.0
+
+echo <span class="code-value">"✓ Control session ready — tmux attach -t control"</span></code></pre>
+
+            <h3>Dynamische project session aanmaken</h3>
+            <pre><code><span class="code-comment">#!/bin/bash</span>
+<span class="code-comment"># create-project-session.sh — Door orchestrator aangeroepen per taakgroep</span>
+
+<span class="code-key">PROJECT</span>=$1       <span class="code-comment"># bv. "fiscaal-module"</span>
+<span class="code-key">AGENTS</span>=("${@:2}") <span class="code-comment"># bv. "agent-rgs agent-btw agent-tests"</span>
+<span class="code-key">SESSION</span>=<span class="code-value">"${PROJECT}-$(date +%Y%m%d-%H%M)"</span>
+
+<span class="code-comment"># ═══════ Window 0: Overview — alle agents naast elkaar ═══════</span>
+tmux new-session -d -s $SESSION -n <span class="code-value">"overview"</span>
+
+<span class="code-key">FIRST</span>=true
+for agent in "${AGENTS[@]}"; do
+    if [ "$FIRST" = true ]; then
+        tmux send-keys -t $SESSION:0.0 \
+            <span class="code-value">"watch -t -n3 'echo \"═══ $agent ═══\"; tmux capture-pane -t $agent -p 2>/dev/null | tail -15 || echo \"Waiting...\"'"</span> Enter
+        FIRST=false
+    else
+        tmux split-window -h -t $SESSION:0
+        tmux send-keys \
+            <span class="code-value">"watch -t -n3 'echo \"═══ $agent ═══\"; tmux capture-pane -t $agent -p 2>/dev/null | tail -15 || echo \"Waiting...\"'"</span> Enter
+    fi
+done
+
+<span class="code-comment"># Maak de panes even groot</span>
+tmux select-layout -t $SESSION:0 even-horizontal
+
+<span class="code-comment"># ═══════ Per agent een fullscreen window ═══════</span>
+<span class="code-key">WIN_NUM</span>=1
+for agent in "${AGENTS[@]}"; do
+    tmux new-window -t $SESSION -n <span class="code-value">"$agent"</span>
+    tmux send-keys -t $SESSION:$WIN_NUM \
+        <span class="code-value">"echo 'Attaching to $agent... (waiting for container)'; \
+         while ! docker ps --format '{{.Names}}' | grep -q $agent; do sleep 2; done; \
+         docker exec -it $agent tmux attach -t agent"</span> Enter
+    ((WIN_NUM++))
+done
+
+<span class="code-comment"># ═══════ Files window ═══════</span>
+tmux new-window -t $SESSION -n <span class="code-value">"files"</span>
+tmux send-keys -t $SESSION:$WIN_NUM \
+    <span class="code-value">"watch -t -n3 'tree -C /shared/output/$PROJECT/ 2>/dev/null || echo \"No output yet\"'"</span> Enter
+tmux split-window -v -t $SESSION:$WIN_NUM -p 40
+tmux send-keys <span class="code-value">"inotifywait -mr /shared/output/$PROJECT/ 2>/dev/null || echo 'Waiting for output dir...'"</span> Enter
+
+<span class="code-comment"># ═══════ Intervene window ═══════</span>
+((WIN_NUM++))
+tmux new-window -t $SESSION -n <span class="code-value">"intervene"</span>
+tmux send-keys -t $SESSION:$WIN_NUM \
+    <span class="code-value">"echo '🔧 Intervention terminal for: $PROJECT'; echo 'Agents: ${AGENTS[*]}'; echo ''"</span> Enter
+
+tmux select-window -t $SESSION:0
+
+echo <span class="code-value">"✓ Project session '$SESSION' ready with ${#AGENTS[@]} agent windows"</span></code></pre>
+
+            <!-- INTERACTIE FLOWS -->
+            <h3>Interactie Flows — Hoe je het dagelijks gebruikt</h3>
+
+            <div class="card">
+                <h4>Flow 1: "Even checken hoe het gaat"</h4>
+                <p><code>tmux attach -t control</code> → Je ziet dashboard window → Agent Status Board toont 2 running, 1 queued → Event feed toont laatste completions → Alles ziet er goed uit → Detach met <code>Ctrl+B d</code></p>
+            </div>
+
+            <div class="card">
+                <h4>Flow 2: "Agent zit vast, ik wil meekijken"</h4>
+                <p>Dashboard → Zie agent-btw al 20 minuten draait → <code>Ctrl+B s</code> → Select project session → Window overview toont alle agents → <code>Ctrl+B 2</code> → Fullscreen view van agent-btw → Je ziet dat hij wacht op een permission prompt → <code>tmux send-keys</code> om te antwoorden → Terug naar control: <code>Ctrl+B s</code> → control</p>
+            </div>
+
+            <div class="card">
+                <h4>Flow 3: "Agent produceert slechte output, ik wil ingrijpen"</h4>
+                <p>Project session → Window "intervene" → <code>docker exec -it agent-rgs bash</code> → Check output bestanden → Fix context → Kill agent → Orchestrator retry met aangepaste workspace</p>
+            </div>
+
+            <div class="card">
+                <h4>Flow 4: "Nieuwe taak injecteren"</h4>
+                <p>Control session → Window "queue" → Free terminal pane → Drop taak-JSON in <code>/tasks/incoming/</code> → Queue view update je ziet 'm → Orchestrator pakt 'm op → Nieuwe project session verschijnt</p>
+            </div>
+
+            <!-- KEYBINDINGS -->
+            <h3>Custom Keybindings</h3>
+            <p>In <code>~/.tmux.conf</code> kun je sneltoetsen instellen voor veelgebruikte acties:</p>
+
+            <pre><code><span class="code-comment"># ~/.tmux.conf — Agentic layer keybindings</span>
+
+<span class="code-comment"># Prefix + D → Spring naar dashboard</span>
+bind D switch-client -t control \; select-window -t 0
+
+<span class="code-comment"># Prefix + Q → Spring naar queue</span>
+bind Q switch-client -t control \; select-window -t 1
+
+<span class="code-comment"># Prefix + L → Spring naar logs</span>
+bind L switch-client -t control \; select-window -t 3
+
+<span class="code-comment"># Prefix + R → Refresh alle watch panes (force update)</span>
+bind R send-keys -t control:0.0 'q' \; send-keys -t control:0.0 '' Enter
+
+<span class="code-comment"># Prefix + K → Kill geselecteerde agent (met confirmatie)</span>
+bind K confirm-before -p <span class="code-value">"Kill agent? (y/n)"</span> <span class="code-value">"run-shell '/scripts/kill-focused-agent.sh'"</span>
+
+<span class="code-comment"># Prefix + N → Spawn nieuwe ad-hoc agent</span>
+bind N command-prompt -p <span class="code-value">"Agent naam:"</span>,<span class="code-value">"Workspace:"</span> <span class="code-value">"run-shell '/scripts/spawn_agent.sh %1 %2'"</span>
+
+<span class="code-comment"># Status bar met agent count</span>
+set -g status-right <span class="code-value">"#(docker ps -q | wc -l) agents | #(cat /tmp/rate-limit-status) | %H:%M"</span>
+set -g status-interval 5
+
+<span class="code-comment"># Kleuren voor status bar</span>
+set -g status-bg <span class="code-value">"#161b22"</span>
+set -g status-fg <span class="code-value">"#8b949e"</span>
+set -g window-status-current-style <span class="code-value">"fg=#58a6ff,bold"</span>
+
+<span class="code-comment"># Pane borders zichtbaar maken</span>
+set -g pane-border-style <span class="code-value">"fg=#30363d"</span>
+set -g pane-active-border-style <span class="code-value">"fg=#58a6ff"</span></code></pre>
+
+            <!-- HELPER SCRIPTS -->
+            <h3>Helper Scripts voor Pane Content</h3>
+            <p>De visuele panes worden gevoed door kleine bash/python scripts:</p>
+
+            <pre><code><span class="code-comment">#!/bin/bash</span>
+<span class="code-comment"># agent-status-board.sh — Toont status van alle agents</span>
+
+printf <span class="code-value">"%-20s %-10s %-8s %-12s %s\n"</span> "AGENT" "STATUS" "TIME" "CONTAINER" "TASK"
+printf <span class="code-value">"%-20s %-10s %-8s %-12s %s\n"</span> "────────────────────" "──────────" "────────" "────────────" "────────────────"
+
+for container in $(docker ps --format '{{.Names}}' | grep '^agent-'); do
+    <span class="code-key">STATUS</span>=$(docker inspect --format '{{.State.Status}}' $container)
+    <span class="code-key">STARTED</span>=$(docker inspect --format '{{.State.StartedAt}}' $container)
+    <span class="code-key">RUNTIME</span>=$(<span class="code-func">calculate_runtime</span> "$STARTED")
+    
+    <span class="code-comment"># Check of agent klaar is</span>
+    <span class="code-key">WORKSPACE</span>=$(docker inspect --format '{{range .Mounts}}{{if eq .Destination "/workspace"}}{{.Source}}{{end}}{{end}}' $container)
+    
+    if [ -f "${WORKSPACE}/output/.done" ]; then
+        <span class="code-key">ICON</span>=<span class="code-value">"✓"</span>; <span class="code-key">STATE</span>=<span class="code-value">"DONE"</span>
+    elif [ "$STATUS" = "running" ]; then
+        <span class="code-key">ICON</span>=<span class="code-value">"●"</span>; <span class="code-key">STATE</span>=<span class="code-value">"RUNNING"</span>
+    else
+        <span class="code-key">ICON</span>=<span class="code-value">"✗"</span>; <span class="code-key">STATE</span>=<span class="code-value">"STOPPED"</span>
+    fi
+    
+    <span class="code-comment"># Lees taaknaam uit CLAUDE.md</span>
+    <span class="code-key">TASK</span>=$(head -1 "${WORKSPACE}/CLAUDE.md" 2>/dev/null | sed 's/# Agent: //')
+    
+    printf <span class="code-value">"%-20s %s %-8s %-8s %-12s %s\n"</span> "$container" "$ICON" "$STATE" "$RUNTIME" "$STATUS" "$TASK"
+done
+
+<span class="code-comment"># Queue indicator</span>
+<span class="code-key">QUEUED</span>=$(ls /tasks/incoming/ 2>/dev/null | wc -l)
+echo ""
+echo <span class="code-value">"Queued: $QUEUED | Active: $(docker ps -q --filter name=agent | wc -l) | Slots: $(cat /tmp/available-slots)"</span></code></pre>
+
+            <div class="aanbeveling">
+                <strong>Workflow tip:</strong> Gebruik <code>capture-pane</code> alleen voor de preview panes in het dashboard. Laat agents hun echte output naar bestanden schrijven in de shared volume. De orchestrator pollt op bestands-niveau (check <code>.done</code> file, lees <code>output/result.json</code>), wat veel betrouwbaarder is dan terminal-parsing.
+            </div>
+
+            <div class="waarschuwing">
+                <strong>Performance:</strong> <code>watch</code> met <code>capture-pane</code> elke 3 seconden op 5+ agents tegelijk kan zwaar worden. Monitor de host CPU en pas intervals aan. De <code>-n</code> parameter in watch is je tuning knop.
+            </div>
+
+            <div class="idee-box">
+                <strong>Toekomstidee — Rich TUI:</strong> Vervang de bash watch-scripts door een Python TUI met <code>textual</code> of <code>rich</code> library. Dat geeft je echte widgets, kleuren, interactieve tabellen, en progress bars — allemaal nog steeds in de terminal, maar veel mooier dan raw <code>watch</code> output. Dit zou een mooie Fase 4+ verbetering zijn.
+            </div>
+        </section>
+
+        <!-- ═══════════════ 8. DATA FLOW ═══════════════ -->
+        <section id="data-flow">
+            <h2>8. Data Flow & Output</h2>
+
+            <h3>Flow per taak</h3>
+            <div class="flow-steps">
+                <div class="flow-step">
+                    <div class="flow-num">1</div>
+                    <div class="flow-text"><strong>Taak binnenkomst</strong> — Via CLI, file drop in /tasks/incoming/, of API endpoint</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-num">2</div>
+                    <div class="flow-text"><strong>Orchestrator analyseert</strong> — Bepaalt subtaken, volgorde (parallel/sequentieel), en benodigde context per agent</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-num">3</div>
+                    <div class="flow-text"><strong>Workspace assembly</strong> — Per subtaak: CLAUDE.md schrijven, relevante bestanden kopiëren/linken naar workspace directory</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-num">4</div>
+                    <div class="flow-text"><strong>Container start</strong> — Docker container met workspace mount, Claude Code start automatisch via entrypoint</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-num">5</div>
+                    <div class="flow-text"><strong>Agent executie</strong> — Claude Code leest CLAUDE.md, werkt in geïsoleerde omgeving, schrijft output naar /workspace/output/</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-num">6</div>
+                    <div class="flow-text"><strong>Completion detectie</strong> — Orchestrator detecteert <code>.done</code> sentinel file in output directory</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-num">7</div>
+                    <div class="flow-text"><strong>Output routing</strong> — Resultaten gaan naar volgende agent (pipeline) of worden verzameld voor eindrapport</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-num">8</div>
+                    <div class="flow-text"><strong>Cleanup</strong> — Container wordt gestopt en verwijderd, workspace kan bewaard worden voor audit</div>
+                </div>
+            </div>
+
+            <h3>Inter-agent communicatie</h3>
+            <p>Agents communiceren niet direct met elkaar. Alle communicatie loopt via de shared output volume en de orchestrator:</p>
+            <div class="card">
+                <h4>Pipeline patroon</h4>
+                <p>Agent A schrijft output → Orchestrator kopieert dit naar workspace van Agent B als input → Agent B werkt ermee. De orchestrator is de "message broker".</p>
+            </div>
+            <div class="card">
+                <h4>Fan-out / Fan-in patroon</h4>
+                <p>Orchestrator start 3 agents parallel met dezelfde taak maar verschillende context → Wacht op alle 3 → Vergelijkt resultaten en kiest de beste of combineert ze.</p>
+            </div>
+        </section>
+
+        <!-- ═══════════════ 9. SECURITY ═══════════════ -->
+        <section id="security">
+            <h2>9. Security & Auth</h2>
+
+            <h3>Claude Code authenticatie</h3>
+            <p>Elke container heeft Claude credentials nodig om Claude Code te kunnen draaien. Dit vereist zorgvuldige afhandeling:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Methode</th>
+                        <th>Veiligheid</th>
+                        <th>Complexiteit</th>
+                        <th>Aanbevolen?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Environment variable in docker run</td>
+                        <td>Basis</td>
+                        <td>Laag</td>
+                        <td>Voor development</td>
+                    </tr>
+                    <tr>
+                        <td>Docker secrets</td>
+                        <td>Goed</td>
+                        <td>Midden</td>
+                        <td>Voor productie</td>
+                    </tr>
+                    <tr>
+                        <td>Volume mount van auth config</td>
+                        <td>Goed</td>
+                        <td>Midden</td>
+                        <td>Eenvoudigst voor Claude Code</td>
+                    </tr>
+                    <tr>
+                        <td>Hashicorp Vault</td>
+                        <td>Excellent</td>
+                        <td>Hoog</td>
+                        <td>Overkill voor nu</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="aanbeveling">
+                <strong>Pragmatische aanpak:</strong> Mount de <code>~/.claude/</code> config directory read-only in de containers. Hiermee erven agents de authenticatie van de host zonder dat tokens in environment variables staan.
+            </div>
+
+            <h3>Container isolatie</h3>
+            <ul>
+                <li><strong>Geen network access</strong> — Agents hoeven meestal niet het internet op (tenzij git pull nodig is)</li>
+                <li><strong>Read-only workspace</strong> — Alleen de /output/ directory is writable</li>
+                <li><strong>Resource limits</strong> — Memory en CPU caps per container om runaway agents te voorkomen</li>
+                <li><strong>Geen privileged mode</strong> — Agents draaien als unprivileged user</li>
+                <li><strong>Timeout</strong> — Maximale runtime per container (bv. 30 minuten), daarna auto-kill</li>
+            </ul>
+
+            <h3>Integratie met TOTP Proxy</h3>
+            <p>Voor agents die externe services moeten aanspreken (GitHub, ERPNext API, Hetzner) kan het bestaande TOTP proxy systeem worden ingezet. De orchestrator kan TOTP codes genereren en aan agent-workspaces meegeven — mits de proxy tijdsgebonden tokens ondersteunt.</p>
+        </section>
+
+        <!-- ═══════════════ 10. BEPERKINGEN ═══════════════ -->
+        <section id="beperkingen">
+            <h2>10. Beperkingen & Risico's</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Beperking</th>
+                        <th>Impact</th>
+                        <th>Mitigatie</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Subscription concurrency limits</strong></td>
+                        <td><span class="badge badge-critical">Kritiek</span></td>
+                        <td>Max 3-5 gelijktijdige sessies. Queue-systeem bouwen, agents prioriteren</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Rate limits per account</strong></td>
+                        <td><span class="badge badge-high">Hoog</span></td>
+                        <td>Agents niet tegelijk spawnen. Backoff strategie, usage tracking</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Terminal output parsing fragiel</strong></td>
+                        <td><span class="badge badge-medium">Midden</span></td>
+                        <td>Output via bestanden i.p.v. stdout. Sentinel files voor status</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Claude Code kan vastlopen/hangen</strong></td>
+                        <td><span class="badge badge-high">Hoog</span></td>
+                        <td>Container timeouts, health checks, orchestrator retry-logica</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Context window limits per agent</strong></td>
+                        <td><span class="badge badge-medium">Midden</span></td>
+                        <td>Workspace klein houden, alleen relevante bestanden includeren</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Auth propagatie naar containers</strong></td>
+                        <td><span class="badge badge-medium">Midden</span></td>
+                        <td>Read-only mount van ~/.claude/, Docker secrets voor productie</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Orchestrator complexiteit</strong></td>
+                        <td><span class="badge badge-high">Hoog</span></td>
+                        <td>Begin simpel met templates, bouw intelligence incrementeel op</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Geen gestructureerde API responses</strong></td>
+                        <td><span class="badge badge-medium">Midden</span></td>
+                        <td>Agents schrijven JSON output naar files, niet via terminal</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Subscription ToS compliance</strong></td>
+                        <td><span class="badge badge-critical">Kritiek</span></td>
+                        <td>Verifiëren of multi-sessie automation is toegestaan onder de ToS</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="waarschuwing">
+                <strong>Terms of Service risico:</strong> Verifieer expliciet of het draaien van geautomatiseerde multi-sessie Claude Code instances op een consumer subscription is toegestaan. Dit is een potentiële showstopper. Controleer de Anthropic ToS en overweeg contact op te nemen met Anthropic support voor duidelijkheid.
+            </div>
+        </section>
+
+        <!-- ═══════════════ 11. ALTERNATIEVEN ═══════════════ -->
+        <section id="vs-alternatieven">
+            <h2>11. Vergelijking Alternatieven</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Aanpak</th>
+                        <th>Kosten</th>
+                        <th>Controle</th>
+                        <th>Complexiteit</th>
+                        <th>Geschikt voor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong style="color: var(--accent-cyan)">Deze aanpak (tmux+Docker+CC)</strong></td>
+                        <td>Vast (subscription)</td>
+                        <td>Midden</td>
+                        <td>Midden</td>
+                        <td>Dagelijks gebruik, development workflows</td>
+                    </tr>
+                    <tr>
+                        <td>Anthropic API direct</td>
+                        <td>Per token (duur)</td>
+                        <td>Hoog</td>
+                        <td>Hoog</td>
+                        <td>Productie, hoge throughput</td>
+                    </tr>
+                    <tr>
+                        <td>Pi.dev terminal agent</td>
+                        <td>Onbekend</td>
+                        <td>Midden</td>
+                        <td>Laag</td>
+                        <td>Single-agent taken</td>
+                    </tr>
+                    <tr>
+                        <td>LangGraph / CrewAI</td>
+                        <td>API-kosten</td>
+                        <td>Hoog</td>
+                        <td>Hoog</td>
+                        <td>Complexe multi-agent flows</td>
+                    </tr>
+                    <tr>
+                        <td>OpenAgents (eigen platform)</td>
+                        <td>Infra + API</td>
+                        <td>Maximaal</td>
+                        <td>Zeer hoog</td>
+                        <td>Enterprise, volledige customization</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="highlight-box">
+                <strong>Positionering:</strong> Deze aanpak is de "pragmatische middenweg" — meer controle dan een single Claude Code sessie, minder complex dan een volledig API-gebaseerd agent framework. Het is ideaal als prototyping-platform voor de OpenAgents visie en als dagelijks workhorse voor Impertio development taken.
+            </div>
+        </section>
+
+        <!-- ═══════════════ 12. USE CASES ═══════════════ -->
+        <section id="use-cases">
+            <h2>12. Use Cases voor Impertio</h2>
+
+            <div class="card">
+                <h4>ERPNext Module Development</h4>
+                <p>Orchestrator ontvangt "bouw Nederlandse fiscale module" → Spawnt parallel: Agent A (Chart of Accounts), Agent B (BTW rapport), Agent C (Unit tests). Output van A en B gaat naar Agent D (integratietest).</p>
+                <span class="badge badge-high">Hoge waarde</span>
+            </div>
+
+            <div class="card">
+                <h4>Code Review Pipeline</h4>
+                <p>Git push triggert orchestrator → Agent 1 (security review), Agent 2 (code quality), Agent 3 (performance check) → Orchestrator combineert tot review rapport.</p>
+                <span class="badge badge-high">Hoge waarde</span>
+            </div>
+
+            <div class="card">
+                <h4>Documentatie Generatie</h4>
+                <p>Orchestrator scant codebase → Spawnt per module een docs-agent → Combineert tot volledige API documentatie in Impertio huisstijl.</p>
+                <span class="badge badge-medium">Midden waarde</span>
+            </div>
+
+            <div class="card">
+                <h4>Multi-repo Refactoring</h4>
+                <p>Eén architectuurbeslissing (bv. "migreer van X naar Y") wordt per repository door een aparte agent uitgevoerd, allemaal met dezelfde CLAUDE.md maar met repo-specifieke context.</p>
+                <span class="badge badge-high">Hoge waarde</span>
+            </div>
+
+            <div class="card">
+                <h4>Showroom Demo Builder</h4>
+                <p>Orchestrator coördineert: Agent 1 (BIM data prep), Agent 2 (frontend visualisatie), Agent 3 (ERPNext integratie) → Output samenvoegen tot werkende demo.</p>
+                <span class="badge badge-medium">Midden waarde</span>
+            </div>
+
+            <div class="card">
+                <h4>Nightly Build & Test</h4>
+                <p>Cron job triggert orchestrator elke nacht → Test agents draaien op alle modules → Rapport verschijnt 's ochtends in ERPNext/Slack.</p>
+                <span class="badge badge-idea">Toekomst</span>
+            </div>
+        </section>
+
+        <!-- ═══════════════ 13. POC PLAN ═══════════════ -->
+        <section id="poc-plan">
+            <h2>13. Proof of Concept Plan</h2>
+
+            <h3>Fase 1 — Minimale werking (1-2 dagen)</h3>
+            <div class="card">
+                <p>Doel: bewijs dat je een Claude Code sessie kunt starten in een Docker container via tmux, en output kunt ophalen.</p>
+                <ul>
+                    <li>Base Docker image bouwen met Claude Code CLI</li>
+                    <li>Handmatig een CLAUDE.md schrijven met een simpele taak</li>
+                    <li>Container starten, verifiëren dat Claude Code de CLAUDE.md oppakt</li>
+                    <li>Output ophalen uit shared volume</li>
+                </ul>
+            </div>
+
+            <h3>Fase 2 — Orchestrator basics (2-3 dagen)</h3>
+            <div class="card">
+                <p>Doel: bash-script dat meerdere containers kan spawnen en output verzamelen.</p>
+                <ul>
+                    <li><code>spawn_agent.sh</code>, <code>check_agent.sh</code>, <code>kill_agent.sh</code> scripts</li>
+                    <li>Workspace-builder die CLAUDE.md genereert op basis van parameters</li>
+                    <li>Simpele orchestrator die 2 agents sequentieel draait</li>
+                    <li>Sentinel file detectie voor completion</li>
+                </ul>
+            </div>
+
+            <h3>Fase 3 — Claude Code als orchestrator (3-5 dagen)</h3>
+            <div class="card">
+                <p>Doel: de orchestrator zelf is een Claude Code sessie die slim taken kan decomposen.</p>
+                <ul>
+                    <li>Orchestrator CLAUDE.md schrijven met beschikbare tools/scripts</li>
+                    <li>Orchestrator kan zelf bepalen hoeveel agents nodig zijn</li>
+                    <li>Parallelle executie met wacht-logica</li>
+                    <li>Output combinatie en rapportage</li>
+                </ul>
+            </div>
+
+            <h3>Fase 4 — Productie-hardening (ongoing)</h3>
+            <div class="card">
+                <p>Doel: betrouwbaar genoeg voor dagelijks gebruik.</p>
+                <ul>
+                    <li>Error recovery en retry-logica</li>
+                    <li>Rate limit awareness en queue-systeem</li>
+                    <li>Logging en auditability</li>
+                    <li>Workspace templates voor veelvoorkomende taken</li>
+                    <li>Integratie met ERPNext todo-systeem</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ═══════════════ 14. TODO'S ═══════════════ -->
+        <section id="todos">
+            <h2>14. Alle Todo's</h2>
+
+            <h3>Research & Validatie</h3>
+            <div class="todo-section">
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Anthropic ToS verificatie voor multi-sessie automation</div>
+                        <div class="todo-desc">Controleer of geautomatiseerde multi-instance Claude Code gebruik op een consumer/Max subscription is toegestaan. Neem eventueel contact op met Anthropic support.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-critical">Kritiek</span>
+                            <span class="badge badge-research">Research</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Concurrency limits Max subscription testen</div>
+                        <div class="todo-desc">Hoeveel gelijktijdige Claude Code sessies kun je draaien? Test met 2, 3, 5, 10 sessies en meet rate limiting gedrag.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-critical">Kritiek</span>
+                            <span class="badge badge-research">Research</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Claude Code auth-propagatie testen in Docker</div>
+                        <div class="todo-desc">Werkt <code>~/.claude/</code> mount in een container? Of heeft Claude Code een andere auth-flow nodig in containerized omgevingen?</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-critical">Kritiek</span>
+                            <span class="badge badge-research">Research</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">CLAUDE.md autoload gedrag verifiëren</div>
+                        <div class="todo-desc">Bevestig dat Claude Code automatisch CLAUDE.md oppakt bij start in een workspace directory. Test met <code>--dangerously-skip-permissions</code> flag.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-high">Hoog</span>
+                            <span class="badge badge-research">Research</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Bestaande open-source orchestrators onderzoeken</div>
+                        <div class="todo-desc">Is er al iemand die tmux+Claude Code orchestratie heeft gebouwd? Check GitHub, Hacker News, Reddit voor bestaande implementaties.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-medium">Midden</span>
+                            <span class="badge badge-research">Research</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Proof of Concept</h3>
+            <div class="todo-section">
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Base Docker image bouwen</div>
+                        <div class="todo-desc">Ubuntu 24.04 + Claude Code CLI + tmux + git + essentiële tools. Push naar lokale registry of GitHub Container Registry.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-high">Hoog</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Entrypoint script ontwikkelen</div>
+                        <div class="todo-desc">Script dat Claude Code in tmux start, workspace detecteert, en op .done sentinel pollt. Inclusief timeout en graceful shutdown.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-high">Hoog</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">spawn_agent.sh / check_agent.sh / kill_agent.sh</div>
+                        <div class="todo-desc">Basis shell scripts voor container lifecycle management. De orchestrator roept deze aan.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-high">Hoog</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Workspace builder script</div>
+                        <div class="todo-desc">Script dat gegeven een taak-JSON een workspace directory opbouwt met CLAUDE.md + relevante bestanden.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-high">Hoog</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Eerste end-to-end test</div>
+                        <div class="todo-desc">Handmatig een simpele taak (bv. "maak een Python hello world script") door het hele systeem heen laten lopen: workspace → container → Claude Code → output.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-high">Hoog</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Multi-agent pipeline test</div>
+                        <div class="todo-desc">Twee agents sequentieel: Agent 1 schrijft code, Agent 2 schrijft tests ervoor. Verifieer output routing.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-medium">Midden</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Orchestrator Development</h3>
+            <div class="todo-section">
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Orchestrator CLAUDE.md ontwerpen</div>
+                        <div class="todo-desc">De "meta-prompt" die de orchestrator-agent zelf aanstuurt. Inclusief beschikbare tools, workflow regels, en constraints.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-high">Hoog</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Taakdecompositie logica</div>
+                        <div class="todo-desc">Hoe bepaalt de orchestrator welke subtaken parallel en welke sequentieel moeten draaien? Template-based of AI-gestuurd?</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-medium">Midden</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Queue systeem voor rate limit management</div>
+                        <div class="todo-desc">Simpele FIFO queue die agents spawnt zodra er capacity vrijkomt. Respect voor subscription rate limits.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-medium">Midden</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Error recovery & retry logica</div>
+                        <div class="todo-desc">Wat doet de orchestrator als een agent timeout heeft, crashed, of onzin output levert? Retry met aangepaste context?</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-medium">Midden</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Tmux UI & Monitoring</h3>
+            <div class="todo-section">
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">setup-control-session.sh script bouwen</div>
+                        <div class="todo-desc">Het hoofdscript dat de permanente "missiecontrole" session opzet met dashboard, queue, resources en logs windows. Inclusief alle pane splits en watch commands.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-high">Hoog</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">create-project-session.sh script bouwen</div>
+                        <div class="todo-desc">Dynamisch script dat per taakgroep een project session aanmaakt met overview panes, fullscreen agent windows, file watcher en interventie terminal.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-high">Hoog</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">agent-status-board.sh helper script</div>
+                        <div class="todo-desc">Script dat een mooie tabel toont van alle actieve agents met status, runtime, container health en taaknaam. Wordt door watch aangeroepen in het dashboard.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-high">Hoog</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">pipeline-view.sh — ASCII dependency graph</div>
+                        <div class="todo-desc">Visuele weergave van de taak-pipeline: welke agents wachten op wie, welke zijn klaar, welke draaien. ASCII art met kleuren.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-medium">Midden</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">rate-limit-meter.sh — Subscription usage tracker</div>
+                        <div class="todo-desc">Progress bar die toont hoeveel van de subscription capacity gebruikt is. Slots beschikbaar, cooldown timer, tokens geschat vandaag.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-medium">Midden</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">colorize-events.sh — Event feed met kleurcodes</div>
+                        <div class="todo-desc">Pipe filter die events kleurt: groen voor completions, blauw voor spawns, rood voor errors, geel voor warnings. Maakt de event feed scanbaar.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-low">Laag</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Custom .tmux.conf met keybindings</div>
+                        <div class="todo-desc">Sneltoetsen voor: spring naar dashboard (Prefix+D), queue (Prefix+Q), logs (Prefix+L), kill agent (Prefix+K), spawn agent (Prefix+N). Plus status bar met agent count.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-medium">Midden</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Drill-down navigatie: dashboard → agent fullscreen</div>
+                        <div class="todo-desc">Mechanisme om vanuit het Agent Status Board direct door te klikken/navigeren naar de fullscreen view van een specifieke agent in de project session.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-idea">Toekomst</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Python TUI met textual/rich als Fase 4+ upgrade</div>
+                        <div class="todo-desc">Vervang de bash watch-scripts door een echte TUI applicatie met widgets, interactieve tabellen, progress bars. Draait in tmux maar veel rijkere UI.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-idea">Toekomst</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Workspace Templates</h3>
+            <div class="todo-section">
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Template: ERPNext module development</div>
+                        <div class="todo-desc">CLAUDE.md + Frappe docs + coding standards + app structuur + voorbeeld modules. De meest gebruikte template.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-high">Hoog</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Template: Code review agent</div>
+                        <div class="todo-desc">CLAUDE.md gericht op security, performance, en code quality review. Inclusief checklist en rapport-format.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-medium">Midden</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Template: Documentatie generator</div>
+                        <div class="todo-desc">CLAUDE.md met Impertio stijlgids, output format specs, en voorbeeld documentatie als referentie.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-medium">Midden</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Template: Test schrijver</div>
+                        <div class="todo-desc">CLAUDE.md gericht op het schrijven van unit/integration tests voor bestaande code. Ontvangt code als input, levert tests als output.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-low">Laag</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Integratie & Productie</h3>
+            <div class="todo-section">
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">ERPNext todo-systeem koppeling</div>
+                        <div class="todo-desc">Mogelijkheid om taken vanuit ERPNext todos te triggeren en resultaten terug te schrijven als updates/bijlagen.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-idea">Toekomst</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">GitHub Actions integratie</div>
+                        <div class="todo-desc">PR triggers → orchestrator draait code review agents → Resultaat als PR comment. Combinatie met TOTP proxy voor auth.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-idea">Toekomst</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Monitoring & logging framework</div>
+                        <div class="todo-desc">Centraal logging, agent runtime metrics, success/failure tracking. Eventueel simpele web UI voor overzicht.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-medium">Midden</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Gespecialiseerde Docker images bouwen</div>
+                        <div class="todo-desc">ERPNext agent (met bench/Frappe), Frontend agent (Node/Vite), Docs agent (pandoc/LaTeX). Per domein geoptimaliseerd.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-low">Laag</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">TOTP proxy integratie voor externe API calls</div>
+                        <div class="todo-desc">Agents die GitHub/ERPNext/Hetzner moeten aanspreken doen dat via de bestaande TOTP proxy. Orchestrator genereert tijdelijke tokens.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-idea">Toekomst</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Kennisopbouw</h3>
+            <div class="todo-section">
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Documenteer alle learnings van de PoC</div>
+                        <div class="todo-desc">Wat werkt, wat niet, welke aannames klopten niet. Voeg toe aan dit document als "Lessons Learned" sectie.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-high">Hoog</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">CLAUDE.md best practices guide schrijven</div>
+                        <div class="todo-desc">Op basis van ervaring: wat maakt een goede agent-instructie? Format, lengte, specificiteit, do's en don'ts.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-medium">Midden</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="todo-item">
+                    <div class="todo-checkbox"></div>
+                    <div class="todo-content">
+                        <div class="todo-title">Presentatie voor Maarten voorbereiden</div>
+                        <div class="todo-desc">Demonstratie van het concept met een werkende PoC. Laat zien hoe dit past in de OpenAgents visie en wat de waarde is voor Impertio.</div>
+                        <div class="todo-meta">
+                            <span class="badge badge-high">Hoog</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ 15. OPEN VRAGEN ═══════════════ -->
+        <section id="open-vragen">
+            <h2>15. Open Vragen</h2>
+
+            <div class="card">
+                <h4>Subscription compliance</h4>
+                <p>Is geautomatiseerd multi-instance gebruik van Claude Code op een Max subscription toegestaan? Dit bepaalt of het hele concept levensvatbaar is.</p>
+            </div>
+
+            <div class="card">
+                <h4>Concurrency plafond</h4>
+                <p>Wat is het praktische maximum aan gelijktijdige Claude Code sessies? Is dit hard gelimiteerd of soft (rate limiting)?</p>
+            </div>
+
+            <div class="card">
+                <h4>Claude Code headless mode</h4>
+                <p>Kan Claude Code volledig non-interactief draaien met alleen een CLAUDE.md en <code>-p</code> flag? Of vereist het user-interactie op bepaalde momenten (permission prompts)?</p>
+            </div>
+
+            <div class="card">
+                <h4>Docker overhead</h4>
+                <p>Hoe snel start een Claude Code sessie in een container op vs. native? Is de overhead acceptabel voor korte taken?</p>
+            </div>
+
+            <div class="card">
+                <h4>Output kwaliteit</h4>
+                <p>Levert een agent met gefocuste CLAUDE.md + minimale workspace betere output dan een enkel Claude Code sessie met veel context? Dit is een kernhypothese die getest moet worden.</p>
+            </div>
+
+            <div class="card">
+                <h4>Transition path naar API</h4>
+                <p>Als het systeem zijn waarde bewijst, hoe makkelijk is het om de Claude Code CLI laag te vervangen door directe API calls? Idealiter is de orchestrator-logica herbruikbaar.</p>
+            </div>
+
+            <div class="card">
+                <h4>Combinatie met bestaande tools</h4>
+                <p>Hoe verhoudt dit zich tot de geplande Pi.dev integratie? Kunnen beide naast elkaar bestaan, of vervangt het ene het andere?</p>
+            </div>
+        </section>
+
+        <!-- ═══════════════ 16. BRONNEN ═══════════════ -->
+        <section id="bronnen">
+            <h2>16. Bronnen & Referenties</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bron</th>
+                        <th>Relevantie</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><a href="https://docs.anthropic.com/en/docs/claude-code">Claude Code Documentatie</a></td>
+                        <td>Officiële docs, CLI flags, CLAUDE.md specificatie</td>
+                    </tr>
+                    <tr>
+                        <td><a href="https://github.com/tmux/tmux/wiki">Tmux Wiki</a></td>
+                        <td>Programmatische tmux operaties, scripting</td>
+                    </tr>
+                    <tr>
+                        <td><a href="https://docs.docker.com/">Docker Documentation</a></td>
+                        <td>Container networking, volumes, secrets, resource limits</td>
+                    </tr>
+                    <tr>
+                        <td>Impertio TOTP Proxy Guide (project knowledge)</td>
+                        <td>Bestaande auth-architectuur voor externe API calls</td>
+                    </tr>
+                    <tr>
+                        <td>OpenAgents concept notes (intern)</td>
+                        <td>Oorspronkelijke visie voor multi-agent platform</td>
+                    </tr>
+                    <tr>
+                        <td><a href="https://www.anthropic.com/terms">Anthropic Terms of Service</a></td>
+                        <td>Compliance check voor geautomatiseerd multi-sessie gebruik</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <hr>
+
+        <!-- ═══════════════ FOOTER ═══════════════ -->
+        <footer>
+            <p><strong>Impertio Studio B.V.</strong> — Claude Code Agentic Layer Research</p>
+            <p>Eigenaar: freek@impertio.nl</p>
+            <p class="gen-date">Gegenereerd op 2 maart 2026 — Levend document, wordt bijgewerkt naarmate de PoC vordert</p>
+        </footer>
+
+    </div>
+</body>
+</html>

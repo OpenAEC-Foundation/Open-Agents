@@ -148,4 +148,68 @@ Onderstaande inzichten komen voort uit het analyseren van bovenstaande bronnen e
 
 ---
 
+## 9. Marktvalidatie & Landscape Update (2026-03-05)
+
+> Bron: platform beoordeling sessie — web research naar huidige staat agentic platforms.
+
+### Platform Acquisities & Validatie
+
+| Platform | Gebeurtenis | Betekenis voor Open-Agents |
+|----------|-------------|---------------------------|
+| **Langflow** → DataStax → **IBM** | IBM koopt DataStax (dat Langflow bezit). Wordt onderdeel van IBM watsonx. 100K+ GitHub stars. | Visuele agent builders zijn enterprise-validated. Acquisitieprijs bevestigt marktwaarde. |
+| **Flowise** → **Workday** (aug 2025) | Enterprise HR/Finance gigant koopt visuele agent builder. | Tweede grote acquisitie bevestigt: canvas-based agent platforms zijn gewild. |
+| **n8n** | 200K+ community, 5.815 AI workflow templates, 400+ nodes. Positioneert zich als THE AI agent workflow platform. | Sterkste community-gedreven concurrent. Hybride: visueel + code escape hatches. |
+| **Dify** | 180K+ developers, 59K+ end users. Self-hostable in 30 min. Human-in-the-loop node, async execution engine. | Meest complete open-source concurrent. Self-hosted model vergelijkbaar met onze visie. |
+| **OpenAI** | Lanceerde eigen visuele agent builder in 2026. Agents SDK vervangt Swarm (nu alleen educational). | Zelfs OpenAI ziet waarde in visuele constructie. Agents SDK: handoffs, guardrails, MCP support. |
+| **Google** | ADK v1.0.0 GA + Visual Builder + A2A protocol (agent-to-agent communicatie) | A2A complementeert MCP: MCP=tools, A2A=agent-agent. Nieuwe standaard om te volgen. |
+
+### Docker Sandboxes (Nieuw Product)
+
+Docker lanceerde "Sandboxes" specifiek voor AI agents:
+- Draait op dedicated **microVMs**, niet standaard containers
+- Elke sandbox krijgt eigen VM met **private Docker daemon**
+- Claude Code is een van de eerste ondersteunde agents
+- Relevant voor D-101 (Docker per agent) en D-040 (autonomous-first)
+
+### Productie-Realiteit: Wat Werkt en Wat Niet
+
+**Wat werkt in enterprise:**
+- Document processing, data reconciliatie, compliance checks, invoice handling
+- Coding assistance (90% van organisaties, 86% deployen agents voor productie-code)
+- Data analyse en rapportage (60% adoptie)
+- Interne procesautomatisering (48% adoptie)
+
+**Drie eisen voor productie-succes:**
+1. Unified context engine (alle data types in één semantische laag)
+2. Semantic governor (deterministische business rules, alles auditeerbaar)
+3. Active orchestrator (governed workflows met configureerbare human-in-the-loop)
+
+**Waarom deployments falen:**
+1. Context gaps — agents zien geen ongestructureerde data
+2. Governance gaps — autonome acties zonder deterministische regels
+3. Data silo architectuur — agents zien één systeem per keer
+4. Geen audit trails
+5. Pilot-to-production death valley — demos op schone data, productie op rommelige data
+
+### "1000 Atomic Agents" — Marktperspectief
+
+Niemand onderhoudt succesvol een library van 1000+ voorgebouwde agents. Wat wél werkt:
+- **Tool libraries**: Composio 500+ tools, MCP 10.000+ servers
+- **Workflow templates**: n8n 5.815 templates
+- **Dynamische compositie**: LLM genereert agent config at runtime
+- **Atomic Agents framework** (BrainBlend-AI): valideert de atomaire filosofie architectureel, maar bescheiden schaal
+
+Open-Agents onderscheidt zich met D-042 (Agent Maturity Model): library begint als prompt templates en groeit naar volledige agents. Dit is uniek in de markt.
+
+### MCP Status (maart 2026)
+
+- 10.000+ actieve publieke MCP servers
+- 97M+ maandelijkse SDK downloads (Python + TypeScript)
+- Geadopteerd door: ChatGPT, Cursor, Gemini, Microsoft Copilot, VS Code
+- Gedoneerd aan Agentic AI Foundation (december 2025)
+- Nieuwe MCP extension: servers kunnen interactieve UI's serveren binnen chat
+- Tool Search / auto-deferral bij >10% context window
+
+---
+
 *Bronnenregister voor Open-Agents. Wordt bijgewerkt bij nieuwe inzichten of bronnen.*

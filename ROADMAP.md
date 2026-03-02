@@ -220,6 +220,25 @@
 
 ---
 
+## Sprint 11: VS Code Bridge & Terminal Agents — In Progress
+
+**Bron**: Gemigreerd van Open-VSCode-Controller (D-043)
+
+- [x] ClaudeCLIRuntime adapter (`packages/backend/src/runtimes/claude-cli.ts`)
+- [x] `cli/claude` ModelProvider + ModelId in shared types
+- [x] Bridge health check + runtime registratie in server.ts
+- [x] Frontend bridgeService (health + WebSocket)
+- [x] ConnectionIndicator met bridge status
+- [x] MIGRATION-VSCODE-BRIDGE.md instructiedocument
+- [ ] Package migratie: `vscode-extension` → `packages/vscode-bridge`
+- [ ] Shared types mergen (bridge events, agent types, constants)
+- [ ] Launch configuratie (.vscode/launch.json)
+- [ ] test-workspace migreren
+- [ ] CLI tool integreren
+- [ ] E2E verificatie: canvas → cli/claude agent → terminal → result
+
+---
+
 ## Model Routing Strategie
 
 | Vraag type | Model | Waarom |

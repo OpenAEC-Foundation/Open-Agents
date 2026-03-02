@@ -364,6 +364,7 @@ export const MODEL_CATALOG: ModelMeta[] = [
   { id: "openai/gpt-4o", provider: "openai", labels: { beginner: "GPT (fast)", intermediate: "GPT-4o", advanced: "GPT-4o" }, color: "bg-teal-500" },
   { id: "openai/o3", provider: "openai", labels: { beginner: "GPT (reasoning)", intermediate: "o3", advanced: "o3" }, color: "bg-teal-500" },
   { id: "mistral/mistral-large", provider: "mistral", labels: { beginner: "Mistral (large)", intermediate: "Mistral L", advanced: "Mistral L" }, color: "bg-orange-500" },
+  { id: "cli/claude", provider: "cli", labels: { beginner: "Claude (terminal)", intermediate: "CLI Claude", advanced: "cli/claude" }, color: "bg-cyan-500" },
 ];
 
 /** Lookup model metadata by id. Falls back to a generic entry. */

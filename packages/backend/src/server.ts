@@ -30,8 +30,10 @@ import { ClaudeSDKRuntime } from "./runtimes/claude-sdk.js";
 import { OpenAIRuntime } from "./runtimes/openai.js";
 import { MistralRuntime } from "./runtimes/mistral.js";
 import { OllamaRuntime } from "./runtimes/ollama.js";
+import { ClaudeCLIRuntime } from "./runtimes/claude-cli.js";
 
 const PORT = Number(process.env.PORT) || 3001;
+const BRIDGE_URL = process.env.VSCODE_BRIDGE_URL ?? "http://localhost:7483";
 
 const app = Fastify({ logger: true });
 
@@ -40,6 +42,17 @@ registerRuntime(new ClaudeSDKRuntime());
 registerRuntime(new OpenAIRuntime());
 registerRuntime(new MistralRuntime());
 registerRuntime(new OllamaRuntime());
+
+// Register CLI runtime — connects to VS Code bridge for terminal-based Claude agents
+const cliRuntime = new ClaudeCLIRuntime(BRIDGE_URL);
+cliRuntime.isAvailable().then((ok) => {
+  if (ok) {
+    registerRuntime(cliRuntime);
+    app.log.info(`VS Code bridge connected at ${BRIDGE_URL} — cli/claude runtime available`);
+  } else {
+    app.log.info(`VS Code bridge not detected at ${BRIDGE_URL} — cli/claude runtime disabled (start EH with F5)`);
+  }
+});
 
 await app.register(cors, { origin: true });
 
