@@ -283,3 +283,78 @@ def capture_agent_output(tmux_window: str, lines: int = 20) -> str | None:
     if result.returncode != 0:
         return None
     return result.stdout.rstrip("\n")
+
+
+def spawn_with_orchestrator(
+    name: str,
+    task: str,
+    worker_model: str = "claude/sonnet",
+    orchestrator_model: str = "claude/opus",
+    max_workers: int = 5,
+) -> AgentRecord:
+    """Spawn an orchestrator that delegates work to sub-agents (D-051)."""
+    if not session_exists():
+        raise RuntimeError("No oa session. Run 'oa start' first.")
+
+    orch_name = f"orch-{name}"
+    existing = get_agent(orch_name)
+    if existing and existing.status == "running":
+        raise RuntimeError(f"Orchestrator '{orch_name}' is already running.")
+
+    workspace = _create_orchestrator_workspace(orch_name, task, worker_model, max_workers)
+    return spawn_agent(name=orch_name, task=task, model=orchestrator_model, workspace=workspace)
+
+
+def _create_orchestrator_workspace(
+    orch_name: str, task: str, worker_model: str, max_workers: int,
+) -> Path:
+    """Create a workspace with orchestrator-specific CLAUDE.md."""
+    import tempfile
+
+    workspace = Path(tempfile.mkdtemp(prefix=f"oa-orch-{orch_name}-"))
+    (workspace / "output").mkdir()
+    (workspace / "output" / "proposals").mkdir()
+
+    lines = [
+        f"# Orchestrator: {orch_name}",
+        "",
+        "## JE ROL",
+        "Je bent een ORCHESTRATOR. Je voert NOOIT zelf werk uit.",
+        "Je enige taken: analyseren, delegeren, monitoren, en reviewen.",
+        "",
+        "## DE TAAK",
+        task,
+        "",
+        "## REGELS (STRIKT)",
+        "1. Je SCHRIJFT GEEN CODE. Je WIJZIGT GEEN BESTANDEN buiten je workspace.",
+        "2. Je DELEGEERT alle werk naar workers via `oa run`.",
+        f"3. Elke worker krijgt `--parent {orch_name}` zodat de hierarchie klopt.",
+        "4. Workers draaien in proposal mode — ze schrijven proposals.",
+        f"5. Je spawnt maximaal {max_workers} workers tegelijk per batch.",
+        "6. Na elke batch wacht je tot alle workers klaar zijn (`oa status`).",
+        "7. Je reviewt alle worker proposals via `oa review <worker-naam>`.",
+        "",
+        "## WORKER MODEL",
+        f"Gebruik `--model {worker_model}` bij het spawnen van workers.",
+        "",
+        "## STAPPEN",
+        "1. Analyseer de taak — lees relevante bronbestanden",
+        "2. Ontleed in subtaken — geen twee workers naar hetzelfde bestand",
+        "3. Spawn workers:",
+        "   export PATH=\"/home/freek/.local/bin:$PATH\"",
+        f"   oa run \"<subtaak>\" --name <naam> --model {worker_model} --parent {orch_name}",
+        "4. Monitor: `oa status`",
+        "5. Review: `oa review <naam>`",
+        "6. Schrijf samenvatting naar ./output/result.md",
+        "7. Maak .done als je klaar bent",
+        "",
+        "## GELEERDE LESSEN",
+        "- L-001: Blijf draaien tot alle workers klaar zijn",
+        "- L-002: ALLE workers krijgen --parent flag",
+        "- L-003: Twee workers mogen NOOIT hetzelfde bestand wijzigen",
+        "- L-004: Review proposals na elke batch",
+        "- L-010: Jij delegeert, jij doet zelf NIKS",
+    ]
+
+    (workspace / "CLAUDE.md").write_text("\n".join(lines) + "\n")
+    return workspace

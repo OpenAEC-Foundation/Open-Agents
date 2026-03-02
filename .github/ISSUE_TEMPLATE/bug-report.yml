@@ -3,6 +3,11 @@ description: Report a bug in Open-Agents
 title: "[Bug]: "
 labels: ["bug", "triage"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Dank voor het melden van een bug. Vul het formulier zo compleet mogelijk in.
+
   - type: textarea
     id: description
     attributes:
@@ -10,6 +15,7 @@ body:
       description: Beschrijf de bug kort en bondig
     validations:
       required: true
+
   - type: textarea
     id: expected
     attributes:
@@ -17,6 +23,7 @@ body:
       description: Wat had er moeten gebeuren?
     validations:
       required: true
+
   - type: textarea
     id: actual
     attributes:
@@ -24,6 +31,7 @@ body:
       description: Wat gebeurde er in plaats daarvan?
     validations:
       required: true
+
   - type: textarea
     id: reproduce
     attributes:
@@ -33,20 +41,52 @@ body:
         1. ...
         2. ...
         3. ...
+    validations:
+      required: true
+
   - type: dropdown
-    id: agent
+    id: component
     attributes:
-      label: Agent Type
-      description: Welke agent betreft het?
+      label: Component
+      description: Welk onderdeel van Open-Agents betreft het?
       options:
-        - Boekhouding
-        - Inkoop
-        - HR
-        - Project
-        - Admin
-        - Smart Context Layer
-        - Model Router
+        - oa-cli (CLI orchestrator)
+        - oa-cli (TUI dashboard)
+        - oa-cli (Pipeline)
+        - oa-cli (Web UI / Command Centre)
+        - Visual Canvas (frontend)
+        - Visual Canvas (backend)
+        - VS Code Extension
+        - Frappe App
+        - Agent Library
+        - CI/CD
         - Overig
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Besturingssysteem
+      options:
+        - Linux
+        - macOS
+        - Windows (WSL2)
+        - Windows (native)
+        - Overig
+
+  - type: input
+    id: python_version
+    attributes:
+      label: Python versie (voor oa-cli bugs)
+      placeholder: "bijv. 3.11.8"
+
+  - type: input
+    id: node_version
+    attributes:
+      label: Node.js versie (voor canvas bugs)
+      placeholder: "bijv. 20.11.0"
+
   - type: textarea
     id: context
     attributes:

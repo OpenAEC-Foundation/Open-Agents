@@ -17,6 +17,7 @@ from .orchestrator import (
     kill_agent,
     session_exists,
     spawn_agent,
+    spawn_with_orchestrator,
     start_session,
 )
 from .state import get_agent, list_agents
@@ -319,6 +320,43 @@ def web(
     console.print(f"  Web UI: http://localhost:{port}")
     console.print("[dim]Press Ctrl-C to stop[/dim]\n")
     run_bridge(port=port)
+
+
+@app.command()
+def delegate(
+    task: str = typer.Argument(..., help="The high-level task to delegate"),
+    model: str = typer.Option("claude/sonnet", "--model", "-m", help="Worker model"),
+    orchestrator_model: str = typer.Option("claude/opus", "--orchestrator-model", help="Orchestrator model"),
+    name: str = typer.Option("", "--name", "-n", help="Base name for the orchestrator"),
+    max_workers: int = typer.Option(5, "--max-workers", help="Max concurrent workers per batch"),
+):
+    """Delegate a task: spawns orchestrator + workers automatically (D-051).
+
+    The orchestrator analyzes, decomposes, and delegates. Workers execute.
+    """
+    if not session_exists():
+        console.print("[red]No oa session. Run 'oa start' first.[/red]")
+        raise typer.Exit(1)
+
+    if not name:
+        name = _generate_name(task)
+
+    try:
+        rec = spawn_with_orchestrator(
+            name=name,
+            task=task,
+            worker_model=model,
+            orchestrator_model=orchestrator_model,
+            max_workers=max_workers,
+        )
+    except RuntimeError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+
+    console.print(f"[bold green]Orchestrator '{rec.name}' spawned[/bold green]  ({orchestrator_model})")
+    console.print(f"  Task: {task}")
+    console.print(f"  Workers: {model} (max {max_workers})")
+    console.print(f"  Workspace: {rec.workspace}")
 
 
 @app.command()

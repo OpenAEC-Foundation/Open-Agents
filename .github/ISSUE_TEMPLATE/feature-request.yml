@@ -3,13 +3,19 @@ description: Stel een nieuwe feature voor
 title: "[Feature]: "
 labels: ["enhancement"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Dank voor je feature verzoek. Beschrijf het zo concreet mogelijk.
+
   - type: textarea
     id: problem
     attributes:
       label: Probleem
-      description: Welk probleem lost deze feature op?
+      description: Welk probleem lost deze feature op? Geef context.
     validations:
       required: true
+
   - type: textarea
     id: solution
     attributes:
@@ -17,29 +23,49 @@ body:
       description: Hoe zou de feature moeten werken?
     validations:
       required: true
+
   - type: dropdown
-    id: category
+    id: component
     attributes:
-      label: Categorie
+      label: Component
+      description: Welk onderdeel betreft het?
       options:
-        - Agent (nieuw type)
-        - Agent (bestaand verbeteren)
-        - Smart Context Layer
-        - Model Routing
-        - Snippet Bibliotheek
-        - Docker/Deployment
+        - oa-cli (nieuw commando)
+        - oa-cli (bestaand commando verbeteren)
+        - oa-cli (TUI dashboard)
+        - oa-cli (Pipeline)
+        - oa-cli (Web UI / Command Centre)
+        - Visual Canvas (frontend)
+        - Visual Canvas (backend)
+        - Visual Canvas (Assembly Engine)
+        - VS Code Extension
+        - Frappe App
+        - Agent Library (nieuw agent)
+        - Agent Library (bestaand agent verbeteren)
+        - CI/CD / Developer tooling
         - Documentatie
         - Overig
+    validations:
+      required: true
+
   - type: dropdown
     id: priority
     attributes:
       label: Prioriteit
       options:
-        - Hoog - Blokkerend voor voortgang
-        - Medium - Belangrijk maar niet urgent
-        - Laag - Nice to have
+        - Hoog — blokkerend voor voortgang
+        - Medium — belangrijk maar niet urgent
+        - Laag — nice to have
+
   - type: textarea
     id: alternatives
     attributes:
       label: Alternatieven overwogen
       description: Welke andere oplossingen heb je overwogen?
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Bijdrage
+      options:
+        - label: Ik ben bereid om aan deze feature bij te dragen via een PR

@@ -529,3 +529,6 @@ Bij het nemen van een beslissing, verplaats naar "Genomen" met rationale en datu
 ---
 
 *Laatste update: 2026-03-05*
+
+| D-051 | Orchestrator-First Hierarchie: elke taak = orchestrator + worker(s) | Altijd minimaal 2 agents: 1 orchestrator (delegeert/reviewt, doet NOOIT zelf werk) + 1+ workers (voeren uit, melden via proposals). `oa delegate` als primair commando. | Losse agents (L-001, L-002) leiden tot ongecontroleerde output, gemiste QA, en context-vervuiling. Orchestrator-first dwingt structuur af: planning → delegatie → review → approve/reject. Past bij D-040 (autonomous-first) en D-047 (pipeline). | 2026-03-02 |
+

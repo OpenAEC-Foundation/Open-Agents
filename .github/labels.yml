@@ -1,0 +1,143 @@
+# Open-Agents GitHub Labels
+# Apply with: gh label import .github/labels.yml
+# Or use the GitHub CLI: gh api repos/{owner}/{repo}/labels
+
+- name: "bug"
+  color: "d73a4a"
+  description: "Something isn't working"
+
+- name: "enhancement"
+  color: "a2eeef"
+  description: "New feature or request"
+
+- name: "documentation"
+  color: "0075ca"
+  description: "Improvements or additions to documentation"
+
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers"
+
+- name: "help wanted"
+  color: "008672"
+  description: "Extra attention is needed"
+
+- name: "question"
+  color: "d876e3"
+  description: "Further information is requested"
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "This will not be worked on"
+
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "This issue or pull request already exists"
+
+- name: "triage"
+  color: "e4e669"
+  description: "Needs triage / investigation"
+
+- name: "invalid"
+  color: "e4e4e4"
+  description: "This doesn't seem right"
+
+# === Component labels ===
+
+- name: "oa-cli"
+  color: "0e8a16"
+  description: "Relates to the oa-cli Python orchestrator"
+
+- name: "web-ui"
+  color: "1d76db"
+  description: "Relates to the React SPA web UI (Command Centre)"
+
+- name: "canvas"
+  color: "5319e7"
+  description: "Relates to the Visual Canvas (packages/)"
+
+- name: "tui"
+  color: "006b75"
+  description: "Relates to the Textual TUI dashboard"
+
+- name: "pipeline"
+  color: "fbca04"
+  description: "Relates to the multi-agent pipeline orchestrator"
+
+- name: "vscode-extension"
+  color: "0052cc"
+  description: "Relates to the VS Code extension"
+
+- name: "frappe-app"
+  color: "e11d48"
+  description: "Relates to the Frappe/ERPNext app"
+
+- name: "agents-library"
+  color: "84cc16"
+  description: "Relates to the agents library (agents/library/)"
+
+- name: "ci-cd"
+  color: "374151"
+  description: "Relates to CI/CD workflows and tooling"
+
+- name: "dependencies"
+  color: "0366d6"
+  description: "Pull requests that update a dependency file"
+
+# === Priority labels ===
+
+- name: "priority: high"
+  color: "b60205"
+  description: "High priority — blocking progress"
+
+- name: "priority: medium"
+  color: "e99695"
+  description: "Medium priority — important but not urgent"
+
+- name: "priority: low"
+  color: "f9d0c4"
+  description: "Low priority — nice to have"
+
+# === Sprint labels ===
+
+- name: "sprint-11"
+  color: "c5def5"
+  description: "Sprint 11"
+
+- name: "sprint-12"
+  color: "c5def5"
+  description: "Sprint 12"
+
+- name: "sprint-13"
+  color: "c5def5"
+  description: "Sprint 13"
+
+- name: "sprint-14"
+  color: "c5def5"
+  description: "Sprint 14"
+
+- name: "sprint-15"
+  color: "c5def5"
+  description: "Sprint 15"
+
+- name: "sprint-16"
+  color: "c5def5"
+  description: "Sprint 16"
+
+# === Status labels ===
+
+- name: "status: blocked"
+  color: "b60205"
+  description: "Blocked by another issue or external dependency"
+
+- name: "status: in progress"
+  color: "0075ca"
+  description: "Currently being worked on"
+
+- name: "status: review needed"
+  color: "fbca04"
+  description: "Ready for review"
+
+- name: "status: needs info"
+  color: "e4e669"
+  description: "More information needed before proceeding"

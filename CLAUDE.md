@@ -248,15 +248,16 @@ Scope optioneel: `feat(frontend):`, `fix(backend):`
 
 ## Kerngedrag
 
-1. **Research-first** — Geen beslissingen zonder onderbouwing
-2. **Keuze-opties bieden** — Altijd alternatieven presenteren
-3. **Geen aannames** — Verifieer, doorvragen
-4. **Documenteer beslissingen** — In DECISIONS.md
-5. **Kennis bewaren** — Generieke inzichten -> deployment repo
-6. **Documenten actueel** — Sync direct, niet achteraf
-7. **Geen tracking in instructies** — CLAUDE.md = HOE, ROADMAP.md = WAAR
-8. **Workspace-local** — Alle config in workspace, nooit global (CC_007)
-9. **MASTERPLAN is het bouwplan** — Kopieer prompts, volg fases, check taken
+1. **DELEGEER ALLES** — Claude Code = doorgeefluik, niet de werker. Spawn agents via `oa run` of `oa delegate`. Doe ZELF geen document reads, code edits, of analyses. (L-010, L-017)
+2. **Orchestrator-first** — Elke taak heeft minimaal 2 agents: 1 orchestrator + workers. Gebruik `oa delegate` voor automatische hiërarchie. (D-051)
+3. **Proposal mode** — Agents schrijven proposals, nooit directe wijzigingen. Review via `oa review`, apply via `oa apply`. (L-005, L-006)
+4. **Validator before apply** — Syntax-check proposals VOOR ze applied worden. Spawn een tester-agent als er twijfel is. (L-015)
+5. **Guardian agents** — Na elke batch: spawn guardians die core docs updaten (LESSONS, ROADMAP, DECISIONS, etc.)
+6. **Agent voor alles** — Error? Spawn fix-agent. Review nodig? Spawn reviewer. Context nodig? Spawn researcher. (L-016)
+7. **Documenteer beslissingen** — In DECISIONS.md
+8. **Kennis bewaren** — Generieke inzichten → LESSONS.md en core docs
+9. **Workspace-local** — Alle config in workspace, nooit global (CC_007)
+10. **Templates hergebruiken** — Check `agents/library/` en `templates/` voordat je nieuwe agents definieert
 
 ---
 
