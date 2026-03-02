@@ -24,13 +24,17 @@
 | 5 | Safety & Audit | Rules editor + audit trail | Sprint 1 | Done |
 | 6a | Knowledge Base + Snippet Engine | Kennisbibliotheek: routing patterns, model profiles, principes | Sprint 1 | Done |
 | 6b | Assembly Engine | NL → Agent Graph self-assembly pipeline | Sprint 6a | Done |
-| 6c | AI Assembly Assistant | Sidebar kennispartner + pattern library | Sprint 6b | Planned |
+| 6c | AI Assembly Assistant | Sidebar kennispartner + pattern library | Sprint 6b | Done |
 | 7 | VS Code Extension | Canvas als VS Code webview + MCP | Sprint 1 | Done |
 | 8 | Frappe App | Frappe wrapper + ERPNext templates | Sprint 1 | Done |
 | 9 | Agent Library | 1000+ atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | Done (90/1000) |
-| 10 | Refactor & Consolidatie | Refactor van alles uit eerste Scrum iteratie | Sprint 1-9 | Planned |
+| 10 | Refactor & Consolidatie | Refactor van alles uit eerste Scrum iteratie | Sprint 1-9 | Done |
 | 11 | VS Code Bridge & Terminal Agents | Echte Claude CLI agents via VS Code bridge. Gemigreerd van Open-VSCode-Controller | Sprint 1 | In Progress |
 | 12 | CLI Agentic Layer (oa-cli) | Tmux-based multi-agent orchestrator op subscription. Python CLI + Textual TUI + Pipeline | -- | Done |
+| 13 | Docker Isolation + Non-Claude Tool Use | Container isolatie per agent (D-040) + non-Claude runtime tool use fix (D-032) | Sprint 10 | Planned |
+| 14 | Agent Library Scale-up | 900+ agents bouwen in 10 resterende categorieën (doel: 1000+) | Sprint 9 | Planned |
+| 15 | oa-cli × packages/ Convergentie | oa-cli als alternatieve execution backend voor het visuele platform | Sprint 12 | Planned |
+| 16 | Google A2A Protocol Evaluatie | Agent-to-Agent protocol evaluatie en eventuele integratie | Sprint 13 | Planned |
 
 ```
 Sprint 0 ──→ Sprint 1 ──→ Sprint 1.2a ──→ Sprint 1.5
@@ -848,12 +852,12 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] `assistant-engine.ts` met context-aware system prompts
-- [ ] `POST /api/assistant/chat` met SSE streaming
-- [ ] `POST /api/assistant/suggestions` voor passieve analyse
-- [ ] `assistantStore.ts` (Zustand)
-- [ ] `useAssistant.ts` hook
-- [ ] CanvasAction types + applyAction logic → canvasStore
+- [x] `assistant-engine.ts` met context-aware system prompts
+- [x] `POST /api/assistant/chat` met SSE streaming
+- [x] `POST /api/assistant/suggestions` voor passieve analyse
+- [x] `assistantStore.ts` (Zustand)
+- [x] `useAssistant.ts` hook
+- [x] CanvasAction types + applyAction logic → canvasStore
 
 ### Fase 6c.2: Frontend UI `[SEQ]` — na 6c.1
 
@@ -879,15 +883,15 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] `AssistantSidebar.tsx` component
-- [ ] Chat message list (user/assistant bubbles)
-- [ ] Context selector dropdown
-- [ ] Inline suggestie kaarten met "Apply" knoppen
-- [ ] Cost estimate badge
-- [ ] Input bar met send knop
-- [ ] Collapse/expand toggle
-- [ ] Integratie in `App.tsx` layout
-- [ ] E2E test: vraag → antwoord → apply suggestie
+- [x] `AssistantSidebar.tsx` component
+- [x] Chat message list (user/assistant bubbles)
+- [x] Context selector dropdown
+- [x] Inline suggestie kaarten met "Apply" knoppen
+- [x] Cost estimate badge
+- [x] Input bar met send knop
+- [x] Collapse/expand toggle
+- [x] Integratie in `App.tsx` layout
+- [x] E2E test: vraag → antwoord → apply suggestie
 
 **Acceptatiecriteria:**
 - Assistant kan uitleggen wat de huidige canvas doet
@@ -1313,7 +1317,7 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] Code audit rapport genereren
+- [x] Code audit rapport genereren (P1/P2/P3: backend 26 issues, frontend ~50 issues, shared Grade A)
 - [ ] Issues aanmaken in GitHub per P1/P2 finding
 
 ### Fase 10.2: Refactor `[PAR]` — parallel tracks
@@ -1349,10 +1353,10 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] `[PAR]` Backend refactor
-- [ ] `[PAR]` Frontend refactor
-- [ ] `[PAR]` Test suite uitbreiden voor gerefactorde code
-- [ ] `[PAR]` API documentatie bijwerken (OpenAPI/Swagger)
+- [x] `[PAR]` Backend refactor (SSE utilities, KnowledgeRegistry singleton, assemblyRoutes fix, type consolidatie)
+- [x] `[PAR]` Frontend refactor (getNodeBorderStyle extractie, nodeBorderStyle DRY across 3 node components)
+- [x] `[PAR]` Test suite uitbreiden voor gerefactorde code (155 tests groen, 15 test commando's)
+- [ ] `[PAR]` API documentatie bijwerken (OpenAPI/Swagger) → v0.2.0
 
 ### Fase 10.3: Consolidatie & Release Prep `[SEQ]` — na 10.2
 
@@ -1371,12 +1375,12 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 > ```
 
 **Taken:**
-- [ ] README.md herschrijven
-- [ ] CONTRIBUTING.md aanmaken
-- [ ] CHANGELOG.md genereren
-- [ ] Open beslissingen reviewen
-- [ ] CI/CD pipeline opzetten
-- [ ] v0.1.0 release
+- [x] README.md herschrijven (features, architectuur, API endpoints, setup)
+- [ ] CONTRIBUTING.md aanmaken → v0.2.0
+- [x] CHANGELOG.md genereren (Keep a Changelog format, Sprint 1-10)
+- [x] Open beslissingen reviewen (D-043, D-044 toegevoegd en gesloten)
+- [x] CI/CD pipeline opzetten (GitHub Actions: typecheck, test, build)
+- [x] v0.1.0 release (git tag, CHANGELOG, DECISIONS updates)
 
 ### Acceptatiecriteria Sprint 10
 
@@ -1563,6 +1567,225 @@ oa CLI (Python/typer)
 - [x] `oa pipeline "complexe taak"` draait planner → subtasks → combiner
 - [x] Alle Python imports succesvol
 - [x] `pip install -e .` zonder errors
+
+---
+
+---
+
+## Sprint 13: Docker Isolation + Non-Claude Tool Use
+
+**Status**: Planned
+**Doel**: De twee grootste technische schulden uit v0.1.0 oplossen: container isolatie per agent (D-040) en echte tool use voor non-Claude runtimes (D-032).
+
+**Afhankelijk van**: Sprint 10 (v0.1.0 release)
+
+### Prioriteit & Rationale
+
+Twee open problemen blokkeren productie-inzet:
+1. **D-040 (Container Isolation)**: Agents draaien nu in-process op de backend (blast radius = volledige host). Autonomous-first model vereist container grenzen voor veiligheid.
+2. **D-032 (Non-Claude Tool Use)**: OpenAI, Mistral en Ollama adapters ondersteunen geen tool use — alleen tekst in/uit. Beperkt het platform tot Claude-only voor echte agentic workflows.
+
+### Fase 13.1: Docker Container Isolation (D-040) `[SEQ]` — eerst
+
+> **Prompt**:
+> ```
+> Implementeer D-040 (autonomous-first agent execution met container isolation).
+>
+> Refactor de execution engine: runtime.execute() start nu een Docker container
+> i.p.v. een in-process call. Vier isolatie-dimensies per container:
+>
+> 1. Filesystem: temp workspace als Docker volume mount (read/write).
+>    Agent config als read-only mount. Workspace weggegooid na run.
+> 2. Network: default geen outbound. Whitelist per agent config (bv. api.github.com).
+> 3. Secrets: API keys als env vars geïnjecteerd bij container start.
+> 4. Resources: Docker --memory en --cpus limits + hard timeout (default 5 min).
+>
+> Bouw voort op D-024 (6-layer workspace stack) en D-101 (Docker per agent).
+>
+> Zie DECISIONS.md D-040 Details voor de volledige spec.
+> ```
+
+**Taken:**
+- [ ] Docker runtime adapter (`docker-runtime.ts`) — container start, logs streamen, cleanup
+- [ ] Workspace builder uitbreiden voor Docker volume mount
+- [ ] Network policy configuratie per agent (whitelist in agent JSON)
+- [ ] Resource limits configuratie (memory, CPU, timeout)
+- [ ] Secret injection via Docker env vars (vervang directe .env injectie)
+- [ ] Output capture: artifacts uit container halen na afloop
+- [ ] Execution engine refactor: `runtime.execute()` delegeert naar docker-runtime
+- [ ] Canvas UX: geen permission modals, status indicators: running → completed/failed
+- [ ] Safety settings refactor: tool blacklists → container policies (D-035 revisit)
+- [ ] Tests voor Docker runtime adapter
+
+### Fase 13.2: Non-Claude Runtime Tool Use (D-032) `[PAR]` — parallel met 13.1
+
+> **Prompt**:
+> ```
+> Hef de D-032 PoC-beperking op: voeg echte tool use toe voor non-Claude runtimes.
+>
+> Huidige situatie: OpenAI, Mistral en Ollama adapters gebruiken raw fetch() en
+> ondersteunen geen tool use (tekst in/tekst uit).
+>
+> Doel: alle adapters ondersteunen de AgentRuntime interface volledig, inclusief
+> tool use, multi-turn loops en streaming events.
+>
+> Per adapter:
+> - OpenAI: function calling API (tools parameter)
+> - Mistral: tool_calls in chat completions
+> - Ollama: tool_calls voor lokale modellen die dat ondersteunen
+>
+> Behoud backwards-compatibiliteit: agents zonder tools blijven werken.
+> Voeg integratie tests toe per adapter.
+> ```
+
+**Taken:**
+- [ ] OpenAI adapter: function calling integratie
+- [ ] Mistral adapter: tool_calls integratie
+- [ ] Ollama adapter: tool_calls (conditioneel, alleen ondersteunde modellen)
+- [ ] AgentRuntime interface uitbreiden met tool definitions
+- [ ] Tool result handling in execution engine
+- [ ] Integratie tests per adapter
+- [ ] Canvas: model selector toont welke adapters tool use ondersteunen
+
+---
+
+## Sprint 14: Agent Library Scale-up
+
+**Status**: Planned
+**Doel**: Van 90 naar 300+ agents. Focus op de 10 nog niet geïmplementeerde categorieën (J-T) uit AGENTS.md.
+
+**Afhankelijk van**: Sprint 9 (library infrastructuur werkend)
+**Loopt doorlopend**: Vult retroactief agents aan.
+
+### Context
+
+De library heeft 90 agents (categorieën A-I). Nog te implementeren: categorieën J-T (10 categorieën, ~900 agents). Doel is 1000+ atomaire bouwblokken.
+
+**Prioriteit voor Sprint 14 (eerste 200 agents):**
+
+| Categorie | Agents | Focus |
+|-----------|:------:|-------|
+| J. Infrastructure & DevOps | 50 | Docker, CI/CD, cloud, monitoring |
+| K. Testing & QA | 50 | Unit, integration, E2E, performance tests |
+| L. API & Integration | 50 | REST, GraphQL, webhook, OAuth flows |
+| M. Database & Data | 50 | SQL, migrations, schema, queries |
+
+> **Prompt**:
+> ```
+> Bouw 200 agents in categorieën J-M voor de Open-Agents library.
+> Gebruik dezelfde atomaire JSON structuur als categorieën A-I.
+> Voeg `maturity` veld toe (D-042): prompt-template | tool-capable | autonomous.
+>
+> Per categorie: 50 agents verdeeld over subcategorieën.
+> Sla op in agents/library/{category}/ per categorie.
+> Update AGENTS.md met nieuwe definities.
+> ```
+
+**Taken:**
+- [ ] 50 Infrastructure & DevOps agents (agents/library/infra-devops/)
+- [ ] 50 Testing & QA agents (agents/library/testing-qa/)
+- [ ] 50 API & Integration agents (agents/library/api-integration/)
+- [ ] 50 Database & Data agents (agents/library/database-data/)
+- [ ] Maturity veld toevoegen aan alle bestaande 90 agents (D-042)
+- [ ] Library filter UI: filter op maturity niveau
+- [ ] Groeipad dashboard: hoeveel agents op welk maturity niveau?
+
+---
+
+## Sprint 15: oa-cli × packages/ Convergentie
+
+**Status**: Planned
+**Doel**: oa-cli als alternatieve execution backend voor het visuele platform. Één platform, drie execution runtimes (API, CLI, Tmux).
+
+**Afhankelijk van**: Sprint 12 (oa-cli werkend), Sprint 11 (VS Code bridge)
+
+### Context
+
+Nu zijn er drie onafhankelijke execution paths:
+- **packages/backend**: API-based via ClaudeSDKRuntime (Sprint 1-10)
+- **packages/vscode-bridge**: VS Code CLI via bridge (Sprint 11)
+- **oa-cli**: Tmux-based Python CLI (Sprint 12)
+
+Sprint 15 verbindt deze: het canvas kan kiezen welke runtime een agent uitvoert.
+
+> **Prompt**:
+> ```
+> Verbind oa-cli als execution runtime voor het Open-Agents visuele platform.
+>
+> Doel: canvas agent met model selector "tmux/claude" gebruikt oa-cli als backend.
+>
+> 1. OaCLIRuntime adapter in packages/backend/src/runtimes/oa-cli.ts
+>    - Spawnt agent via `oa run "<task>"` commando
+>    - Pollt ~/.oa/agents.json voor status updates
+>    - Streamt output via SSE naar frontend
+>
+> 2. "tmux/claude" als nieuwe ModelProvider + ModelId in shared types
+>
+> 3. Flask bridge uitbreiden: oa web UI kan canvas configs ontvangen
+>
+> 4. Canvas model selector toont: API, CLI (bridge), Tmux als opties
+> ```
+
+**Taken:**
+- [ ] `OaCLIRuntime` adapter (`packages/backend/src/runtimes/oa-cli.ts`)
+- [ ] `tmux/claude` ModelProvider + ModelId in shared types
+- [ ] Status polling vanuit agents.json naar SSE stream
+- [ ] Flask bridge: POST /api/canvas endpoint voor canvas config ontvangen
+- [ ] Canvas model selector: drie runtime opties visueel
+- [ ] E2E test: canvas → tmux/claude agent → oa-cli → result in UI
+
+---
+
+## Sprint 16: Google A2A Protocol Evaluatie
+
+**Status**: Planned
+**Doel**: Evalueer Google's Agent-to-Agent (A2A) protocol als mogelijke interoperabiliteitsstandaard.
+
+**Afhankelijk van**: Sprint 13 (Docker isolation stabiel)
+
+### Context
+
+Google A2A is een open protocol voor agent-to-agent communicatie (2025). Mogelijke voordelen:
+- Standaard interface voor cross-platform agent orchestratie
+- Interoperabiliteit met Google Vertex AI agents, ADK agents
+- Alternatief voor onze proprietary JSON config + SSE aanpak
+
+> **Prompt**:
+> ```
+> Evalueer het Google A2A protocol voor integratie in Open-Agents.
+>
+> 1. Research: lees de A2A spec en vergelijk met onze huidige architectuur
+> 2. PoC: bouw een minimale A2A server die één Open-Agents agent exposeert
+> 3. Test: roep de agent aan via een A2A-compatible client
+> 4. Beslissing: A) Volledig adopteren B) Gedeeltelijk (naast eigen protocol) C) Niet adopteren
+>
+> Documenteer bevindingen in DECISIONS.md als D-051.
+> ```
+
+**Taken:**
+- [ ] A2A spec analyse (vergelijking met huidige canvas JSON + SSE)
+- [ ] PoC A2A server adapter (één agent als A2A service)
+- [ ] Test met A2A-compatible client
+- [ ] Beslissing D-051 documenteren in DECISIONS.md
+- [ ] Migratie pad definiëren als A2A geadopteerd wordt
+
+---
+
+## Sprint Prompt Relevantie Beoordeling
+
+> **Vraag**: Zijn de bestaande sprint prompts (Sprint 1-10) nog relevant voor latere sprints?
+
+### Conclusie
+
+| Sprint | Prompts | Relevantie voor toekomstige sprints |
+|--------|---------|-------------------------------------|
+| Sprint 1-9 | Implementatie prompts | **Historisch** — code is af, prompts niet meer uitvoeren |
+| Sprint 10 | Refactor prompts | **Gedeeltelijk** — patterns bruikbaar voor Sprint 13 refactor werk |
+| Sprint 11 | Bridge migratie | **Actief** — taken 11.1, 11.2, 11.6, 11.7 nog open |
+| Sprint 12 | oa-cli prompts | **Referentie** — architectuur beschrijft werkend systeem |
+| Sprint 13+ | Nieuwe prompts | **Uitvoeren** — deze sectie bevat de prompts |
+
+**Aanbeveling**: Sprint 1-9 prompts zijn historisch document. Niet hergebruiken voor nieuwe sprints — contexten zijn veranderd (meer dependencies, grotere codebase). Nieuwe sprints (13+) hebben eigen prompts in dit document gekregen die de huidige codebase-state respecteren.
 
 ---
 
