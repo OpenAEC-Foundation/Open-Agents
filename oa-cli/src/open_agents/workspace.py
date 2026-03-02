@@ -9,8 +9,11 @@ from pathlib import Path
 WORKSPACE_PREFIX = "oa-agent-"
 
 
-def create_workspace(agent_name: str, task: str) -> Path:
+def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None) -> Path:
     """Create a temporary workspace directory with a CLAUDE.md file.
+
+    If project_root is provided, agents are instructed to write directly
+    to the project instead of using proposals.
 
     Returns the workspace path.
     """
@@ -20,42 +23,67 @@ def create_workspace(agent_name: str, task: str) -> Path:
     (workspace / "output").mkdir()
 
     claude_md = workspace / "CLAUDE.md"
-    claude_md.write_text(
-        f"# Taak: {task}\n"
-        f"\n"
-        f"## Instructies\n"
-        f"{task}\n"
-        f"\n"
-        f"## Output\n"
-        f"- Schrijf alle resultaten naar ./output/\n"
-        f"- Maak een ./output/result.md met een samenvatting van wat je hebt gedaan\n"
-        f"- Maak een .done file in de root als je helemaal klaar bent\n"
-        f"\n"
-        f"## PROPOSAL MODE (BELANGRIJK)\n"
-        f"- Wijzig NOOIT bestanden buiten je eigen workspace directory\n"
-        f"- Als je wijzigingen wilt voorstellen aan externe bestanden, schrijf dan een PROPOSAL:\n"
-        f"  - Maak ./output/proposals/ directory aan\n"
-        f"  - Schrijf per bestand een proposal: ./output/proposals/<bestandsnaam>.proposal.md\n"
-        f"  - Elk proposal MOET dit EXACTE format volgen:\n"
-        f"    ```\n"
-        f"    Bestand: /volledig/absoluut/pad/naar/bestand.ext\n"
-        f"    \n"
-        f"    Waarom: <korte uitleg>\n"
-        f"    \n"
-        f"    ```<taal>\n"
-        f"    <volledige nieuwe inhoud van het bestand>\n"
-        f"    ```\n"
-        f"    ```\n"
-        f"  - BELANGRIJK: De eerste regel MOET zijn: Bestand: /absoluut/pad (zonder bold, zonder backticks)\n"
-        f"  - De laatste code block bevat de VOLLEDIGE nieuwe inhoud van het doelbestand\n"
-        f"  - Schrijf een ./output/proposals/SUMMARY.md met overzicht van alle voorgestelde wijzigingen\n"
-        f"- De eigenaar reviewt en keurt proposals goed voordat ze worden toegepast\n"
-        f"\n"
-        f"## Constraints\n"
-        f"- Werk alleen binnen deze directory\n"
-        f"- Vraag niet om bevestiging, werk zelfstandig\n"
-        f"- Als je vastloopt, schrijf het probleem naar ./output/error.md en maak alsnog .done aan\n"
-    )
+
+    if project_root:
+        # Direct write mode — agents write to the real project
+        claude_md.write_text(
+            f"# Taak: {task}\n"
+            f"\n"
+            f"## Instructies\n"
+            f"{task}\n"
+            f"\n"
+            f"## Output\n"
+            f"- Schrijf een ./output/result.md met een samenvatting van wat je hebt gedaan\n"
+            f"- Maak een .done file in de root als je helemaal klaar bent\n"
+            f"\n"
+            f"## DIRECT WRITE MODE\n"
+            f"- Je MOET wijzigingen DIRECT schrijven naar het project in: {project_root}\n"
+            f"- Lees eerst het bestaande bestand, dan Edit of Write naar het doelbestand\n"
+            f"- Schrijf GEEN proposals — schrijf direct naar de echte bestanden\n"
+            f"- Maak GEEN proposals/ directory aan\n"
+            f"\n"
+            f"## Constraints\n"
+            f"- Vraag niet om bevestiging, werk zelfstandig\n"
+            f"- Als je vastloopt, schrijf het probleem naar ./output/error.md en maak alsnog .done aan\n"
+        )
+    else:
+        # Proposal mode — agents write proposals for review
+        claude_md.write_text(
+            f"# Taak: {task}\n"
+            f"\n"
+            f"## Instructies\n"
+            f"{task}\n"
+            f"\n"
+            f"## Output\n"
+            f"- Schrijf alle resultaten naar ./output/\n"
+            f"- Maak een ./output/result.md met een samenvatting van wat je hebt gedaan\n"
+            f"- Maak een .done file in de root als je helemaal klaar bent\n"
+            f"\n"
+            f"## PROPOSAL MODE (BELANGRIJK)\n"
+            f"- Wijzig NOOIT bestanden buiten je eigen workspace directory\n"
+            f"- Als je wijzigingen wilt voorstellen aan externe bestanden, schrijf dan een PROPOSAL:\n"
+            f"  - Maak ./output/proposals/ directory aan\n"
+            f"  - Schrijf per bestand een proposal: ./output/proposals/<bestandsnaam>.proposal.md\n"
+            f"  - Elk proposal MOET dit EXACTE format volgen:\n"
+            f"    ```\n"
+            f"    Bestand: /volledig/absoluut/pad/naar/bestand.ext\n"
+            f"    \n"
+            f"    Waarom: <korte uitleg>\n"
+            f"    \n"
+            f"    ```<taal>\n"
+            f"    <volledige nieuwe inhoud van het bestand>\n"
+            f"    ```\n"
+            f"    ```\n"
+            f"  - BELANGRIJK: De eerste regel MOET zijn: Bestand: /absoluut/pad (zonder bold, zonder backticks)\n"
+            f"  - De laatste code block bevat de VOLLEDIGE nieuwe inhoud van het doelbestand\n"
+            f"  - Schrijf een ./output/proposals/SUMMARY.md met overzicht van alle voorgestelde wijzigingen\n"
+            f"- De eigenaar reviewt en keurt proposals goed voordat ze worden toegepast\n"
+            f"\n"
+            f"## Constraints\n"
+            f"- Werk alleen binnen deze directory\n"
+            f"- Vraag niet om bevestiging, werk zelfstandig\n"
+            f"- Als je vastloopt, schrijf het probleem naar ./output/error.md en maak alsnog .done aan\n"
+        )
 
     return workspace
 

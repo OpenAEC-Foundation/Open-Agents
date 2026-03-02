@@ -40,6 +40,10 @@ class AgentRecord:
     max_children: int = 10          # max directe kinderen die dit agent mag spawnen
     shared_results_dir: Optional[str] = None  # gedeeld pad voor output-aggregatie
 
+    # --- Auto-cleanup uitbreidingen ---
+    last_activity: float = 0.0      # timestamp van laatste activiteit
+    auto_cleanup_minutes: int = 20  # na hoeveel minuten inactiviteit opruimen
+
     def __post_init__(self) -> None:
         """Bereken task_hash als nog niet ingesteld."""
         if not self.task_hash and self.task:
@@ -67,6 +71,8 @@ def load_agents() -> dict[str, AgentRecord]:
         data.setdefault("task_hash", _task_hash(data.get("task", "")))
         data.setdefault("max_children", 10)
         data.setdefault("shared_results_dir", None)
+        data.setdefault("last_activity", 0.0)
+        data.setdefault("auto_cleanup_minutes", 20)
         result[name] = AgentRecord(**data)
     return result
 

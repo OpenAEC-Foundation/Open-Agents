@@ -15,6 +15,7 @@ from .state import (
     get_children,
     get_lineage,
     list_agents,
+    remove_agent,
     update_agent,
     validate_spawn,
 )
@@ -115,6 +116,7 @@ def spawn_agent(
     parent: str | None = None,
     max_depth: int = MAX_DEPTH,
     shared_results_dir: str | None = None,
+    project_root: str | Path | None = None,
 ) -> AgentRecord:
     """Spawn an agent in a tmux window.
 
@@ -165,7 +167,7 @@ def spawn_agent(
 
     # Create workspace (or use provided one)
     if workspace is None:
-        workspace = create_workspace(name, task)
+        workspace = create_workspace(name, task, project_root=project_root)
     else:
         workspace = Path(workspace)
 
@@ -227,6 +229,8 @@ def check_agent(name: str) -> str | None:
     if rec.status != "running":
         return rec.status
 
+    now = time.time()
+
     if workspace_is_done(rec.workspace):
         # Controleer of alle nakomelingen klaar zijn (recursief via lineage check)
         all_agents = list_agents()
@@ -239,11 +243,14 @@ def check_agent(name: str) -> str | None:
             # Nog nakomelingen actief — blijf 'running'
             return "running"
 
-        update_agent(name, status="done", finished_at=time.time())
+        update_agent(name, status="done", finished_at=now, last_activity=now)
 
         # Schrijf result naar shared_results_dir als beschikbaar
         if rec.shared_results_dir:
             _write_shared_result(rec)
+
+        # Periodieke cleanup van idle agents
+        cleanup_idle_agents()
 
         return "done"
 
@@ -252,27 +259,85 @@ def check_agent(name: str) -> str | None:
         f"list-windows -t {SESSION_NAME} -F '#{{window_name}}'", check=False
     )
     if result.returncode != 0:
-        update_agent(name, status="failed", finished_at=time.time())
+        update_agent(name, status="failed", finished_at=now, last_activity=now)
         return "failed"
 
     windows = result.stdout.strip().split("\n")
     if rec.tmux_window not in windows:
         # Window gone but no .done — agent crashed or was killed externally
-        update_agent(name, status="error", finished_at=time.time())
+        update_agent(name, status="error", finished_at=now, last_activity=now)
+        # Periodieke cleanup van idle agents
+        cleanup_idle_agents()
         return "error"
 
     # Check for timeout
-    elapsed_minutes = (time.time() - rec.created_at) / 60
+    elapsed_minutes = (now - rec.created_at) / 60
     if elapsed_minutes > TIMEOUT_MINUTES:
         # Kill the tmux window and mark as timeout
         _tmux(
             f"kill-window -t {SESSION_NAME}:{shlex.quote(rec.tmux_window)}",
             check=False,
         )
-        update_agent(name, status="timeout", finished_at=time.time())
+        update_agent(name, status="timeout", finished_at=now, last_activity=now)
         return "timeout"
 
     return "running"
+
+
+def cleanup_idle_agents(max_idle_minutes: int = 20) -> list[str]:
+    """Ruim idle agents op die te lang inactief zijn.
+
+    Voor elke agent met status 'done' of 'error':
+    - Als (now - finished_at) > max_idle_minutes * 60, OF
+    - Als (now - last_activity) > max_idle_minutes * 60
+    Dan: kill tmux window, verwijder agent uit state.
+
+    Returns lijst van opgeruimde agent namen.
+    """
+    cleaned = []
+    now = time.time()
+    threshold = max_idle_minutes * 60
+
+    for rec in list_agents():
+        if rec.status not in ("done", "error"):
+            continue
+
+        # Gebruik agent's eigen auto_cleanup_minutes als threshold indien kleiner
+        agent_threshold = min(threshold, rec.auto_cleanup_minutes * 60)
+
+        finished_idle = (
+            rec.finished_at is not None
+            and (now - rec.finished_at) > agent_threshold
+        )
+        activity_idle = (
+            rec.last_activity > 0
+            and (now - rec.last_activity) > agent_threshold
+        )
+
+        if finished_idle or activity_idle:
+            # Kill tmux window indien aanwezig
+            _tmux(
+                f"kill-window -t {SESSION_NAME}:{shlex.quote(rec.tmux_window)}",
+                check=False,
+            )
+            # Verwijder agent uit state
+            remove_agent(rec.name)
+            cleaned.append(rec.name)
+
+    return cleaned
+
+
+def touch_agent(name: str) -> bool:
+    """Update last_activity timestamp voor een agent. Reset de cleanup timer.
+
+    Wordt aangeroepen als een parent agent een child aanspreekt.
+    Returns True als de agent bestaat, anders False.
+    """
+    rec = get_agent(name)
+    if rec is None:
+        return False
+    update_agent(name, last_activity=time.time())
+    return True
 
 
 def _write_shared_result(rec: AgentRecord) -> None:
@@ -310,8 +375,6 @@ def kill_agent(name: str) -> bool:
 
 def clean_finished() -> list[str]:
     """Clean up workspaces for all non-running agents. Returns names cleaned."""
-    from .state import remove_agent
-
     cleaned = []
     for rec in list_agents():
         if rec.status in ("done", "error", "killed", "timeout"):

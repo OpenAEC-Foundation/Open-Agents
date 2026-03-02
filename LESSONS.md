@@ -80,4 +80,35 @@
 | L-020 | **Python versie-eis niet te strikt** — `requires-python = ">=3.11"` faalt op WSL Ubuntu 22.04 (Python 3.10). Gebruik `>=3.10` voor brede compatibiliteit. | pip install faalde met "requires a different Python: 3.10.12 not in '>=3.11'". |
 | L-021 | **Syntax-validate VOOR apply, niet erna** — `compile(code, filename, 'exec')` op elk Python proposal VOORDAT het naar een bestand geschreven wordt. Voorkomt dat de CLI kapot gaat. | Drie proposals (cli.py, orchestrator.py x2) hadden truncated f-strings door backtick-conflict in markdown code fences. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-022, L-023, etc.*
+---
+
+## Sessie 2026-03-02 — Lessen uit Claude Code Agent Teams
+
+> Bron: https://code.claude.com/docs/en/agent-teams
+> Agent Teams is een experimentele feature in Claude Code die multi-agent orchestratie biedt.
+> Veel patronen zijn direct toepasbaar op oa-cli.
+
+### Coördinatie & Communicatie
+
+| # | Les | Context |
+|---|-----|---------|
+| L-022 | **Shared task list met file locking > impliciete coördinatie** — agents moeten een gedeelde takenlijst kunnen lezen, claimen (met locking tegen race conditions), en als voltooid markeren. Task dependencies (`blockedBy`) zorgen voor automatisch unblocking. | Agent Teams gebruikt file-based task list. Onze pipeline heeft impliciete coördinatie (planner output → workers). Shared task list maakt status zichtbaar en maakt self-claiming mogelijk. |
+| L-023 | **Inter-agent messaging is essentieel voor complexe taken** — agents die alleen naar een lead rapporteren missen kansen. Direct messaging (DM + broadcast) tussen agents leidt tot betere uitkomsten bij research, debugging, en review. | Agent Teams: "Use subagents when only the result matters. Use agent teams when teammates need to share findings and challenge each other." Onze agents zijn nu volledig geïsoleerd. |
+| L-024 | **Graceful shutdown protocol voorkomt orphaned processes** — agents moeten een shutdown request kunnen ontvangen en approve/rejecten. Niet alleen hard killen (`oa kill`). | Agent Teams: lead stuurt shutdown request, teammate kan rejecten met reden ("still working on task #3"). Voorkomt werk-verlies bij voortijdig killen. |
+
+### Team Sizing & Taak Planning
+
+| # | Les | Context |
+|---|-----|---------|
+| L-025 | **3-5 agents optimaal, 5-6 taken per agent** — meer agents = meer coördinatie overhead, diminishing returns. "Three focused teammates often outperform five scattered ones." | Bevestigt L-004 (13 agents was te veel). Agent Teams docs: "Start with 3-5 teammates. Scale up only when the work genuinely benefits." |
+| L-026 | **Taken moeten de juiste maat hebben** — te klein = overhead > benefit, te groot = te lang zonder check-in. Ideaal: "self-contained units that produce a clear deliverable." | Agent Teams: "A function, a test file, or a review." Onze pipeline subtasks moeten dit formaat volgen. |
+
+### Architectuur Inzichten
+
+| # | Les | Context |
+|---|-----|---------|
+| L-027 | **Subagents vs Teams = twee patronen, niet één** — subagents voor focused taken waar alleen het resultaat telt. Teams voor werk dat discussie en samenwerking vereist. Beide patronen naast elkaar aanbieden. | Agent Teams vs subagents tabel. Mapt op onze `oa run` (subagent) vs `oa delegate` (team). Bewuste keuze per taak. |
+| L-028 | **Quality hooks op idle en task-complete** — automatische checks wanneer een agent idle gaat of een taak afrondt. Hook kan agent terugsturen ("exit code 2 = keep working"). | Agent Teams: `TeammateIdle` en `TaskCompleted` hooks. Voorkomt dat agents stoppen met half werk. Toepasbaar in oa-cli via tmux monitoring. |
+| L-029 | **Team discovery via config file** — agents moeten andere agents kunnen ontdekken via een gedeeld config bestand met namen en rollen. Niet alleen via parent/child hiërarchie. | Agent Teams: `~/.claude/teams/{name}/config.json` met members array. Onze `~/.oa/agents.json` kan dit patroon overnemen. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-030, L-031, etc.*

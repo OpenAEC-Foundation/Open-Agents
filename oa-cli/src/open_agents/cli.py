@@ -131,6 +131,7 @@ def run(
     model: str = typer.Option("claude", "--model", "-m", help="Model: 'claude' or 'ollama/<model>' (e.g. ollama/qwen3:8b)"),
     parent: str = typer.Option("", "--parent", "-p", help="Parent/orchestrator agent name (for hierarchy)"),
     workspace: str = typer.Option("", "--workspace", "-w", help="Use existing workspace directory (skips workspace creation)"),
+    direct: bool = typer.Option(False, "--direct", "-d", help="Direct write mode: agent writes to project instead of proposals"),
 ):
     """Spawn an agent with a task in a new tmux window."""
     if not session_exists():
@@ -141,9 +142,10 @@ def run(
         name = _generate_name(task)
 
     ws = Path(workspace) if workspace else None
+    proj_root = str(Path.cwd()) if direct else None
 
     try:
-        rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None)
+        rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None, project_root=proj_root)
     except RuntimeError as e:
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1)
