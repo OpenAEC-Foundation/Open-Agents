@@ -145,6 +145,29 @@ Ruim workspaces op van alle voltooide agents.
 oa clean
 ```
 
+### `oa review <naam>`
+Bekijk proposals van een agent.
+
+```bash
+oa review mijn-agent
+```
+
+### `oa apply <naam>`
+Pas proposals van een agent toe op de codebase.
+
+```bash
+oa apply mijn-agent            # apply alle proposals
+oa apply mijn-agent --dry-run  # preview wat er zou veranderen
+oa apply mijn-agent --file x   # specifiek proposal
+```
+
+### `oa delegate "taak"`
+Spawn automatisch een orchestrator + workers (D-051).
+
+```bash
+oa delegate "Refactor de auth module" --model claude/sonnet
+```
+
 ### `oa pipeline "<taak>"`
 Voer een multi-agent pipeline uit. Zie [Pipeline Orchestratie](#pipeline-orchestratie).
 
