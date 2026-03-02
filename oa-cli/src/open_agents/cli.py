@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import time
+from pathlib import Path
 
 import typer
 from rich.console import Console
+from rich.panel import Panel
 
 from . import __version__
 from .monitor import print_status
@@ -30,6 +33,15 @@ app = typer.Typer(
 )
 console = Console()
 
+OA_DIR = Path.home() / ".oa"
+CONFIG_PATH = OA_DIR / "config.json"
+DEFAULT_CONFIG = {
+    "version": "0.2.0",
+    "default_model": "claude",
+    "max_workers": 5,
+    "timeout_minutes": 60,
+}
+
 
 def _generate_name(task: str) -> str:
     """Generate a short deterministic name from the task text."""
@@ -39,14 +51,77 @@ def _generate_name(task: str) -> str:
     return f"{word}-{h}"
 
 
+def _run_preflight_gate() -> bool:
+    """Run preflight checks and return True if all pass, False otherwise.
+
+    On failure, prints a Rich error panel with fix hints per failing check.
+    """
+    from . import preflight
+
+    results = preflight.check_all()
+    failed = [r for r in results if not r.ok]
+    if not failed:
+        return True
+
+    lines = []
+    for r in failed:
+        lines.append(f"[bold red]{r.name}[/bold red]: {r.message}")
+        if r.fix_hint:
+            lines.append(f"  [dim]Fix:[/dim] {r.fix_hint}")
+
+    console.print(
+        Panel(
+            "\n".join(lines),
+            title="[red bold]Preflight checks failed[/red bold]",
+            border_style="red",
+        )
+    )
+    console.print("[dim]Run 'oa setup' to see the full report.[/dim]")
+    return False
+
+
 @app.command()
-def start():
+def setup():
+    """Run preflight checks and initialise the ~/.oa/ directory."""
+    from . import preflight
+
+    results = preflight.check_all()
+    preflight.print_report(results, console=console)
+
+    # Create ~/.oa/ directory if it doesn't exist
+    OA_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Write config.json with defaults (don't overwrite existing keys)
+    if CONFIG_PATH.exists():
+        try:
+            existing = json.loads(CONFIG_PATH.read_text())
+        except Exception:
+            existing = {}
+        merged = {**DEFAULT_CONFIG, **existing}
+    else:
+        merged = DEFAULT_CONFIG
+
+    CONFIG_PATH.write_text(json.dumps(merged, indent=2))
+    console.print(f"\n[green]Config written to {CONFIG_PATH}[/green]")
+
+
+@app.command()
+def start(
+    chat: bool = typer.Option(True, "--chat/--no-chat", help="Enter interactive chat mode after starting the session (default: True)"),
+):
     """Start the oa tmux session with a dashboard window."""
+    if not _run_preflight_gate():
+        raise typer.Exit(1)
+
     created = start_session()
     if created:
         console.print("[green]Session 'oa' created with dashboard window.[/green]")
     else:
         console.print("[yellow]Session 'oa' already exists.[/yellow]")
+
+    if chat:
+        from .chat import ChatSession
+        ChatSession().start()
 
 
 @app.command()
@@ -64,8 +139,6 @@ def run(
 
     if not name:
         name = _generate_name(task)
-
-    from pathlib import Path
 
     ws = Path(workspace) if workspace else None
 
@@ -122,8 +195,6 @@ def attach(name: str = typer.Argument(..., help="Agent name to attach to")):
 @app.command()
 def watch(name: str = typer.Argument(..., help="Agent name to watch")):
     """Watch a running agent's output in real-time (streams tmux pane content)."""
-    import sys
-
     rec = get_agent(name)
     if rec is None:
         console.print(f"[red]Agent '{name}' not found.[/red]")
@@ -144,7 +215,7 @@ def watch(name: str = typer.Argument(..., help="Agent name to watch")):
             # Clear screen and redraw
             console.clear()
             console.print(f"[bold]Agent: {name}[/bold]  |  Status: {current}  |  Model: {rec.model}")
-            console.print("─" * 60)
+            console.print("\u2500" * 60)
             if output:
                 console.print(output)
             else:
