@@ -98,7 +98,7 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### FR-07: Safety & Rules
 
-> **Status**: 60% — SafetySettingsView met visuele rule editor werkt. Tool filtering enforced in execution engine. Bash blacklist filtering bestaat maar wordt NIET aangeroepen tijdens runtime (alleen via test API). Audit trail en run history werkend.
+> **Status**: 80% — SafetySettingsView met visuele rule editor werkt. Tool filtering enforced in execution engine. Bash blacklist filtering geimplementeerd en aangeroepen tijdens runtime (D-035, Sprint 10): prompt injectie + post-hoc scanning + audit logging met `safety:violation` SSE events. 15 tests. Audit trail en run history werkend. Nog niet: container-level isolation (D-040, gepland Sprint 13).
 
 - Visueel safety rules definiëren (vergelijkbaar met damage-control in pi-vs-cc)
 - Bash command filtering per agent
@@ -407,6 +407,15 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - Alle drie lezen/schrijven dezelfde `~/.oa/agents.json` state
 - Tmux als gedeelde execution layer — agents draaien onafhankelijk van welke interface ze spawnt
 - Pipeline orchestrator beschikbaar via CLI (`oa pipeline`) met planner → subtasks → combiner flow (D-047)
+
+### FR-28: Orchestrator-First Hierarchie (D-051)
+
+> **Status**: 100% — `oa delegate` commando werkend. Orchestrator-first patroon afgedwongen via proposal mode.
+
+- `oa delegate "<taak>"` spawnt automatisch een orchestrator + een of meer workers
+- Orchestrator delegeert altijd, doet nooit zelf werk
+- Workers schrijven proposals naar `output/proposals/`
+- Orchestrator reviewt en keurt goed via `oa review` en `oa apply`
 
 ---
 

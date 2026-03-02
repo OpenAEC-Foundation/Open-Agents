@@ -1,7 +1,7 @@
 # SOURCES.md - Open-Agents Bronnenregister
 
-> **Versie**: 1.0
-> **Datum**: 2026-02-28
+> **Versie**: 1.1
+> **Datum**: 2026-03-02
 > **Project**: Open-Agents (OpenAEC Foundation)
 > **Doel**: Overzicht van alle externe bronnen, platforms, referentieprojecten en inspiratie
 
@@ -109,6 +109,9 @@ Deze werkmap bevat 17 gespecialiseerde workflow-modules (Hooks, MCP, Skills, Sub
 | [Textual](https://github.com/Textualize/textual) | -- | Python TUI framework | Gebruikt voor `oa dashboard` — de interactieve terminal UI. |
 | [Rich](https://github.com/Textualize/rich) | -- | Rich text rendering | Gebruikt voor `oa status` en alle CLI output formatting. |
 | [Typer](https://github.com/tiangolo/typer) | -- | CLI framework | Basis voor alle `oa` CLI commands. |
+| [LiteLLM](https://github.com/BerriAI/litellm) | -- | MIT | Multi-provider LLM gateway. OpenAI-compatible endpoint die routeert naar 100+ providers. Kandidaat voor LocalLLM routing (LOCAL-LLM-INTEGRATION.md Fase 3). |
+| [vLLM](https://github.com/vllm-project/vllm) | -- | Apache 2.0 | High-throughput inference server voor grote lokale modellen (19x Ollama bij concurrency). Kandidaat als lokale inference backend. |
+| [LocalAI](https://github.com/mudler/LocalAI) | -- | MIT | Drop-in OpenAI replacement met MCP support. Universele lokale inference backend. |
 
 > **Let op**: De Claude Agent SDK package is hernoemd van `@anthropic-ai/claude-code` naar
 > `@anthropic-ai/claude-agent-sdk`. De V2 session API gebruikt `unstable_v2_*` prefix
@@ -213,6 +216,15 @@ Open-Agents onderscheidt zich met D-042 (Agent Maturity Model): library begint a
 - Gedoneerd aan Agentic AI Foundation (december 2025)
 - Nieuwe MCP extension: servers kunnen interactieve UI's serveren binnen chat
 - Tool Search / auto-deferral bij >10% context window
+
+---
+
+## 10. Protocollen & Standaarden
+
+| Protocol | Beheerder | Beschrijving |
+|----------|-----------|--------------|
+| [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) | Agentic AI Foundation | Standaard voor tool-connecties. 10.000+ servers, 97M+ maandelijkse SDK downloads. Geadopteerd door ChatGPT, Cursor, Gemini, VS Code. |
+| [Google A2A Protocol](https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/) | Google | Agent-to-Agent communicatiestandaard. Complementeert MCP: MCP=tools, A2A=agent-agent. Sprint 16 evaluatie gepland. |
 
 ---
 

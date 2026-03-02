@@ -48,8 +48,22 @@
 
 ---
 
+### Proposal Mode (vervolg)
+
+| # | Les | Context |
+|---|-----|---------|
 | L-015 | **Proposals ALTIJD syntax-valideren voor apply** — code proposals kunnen truncated zijn (incompleet code block), syntax errors bevatten, of ontbrekende imports hebben. Voer altijd `python3 -c "import ..."` of vergelijkbare check uit na apply. | Twee proposals (cli.py en orchestrator.py) hadden truncated triple-quoted strings → hele CLI kapot. |
+
+### Orchestratie (vervolg)
+
+| # | Les | Context |
+|---|-----|---------|
 | L-016 | **`oa delegate` als default, `oa run` als uitzondering** — gebruik `oa delegate` voor taken die meer dan 1 agent nodig hebben. `oa run` alleen voor simple one-shot tasks. | Orchestrator-first architectuur (D-051). |
+
+### Context & Sessie Management (vervolg)
+
+| # | Les | Context |
+|---|-----|---------|
 | L-017 | **Doe GEEN handmatige code-fixes in de Claude Code sessie** — als een proposal kapot is, spawn een fix-agent. De Claude Code sessie moet doorgeefluik blijven. | Claude Code sessie raakte vervuild door handmatige fixes aan cli.py en orchestrator.py. |
 
 ### Direct Mode (afschaffing proposal mode)
