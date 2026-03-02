@@ -265,8 +265,8 @@ def apply(
         content = read_proposal(proposal_path)
 
         # Extract target file path from proposal content
-        # Look for patterns like "Bestand: /path/to/file" or "File: /path/to/file"
-        target_match = re.search(r'(?:Bestand|File|Target|Path):\s*[`"]?(/[^\s`"]+)', content)
+        # Look for patterns like "Bestand: /path/to/file", "**Bestand**: /path", "## Doelbestand\n`/path`"
+        target_match = re.search(r'(?:\*{0,2})(?:Bestand|File|Target|Path|Doelbestand)(?:\*{0,2})(?::|\n)\s*[`"*]?(/[^\s`"*]+)', content)
         if not target_match:
             # Try to find a code block with a file path comment
             target_match = re.search(r'(?:schrijf naar|write to|target:)\s*[`"]?(/[^\s`"]+)', content, re.IGNORECASE)
