@@ -30,6 +30,7 @@
 | Agent Library (doel: 1000+) | 90 | 1000 |
 | CLI Agentic Layer (oa-cli) | 1 | 1 |
 | VS Code Bridge (Sprint 11) | 0 | 1 |
+| Agent Teams Patterns (Sprint 17) | 0 | 12 |
 
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
 **Fase 1 (PoC)**: ████████████████████ **100%** - canvas UI, backend API, e2e wiring, theming, BYOK
@@ -359,6 +360,27 @@
 - [ ] PoC A2A server adapter (één Open-Agents agent als A2A service)
 - [ ] Test met A2A-compatible client
 - [ ] Beslissing D-051 documenteren in DECISIONS.md
+
+---
+
+### Sprint 17: oa-cli Agent Teams Patterns — Planned
+
+**Doel**: Agent Teams patterns (D-052, L-022 t/m L-029) implementeren in oa-cli
+**Afhankelijk van**: Sprint 12 (oa-cli basis Done)
+**Bron**: Claude Code Agent Teams referentie-architectuur
+
+- [ ] Shared task list (`task_list.py`) — CRUD, file locking, JSON storage in `~/.oa/tasks/<team>/`
+- [ ] Task dependencies — `blockedBy` veld, auto-unblock bij status=completed
+- [ ] Inter-agent messaging (`messaging.py`) — mailbox per agent, DM + broadcast
+- [ ] Team config (`teams.py`) — create/list/delete, members array, `~/.oa/teams/<team>/config.json`
+- [ ] Graceful shutdown protocol — request/approve/reject via messaging
+- [ ] Quality hooks (`hooks.py`) — on_idle, on_task_complete callbacks
+- [ ] CLI commando's: `oa team`, `oa task`, `oa msg`, `oa broadcast`, `oa shutdown`
+- [ ] AgentRecord uitbreiden: `team` veld, `mailbox_path`
+- [ ] Workspace CLAUDE.md template: team context meegeven aan agents
+- [ ] Tests voor task list, messaging, team management
+- [ ] TUI dashboard: team view met task status
+- [ ] Web UI: team overzicht pagina
 
 ---
 

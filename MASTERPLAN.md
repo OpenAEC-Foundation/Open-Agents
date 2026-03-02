@@ -35,6 +35,7 @@
 | 14 | Agent Library Scale-up | 900+ agents bouwen in 10 resterende categorieën (doel: 1000+) | Sprint 9 | Planned |
 | 15 | oa-cli × packages/ Convergentie | oa-cli als alternatieve execution backend voor het visuele platform | Sprint 12 | Planned |
 | 16 | Google A2A Protocol Evaluatie | Agent-to-Agent protocol evaluatie en eventuele integratie | Sprint 13 | Planned |
+| 17 | oa-cli Agent Teams Patterns | Shared task list, inter-agent messaging, graceful shutdown, quality hooks (D-052) | Sprint 12 | Planned |
 
 ```
 Sprint 0 ──→ Sprint 1 ──→ Sprint 1.2a ──→ Sprint 1.5
@@ -1768,6 +1769,73 @@ Google A2A is een open protocol voor agent-to-agent communicatie (2025). Mogelij
 - [ ] Test met A2A-compatible client
 - [ ] Beslissing D-051 documenteren in DECISIONS.md
 - [ ] Migratie pad definiëren als A2A geadopteerd wordt
+
+---
+
+## Sprint 17: oa-cli Agent Teams Patterns
+
+**Status**: Planned
+**Doel**: Agent Teams patterns (L-022 t/m L-029) implementeren in oa-cli. Gebaseerd op Claude Code Agent Teams referentie-architectuur.
+
+**Afhankelijk van**: Sprint 12 (oa-cli basis Done)
+**Beslissing**: D-052
+
+### Context
+
+Claude Code Agent Teams (experimenteel) implementeert 6 patronen die oa-cli mist:
+1. Shared task list met file locking (agents claimen taken, dependencies blokkeren)
+2. Inter-agent messaging (DM + broadcast, niet alleen lead ← worker)
+3. Graceful shutdown protocol (request → approve/reject)
+4. Task dependencies met automatisch unblocking
+5. Quality hooks (TeammateIdle, TaskCompleted)
+6. Team discovery via config file
+
+Bron: https://code.claude.com/docs/en/agent-teams
+
+> **Prompt**:
+> ```
+> Je bent de oa-cli architect. Implementeer Agent Teams patterns in de oa-cli
+> Python codebase (oa-cli/src/open_agents/).
+>
+> Referentie: Claude Code Agent Teams docs. Lees LESSONS.md (L-022 t/m L-029)
+> en DECISIONS.md (D-052) voor context.
+>
+> Implementeer in deze volgorde:
+> 1. Shared task list: ~/.oa/tasks/<team>/ met JSON files, file locking bij claim
+> 2. Task dependencies: blockedBy veld, automatisch unblocking bij complete
+> 3. Inter-agent messaging: ~/.oa/messages/<agent>/ mailbox, DM + broadcast
+> 4. Team config: ~/.oa/teams/<team>/config.json met members array
+> 5. Graceful shutdown: oa shutdown <naam> met approve/reject protocol
+> 6. Quality hooks: on_idle en on_task_complete callbacks
+>
+> CLI commando's toevoegen:
+> - oa team create <naam>     — team aanmaken
+> - oa team list               — teams tonen
+> - oa team delete <naam>      — team opruimen
+> - oa task create "<taak>"    — taak toevoegen aan team
+> - oa task list                — taken tonen met status
+> - oa task claim <id>          — taak claimen (met locking)
+> - oa msg <agent> "<tekst>"   — bericht sturen naar agent
+> - oa broadcast "<tekst>"     — bericht naar alle agents in team
+> - oa shutdown <naam>          — graceful shutdown request
+>
+> Bestaande code niet breken. Bouw voort op ~/.oa/agents.json state.
+> Tests schrijven in oa-cli/tests/.
+> ```
+
+**Taken:**
+- [ ] Shared task list module (`task_list.py`) — CRUD + file locking + JSON storage
+- [ ] Task dependencies — `blockedBy` veld, auto-unblock bij status=completed
+- [ ] Inter-agent messaging (`messaging.py`) — mailbox per agent, DM + broadcast
+- [ ] Team config (`teams.py`) — create/list/delete, members array, config.json
+- [ ] Graceful shutdown protocol — request/approve/reject via messaging
+- [ ] Quality hooks (`hooks.py`) — on_idle, on_task_complete met configureerbare callbacks
+- [ ] CLI commando's: `oa team`, `oa task`, `oa msg`, `oa broadcast`, `oa shutdown`
+- [ ] AgentRecord uitbreiden: `team` veld, `mailbox_path`
+- [ ] Workspace CLAUDE.md template: team context meegeven aan agents
+- [ ] Tests voor task list, messaging, team management
+- [ ] TUI dashboard: team view met task status en agent communicatie
+- [ ] Web UI: team overzicht pagina
 
 ---
 
