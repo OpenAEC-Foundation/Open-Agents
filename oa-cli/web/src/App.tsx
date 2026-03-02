@@ -229,8 +229,8 @@ function GlobalStyles() {
       body { margin: 0; overflow: hidden; }
       ::-webkit-scrollbar { width: 5px; height: 5px; }
       ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-      ::-webkit-scrollbar-thumb:hover { background: #555; }
+      ::-webkit-scrollbar-thumb { background: #555d6b; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #7a8494; }
       textarea:focus, input:focus, select:focus {
         outline: 1px solid #22d3ee !important;
         border-color: #22d3ee !important;
@@ -312,7 +312,7 @@ export default function App() {
             id: ++eventIdRef.current,
             time: Date.now() / 1000,
             text: `${name} cleaned`,
-            color: "#6b7280",
+            color: "#8b95a5",
           });
         }
       }
@@ -493,7 +493,7 @@ export default function App() {
       borderBottom: "1px solid #1a1a1a",
       fontSize: "10px",
       fontWeight: 700,
-      color: "#4b5563",
+      color: "#8b95a5",
       textTransform: "uppercase" as const,
       letterSpacing: "1px",
     },
@@ -542,13 +542,13 @@ export default function App() {
             style={{
               ...S.mono,
               fontSize: "13px",
-              color: "#6b7280",
+              color: "#8b95a5",
               letterSpacing: "0.5px",
             }}
           >
             {formatTime(new Date(now))}
           </span>
-          <span style={{ fontSize: "12px", color: "#4b5563" }}>
+          <span style={{ fontSize: "12px", color: "#7a8494" }}>
             uptime{" "}
             <span style={{ ...S.mono, color: "#9ca3af", fontSize: "12px" }}>
               {sessionUptime}
@@ -603,7 +603,7 @@ export default function App() {
                 padding: "2px 8px",
                 borderRadius: "10px",
                 background: "#1a1a1a",
-                border: "1px solid #333",
+                border: "1px solid #444",
                 color: "#9ca3af",
                 fontWeight: 600,
               }}
@@ -636,7 +636,7 @@ export default function App() {
                 style={{
                   padding: "40px 16px",
                   textAlign: "center",
-                  color: "#4b5563",
+                  color: "#7a8494",
                   fontSize: "13px",
                 }}
               >
@@ -673,12 +673,12 @@ export default function App() {
                         <span
                           style={{
                             ...S.mono,
-                            color: "#333",
+                            color: "#555d6b",
                             fontSize: "10px",
                             flexShrink: 0,
                           }}
                         >
-                          \u2514
+                          {"\u2514"}
                         </span>
                       )}
                       <span
@@ -723,7 +723,7 @@ export default function App() {
                         style={{
                           ...S.mono,
                           fontSize: "10px",
-                          color: "#4b5563",
+                          color: "#7a8494",
                           flexShrink: 0,
                         }}
                       >
@@ -733,7 +733,7 @@ export default function App() {
                     <div
                       style={{
                         fontSize: "11px",
-                        color: "#4b5563",
+                        color: "#7a8494",
                         marginTop: "2px",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -769,7 +769,7 @@ export default function App() {
                 width: "100%",
                 padding: "6px 8px",
                 background: "#1a1a1a",
-                border: "1px solid #333",
+                border: "1px solid #444",
                 borderRadius: "4px",
                 color: "#e5e5e5",
                 fontSize: "12px",
@@ -803,7 +803,7 @@ export default function App() {
                 width: "100%",
                 padding: "6px 8px",
                 background: "#1a1a1a",
-                border: "1px solid #333",
+                border: "1px solid #444",
                 borderRadius: "4px",
                 color: "#e5e5e5",
                 fontSize: "12px",
@@ -828,7 +828,7 @@ export default function App() {
                   flex: 1,
                   padding: "5px 8px",
                   background: "#1a1a1a",
-                  border: "1px solid #333",
+                  border: "1px solid #444",
                   borderRadius: "4px",
                   color: "#e5e5e5",
                   fontSize: "11px",
@@ -841,7 +841,7 @@ export default function App() {
                   flex: 1,
                   padding: "5px 8px",
                   background: "#1a1a1a",
-                  border: "1px solid #333",
+                  border: "1px solid #444",
                   borderRadius: "4px",
                   color: "#e5e5e5",
                   fontSize: "11px",
@@ -863,7 +863,7 @@ export default function App() {
                   flex: 1,
                   padding: "7px",
                   background: spawnTask.trim() ? "#22d3ee" : "#1a1a1a",
-                  color: spawnTask.trim() ? "#0a0a0a" : "#4b5563",
+                  color: spawnTask.trim() ? "#0a0a0a" : "#7a8494",
                   border: "none",
                   borderRadius: "4px",
                   fontWeight: 700,
@@ -880,7 +880,7 @@ export default function App() {
                   padding: "7px 12px",
                   background: "#1a1a1a",
                   color: "#9ca3af",
-                  border: "1px solid #333",
+                  border: "1px solid #444",
                   borderRadius: "4px",
                   fontSize: "11px",
                   cursor: "pointer",
@@ -910,12 +910,12 @@ export default function App() {
                 alignItems: "center",
                 justifyContent: "center",
                 height: "100%",
-                color: "#333",
+                color: "#555d6b",
                 gap: "12px",
               }}
             >
-              <span style={{ fontSize: "48px", opacity: 0.3 }}>&#9678;</span>
-              <span style={{ fontSize: "14px", color: "#4b5563" }}>
+              <span style={{ fontSize: "48px", opacity: 0.5 }}>&#9678;</span>
+              <span style={{ fontSize: "14px", color: "#7a8494" }}>
                 Select an agent to view details
               </span>
             </div>
@@ -970,7 +970,7 @@ export default function App() {
                     style={{
                       ...S.mono,
                       fontSize: "12px",
-                      color: "#6b7280",
+                      color: "#8b95a5",
                     }}
                   >
                     {formatDuration(detail.created_at, detail.finished_at)}
@@ -1019,7 +1019,7 @@ export default function App() {
                       padding: "8px 16px",
                       background: "transparent",
                       color:
-                        activeTab === tab ? "#22d3ee" : "#6b7280",
+                        activeTab === tab ? "#22d3ee" : "#8b95a5",
                       border: "none",
                       borderBottom:
                         activeTab === tab
@@ -1119,7 +1119,7 @@ export default function App() {
                     ) : (
                       <div
                         style={{
-                          color: "#4b5563",
+                          color: "#7a8494",
                           textAlign: "center",
                           padding: "40px",
                           fontSize: "13px",
@@ -1230,7 +1230,7 @@ export default function App() {
                               padding: "8px 12px",
                               ...S.mono,
                               fontSize: "11px",
-                              color: "#6b7280",
+                              color: "#8b95a5",
                               whiteSpace: "pre-wrap",
                               maxHeight: "200px",
                               overflow: "auto",
@@ -1247,7 +1247,7 @@ export default function App() {
                     ) : (
                       <div
                         style={{
-                          color: "#4b5563",
+                          color: "#7a8494",
                           textAlign: "center",
                           padding: "40px",
                           fontSize: "13px",
@@ -1307,7 +1307,7 @@ export default function App() {
                             <td
                               style={{
                                 padding: "6px 12px 6px 0",
-                                color: "#4b5563",
+                                color: "#7a8494",
                                 fontWeight: 500,
                                 whiteSpace: "nowrap",
                                 verticalAlign: "top",
@@ -1342,7 +1342,7 @@ export default function App() {
                           style={{
                             fontSize: "10px",
                             fontWeight: 700,
-                            color: "#4b5563",
+                            color: "#7a8494",
                             textTransform: "uppercase",
                             letterSpacing: "1px",
                             marginBottom: "6px",
@@ -1393,7 +1393,7 @@ export default function App() {
                               </span>
                               <span
                                 style={{
-                                  color: "#4b5563",
+                                  color: "#7a8494",
                                   fontSize: "11px",
                                 }}
                               >
@@ -1444,7 +1444,7 @@ export default function App() {
                   fontSize: "32px",
                   fontWeight: 800,
                   color:
-                    running.length > 0 ? "#22d3ee" : "#333",
+                    running.length > 0 ? "#22d3ee" : "#555d6b",
                   animation:
                     running.length > 0
                       ? "ccPulse 2s infinite"
@@ -1454,7 +1454,7 @@ export default function App() {
               >
                 {running.length}
               </span>
-              <span style={{ fontSize: "12px", color: "#4b5563" }}>
+              <span style={{ fontSize: "12px", color: "#7a8494" }}>
                 running
               </span>
             </div>
@@ -1503,12 +1503,12 @@ export default function App() {
               ) : (
                 <div
                   style={{
-                    color: "#333",
+                    color: "#555d6b",
                     fontSize: "12px",
                     ...S.mono,
                   }}
                 >
-                  \u2014
+                  {"\u2014"}
                 </div>
               )}
             </div>
@@ -1544,7 +1544,7 @@ export default function App() {
                     fontSize: "12px",
                   }}
                 >
-                  <span style={{ color: "#6b7280" }}>
+                  <span style={{ color: "#8b95a5" }}>
                     {label}
                   </span>
                   <span
@@ -1579,7 +1579,7 @@ export default function App() {
                     <span
                       style={{
                         ...S.mono,
-                        color: "#333",
+                        color: "#555d6b",
                         marginRight: "6px",
                         fontSize: "10px",
                       }}
@@ -1594,7 +1594,7 @@ export default function App() {
               ) : (
                 <div
                   style={{
-                    color: "#333",
+                    color: "#555d6b",
                     fontSize: "11px",
                     padding: "8px 0",
                   }}

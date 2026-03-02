@@ -50,7 +50,7 @@ def _status_counts(agents: list[AgentRecord]) -> str:
     if error:
         parts.append("[bold red]" + str(error) + " error[/bold red]")
     if not parts:
-        parts.append("[dim]no agents[/dim]")
+        parts.append("[#8888aa]no agents[/#8888aa]")
     return "  |  ".join(parts)
 
 
@@ -63,7 +63,7 @@ def _status_markup(status: str) -> str:
     if status in ("error", "timeout", "killed"):
         label = status.upper()
         return "[bold red on #1a0000] ✘ " + label + "  [/bold red on #1a0000]"
-    return "[dim] " + status + " [/dim]"
+    return "[#8888aa] " + status + " [/#8888aa]"
 
 
 def _status_badge(status: str) -> str:
@@ -74,7 +74,7 @@ def _status_badge(status: str) -> str:
         return "[bold green]✔ done[/bold green]"
     if status in ("error", "timeout", "killed"):
         return "[bold red]✘ " + status + "[/bold red]"
-    return "[dim]" + status + "[/dim]"
+    return "[#8888aa]" + status + "[/#8888aa]"
 
 
 # ---------------------------------------------------------------------------
@@ -116,7 +116,7 @@ class AgentDetailPanel(Vertical):
         height: 1;
         padding: 0 2;
         background: #222244;
-        color: #aaaacc;
+        color: #ccccee;
     }
 
     #detail-log {
@@ -127,7 +127,7 @@ class AgentDetailPanel(Vertical):
     """
 
     def compose(self) -> ComposeResult:
-        yield Static("[dim italic]  No agent selected — use ↑/↓ to navigate[/dim italic]", id="detail-header")
+        yield Static("[italic #9999bb]  No agent selected — use arrow keys to navigate[/italic #9999bb]", id="detail-header")
         yield Static("", id="detail-status-row")
         yield Static("", id="detail-meta")
         yield Static(" OUTPUT", id="detail-output-header")
@@ -141,10 +141,10 @@ class AgentDetailPanel(Vertical):
         log.clear()
 
         if rec is None:
-            header_widget.update("[dim italic]  No agent selected — use ↑/↓ to navigate[/dim italic]")
+            header_widget.update("[italic #9999bb]  No agent selected — use arrow keys to navigate[/italic #9999bb]")
             status_widget.update("")
             meta_widget.update("")
-            log.write("[dim]  Waiting for selection...[/dim]")
+            log.write("[#8888aa]  Waiting for selection...[/#8888aa]")
             return
 
         # Agent name as prominent header
@@ -159,20 +159,20 @@ class AgentDetailPanel(Vertical):
         model_str = getattr(rec, "model", "claude")
         ws_display = rec.workspace
         if len(ws_display) > 55:
-            ws_display = "…" + ws_display[-54:]
+            ws_display = "..." + ws_display[-54:]
         task_display = rec.task
         if len(task_display) > 200:
-            task_display = task_display[:197] + "…"
+            task_display = task_display[:197] + "..."
 
         duration = _format_duration(rec.created_at, rec.finished_at)
 
         meta_lines = [
-            "  [#6688aa]Task[/#6688aa]",
+            "  [#88aadd]Task[/#88aadd]",
             "  [white]" + task_display + "[/white]",
             "",
-            "  [#6688aa]Model[/#6688aa]     [cyan]" + model_str + "[/cyan]"
-            + "    [#6688aa]Duration[/#6688aa]  [yellow]" + duration + "[/yellow]",
-            "  [#6688aa]Workspace[/#6688aa] [dim]" + ws_display + "[/dim]",
+            "  [#88aadd]Model[/#88aadd]     [cyan]" + model_str + "[/cyan]"
+            + "    [#88aadd]Duration[/#88aadd]  [yellow]" + duration + "[/yellow]",
+            "  [#88aadd]Workspace[/#88aadd] [#7799bb]" + ws_display + "[/#7799bb]",
         ]
         meta_widget.update("\n".join(meta_lines))
 
@@ -189,7 +189,7 @@ class AgentDetailPanel(Vertical):
             for line in lines[-50:]:
                 log.write(line)
         else:
-            log.write("[dim]  No output available yet.[/dim]")
+            log.write("[#8888aa]  No output available yet.[/#8888aa]")
 
 
 # ---------------------------------------------------------------------------
@@ -200,7 +200,7 @@ class OADashboard(App):
     """Open Agents — Command Centre."""
 
     TITLE = "Open Agents  v" + _OA_VERSION
-    SUB_TITLE = "loading…"
+    SUB_TITLE = "loading..."
 
     CSS = """
     Screen {
@@ -210,13 +210,13 @@ class OADashboard(App):
 
     Header {
         background: #1a1a44;
-        color: #ccccff;
+        color: #ddddff;
         text-style: bold;
     }
 
     Footer {
         background: #111133;
-        color: #888899;
+        color: #aaaacc;
     }
 
     #main {
@@ -235,7 +235,7 @@ class OADashboard(App):
 
     DataTable > .datatable--header {
         background: #1a1a44;
-        color: #aaaaee;
+        color: #ccccff;
         text-style: bold;
     }
 
@@ -319,17 +319,17 @@ class OADashboard(App):
             else:
                 # Sub-agents: indented, green to distinguish from root
                 indent = "  " * depth + "└ "
-                name_markup = "[dim]" + indent + "[/dim][green]" + rec.name + "[/green]"
+                name_markup = "[#7777aa]" + indent + "[/#7777aa][green]" + rec.name + "[/green]"
 
             # Task: more characters, clearly readable
             task_short = rec.task
             if len(task_short) > 45:
-                task_short = task_short[:44] + "…"
+                task_short = task_short[:44] + "..."
 
-            # Model: short label, no dim — legible
+            # Model: short label, legible
             model_short = model_str
             if len(model_short) > 16:
-                model_short = model_short[:15] + "…"
+                model_short = model_short[:15] + "..."
 
             table.add_row(
                 name_markup,
@@ -419,7 +419,7 @@ class OADashboard(App):
             return
         output = read_output(rec.workspace)
         if output:
-            preview = output[:200] + ("…" if len(output) > 200 else "")
+            preview = output[:200] + ("..." if len(output) > 200 else "")
             self.notify("Output from '" + rec.name + "': " + preview)
         else:
             self.notify("No output from '" + rec.name + "'", severity="warning")

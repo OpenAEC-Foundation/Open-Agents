@@ -12,11 +12,11 @@ from .state import AgentRecord, list_agents
 console = Console()
 
 STATUS_COLORS = {
-    "running": "bold cyan",
-    "done": "bold green",
-    "error": "bold red",
-    "timeout": "bold yellow",
-    "killed": "dim",
+    "running": "bold bright_cyan",
+    "done": "bold bright_green",
+    "error": "bold bright_red",
+    "timeout": "bold bright_yellow",
+    "killed": "bold bright_red",
 }
 
 
@@ -74,12 +74,12 @@ def render_status_table(agents: list[AgentRecord] | None = None) -> Table:
     table.add_column("Status")
     table.add_column("Task", max_width=50)
     table.add_column("Duration", justify="right")
-    table.add_column("Workspace", style="dim")
+    table.add_column("Workspace", style="bright_black")
 
     hierarchy = _build_hierarchy(agents)
 
     for rec, depth in hierarchy:
-        style = STATUS_COLORS.get(rec.status, "")
+        style = STATUS_COLORS.get(rec.status, "white")
         duration = _format_duration(rec.created_at, rec.finished_at)
         # Truncate workspace path for readability
         ws_short = rec.workspace
@@ -90,13 +90,13 @@ def render_status_table(agents: list[AgentRecord] | None = None) -> Table:
         if "opus" in model_str:
             model_style = "bold bright_cyan"
         elif "sonnet" in model_str:
-            model_style = "cyan"
+            model_style = "bright_cyan"
         elif "haiku" in model_str:
-            model_style = "green"
+            model_style = "bright_green"
         elif model_str == "claude":
             model_style = "bold bright_cyan"
         else:
-            model_style = "magenta"
+            model_style = "bright_magenta"
 
         # Indent children with tree characters
         prefix = "  └─ " if depth > 0 else ""
@@ -129,7 +129,7 @@ def print_status() -> None:
     agents = list_agents()
 
     if not agents:
-        console.print("[dim]No agents registered. Use 'oa run' to start one.[/dim]")
+        console.print("[bright_black]No agents registered. Use 'oa run' to start one.[/bright_black]")
         return
 
     table = render_status_table(agents)
