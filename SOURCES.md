@@ -105,6 +105,10 @@ Deze werkmap bevat 17 gespecialiseerde workflow-modules (Hooks, MCP, Skills, Sub
 | [Vite](https://vite.dev/) | 6.x | Frontend build tool | D-006 |
 | [Vitest](https://vitest.dev/) | -- | Test framework | D-015 (Fase 1.2a) |
 | [Pino](https://getpino.io/) | -- | Structured logging | D-015 (Fase 1.2a) |
+| [tmux](https://github.com/tmux/tmux) | -- | Terminal multiplexer | Kern van oa-cli agent orchestratie. Elke agent draait in eigen tmux window binnen de `oa` session. |
+| [Textual](https://github.com/Textualize/textual) | -- | Python TUI framework | Gebruikt voor `oa dashboard` — de interactieve terminal UI. |
+| [Rich](https://github.com/Textualize/rich) | -- | Rich text rendering | Gebruikt voor `oa status` en alle CLI output formatting. |
+| [Typer](https://github.com/tiangolo/typer) | -- | CLI framework | Basis voor alle `oa` CLI commands. |
 
 > **Let op**: De Claude Agent SDK package is hernoemd van `@anthropic-ai/claude-code` naar
 > `@anthropic-ai/claude-agent-sdk`. De V2 session API gebruikt `unstable_v2_*` prefix
@@ -148,7 +152,7 @@ Onderstaande inzichten komen voort uit het analyseren van bovenstaande bronnen e
 
 ---
 
-## 9. Marktvalidatie & Landscape Update (2026-03-05)
+## 9. Marktvalidatie & Landscape Update (2026-03-02)
 
 > Bron: platform beoordeling sessie — web research naar huidige staat agentic platforms.
 

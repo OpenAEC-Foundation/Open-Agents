@@ -52,4 +52,18 @@
 | L-016 | **`oa delegate` als default, `oa run` als uitzondering** — gebruik `oa delegate` voor taken die meer dan 1 agent nodig hebben. `oa run` alleen voor simple one-shot tasks. | Orchestrator-first architectuur (D-051). |
 | L-017 | **Doe GEEN handmatige code-fixes in de Claude Code sessie** — als een proposal kapot is, spawn een fix-agent. De Claude Code sessie moet doorgeefluik blijven. | Claude Code sessie raakte vervuild door handmatige fixes aan cli.py en orchestrator.py. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-018, L-019, etc.*
+### Direct Mode (afschaffing proposal mode)
+
+| # | Les | Context |
+|---|-----|---------|
+| L-018 | **Proposal mode afgeschaft — agents schrijven direct** — Proposal mode veroorzaakt te veel overhead: review fatigue, truncatie-bugs in code blocks, en vertraging. Agents schrijven nu direct naar `./output/result.md`. Alleen voor code-wijzigingen aan de repo zelf nog een menselijke review-stap. | User feedback: "Ik wil niet meer met proposals werken, ik word er gek van." |
+| L-019 | **Process-already-in-use bij port binding** — Bridge server (port 5174) crasht als een eerdere instance nog draait. Altijd eerst `lsof -ti:<port>` checken en killen voor je opnieuw start. | Web UI onbereikbaar door zombie bridge process. |
+
+### Hiërarchie & Recursie
+
+| # | Les | Context |
+|---|-----|---------|
+| L-020 | **Python versie-eis niet te strikt** — `requires-python = ">=3.11"` faalt op WSL Ubuntu 22.04 (Python 3.10). Gebruik `>=3.10` voor brede compatibiliteit. | pip install faalde met "requires a different Python: 3.10.12 not in '>=3.11'". |
+| L-021 | **Syntax-validate VOOR apply, niet erna** — `compile(code, filename, 'exec')` op elk Python proposal VOORDAT het naar een bestand geschreven wordt. Voorkomt dat de CLI kapot gaat. | Drie proposals (cli.py, orchestrator.py x2) hadden truncated f-strings door backtick-conflict in markdown code fences. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-022, L-023, etc.*

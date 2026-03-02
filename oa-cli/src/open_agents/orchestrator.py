@@ -4,10 +4,20 @@ from __future__ import annotations
 
 import shlex
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 
-from .state import AgentRecord, add_agent, get_agent, update_agent
+from .state import (
+    AgentRecord,
+    add_agent,
+    get_agent,
+    get_children,
+    get_lineage,
+    list_agents,
+    update_agent,
+    validate_spawn,
+)
 from .workspace import cleanup_workspace, create_workspace, workspace_is_done
 
 SESSION_NAME = "oa"
@@ -15,6 +25,10 @@ CLAUDE_CMD = "claude"
 OLLAMA_CMD = "ollama.exe"  # WSL → Windows interop
 TIMEOUT_MINUTES = 60
 DEFAULT_MODEL = "claude"
+
+# Hiërarchie limieten
+MAX_DEPTH = 5           # Standaard maximale diepte (configureerbaar)
+MAX_DEPTH_ABSOLUTE = 10 # Absolute harde limiet (nooit overschrijden)
 
 
 def _run(cmd: str, check: bool = True) -> subprocess.CompletedProcess:
@@ -94,8 +108,13 @@ def _build_ollama_command(workspace: Path, name: str, ollama_model: str) -> str:
 
 
 def spawn_agent(
-    name: str, task: str, model: str = DEFAULT_MODEL, workspace: Path | None = None,
+    name: str,
+    task: str,
+    model: str = DEFAULT_MODEL,
+    workspace: Path | None = None,
     parent: str | None = None,
+    max_depth: int = MAX_DEPTH,
+    shared_results_dir: str | None = None,
 ) -> AgentRecord:
     """Spawn an agent in a tmux window.
 
@@ -103,10 +122,16 @@ def spawn_agent(
       - "claude"           → Claude Code CLI (full tools, subscription)
       - "ollama/<model>"   → Ollama local model (text only, free)
 
-    1. Create workspace with CLAUDE.md (or use pre-built workspace)
-    2. Create tmux window
-    3. Launch the right runtime in that window
-    4. Register in state
+    Hiërarchie:
+      - parent: naam van de parent-agent (None = root)
+      - max_depth: maximale diepte van de boom (default MAX_DEPTH=5)
+      - shared_results_dir: gedeeld pad voor output-aggregatie
+
+    1. Valideer spawn (diepte, max_children, task-hash)
+    2. Create workspace with CLAUDE.md (or use pre-built workspace)
+    3. Create tmux window
+    4. Launch the right runtime in that window
+    5. Register in state
     """
     if not session_exists():
         raise RuntimeError("No oa session. Run 'oa start' first.")
@@ -114,6 +139,29 @@ def spawn_agent(
     existing = get_agent(name)
     if existing and existing.status == "running":
         raise RuntimeError(f"Agent '{name}' is already running.")
+
+    # --- Hiërarchie validatie ---
+    child_depth = 0
+    child_lineage: list[str] = []
+
+    if parent is not None:
+        # Valideer via state
+        allowed, reason = validate_spawn(parent, task, max_depth=max_depth)
+        if not allowed:
+            raise RuntimeError(f"Spawn geweigerd: {reason}")
+
+        parent_rec = get_agent(parent)
+        if parent_rec:
+            child_depth = parent_rec.depth + 1
+            child_lineage = parent_rec.lineage + [parent]
+            # Erft shared_results_dir van parent als niet expliciet opgegeven
+            if shared_results_dir is None:
+                shared_results_dir = parent_rec.shared_results_dir
+
+    # --- Maak shared_results_dir aan als root-agent (depth=0) ---
+    if child_depth == 0 and shared_results_dir is None:
+        shared_results_dir = str(Path(tempfile.mkdtemp(prefix="oa-results-")) / "results")
+        Path(shared_results_dir).mkdir(parents=True, exist_ok=True)
 
     # Create workspace (or use provided one)
     if workspace is None:
@@ -157,6 +205,9 @@ def spawn_agent(
         status="running",
         created_at=time.time(),
         parent=parent,
+        depth=child_depth,
+        lineage=child_lineage,
+        shared_results_dir=shared_results_dir,
     )
     add_agent(rec)
     return rec
@@ -166,6 +217,9 @@ def check_agent(name: str) -> str | None:
     """Check if a running agent has finished. Updates state if so.
 
     Returns the new status or None if agent doesn't exist.
+
+    Voor diepe bomen: een agent is pas 'done' als AL zijn nakomelingen (niet
+    alleen directe kinderen) klaar zijn.
     """
     rec = get_agent(name)
     if rec is None:
@@ -174,20 +228,23 @@ def check_agent(name: str) -> str | None:
         return rec.status
 
     if workspace_is_done(rec.workspace):
-        # An orchestrator (agent with children, or that IS a parent of others)
-        # can only be "done" when ALL agents in the session are done.
-        from .state import list_agents
+        # Controleer of alle nakomelingen klaar zijn (recursief via lineage check)
         all_agents = list_agents()
-        children = [a for a in all_agents if a.parent == name]
-        if children:
-            # This is a parent agent — stay running while ANY other agent is active
-            others_running = [
-                a for a in all_agents
-                if a.name != name and a.status == "running"
-            ]
-            if others_running:
-                return "running"
+        # Zoek alle agents waarvan 'name' in hun lineage voorkomt
+        descendants = [
+            a for a in all_agents
+            if name in a.lineage and a.status == "running"
+        ]
+        if descendants:
+            # Nog nakomelingen actief — blijf 'running'
+            return "running"
+
         update_agent(name, status="done", finished_at=time.time())
+
+        # Schrijf result naar shared_results_dir als beschikbaar
+        if rec.shared_results_dir:
+            _write_shared_result(rec)
+
         return "done"
 
     # Check if tmux window still exists
@@ -218,6 +275,19 @@ def check_agent(name: str) -> str | None:
     return "running"
 
 
+def _write_shared_result(rec: AgentRecord) -> None:
+    """Kopieer output/result.md naar shared_results_dir/<name>.md."""
+    if not rec.shared_results_dir:
+        return
+    result_src = Path(rec.workspace) / "output" / "result.md"
+    if not result_src.exists():
+        return
+    dest_dir = Path(rec.shared_results_dir)
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest_file = dest_dir / f"{rec.name}.md"
+    dest_file.write_text(result_src.read_text())
+
+
 def kill_agent(name: str) -> bool:
     """Kill a running agent: close tmux window, update state.
 
@@ -240,7 +310,7 @@ def kill_agent(name: str) -> bool:
 
 def clean_finished() -> list[str]:
     """Clean up workspaces for all non-running agents. Returns names cleaned."""
-    from .state import list_agents, remove_agent
+    from .state import remove_agent
 
     cleaned = []
     for rec in list_agents():
@@ -291,8 +361,14 @@ def spawn_with_orchestrator(
     worker_model: str = "claude/sonnet",
     orchestrator_model: str = "claude/opus",
     max_workers: int = 5,
+    max_depth: int = MAX_DEPTH,
 ) -> AgentRecord:
-    """Spawn an orchestrator that delegates work to sub-agents (D-051)."""
+    """Spawn an orchestrator that delegates work to sub-agents (D-051).
+
+    Creates an orchestrator agent with a specialized CLAUDE.md that instructs it
+    to decompose the task, spawn workers, monitor them, and review their output.
+    The orchestrator never does work itself.
+    """
     if not session_exists():
         raise RuntimeError("No oa session. Run 'oa start' first.")
 
@@ -301,60 +377,121 @@ def spawn_with_orchestrator(
     if existing and existing.status == "running":
         raise RuntimeError(f"Orchestrator '{orch_name}' is already running.")
 
-    workspace = _create_orchestrator_workspace(orch_name, task, worker_model, max_workers)
-    return spawn_agent(name=orch_name, task=task, model=orchestrator_model, workspace=workspace)
+    # Maak shared_results_dir aan voor de hele boom
+    shared_results_dir = str(
+        Path(tempfile.mkdtemp(prefix=f"oa-results-{orch_name}-")) / "results"
+    )
+    Path(shared_results_dir).mkdir(parents=True, exist_ok=True)
+
+    # Build orchestrator workspace
+    workspace = _create_orchestrator_workspace(
+        orch_name, task, worker_model, max_workers,
+        depth=0, max_depth=max_depth, shared_results_dir=shared_results_dir,
+    )
+
+    # Spawn the orchestrator agent
+    return spawn_agent(
+        name=orch_name,
+        task=task,
+        model=orchestrator_model,
+        workspace=workspace,
+        shared_results_dir=shared_results_dir,
+    )
 
 
 def _create_orchestrator_workspace(
-    orch_name: str, task: str, worker_model: str, max_workers: int,
+    orch_name: str,
+    task: str,
+    worker_model: str,
+    max_workers: int,
+    depth: int = 0,
+    max_depth: int = MAX_DEPTH,
+    shared_results_dir: str | None = None,
 ) -> Path:
-    """Create a workspace with orchestrator-specific CLAUDE.md."""
-    import tempfile
+    """Create a workspace with orchestrator-specific CLAUDE.md.
 
+    Uitgebreid met:
+    - Kennis van eigen diepte en maximale diepte
+    - Instructies voor shared_results_dir rapportage
+    - Instructies voor recursief spawnen van sub-orchestrators
+    """
     workspace = Path(tempfile.mkdtemp(prefix=f"oa-orch-{orch_name}-"))
     (workspace / "output").mkdir()
     (workspace / "output" / "proposals").mkdir()
 
-    lines = [
-        f"# Orchestrator: {orch_name}",
-        "",
-        "## JE ROL",
-        "Je bent een ORCHESTRATOR. Je voert NOOIT zelf werk uit.",
-        "Je enige taken: analyseren, delegeren, monitoren, en reviewen.",
-        "",
-        "## DE TAAK",
-        task,
-        "",
-        "## REGELS (STRIKT)",
-        "1. Je SCHRIJFT GEEN CODE. Je WIJZIGT GEEN BESTANDEN buiten je workspace.",
-        "2. Je DELEGEERT alle werk naar workers via `oa run`.",
-        f"3. Elke worker krijgt `--parent {orch_name}` zodat de hierarchie klopt.",
-        "4. Workers draaien in proposal mode — ze schrijven proposals.",
-        f"5. Je spawnt maximaal {max_workers} workers tegelijk per batch.",
-        "6. Na elke batch wacht je tot alle workers klaar zijn (`oa status`).",
-        "7. Je reviewt alle worker proposals via `oa review <worker-naam>`.",
-        "",
-        "## WORKER MODEL",
-        f"Gebruik `--model {worker_model}` bij het spawnen van workers.",
-        "",
-        "## STAPPEN",
-        "1. Analyseer de taak — lees relevante bronbestanden",
-        "2. Ontleed in subtaken — geen twee workers naar hetzelfde bestand",
-        "3. Spawn workers:",
-        "   export PATH=\"/home/freek/.local/bin:$PATH\"",
-        f"   oa run \"<subtaak>\" --name <naam> --model {worker_model} --parent {orch_name}",
-        "4. Monitor: `oa status`",
-        "5. Review: `oa review <naam>`",
-        "6. Schrijf samenvatting naar ./output/result.md",
-        "7. Maak .done als je klaar bent",
-        "",
-        "## GELEERDE LESSEN",
-        "- L-001: Blijf draaien tot alle workers klaar zijn",
-        "- L-002: ALLE workers krijgen --parent flag",
-        "- L-003: Twee workers mogen NOOIT hetzelfde bestand wijzigen",
-        "- L-004: Review proposals na elke batch",
-        "- L-010: Jij delegeert, jij doet zelf NIKS",
-    ]
+    remaining_depth = max_depth - depth
+    can_spawn_sub_orchs = remaining_depth > 1
 
-    (workspace / "CLAUDE.md").write_text("\n".join(lines) + "\n")
+    results_section = ""
+    if shared_results_dir:
+        results_section = (
+            f"## RAPPORTAGE\n"
+            f"Gedeelde resultatenmap: `{shared_results_dir}`\n"
+            f"Na voltooiing: kopieer je `./output/result.md` naar "
+            f"`{shared_results_dir}/{orch_name}.md`\n"
+            f"Lees ook de resultaten van je workers via `{shared_results_dir}/<worker-naam>.md`\n\n"
+        )
+
+    sub_orch_section = ""
+    if can_spawn_sub_orchs:
+        sub_orch_section = (
+            f"## RECURSIEF SPAWNEN (DIEPTE {depth}/{max_depth})\n"
+            f"Je zit op diepte {depth}. Je mag nog {remaining_depth - 1} niveaus dieper gaan.\n"
+            f"Als een subtaak te complex is voor een worker, spawn dan een sub-orchestrator:\n"
+            f"```bash\n"
+            f"oa orchestrate \"<complexe-subtaak>\" --name <subnaam> "
+            f"--model {worker_model} --parent {orch_name} --max-depth {max_depth}\n"
+            f"```\n"
+            f"Sub-orchestrators krijgen automatisch `--parent {orch_name}` mee.\n\n"
+        )
+    else:
+        sub_orch_section = (
+            f"## DIEPTELIMIET BEREIKT (DIEPTE {depth}/{max_depth})\n"
+            f"Je zit op maximale diepte. Je mag GEEN sub-orchestrators meer spawnen.\n"
+            f"Gebruik alleen directe workers voor alle subtaken.\n\n"
+        )
+
+    claude_md = (
+        f"# Orchestrator: {orch_name} (depth={depth})\n\n"
+        f"## JE ROL\n"
+        f"Je bent een ORCHESTRATOR op diepte {depth} van {max_depth}.\n"
+        f"Je voert NOOIT zelf werk uit.\n"
+        f"Je enige taken: analyseren, delegeren, monitoren, en reviewen.\n\n"
+        f"## DE TAAK\n{task}\n\n"
+        f"## REGELS (STRIKT)\n"
+        f"1. Je SCHRIJFT GEEN CODE. Je WIJZIGT GEEN BESTANDEN buiten je workspace.\n"
+        f"2. Je DELEGEERT alle werk naar workers via `oa run`.\n"
+        f"3. Elke worker krijgt `--parent {orch_name}` zodat de hierarchie klopt.\n"
+        f"4. Workers schrijven resultaat direct naar `./output/result.md` in hun workspace.\n"
+        f"5. Je spawnt maximaal {max_workers} workers tegelijk per batch.\n"
+        f"6. Na elke batch wacht je tot alle workers klaar zijn (`oa status`).\n"
+        f"7. Je reviewt worker output via `oa collect <worker-naam>`.\n\n"
+        f"{sub_orch_section}"
+        f"{results_section}"
+        f"## WORKER MODEL\n"
+        f"Gebruik `--model {worker_model}` bij het spawnen van workers.\n\n"
+        f"## STAPPEN\n"
+        f"1. Analyseer de taak — lees relevante bronbestanden\n"
+        f"2. Ontleed in subtaken — zorg dat geen twee workers hetzelfde bestand wijzigen\n"
+        f"3. Spawn workers:\n"
+        f'   ```bash\n'
+        f'   export PATH="/home/freek/.local/bin:$PATH"\n'
+        f'   oa run "<subtaak>" --name <naam> --model {worker_model} --parent {orch_name}\n'
+        f'   ```\n'
+        f"4. Monitor: `oa status`\n"
+        f"5. Collect output: `oa collect <naam>`\n"
+        f"6. Aggregeer resultaten van workers via shared results dir\n"
+        f"7. Schrijf samenvatting naar ./output/result.md\n"
+        f"8. Maak .done als je klaar bent\n\n"
+        f"## GELEERDE LESSEN\n"
+        f"- L-001: Blijf draaien tot alle workers klaar zijn\n"
+        f"- L-002: ALLE workers krijgen --parent flag\n"
+        f"- L-003: Twee workers mogen NOOIT hetzelfde bestand wijzigen\n"
+        f"- L-004: Review output na elke batch\n"
+        f"- L-010: Jij delegeert, jij doet zelf NIKS\n"
+        f"- L-011: Controleer je diepte voordat je sub-orchestrators spawnt\n"
+        f"- L-012: Schrijf altijd naar shared_results_dir na voltooiing\n"
+    )
+
+    (workspace / "CLAUDE.md").write_text(claude_md)
     return workspace
