@@ -13,7 +13,7 @@ from .workspace import cleanup_workspace, create_workspace, workspace_is_done
 SESSION_NAME = "oa"
 CLAUDE_CMD = "claude"
 OLLAMA_CMD = "ollama.exe"  # WSL → Windows interop
-TIMEOUT_MINUTES = 30
+TIMEOUT_MINUTES = 60
 DEFAULT_MODEL = "claude"
 
 
@@ -52,13 +52,25 @@ def start_session() -> bool:
     return True
 
 
-def _build_claude_command(workspace: Path, name: str) -> str:
-    """Build the shell command for a Claude Code agent."""
+CLAUDE_MODEL_MAP = {
+    "claude": None,           # default (whatever subscription provides)
+    "claude/opus": "opus",
+    "claude/sonnet": "sonnet",
+    "claude/haiku": "haiku",
+}
+
+
+def _build_claude_command(workspace: Path, name: str, claude_model: str | None = None) -> str:
+    """Build the shell command for a Claude Code agent.
+
+    claude_model: None for default, or 'opus'/'sonnet'/'haiku' for specific model.
+    """
     claude_prompt = "Lees CLAUDE.md en voer de taak uit. Schrijf al je output naar ./output/ en maak een .done file als je klaar bent."
+    model_flag = f" --model {claude_model}" if claude_model else ""
     return (
         f"cd {workspace} && "
         f"unset CLAUDECODE && "
-        f"{CLAUDE_CMD} --dangerously-skip-permissions -p {shlex.quote(claude_prompt)}; "
+        f"{CLAUDE_CMD}{model_flag} --dangerously-skip-permissions -p {shlex.quote(claude_prompt)}; "
         f"touch .done; "
         f"echo '--- Agent {shlex.quote(name)} finished ---'"
     )
@@ -82,7 +94,8 @@ def _build_ollama_command(workspace: Path, name: str, ollama_model: str) -> str:
 
 
 def spawn_agent(
-    name: str, task: str, model: str = DEFAULT_MODEL, workspace: Path | None = None
+    name: str, task: str, model: str = DEFAULT_MODEL, workspace: Path | None = None,
+    parent: str | None = None,
 ) -> AgentRecord:
     """Spawn an agent in a tmux window.
 
@@ -116,12 +129,22 @@ def spawn_agent(
     if model.startswith("ollama/"):
         ollama_model = model.split("/", 1)[1]
         agent_command = _build_ollama_command(workspace, name, ollama_model)
+    elif model.startswith("claude/"):
+        claude_model = CLAUDE_MODEL_MAP.get(model)
+        if claude_model is None:
+            # Allow direct model names like claude/claude-sonnet-4-6
+            claude_model = model.split("/", 1)[1]
+        agent_command = _build_claude_command(workspace, name, claude_model)
     else:
         agent_command = _build_claude_command(workspace, name)
 
+    # Write command to a temp script to avoid tmux send-keys quoting issues
+    script = workspace / ".oa-run.sh"
+    script.write_text(f"#!/bin/bash\n{agent_command}\n")
+    script.chmod(0o755)
     _tmux(
         f"send-keys -t {SESSION_NAME}:{shlex.quote(window_name)} "
-        f"{shlex.quote(agent_command)} Enter"
+        f"{shlex.quote(str(script))} Enter"
     )
 
     # Record state
@@ -133,6 +156,7 @@ def spawn_agent(
         model=model,
         status="running",
         created_at=time.time(),
+        parent=parent,
     )
     add_agent(rec)
     return rec
@@ -150,6 +174,19 @@ def check_agent(name: str) -> str | None:
         return rec.status
 
     if workspace_is_done(rec.workspace):
+        # An orchestrator (agent with children, or that IS a parent of others)
+        # can only be "done" when ALL agents in the session are done.
+        from .state import list_agents
+        all_agents = list_agents()
+        children = [a for a in all_agents if a.parent == name]
+        if children:
+            # This is a parent agent — stay running while ANY other agent is active
+            others_running = [
+                a for a in all_agents
+                if a.name != name and a.status == "running"
+            ]
+            if others_running:
+                return "running"
         update_agent(name, status="done", finished_at=time.time())
         return "done"
 

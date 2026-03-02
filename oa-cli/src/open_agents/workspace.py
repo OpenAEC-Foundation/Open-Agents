@@ -31,6 +31,15 @@ def create_workspace(agent_name: str, task: str) -> Path:
         f"- Maak een ./output/result.md met een samenvatting van wat je hebt gedaan\n"
         f"- Maak een .done file in de root als je helemaal klaar bent\n"
         f"\n"
+        f"## PROPOSAL MODE (BELANGRIJK)\n"
+        f"- Wijzig NOOIT bestanden buiten je eigen workspace directory\n"
+        f"- Als je wijzigingen wilt voorstellen aan externe bestanden, schrijf dan een PROPOSAL:\n"
+        f"  - Maak ./output/proposals/ directory aan\n"
+        f"  - Schrijf per bestand een proposal: ./output/proposals/<bestandsnaam>.proposal.md\n"
+        f"  - Elk proposal bevat: (1) welk bestand, (2) waarom wijzigen, (3) de volledige nieuwe inhoud\n"
+        f"  - Schrijf een ./output/proposals/SUMMARY.md met overzicht van alle voorgestelde wijzigingen\n"
+        f"- De eigenaar reviewt en keurt proposals goed voordat ze worden toegepast\n"
+        f"\n"
         f"## Constraints\n"
         f"- Werk alleen binnen deze directory\n"
         f"- Vraag niet om bevestiging, werk zelfstandig\n"
@@ -65,4 +74,25 @@ def read_output(workspace: str | Path) -> str | None:
         md_files = sorted(output_dir.glob("*.md"))
         if md_files:
             return md_files[0].read_text()
+    return None
+
+
+def list_proposals(workspace: str | Path) -> list[Path]:
+    """List all proposal files in a workspace."""
+    proposals_dir = Path(workspace) / "output" / "proposals"
+    if not proposals_dir.exists():
+        return []
+    return sorted(proposals_dir.glob("*.proposal.md"))
+
+
+def read_proposal(proposal_path: Path) -> str:
+    """Read a single proposal file."""
+    return proposal_path.read_text()
+
+
+def read_proposals_summary(workspace: str | Path) -> str | None:
+    """Read the proposals summary, if it exists."""
+    summary = Path(workspace) / "output" / "proposals" / "SUMMARY.md"
+    if summary.exists():
+        return summary.read_text()
     return None

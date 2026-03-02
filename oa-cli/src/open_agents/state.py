@@ -24,6 +24,7 @@ class AgentRecord:
     created_at: float = field(default_factory=time.time)
     finished_at: Optional[float] = None
     output_file: Optional[str] = None
+    parent: Optional[str] = None  # name of parent/orchestrator agent
 
 
 def _ensure_dir() -> None:

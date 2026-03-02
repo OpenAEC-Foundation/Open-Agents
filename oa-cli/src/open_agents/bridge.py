@@ -18,7 +18,7 @@ from .orchestrator import (
     start_session,
 )
 from .state import get_agent, list_agents
-from .workspace import read_output
+from .workspace import list_proposals, read_output, read_proposal, read_proposals_summary
 
 # Resolve the web/dist directory (built React SPA)
 WEB_DIR = Path(__file__).parent.parent.parent / "web" / "dist"
@@ -96,6 +96,8 @@ def api_spawn_agent():
 
     task = data["task"]
     name = data.get("name", "")
+    model = data.get("model", "claude")
+    parent = data.get("parent", None)
 
     # Auto-generate name if not provided
     if not name:
@@ -111,7 +113,7 @@ def api_spawn_agent():
         start_session()
 
     try:
-        rec = spawn_agent(name, task)
+        rec = spawn_agent(name, task, model=model, parent=parent or None)
         return jsonify(_agent_to_dict(rec)), 201
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 400
@@ -131,6 +133,61 @@ def api_clean():
     """Clean finished agent workspaces."""
     cleaned = clean_finished()
     return jsonify({"cleaned": cleaned})
+
+
+@app.route("/api/agents/<name>/proposals")
+def api_agent_proposals(name: str):
+    """List proposals from a completed agent."""
+    rec = get_agent(name)
+    if rec is None:
+        return jsonify({"error": f"Agent '{name}' not found"}), 404
+
+    summary = read_proposals_summary(rec.workspace)
+    proposals = list_proposals(rec.workspace)
+    items = []
+    for p in proposals:
+        items.append({
+            "filename": p.name,
+            "content": read_proposal(p),
+        })
+    return jsonify({"summary": summary, "proposals": items})
+
+
+@app.route("/api/agents/<name>/proposals/<filename>/apply", methods=["POST"])
+def api_apply_proposal(name: str, filename: str):
+    """Apply a single proposal from an agent."""
+    import re
+
+    rec = get_agent(name)
+    if rec is None:
+        return jsonify({"error": f"Agent '{name}' not found"}), 404
+
+    proposals = list_proposals(rec.workspace)
+    matches = [p for p in proposals if p.name == filename]
+    if not matches:
+        return jsonify({"error": f"Proposal '{filename}' not found"}), 404
+
+    content = read_proposal(matches[0])
+
+    # Extract target file path
+    target_match = re.search(r'(?:Bestand|File|Target|Path):\s*[`"]?(/[^\s`"]+)', content)
+    if not target_match:
+        target_match = re.search(r'(?:schrijf naar|write to|target:)\s*[`"]?(/[^\s`"]+)', content, re.IGNORECASE)
+    if not target_match:
+        return jsonify({"error": "No target file path found in proposal"}), 400
+
+    target_file = target_match.group(1)
+
+    # Extract content from last code block
+    code_blocks = re.findall(r'```(?:\w*)\n(.*?)```', content, re.DOTALL)
+    if not code_blocks:
+        return jsonify({"error": "No code block found in proposal"}), 400
+
+    new_content = code_blocks[-1]
+    Path(target_file).parent.mkdir(parents=True, exist_ok=True)
+    Path(target_file).write_text(new_content)
+
+    return jsonify({"applied": True, "target": target_file})
 
 
 @app.route("/api/session/start", methods=["POST"])
@@ -156,6 +213,8 @@ def _agent_to_dict(rec) -> dict:
         "task": rec.task,
         "workspace": rec.workspace,
         "tmux_window": rec.tmux_window,
+        "model": getattr(rec, "model", "claude"),
+        "parent": getattr(rec, "parent", None),
         "status": rec.status,
         "created_at": rec.created_at,
         "finished_at": rec.finished_at,

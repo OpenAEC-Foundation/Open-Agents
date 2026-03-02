@@ -9,6 +9,7 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.widgets import DataTable, Footer, Header, Static
 
+from .monitor import _build_hierarchy
 from .orchestrator import capture_agent_output, check_agent, kill_agent
 from .state import AgentRecord, list_agents
 from .workspace import read_output
@@ -142,13 +143,15 @@ class OADashboard(App):
         cursor_row = table.cursor_row
 
         table.clear()
-        for rec in sorted(agents, key=lambda r: r.created_at):
+        hierarchy = _build_hierarchy(agents)
+        for rec, depth in hierarchy:
             ws_short = rec.workspace
             if len(ws_short) > 30:
                 ws_short = "..." + ws_short[-27:]
             model_str = getattr(rec, "model", "claude")
+            prefix = "  └─ " if depth > 0 else ""
             table.add_row(
-                rec.name,
+                f"{prefix}{rec.name}",
                 model_str,
                 rec.status,
                 rec.task[:40] + ("..." if len(rec.task) > 40 else ""),

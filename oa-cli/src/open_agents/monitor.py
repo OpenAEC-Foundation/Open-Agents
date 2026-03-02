@@ -34,8 +34,37 @@ def _format_duration(start: float, end: float | None = None) -> str:
     return f"{hours}h {minutes}m"
 
 
+def _build_hierarchy(agents: list[AgentRecord]) -> list[tuple[AgentRecord, int]]:
+    """Build a flat list with indentation levels for parent/child display.
+
+    Returns [(record, depth), ...] sorted: parents first, then children underneath.
+    """
+    by_name = {r.name: r for r in agents}
+    roots = [r for r in agents if not getattr(r, "parent", None)]
+    children_of: dict[str, list[AgentRecord]] = {}
+    for r in agents:
+        p = getattr(r, "parent", None)
+        if p:
+            children_of.setdefault(p, []).append(r)
+
+    result: list[tuple[AgentRecord, int]] = []
+    # Sort roots by created_at
+    for root in sorted(roots, key=lambda r: r.created_at):
+        result.append((root, 0))
+        for child in sorted(children_of.get(root.name, []), key=lambda r: r.created_at):
+            result.append((child, 1))
+
+    # Orphans: children whose parent doesn't exist in current list
+    listed = {r.name for r, _ in result}
+    for r in sorted(agents, key=lambda r: r.created_at):
+        if r.name not in listed:
+            result.append((r, 1))
+
+    return result
+
+
 def render_status_table(agents: list[AgentRecord] | None = None) -> Table:
-    """Build a rich Table with current agent statuses."""
+    """Build a rich Table with current agent statuses, showing hierarchy."""
     if agents is None:
         agents = list_agents()
 
@@ -47,7 +76,9 @@ def render_status_table(agents: list[AgentRecord] | None = None) -> Table:
     table.add_column("Duration", justify="right")
     table.add_column("Workspace", style="dim")
 
-    for rec in sorted(agents, key=lambda r: r.created_at):
+    hierarchy = _build_hierarchy(agents)
+
+    for rec, depth in hierarchy:
         style = STATUS_COLORS.get(rec.status, "")
         duration = _format_duration(rec.created_at, rec.finished_at)
         # Truncate workspace path for readability
@@ -56,10 +87,23 @@ def render_status_table(agents: list[AgentRecord] | None = None) -> Table:
             ws_short = "..." + ws_short[-37:]
 
         model_str = getattr(rec, "model", "claude")
-        model_style = "cyan" if model_str == "claude" else "magenta"
+        if "opus" in model_str:
+            model_style = "bold bright_cyan"
+        elif "sonnet" in model_str:
+            model_style = "cyan"
+        elif "haiku" in model_str:
+            model_style = "green"
+        elif model_str == "claude":
+            model_style = "bold bright_cyan"
+        else:
+            model_style = "magenta"
+
+        # Indent children with tree characters
+        prefix = "  └─ " if depth > 0 else ""
+        name_display = f"{prefix}{rec.name}"
 
         table.add_row(
-            rec.name,
+            name_display,
             f"[{model_style}]{model_str}[/{model_style}]",
             f"[{style}]{rec.status}[/{style}]",
             rec.task[:50] + ("..." if len(rec.task) > 50 else ""),

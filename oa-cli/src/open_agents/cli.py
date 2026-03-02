@@ -20,7 +20,7 @@ from .orchestrator import (
     start_session,
 )
 from .state import get_agent, list_agents
-from .workspace import read_output
+from .workspace import list_proposals, read_output, read_proposal, read_proposals_summary
 
 app = typer.Typer(
     name="oa",
@@ -53,6 +53,8 @@ def run(
     task: str = typer.Argument(..., help="The task description for the agent"),
     name: str = typer.Option("", "--name", "-n", help="Agent name (auto-generated if empty)"),
     model: str = typer.Option("claude", "--model", "-m", help="Model: 'claude' or 'ollama/<model>' (e.g. ollama/qwen3:8b)"),
+    parent: str = typer.Option("", "--parent", "-p", help="Parent/orchestrator agent name (for hierarchy)"),
+    workspace: str = typer.Option("", "--workspace", "-w", help="Use existing workspace directory (skips workspace creation)"),
 ):
     """Spawn an agent with a task in a new tmux window."""
     if not session_exists():
@@ -62,14 +64,19 @@ def run(
     if not name:
         name = _generate_name(task)
 
+    from pathlib import Path
+
+    ws = Path(workspace) if workspace else None
+
     try:
-        rec = spawn_agent(name, task, model=model)
+        rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None)
     except RuntimeError as e:
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1)
 
     model_label = f"[cyan]{rec.model}[/cyan]" if rec.model == "claude" else f"[magenta]{rec.model}[/magenta]"
-    console.print(f"[green]Agent '{rec.name}' spawned[/green]  ({model_label})")
+    parent_label = f"  (child of [bold]{rec.parent}[/bold])" if rec.parent else ""
+    console.print(f"[green]Agent '{rec.name}' spawned[/green]  ({model_label}){parent_label}")
     console.print(f"  Task: {rec.task}")
     console.print(f"  Workspace: {rec.workspace}")
     console.print(f"  Window: {rec.tmux_window}")
@@ -193,6 +200,101 @@ def clean():
         console.print(f"[green]Cleaned {len(cleaned)} agent(s): {', '.join(cleaned)}[/green]")
     else:
         console.print("[dim]Nothing to clean.[/dim]")
+
+
+@app.command()
+def review(name: str = typer.Argument(..., help="Agent name to review proposals from")):
+    """Review proposals from a completed agent. Agents write proposals instead of modifying files directly."""
+    rec = get_agent(name)
+    if rec is None:
+        console.print(f"[red]Agent '{name}' not found.[/red]")
+        raise typer.Exit(1)
+
+    # Check for proposals summary first
+    summary = read_proposals_summary(rec.workspace)
+    if summary:
+        console.print(f"\n[bold cyan]Proposals Summary from '{name}':[/bold cyan]\n")
+        console.print(summary)
+        console.print()
+
+    proposals = list_proposals(rec.workspace)
+    if not proposals:
+        console.print(f"[yellow]No proposals found for agent '{name}'.[/yellow]")
+        # Fall back to showing regular output
+        output = read_output(rec.workspace)
+        if output:
+            console.print(f"\n[bold]Output from '{name}':[/bold]\n")
+            console.print(output)
+        raise typer.Exit(0)
+
+    console.print(f"[bold]Found {len(proposals)} proposal(s):[/bold]")
+    for i, p in enumerate(proposals, 1):
+        console.print(f"  {i}. {p.name}")
+
+    console.print(f"\n[dim]Use 'oa apply {name}' to apply all proposals, or 'oa apply {name} --file <name>' for a specific one.[/dim]")
+
+
+@app.command()
+def apply(
+    name: str = typer.Argument(..., help="Agent name to apply proposals from"),
+    file: str = typer.Option("", "--file", "-f", help="Apply only a specific proposal file"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be applied without applying"),
+):
+    """Apply approved proposals from an agent to the actual files."""
+    import re
+
+    rec = get_agent(name)
+    if rec is None:
+        console.print(f"[red]Agent '{name}' not found.[/red]")
+        raise typer.Exit(1)
+
+    proposals = list_proposals(rec.workspace)
+    if not proposals:
+        console.print(f"[yellow]No proposals found for agent '{name}'.[/yellow]")
+        raise typer.Exit(0)
+
+    if file:
+        proposals = [p for p in proposals if file in p.name]
+        if not proposals:
+            console.print(f"[red]No proposal matching '{file}' found.[/red]")
+            raise typer.Exit(1)
+
+    applied = 0
+    for proposal_path in proposals:
+        content = read_proposal(proposal_path)
+
+        # Extract target file path from proposal content
+        # Look for patterns like "Bestand: /path/to/file" or "File: /path/to/file"
+        target_match = re.search(r'(?:Bestand|File|Target|Path):\s*[`"]?(/[^\s`"]+)', content)
+        if not target_match:
+            # Try to find a code block with a file path comment
+            target_match = re.search(r'(?:schrijf naar|write to|target:)\s*[`"]?(/[^\s`"]+)', content, re.IGNORECASE)
+
+        if not target_match:
+            console.print(f"[yellow]  Skip: {proposal_path.name} — no target file path found in proposal[/yellow]")
+            continue
+
+        target_file = target_match.group(1)
+
+        if dry_run:
+            console.print(f"[cyan]  Would apply: {proposal_path.name} → {target_file}[/cyan]")
+        else:
+            # Extract the content between the last code block (``` markers)
+            code_blocks = re.findall(r'```(?:\w*)\n(.*?)```', content, re.DOTALL)
+            if code_blocks:
+                new_content = code_blocks[-1]  # Use the last/largest code block
+                from pathlib import Path as P
+                P(target_file).parent.mkdir(parents=True, exist_ok=True)
+                P(target_file).write_text(new_content)
+                console.print(f"[green]  Applied: {proposal_path.name} → {target_file}[/green]")
+                applied += 1
+            else:
+                console.print(f"[yellow]  Skip: {proposal_path.name} — no code block found to extract content[/yellow]")
+
+    if dry_run:
+        console.print(f"\n[dim]Dry run complete. Use without --dry-run to apply.[/dim]")
+    else:
+        console.print(f"\n[green]Applied {applied}/{len(proposals)} proposal(s).[/green]")
 
 
 @app.command()
