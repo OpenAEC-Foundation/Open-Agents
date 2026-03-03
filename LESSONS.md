@@ -111,4 +111,17 @@
 | L-028 | **Quality hooks op idle en task-complete** — automatische checks wanneer een agent idle gaat of een taak afrondt. Hook kan agent terugsturen ("exit code 2 = keep working"). | Agent Teams: `TeammateIdle` en `TaskCompleted` hooks. Voorkomt dat agents stoppen met half werk. Toepasbaar in oa-cli via tmux monitoring. |
 | L-029 | **Team discovery via config file** — agents moeten andere agents kunnen ontdekken via een gedeeld config bestand met namen en rollen. Niet alleen via parent/child hiërarchie. | Agent Teams: `~/.claude/teams/{name}/config.json` met members array. Onze `~/.oa/agents.json` kan dit patroon overnemen. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-030, L-031, etc.*
+---
+
+## Sessie 2026-03-03 — Multi-Agent Refactoring & Research
+
+### Orchestratie
+
+| # | Les | Context |
+|---|-----|---------|
+| L-030 | **Parallel agents op dezelfde bestanden kan werken** — mits de scopes voldoende gescheiden zijn (proposals verwijderen ≠ utils extraheren ≠ modules splitsen). Maar het is risicovol. Beter: sequentieel of git worktrees. | 3 agents bewerkten dezelfde Python modules tegelijk. CLI bleef werkend doordat elke agent een ander aspect wijzigde. |
+| L-031 | **`oa run --direct` is de standaard** — proposal mode volledig afgeschaft. Agents schrijven direct. `oa review` / `oa apply` commands verwijderd uit CLI. | User: "proposals is achterhaald, gewoon rammen." Geïnspireerd door Mario Zegner's aanpak. |
+| L-032 | **9 agents is beheersbaar** — 3 audit (read-only) + 3 fix (code-wijzigend) + 3 research (read-only). Mix van read-only en write agents reduceert conflicten. | Totale sessie: 9 agents, allemaal succesvol afgerond, 4 commits gepusht. |
+| L-033 | **Web UI dependencies niet vergeten** — `npm install` nodig na package.json wijzigingen door agents. `npm run build` na elke UI wijziging. | Web build faalde door ontbrekende @tailwindcss/vite dependency. `npm install` loste het op. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-034, L-035, etc.*
