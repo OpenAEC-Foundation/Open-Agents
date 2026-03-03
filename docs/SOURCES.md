@@ -1,7 +1,7 @@
 # SOURCES.md - Open-Agents Bronnenregister
 
-> **Versie**: 1.1
-> **Datum**: 2026-03-02
+> **Versie**: 1.2
+> **Datum**: 2026-03-03
 > **Project**: Open-Agents (OpenAEC Foundation)
 > **Doel**: Overzicht van alle externe bronnen, platforms, referentieprojecten en inspiratie
 
@@ -72,6 +72,9 @@ Deze werkmap bevat 17 gespecialiseerde workflow-modules (Hooks, MCP, Skills, Sub
 | [n8n](https://github.com/n8n-io/n8n) | Vue.js | Fair-code | Workflow automation met 400+ integraties. Inspiratie voor connector-architectuur. |
 | [ComfyUI](https://github.com/comfyanonymous/ComfyUI) | Vue.js | GPL-3.0 | Visuele node-based workflow (Stable Diffusion). Niet LLM-gericht maar inspirerend UI-paradigma voor node editors. |
 | [CrewAI](https://github.com/crewAIInc/crewAI) | -- (code-first) | MIT | Python multi-agent framework. Geen ingebouwde GUI. Referentie voor agent role-definitie en task delegation. |
+| [Bolt.new](https://bolt.new/) | Browser IDE | Proprietary | AI-powered full-stack web development in de browser. Live preview is hun killer feature — direct zien wat agents produceren. Referentie voor live preview UX. |
+| [Lovable](https://lovable.dev/) | Browser IDE | Proprietary | AI app builder met WYSIWYG editing op agent output. Klik op element → pas aan. Referentie voor visual editing op live preview. |
+| [Cline](https://github.com/cline/cline) | VS Code ext | Apache 2.0 | Autonomous coding agent met checkpoint/restore. Automatische snapshots bij elke actie, terugkeren naar elk punt. Referentie voor vertrouwen-door-reverteerbaarheid. |
 
 ### Visuele Diagramming Tools
 
@@ -229,3 +232,4 @@ Open-Agents onderscheidt zich met D-042 (Agent Maturity Model): library begint a
 ---
 
 *Bronnenregister voor Open-Agents. Wordt bijgewerkt bij nieuwe inzichten of bronnen.*
+*Laatste update: 2026-03-03*

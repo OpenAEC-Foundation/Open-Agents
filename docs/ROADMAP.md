@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-02
-> **Status**: Sprint 12 (oa-cli) Done — Sprint 11 (VS Code Bridge) In Progress — Sprint 13+ Planned
+> **Laatste update**: 2026-03-03
+> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 11 (VS Code Bridge) In Progress — Sprint 13+ Planned
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -27,7 +27,7 @@
 | Frappe App | 1 | 1 |
 | Library Ecosystem (10 types) | 0 | 10 |
 | LLM Asset Generation (Factory) | 1 | 1 |
-| Agent Library (doel: 1000+) | 90 | 1000 |
+| Agent Library (doel: 1015+) | 220 | 1015 |
 | CLI Agentic Layer (oa-cli) | 1 | 1 |
 | VS Code Bridge (Sprint 11) | 0 | 1 |
 | Agent Teams Patterns (Sprint 17) | 0 | 12 |
@@ -42,10 +42,10 @@
 **Fase 4c (Assistant)**: ████████████████████ **100%** - AI assembly assistant sidebar (Sprint 6c)
 **Fase 5 (Deployment)**: ████████████████████ **100%** - VS Code extension (Sprint 7) + Frappe app (Sprint 8)
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
-**Fase 7 (Agent Library)**: ██░░░░░░░░░░░░░░░░░░ **9%** - 90/1000 agents geïmplementeerd (10 categorieën, library loader)
-**Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond, 6 doorgeschoven naar v0.2.0)
-**Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 12 commando's, Textual TUI, pipeline orchestrator, React web UI
-**Fase 10 (VS Code Bridge)**: ██████████░░░░░░░░░░ **50%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator werkend; package migratie + E2E verificatie nog open
+**Fase 7 (Agent Library)**: ████░░░░░░░░░░░░░░░░ **22%** - 220/1015 agents geïmplementeerd (10 directory-categorieën + 13 category JSON files, library loader)
+**Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond), v0.2.0 released 2026-03-02
+**Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 14 commando's, Textual TUI, pipeline orchestrator, React web UI
+**Fase 10 (VS Code Bridge)**: █████████████░░░░░░░ **67%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator, package migratie, launch config werkend; test-workspace + E2E verificatie nog open
 
 ---
 
@@ -194,9 +194,10 @@
 - [x] 1015 atomaire agents gedefinieerd in AGENTS.md (20 categorieën A-T)
 - [x] 10 core agents geïmplementeerd: summarize, translate, explain-code, find-bugs, generate-test, format-code, generate-commit-msg, check-security, read-file, search-in-files
 - [x] 80 category + specialist agents geïmplementeerd: text-language (10), code-dev (10), review-quality (10), data-transform (10), git-versioning (8), research (10), communication (7), file-system (5), erpnext (10)
+- [x] 130 agents via category JSON files (categorieën A-M, elk 10 agents)
 - [x] Library loader (library-loader.ts) + source/readonly tracking + category filter UI
 - [x] 7 flow & pool templates (PR Assistant, Smart Translator, Multi-Reviewer, Security Audit, Codebase Profiler, ERPNext Feature Builder, Onboarding Assistant)
-- [ ] Overige 910+ agents (doorlopend)
+- [ ] Overige 795+ agents (doorlopend)
 
 ### Fase 8: Refactor & Consolidatie (Sprint 10)
 
@@ -235,9 +236,9 @@
 - [x] Frontend bridgeService (health + WebSocket)
 - [x] ConnectionIndicator met bridge status
 - [x] MIGRATION-VSCODE-BRIDGE.md instructiedocument
-- [ ] Package migratie: `vscode-extension` → `packages/vscode-bridge`
+- [x] Package migratie: `vscode-extension` → `packages/vscode-bridge`
 - [ ] Shared types mergen (bridge events, agent types, constants)
-- [ ] Launch configuratie (.vscode/launch.json)
+- [x] Launch configuratie (.vscode/launch.json)
 - [ ] test-workspace migreren
 - [ ] CLI tool integreren
 - [ ] E2E verificatie: canvas → cli/claude agent → terminal → result
@@ -287,7 +288,7 @@
 - [x] `oa run --parent` parameter — agent hiërarchie
 - [x] Live session viewing via `tmux capture-pane` in web UI en TUI
 - [x] UI beslissingen: D-048 (3 interfaces), D-049 (live viewing), D-050 (React SPA)
-- [x] Totaal 12 CLI commando's: start, run, status, dashboard, attach, watch, kill, collect, clean, pipeline, web, version
+- [x] Totaal 14 CLI commando's: start, run, status, dashboard, attach, watch, kill, collect, clean, pipeline, web, version, setup, delegate
 
 ---
 
@@ -324,14 +325,14 @@
 
 ### Sprint 14: Agent Library Scale-up — Planned
 
-**Doel**: Van 90 naar 300+ agents (categorieën J-M als eerste batch)
+**Doel**: Van 220 naar 400+ agents (categorieën N-T als volgende batch)
 **Afhankelijk van**: Sprint 9 (library infrastructuur)
 
 - [ ] 50 Infrastructure & DevOps agents (agents/library/infra-devops/)
 - [ ] 50 Testing & QA agents (agents/library/testing-qa/)
 - [ ] 50 API & Integration agents (agents/library/api-integration/)
 - [ ] 50 Database & Data agents (agents/library/database-data/)
-- [ ] Maturity veld (D-042) toevoegen aan alle 90 bestaande agents
+- [ ] Maturity veld (D-042) toevoegen aan alle 220 bestaande agents
 - [ ] Library filter UI: filter op maturity niveau
 - [ ] Groeipad dashboard in UI
 

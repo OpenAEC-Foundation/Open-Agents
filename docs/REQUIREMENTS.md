@@ -1,12 +1,12 @@
 # Requirements - Open-Agents
 
-> **Versie**: 0.4
-> **Laatste update**: 2026-03-02
-> **Status**: In ontwikkeling — status annotaties toegevoegd per FR
+> **Versie**: 0.5
+> **Laatste update**: 2026-03-03
+> **Status**: In ontwikkeling — v0.5: requirements herijkt na oa-cli shift (Sprint 12)
 
 ## Visie
 
-Open-Agents is een **hyper session workspace builder met agentic orchestratie**. Je bouwt visueel de ideale workspace-configuratie per agent — CLAUDE.md, skills, rules, MCP servers, hooks — en orkestreert ze samen op een canvas. Zelf instellen of door AI laten genereren. Geen code nodig.
+Open-Agents is een **hyper session workspace builder met agentic orchestratie**. Je orkestreert agents via CLI (`oa-cli`, primair) of visueel canvas (configuratie). Elke agent krijgt een geoptimaliseerde workspace — CLAUDE.md, skills, rules, MCP servers, hooks — en agents werken samen in flows, pools, of als peers. Zelf instellen of door AI laten genereren. Geen code nodig.
 
 **Drie lagen in één tool (D-025):**
 1. **Orchestratie** (canvas): WIE doet wat — flows, pools, routing
@@ -417,16 +417,101 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - Workers schrijven proposals naar `output/proposals/`
 - Orchestrator reviewt en keurt goed via `oa review` en `oa apply`
 
+### FR-29: Inter-Agent Messaging (NIEUW v0.5)
+
+> **Status**: 0% — Niet geimplementeerd. Agents communiceren alleen via file-based output sharing (`oa collect`).
+> **Prioriteit**: P0 — blokkerend voor complexe multi-agent taken.
+
+- Berichten sturen tussen agents (point-to-point en broadcast)
+- Message queue per agent (inbox/outbox in `~/.oa/messages/` of in-memory)
+- Synchrone modus: agent wacht op antwoord
+- Asynchrone modus: agent stuurt bericht en werkt door
+- CLI integratie: `oa send <agent> "bericht"`, `oa inbox <agent>`
+- File-based MVP (Sprint 13), socket-based upgrade later
+- Canvas visualisatie: messaging edges tussen Teammate nodes (FR-02)
+- Voorwaarde voor Teammate entiteittype (FR-20, D-023)
+
+### FR-30: Lokale LLM Smart Routing (NIEUW v0.5)
+
+> **Status**: 0% — Ollama integratie werkt (FR-15) maar model selectie is volledig handmatig.
+> **Prioriteit**: P0/P1 — bespaart subscription tokens en verlaagt kosten.
+
+- Automatische model selectie op basis van taakcomplexiteit
+- Routing regels: simpele taken (formatting, validatie, classificatie) → lokaal model; complexe taken (code generatie, redenering) → cloud model
+- Configureerbare routing tabel in `~/.oa/config.json` per agent of globaal
+- Fallback: als lokaal model faalt of te lang duurt, escaleer naar cloud model
+- Cost tracking: besparing inzichtelijk per sessie (`oa status --cost`)
+- Token budget per agent: max tokens voordat escalatie naar krachtiger model
+- Integratie met cost estimation engine (FR-17 stap 4)
+
+### FR-31: PyPI Distributie (NIEUW v0.5)
+
+> **Status**: 0% — Alleen lokale `pip install -e .` werkt vanuit broncode.
+> **Prioriteit**: P1 — essentieel voor gebruikersadoptie.
+
+- Publicatie als `open-agents` (of `oa-cli`) op PyPI
+- `pip install open-agents` installeert `oa` commando
+- Minimale dependencies (typer, rich, textual, flask, flask-cors)
+- Automatische dependency checks bij eerste run (`oa preflight`): tmux, claude CLI
+- Semantic versioning via pyproject.toml
+- CI/CD: automatische PyPI publicatie bij GitHub release tag
+- Optionele extras: `pip install open-agents[web]` voor web UI dependencies
+
+### FR-32: Conversational Agent Interface (NIEUW v0.5)
+
+> **Status**: 0% — Alle huidige interfaces (CLI, TUI, Web UI) vereisen technische kennis.
+> **Prioriteit**: P1 — visie noemt "geen code nodig" maar er is geen interface die dat waarmaakt.
+
+- Chat-based interface als primaire toegang voor beginners
+- Gebruiker beschrijft taak in natuurlijke taal, systeem spawnt automatisch de juiste agents
+- Geen CLI kennis nodig — conversational flow begeleidt de gebruiker
+- Beschikbaar als tab in web UI (FR-26) en als `oa chat` in CLI
+- Progressieve disclosure: van chat → TUI dashboard → CLI commando's
+- Context-aware: leest workspace en eerder gespawnte agents mee
+
+### FR-33: Live Agent Output Preview (NIEUW v0.5)
+
+> **Status**: 0% — Web UI toont terminal output via tmux capture-pane (polling), geen echte streaming.
+> **Prioriteit**: P1 — gebruikers verwachten real-time feedback (vergelijkbaar met Bolt.new, Cursor).
+
+- Real-time streaming van agent output in web UI en TUI
+- Split-view: meerdere agents tegelijk monitoren
+- File diff preview: wijzigingen zichtbaar voordat ze toegepast worden
+- Terminal replay: agent sessie terugkijken na afloop
+- SSE of WebSocket transport voor low-latency updates
+
+### FR-34: @mention Context Injection (NIEUW v0.5)
+
+> **Status**: 0% — Geen context injection systeem.
+> **Prioriteit**: P2.
+
+- `@file:path.py` — injecteer bestandsinhoud in agent context
+- `@agent:naam` — refereer naar output van andere agent
+- `@pattern:naam` — laad een routing pattern uit knowledge base
+- Werkt in CLI (`oa run`), chat interface (FR-32), en canvas
+- Autocomplete voor beschikbare @mentions
+
+### FR-35: Agent Session Persistence (NIEUW v0.5)
+
+> **Status**: 0% — Agent state gaat verloren na timeout of crash.
+> **Prioriteit**: P2.
+
+- Agent sessie opslaan en later hervatten
+- Checkpoint/restore van agent state (workspace + conversation history)
+- Langlopende taken hervatten na timeout, crash, of machine restart
+- CLI: `oa resume <agent-name>`
+
 ---
 
 ## Niet-Functionele Requirements
 
 ### NFR-01: Deployment Targets
 
-- Stand-alone web app (self-hosted of cloud)
-- VS Code extension (webview panel, integratie met Claude Code extension)
-- Frappe app (inbouwbaar in ERPNext/Frappe ecosysteem)
-- Dezelfde core codebase voor alle drie de targets
+- **Primair**: `pip install open-agents` — Python package met `oa` CLI commando (FR-31)
+- **Secundair**: Stand-alone web app via `oa web` (self-hosted, localhost)
+- **Optioneel**: VS Code extension (webview panel, integratie met Claude Code extension)
+- **Optioneel**: Frappe app (inbouwbaar in ERPNext/Frappe ecosysteem)
+- CLI + Web UI delen dezelfde core codebase en state (`~/.oa/agents.json`)
 
 ### NFR-02: Performance
 
@@ -437,10 +522,11 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### NFR-03: Gebruiksvriendelijkheid
 
-- Onboarding in < 5 minuten voor beginner niveau
-- Geen code kennis vereist voor basis gebruik
-- Keyboard shortcuts voor power users
-- Responsive design (desktop-first, tablet-friendly)
+- Onboarding in < 5 minuten: `pip install open-agents && oa run "mijn taak"`
+- Geen code kennis vereist voor basis gebruik (via conversational interface FR-32)
+- CLI power users: volledige controle via `oa` commando's en config files
+- Keyboard shortcuts in TUI dashboard
+- Web UI: responsive design (desktop-first, tablet-friendly)
 
 ### NFR-04: Visueel Ontwerp
 
@@ -452,10 +538,12 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ### NFR-05: Architectuur
 
-- Frontend als standalone SPA (embeddable in VS Code + Frappe)
-- API-first backend
-- Stateless frontend, alle state in backend/configuratie
-- Docker containers voor agent isolatie (optioneel per agent)
+- **CLI-first**: `oa-cli` (Python/typer) als primaire interface, tmux als execution layer
+- **Shared state**: `~/.oa/agents.json` als single source of truth voor alle interfaces
+- Web UI als optionele monitoring/configuratie laag (React SPA + Flask bridge)
+- Canvas editor als optioneel visueel configuratietool (React Flow)
+- Docker containers voor agent isolatie (optioneel per agent, Sprint 13)
+- Stateless frontends, alle state in `~/.oa/` directory
 
 ### NFR-06: Token Cost Awareness
 
@@ -504,4 +592,4 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ---
 
-*Laatste update: 2026-03-02*
+*Laatste update: 2026-03-03*

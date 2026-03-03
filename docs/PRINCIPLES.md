@@ -1,8 +1,9 @@
 # Principles - Open-Agents
 
-> **Versie**: 0.2
-> **Laatste update**: 2026-03-02
+> **Versie**: 0.3
+> **Laatste update**: 2026-03-03
 > **Doel**: Design uitgangspunten die elke beslissing sturen
+> **Aantal**: 15 principes
 
 ---
 
@@ -34,16 +35,18 @@ Elke agent heeft **één duidelijke kleine taak**. Complexiteit ontstaat niet in
 
 Nooit one-size-fits-all. De UI past zich aan het niveau van de gebruiker aan.
 
-## 7. API-first
+## 7. API-first (complementair aan Principe 14)
 
 Alles wat de UI kan, kan ook via de API. Dit is essentieel voor:
 - Snelle Scrum iteratie (we testen via API voordat UI klaar is)
 - Extensibility (andere tools kunnen integreren)
 - Automation (CI/CD pipelines, scheduled runs)
 
+> **Relatie met Principe 14**: API-first gaat over *beschikbaarheid* — elke functie is programmatisch bereikbaar. Subscription-first gaat over *kosten* — orchestratie draait op subscription, API alleen waar nodig. Beide principes zijn complementair, niet tegenstrijdig.
+
 ## 8. Platform-agnostisch
 
-Standalone web app, VS Code extension, Frappe app: dezelfde core, verschillende shells. De architectuur maakt geen aannames over waar hij draait.
+Meerdere interfaces, dezelfde core. CLI, TUI, React SPA en VS Code extension delen één state (`~/.oa/agents.json`) via de tmux execution layer (D-048). De architectuur maakt geen aannames over waar hij draait — de juiste interface hangt af van de context: scripting, monitoring of visuele exploratie.
 
 ## 9. Open-source
 
@@ -83,18 +86,16 @@ Naast de canvas UI is **CLI- en tmux-gebaseerde orchestratie een first-class cit
 
 De drie interfaces (CLI, TUI, Web UI) zijn gelijkwaardig en delen één state (`~/.oa/agents.json`) via de tmux execution layer. Geen interface is "de echte" — de juiste keuze hangt af van de context: scripting, monitoring of visuele exploratie.
 
-## 16. Proposal-based workflow
+## ~~16. Proposal-based workflow~~ (VERWIJDERD)
 
-**Agents schrijven proposals, eigenaar keurt goed.** Een agent werkt nooit direct op productiebestanden buiten zijn workspace. In plaats daarvan schrijft hij `output/proposals/<bestand>.proposal.md` met: (1) welk bestand, (2) waarom wijzigen, (3) de volledige nieuwe inhoud. De eigenaar reviewt en keurt goed voordat wijzigingen worden toegepast.
-
-Dit principe borgt **autonomie binnen expliciete grenzen**: de agent werkt zelfstandig en volledig, maar externe effecten vereisen altijd menselijke goedkeuring. Het maakt agentic workflows veilig in te zetten op gevoelige codebases, en creëert een natuurlijk reviewmoment voor architecturale beslissingen die buiten het directe werkdomein van de agent vallen.
+> **Verwijderd op 2026-03-03.** Proposal mode is afgeschaft (L-018, L-031). Agents schrijven direct naar bestanden. Geen `oa review` / `oa apply` meer. Veiligheid wordt geborgd door container isolation (D-040) en workspace isolatie (temp directories per agent), niet door proposal workflows.
 
 ---
 
 ## Samenvatting
 
-> **Open-Agents is een hyper session workspace builder met agentic orchestratie. Je bouwt visueel de ideale workspace per agent en orkestreert ze samen op een canvas — zelf of door AI. De complexiteit van drie engineering-lagen zit achter de schermen. De gebruiker ziet alleen de eenvoud.**
+> **Open-Agents is een hyper session workspace builder met agentic orchestratie. Je bouwt visueel de ideale workspace per agent en orkestreert ze samen op een canvas — zelf of door AI. De complexiteit van drie engineering-lagen zit achter de schermen. De gebruiker ziet alleen de eenvoud.** *(15 actieve principes na verwijdering van Principe 16)*
 
 ---
 
-*Laatste update: 2026-03-02*
+*Laatste update: 2026-03-03*
