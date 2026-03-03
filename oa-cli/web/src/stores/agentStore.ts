@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Agent, ProposalsData, ActivityEvent, HierarchyItem, ModelDistItem, SpawnAgentBody } from '../types';
+import type { Agent, ActivityEvent, HierarchyItem, ModelDistItem, SpawnAgentBody } from '../types';
 import * as api from '../api/client';
 
 // --- Utility functions ---
@@ -83,7 +83,6 @@ interface AgentStore {
   agents: Agent[];
   selectedAgent: string | null;
   agentDetail: Agent | null;
-  proposals: ProposalsData | null;
   activityLog: ActivityEvent[];
   eventIdCounter: number;
   prevAgentStatuses: Record<string, string>;
@@ -95,7 +94,6 @@ interface AgentStore {
   spawnAgent: (body: SpawnAgentBody) => Promise<Agent>;
   killAgent: (name: string) => Promise<void>;
   cleanAgents: () => Promise<void>;
-  applyProposal: (agent: string, filename: string) => Promise<void>;
 
   getRunning: () => Agent[];
   getDone: () => Agent[];
@@ -108,7 +106,6 @@ export const useAgentStore = create<AgentStore>((set, get) => ({
   agents: [],
   selectedAgent: null,
   agentDetail: null,
-  proposals: null,
   activityLog: [],
   eventIdCounter: 0,
   prevAgentStatuses: {},
@@ -178,18 +175,15 @@ export const useAgentStore = create<AgentStore>((set, get) => ({
 
   fetchDetail: async (name: string) => {
     try {
-      const [detail, proposals] = await Promise.all([
-        api.fetchAgentDetail(name),
-        api.fetchProposals(name),
-      ]);
-      set({ agentDetail: detail, proposals });
+      const detail = await api.fetchAgentDetail(name);
+      set({ agentDetail: detail });
     } catch {
       // ignore
     }
   },
 
   selectAgent: (name: string | null) => {
-    set({ selectedAgent: name, agentDetail: null, proposals: null });
+    set({ selectedAgent: name, agentDetail: null });
   },
 
   spawnAgent: async (body: SpawnAgentBody) => {
@@ -207,14 +201,8 @@ export const useAgentStore = create<AgentStore>((set, get) => ({
 
   cleanAgents: async () => {
     await api.cleanAgents();
-    set({ selectedAgent: null, agentDetail: null, proposals: null });
+    set({ selectedAgent: null, agentDetail: null });
     get().fetchAgents();
-  },
-
-  applyProposal: async (agent: string, filename: string) => {
-    await api.applyProposal(agent, filename);
-    const proposals = await api.fetchProposals(agent);
-    set({ proposals });
   },
 
   getRunning: () => get().agents.filter((a) => a.status === 'running'),

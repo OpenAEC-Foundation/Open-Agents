@@ -12,16 +12,17 @@ export interface Agent {
   finished_at: number | null;
   live_output?: string | null;
   result?: string | null;
+  unread_messages?: number;
 }
 
-export interface Proposal {
-  filename: string;
+export interface Message {
+  from: string;
+  to: string;
   content: string;
-}
-
-export interface ProposalsData {
-  summary: string | null;
-  proposals: Proposal[];
+  timestamp: number;
+  read: boolean;
+  metadata?: Record<string, unknown>;
+  _broadcast?: boolean;
 }
 
 export interface ActivityEvent {
