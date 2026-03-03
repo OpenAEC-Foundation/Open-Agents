@@ -9,6 +9,7 @@ from flask import Flask, Response, jsonify, request, send_from_directory
 from flask_cors import CORS
 
 from .lifecycle import capture_agent_output, check_agent, clean_finished, kill_agent
+from .messaging import broadcast_message, mark_read, read_inbox, send_message, unread_count
 from .spawner import spawn_agent
 from .tmux import session_exists, start_session
 from .state import get_agent, list_agents
@@ -138,6 +139,59 @@ def api_session_status():
     return jsonify({"exists": session_exists()})
 
 
+# --- Messaging endpoints ---
+
+
+@app.route("/api/messages/<name>")
+def api_get_messages(name: str):
+    """Get messages from an agent's inbox."""
+    unread_only = request.args.get("unread", "false").lower() == "true"
+    limit = request.args.get("limit", 50, type=int)
+    messages = read_inbox(name, unread_only=unread_only, limit=limit)
+    # Strip internal _file field
+    for msg in messages:
+        msg.pop("_file", None)
+    return jsonify({"agent": name, "messages": messages, "unread": unread_count(name)})
+
+
+@app.route("/api/messages", methods=["POST"])
+def api_send_message():
+    """Send a message from one agent to another."""
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Missing JSON body"}), 400
+    sender = data.get("from", "user")
+    recipient = data.get("to")
+    content = data.get("content")
+    if not recipient or not content:
+        return jsonify({"error": "Missing 'to' and/or 'content' fields"}), 400
+
+    send_message(sender, recipient, content)
+    return jsonify({"status": "sent", "from": sender, "to": recipient}), 201
+
+
+@app.route("/api/messages/broadcast", methods=["POST"])
+def api_broadcast():
+    """Broadcast a message to all running agents."""
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Missing JSON body"}), 400
+    sender = data.get("from", "user")
+    content = data.get("content")
+    if not content:
+        return jsonify({"error": "Missing 'content' field"}), 400
+
+    paths = broadcast_message(sender, content)
+    return jsonify({"status": "broadcast", "from": sender, "delivered_to": len(paths) - 1}), 201
+
+
+@app.route("/api/messages/<name>/read", methods=["POST"])
+def api_mark_read(name: str):
+    """Mark messages as read for an agent."""
+    count = mark_read(name)
+    return jsonify({"marked_read": count})
+
+
 # --- Helpers ---
 
 
@@ -153,6 +207,7 @@ def _agent_to_dict(rec) -> dict:
         "status": rec.status,
         "created_at": rec.created_at,
         "finished_at": rec.finished_at,
+        "unread_messages": unread_count(rec.name),
     }
 
 

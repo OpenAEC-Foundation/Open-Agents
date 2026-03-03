@@ -19,6 +19,7 @@ from .orchestrator import spawn_with_orchestrator
 from .spawner import spawn_agent
 from .tmux import session_exists, start_session
 from .state import get_agent, list_agents
+from .messaging import broadcast_message, mark_read, read_inbox, send_message, unread_count
 from .workspace import read_output
 
 app = typer.Typer(
@@ -313,6 +314,69 @@ def delegate(
     console.print(f"  Task: {task}")
     console.print(f"  Workers: {model} (max {max_workers})")
     console.print(f"  Workspace: {rec.workspace}")
+
+
+@app.command()
+def send(
+    to: str = typer.Argument(..., help="Recipient agent name"),
+    message: str = typer.Argument(..., help="Message content"),
+    sender: str = typer.Option("user", "--from", "-f", help="Sender name (default: 'user')"),
+):
+    """Send a message to an agent."""
+    path = send_message(sender, to, message)
+    console.print(f"[green]Message sent[/green] {sender} -> {to}")
+
+
+@app.command()
+def inbox(
+    name: str = typer.Argument(..., help="Agent name to check inbox for"),
+    unread: bool = typer.Option(False, "--unread", "-u", help="Show only unread messages"),
+    mark: bool = typer.Option(False, "--mark-read", help="Mark all messages as read after showing"),
+):
+    """Check an agent's message inbox."""
+    from rich.table import Table
+    from datetime import datetime
+
+    messages = read_inbox(name, unread_only=unread)
+
+    if not messages:
+        console.print(f"[dim]No {'unread ' if unread else ''}messages for '{name}'.[/dim]")
+        return
+
+    table = Table(title=f"Inbox: {name} ({len(messages)} messages)")
+    table.add_column("From", style="cyan")
+    table.add_column("Time", style="dim")
+    table.add_column("Message", max_width=60)
+    table.add_column("Read", style="dim")
+
+    for msg in messages:
+        ts = datetime.fromtimestamp(msg.get("timestamp", 0)).strftime("%H:%M:%S")
+        is_broadcast = msg.get("_broadcast") or msg.get("metadata", {}).get("broadcast")
+        sender = msg.get("from", "?")
+        if is_broadcast:
+            sender = f"{sender} [broadcast]"
+        read_mark = "yes" if msg.get("read") else "[bold yellow]NEW[/bold yellow]"
+        content = msg.get("content", "")
+        if len(content) > 60:
+            content = content[:57] + "..."
+        table.add_row(sender, ts, content, read_mark)
+
+    console.print(table)
+
+    if mark:
+        count = mark_read(name)
+        if count:
+            console.print(f"[green]Marked {count} messages as read.[/green]")
+
+
+@app.command()
+def broadcast(
+    message: str = typer.Argument(..., help="Message to broadcast to all running agents"),
+    sender: str = typer.Option("user", "--from", "-f", help="Sender name (default: 'user')"),
+):
+    """Broadcast a message to all running agents."""
+    paths = broadcast_message(sender, message)
+    console.print(f"[green]Broadcast sent to {len(paths) - 1} agent(s)[/green]")
 
 
 @app.command()

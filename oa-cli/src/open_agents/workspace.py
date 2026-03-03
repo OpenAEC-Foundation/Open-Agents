@@ -9,6 +9,27 @@ from pathlib import Path
 WORKSPACE_PREFIX = "oa-agent-"
 
 
+def _messaging_instructions(agent_name: str) -> str:
+    """Generate messaging instructions for an agent's CLAUDE.md."""
+    return (
+        f"\n"
+        f"## Inter-Agent Messaging\n"
+        f"Je naam is: **{agent_name}**\n"
+        f"\n"
+        f"Je kunt communiceren met andere agents:\n"
+        f"- `oa inbox {agent_name}` — check je berichten\n"
+        f"- `oa send <agent-naam> \"bericht\"` --from {agent_name} — stuur een bericht naar een andere agent\n"
+        f"- `oa broadcast \"bericht\" --from {agent_name}` — stuur naar alle agents\n"
+        f"- `oa status` — zie welke agents er draaien\n"
+        f"\n"
+        f"**Gebruik messaging voor:**\n"
+        f"- Resultaten delen met andere agents\n"
+        f"- Vragen stellen aan specialisten\n"
+        f"- Conflicten voorkomen (check wie aan welk bestand werkt)\n"
+        f"- Status updates aan je parent/orchestrator\n"
+    )
+
+
 def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None) -> Path:
     """Create a temporary workspace directory with a CLAUDE.md file.
 
@@ -23,6 +44,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
     (workspace / "output").mkdir()
 
     claude_md = workspace / "CLAUDE.md"
+    messaging = _messaging_instructions(agent_name)
 
     if project_root:
         # Direct write mode — agents write to the real project
@@ -41,6 +63,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"- Lees eerst het bestaande bestand, dan Edit of Write naar het doelbestand\n"
             f"- Schrijf GEEN proposals — schrijf direct naar de echte bestanden\n"
             f"- Maak GEEN proposals/ directory aan\n"
+            f"{messaging}"
             f"\n"
             f"## Constraints\n"
             f"- Vraag niet om bevestiging, werk zelfstandig\n"
@@ -58,6 +81,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"- Schrijf alle resultaten naar ./output/\n"
             f"- Maak een ./output/result.md met een samenvatting van wat je hebt gedaan\n"
             f"- Maak een .done file in de root als je helemaal klaar bent\n"
+            f"{messaging}"
             f"\n"
             f"## Constraints\n"
             f"- Werk alleen binnen deze directory\n"

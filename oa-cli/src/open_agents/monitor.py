@@ -5,6 +5,7 @@ from __future__ import annotations
 from rich.console import Console
 from rich.table import Table
 
+from .messaging import unread_count
 from .state import AgentRecord, list_agents
 from .utils import format_duration
 
@@ -58,9 +59,9 @@ def render_status_table(agents: list[AgentRecord] | None = None) -> Table:
     table.add_column("Name", style="bold")
     table.add_column("Model")
     table.add_column("Status")
+    table.add_column("Msgs", justify="center")
     table.add_column("Task", max_width=50)
     table.add_column("Duration", justify="right")
-    table.add_column("Workspace", style="bright_black")
 
     hierarchy = _build_hierarchy(agents)
 
@@ -91,13 +92,17 @@ def render_status_table(agents: list[AgentRecord] | None = None) -> Table:
             prefix = "  " * (depth - 1) + "└─ "
         name_display = f"{prefix}{rec.name}"
 
+        # Unread message count
+        unreads = unread_count(rec.name)
+        msg_display = f"[bold yellow]{unreads}[/bold yellow]" if unreads > 0 else "[dim]0[/dim]"
+
         table.add_row(
             name_display,
             f"[{model_style}]{model_str}[/{model_style}]",
             f"[{style}]{rec.status}[/{style}]",
+            msg_display,
             rec.task[:50] + ("..." if len(rec.task) > 50 else ""),
             duration,
-            ws_short,
         )
 
     return table
