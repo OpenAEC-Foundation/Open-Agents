@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import subprocess
 import time
 from pathlib import Path
@@ -16,16 +15,12 @@ from rich.spinner import Spinner
 
 from . import __version__
 from .monitor import render_status_table
-from .orchestrator import check_agent, kill_agent, session_exists, spawn_agent, start_session
+from .lifecycle import check_agent, kill_agent
+from .spawner import spawn_agent
+from .tmux import session_exists, start_session
 from .state import get_agent, list_agents
+from .utils import generate_agent_name
 from .workspace import read_output
-
-
-def _generate_name(task: str) -> str:
-    """Generate a short deterministic name from the task text."""
-    h = hashlib.md5(f"{task}{time.time()}".encode()).hexdigest()[:6]
-    word = "".join(c for c in task.split()[0] if c.isalnum()).lower()[:10] if task.strip() else "agent"
-    return f"{word}-{h}"
 
 
 class ChatSession:
@@ -86,7 +81,7 @@ class ChatSession:
             self.console.print("[yellow]No oa session — starting one...[/yellow]")
             start_session()
 
-        name = _generate_name(text)
+        name = generate_agent_name(text)
         self.console.print(f"[dim]Spawning agent [bold]{name}[/bold]...[/dim]")
 
         try:

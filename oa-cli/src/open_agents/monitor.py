@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import time
-
 from rich.console import Console
 from rich.table import Table
 
 from .state import AgentRecord, list_agents
+from .utils import format_duration
 
 console = Console()
 
@@ -18,20 +17,6 @@ STATUS_COLORS = {
     "timeout": "bold bright_yellow",
     "killed": "bold bright_red",
 }
-
-
-def _format_duration(start: float, end: float | None = None) -> str:
-    """Format elapsed time as human-readable string."""
-    elapsed = (end or time.time()) - start
-    if elapsed < 60:
-        return f"{elapsed:.0f}s"
-    minutes = int(elapsed // 60)
-    seconds = int(elapsed % 60)
-    if minutes < 60:
-        return f"{minutes}m {seconds}s"
-    hours = int(minutes // 60)
-    minutes = minutes % 60
-    return f"{hours}h {minutes}m"
 
 
 def _build_hierarchy(agents: list[AgentRecord]) -> list[tuple[AgentRecord, int]]:
@@ -81,7 +66,7 @@ def render_status_table(agents: list[AgentRecord] | None = None) -> Table:
 
     for rec, depth in hierarchy:
         style = STATUS_COLORS.get(rec.status, "white")
-        duration = _format_duration(rec.created_at, rec.finished_at)
+        duration = format_duration(rec.created_at, rec.finished_at)
         # Truncate workspace path for readability
         ws_short = rec.workspace
         if len(ws_short) > 40:
@@ -120,7 +105,7 @@ def render_status_table(agents: list[AgentRecord] | None = None) -> Table:
 
 def print_status() -> None:
     """Print the agent status table to console."""
-    from .orchestrator import check_agent
+    from .lifecycle import check_agent
 
     agents = list_agents()
 

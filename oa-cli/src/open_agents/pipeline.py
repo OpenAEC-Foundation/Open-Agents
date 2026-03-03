@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 import time
@@ -9,7 +10,9 @@ from pathlib import Path
 
 from rich.console import Console
 
-from .orchestrator import check_agent, session_exists, spawn_agent, start_session
+from .lifecycle import check_agent
+from .spawner import spawn_agent
+from .tmux import session_exists, start_session
 from .state import get_agent
 from .workspace import read_output
 
@@ -138,8 +141,17 @@ def _parse_plan(workspace: str | Path) -> dict | None:
     return plan
 
 
+def _pipeline_id(task: str) -> str:
+    """Generate a short unique suffix for pipeline agent names."""
+    h = hashlib.md5(f"{task}{time.time()}".encode()).hexdigest()[:6]
+    return h
+
+
 def run_pipeline(task: str) -> None:
     """Execute the full pipeline: planner -> subtasks -> combiner."""
+
+    # Generate unique pipeline ID to avoid name collisions
+    pid = _pipeline_id(task)
 
     # Ensure tmux session
     if not session_exists():
@@ -149,7 +161,7 @@ def run_pipeline(task: str) -> None:
     # --- Phase 1: Planner ---
     console.print("\n[bold cyan][1/4] Spawning planner agent...[/bold cyan]")
     planner_ws = _create_planner_workspace(task)
-    planner_name = "pipeline-planner"
+    planner_name = f"pipe-plan-{pid}"
 
     try:
         rec = spawn_agent(planner_name, task, workspace=planner_ws)
@@ -185,22 +197,22 @@ def run_pipeline(task: str) -> None:
     console.print(
         f"\n[bold cyan][3/4] Spawning {len(subtasks)} subtask agents...[/bold cyan]"
     )
-    subtask_agents: list[tuple[str, str]] = []  # (name, workspace)
+    subtask_agents: list[tuple[str, str, str]] = []  # (agent_name, workspace, subtask_name)
 
     for st in subtasks:
-        agent_name = f"pipeline-{st['name']}"
+        agent_name = f"pipe-{pid}-{st['name']}"
         try:
             sub_rec = spawn_agent(agent_name, st["task"])
-            subtask_agents.append((agent_name, sub_rec.workspace))
+            subtask_agents.append((agent_name, sub_rec.workspace, st["name"]))
             console.print(f"  [green]Spawned: {agent_name}[/green]")
         except RuntimeError as e:
             console.print(f"  [red]Failed to spawn {agent_name}: {e}[/red]")
-            subtask_agents.append((agent_name, ""))
+            subtask_agents.append((agent_name, "", st["name"]))
 
     # Wait for all subtasks
     console.print("[dim]  Waiting for all subtasks...[/dim]")
     deadline = time.time() + SUBTASK_TIMEOUT
-    pending = {name for name, ws in subtask_agents if ws}
+    pending = {name for name, ws, _ in subtask_agents if ws}
 
     while pending and time.time() < deadline:
         time.sleep(POLL_INTERVAL)
@@ -217,18 +229,18 @@ def run_pipeline(task: str) -> None:
 
     # Collect outputs
     subtask_outputs: dict[str, str | None] = {}
-    for agent_name, ws in subtask_agents:
+    for agent_name, ws, st_name in subtask_agents:
         if ws:
             rec = get_agent(agent_name)
             output = read_output(ws) if rec else None
-            subtask_outputs[agent_name.removeprefix("pipeline-")] = output
+            subtask_outputs[st_name] = output
         else:
-            subtask_outputs[agent_name.removeprefix("pipeline-")] = None
+            subtask_outputs[st_name] = None
 
     # --- Phase 4: Combiner ---
     console.print("\n[bold cyan][4/4] Spawning combiner agent...[/bold cyan]")
     combiner_ws = _create_combiner_workspace(task, subtask_outputs)
-    combiner_name = "pipeline-combiner"
+    combiner_name = f"pipe-comb-{pid}"
 
     try:
         combiner_rec = spawn_agent(combiner_name, task, workspace=combiner_ws)

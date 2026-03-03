@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import time
 from pathlib import Path
@@ -12,19 +11,15 @@ from rich.console import Console
 from rich.panel import Panel
 
 from . import __version__
+from .config import OA_DIR, CONFIG_PATH, DEFAULT_CONFIG, load_config
 from .monitor import print_status
-from .orchestrator import (
-    attach_agent,
-    check_agent,
-    clean_finished,
-    kill_agent,
-    session_exists,
-    spawn_agent,
-    spawn_with_orchestrator,
-    start_session,
-)
+from .utils import generate_agent_name
+from .lifecycle import attach_agent, check_agent, clean_finished, kill_agent
+from .orchestrator import spawn_with_orchestrator
+from .spawner import spawn_agent
+from .tmux import session_exists, start_session
 from .state import get_agent, list_agents
-from .workspace import list_proposals, read_output, read_proposal, read_proposals_summary
+from .workspace import read_output
 
 app = typer.Typer(
     name="oa",
@@ -32,23 +27,6 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 console = Console()
-
-OA_DIR = Path.home() / ".oa"
-CONFIG_PATH = OA_DIR / "config.json"
-DEFAULT_CONFIG = {
-    "version": "0.2.0",
-    "default_model": "claude",
-    "max_workers": 5,
-    "timeout_minutes": 60,
-}
-
-
-def _generate_name(task: str) -> str:
-    """Generate a short deterministic name from the task text."""
-    h = hashlib.md5(f"{task}{time.time()}".encode()).hexdigest()[:6]
-    # Take first word of the task, sanitized
-    word = "".join(c for c in task.split()[0] if c.isalnum()).lower()[:10] if task.strip() else "agent"
-    return f"{word}-{h}"
 
 
 def _run_preflight_gate() -> bool:
@@ -139,7 +117,7 @@ def run(
         raise typer.Exit(1)
 
     if not name:
-        name = _generate_name(task)
+        name = generate_agent_name(task)
 
     ws = Path(workspace) if workspace else None
     proj_root = str(Path.cwd()) if direct else None
@@ -206,7 +184,7 @@ def watch(name: str = typer.Argument(..., help="Agent name to watch")):
         console.print(f"[yellow]Agent '{name}' is not running (status: {rec.status}).[/yellow]")
         raise typer.Exit(1)
 
-    from .orchestrator import capture_agent_output
+    from .lifecycle import capture_agent_output
 
     console.print(f"[bold]Watching agent '{name}'[/bold] (Ctrl-C to stop)\n")
     try:
@@ -277,101 +255,6 @@ def clean():
 
 
 @app.command()
-def review(name: str = typer.Argument(..., help="Agent name to review proposals from")):
-    """Review proposals from a completed agent. Agents write proposals instead of modifying files directly."""
-    rec = get_agent(name)
-    if rec is None:
-        console.print(f"[red]Agent '{name}' not found.[/red]")
-        raise typer.Exit(1)
-
-    # Check for proposals summary first
-    summary = read_proposals_summary(rec.workspace)
-    if summary:
-        console.print(f"\n[bold cyan]Proposals Summary from '{name}':[/bold cyan]\n")
-        console.print(summary)
-        console.print()
-
-    proposals = list_proposals(rec.workspace)
-    if not proposals:
-        console.print(f"[yellow]No proposals found for agent '{name}'.[/yellow]")
-        # Fall back to showing regular output
-        output = read_output(rec.workspace)
-        if output:
-            console.print(f"\n[bold]Output from '{name}':[/bold]\n")
-            console.print(output)
-        raise typer.Exit(0)
-
-    console.print(f"[bold]Found {len(proposals)} proposal(s):[/bold]")
-    for i, p in enumerate(proposals, 1):
-        console.print(f"  {i}. {p.name}")
-
-    console.print(f"\n[dim]Use 'oa apply {name}' to apply all proposals, or 'oa apply {name} --file <name>' for a specific one.[/dim]")
-
-
-@app.command()
-def apply(
-    name: str = typer.Argument(..., help="Agent name to apply proposals from"),
-    file: str = typer.Option("", "--file", "-f", help="Apply only a specific proposal file"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be applied without applying"),
-):
-    """Apply approved proposals from an agent to the actual files."""
-    import re
-
-    rec = get_agent(name)
-    if rec is None:
-        console.print(f"[red]Agent '{name}' not found.[/red]")
-        raise typer.Exit(1)
-
-    proposals = list_proposals(rec.workspace)
-    if not proposals:
-        console.print(f"[yellow]No proposals found for agent '{name}'.[/yellow]")
-        raise typer.Exit(0)
-
-    if file:
-        proposals = [p for p in proposals if file in p.name]
-        if not proposals:
-            console.print(f"[red]No proposal matching '{file}' found.[/red]")
-            raise typer.Exit(1)
-
-    applied = 0
-    for proposal_path in proposals:
-        content = read_proposal(proposal_path)
-
-        # Extract target file path from proposal content
-        # Look for patterns like "Bestand: /path/to/file", "**Bestand**: /path", "## Doelbestand\n`/path`"
-        target_match = re.search(r'(?:\*{0,2})(?:Bestand|File|Target|Path|Doelbestand)(?:\*{0,2})(?::|\n)\s*[`"*]?(/[^\s`"*]+)', content)
-        if not target_match:
-            # Try to find a code block with a file path comment
-            target_match = re.search(r'(?:schrijf naar|write to|target:)\s*[`"]?(/[^\s`"]+)', content, re.IGNORECASE)
-
-        if not target_match:
-            console.print(f"[yellow]  Skip: {proposal_path.name} — no target file path found in proposal[/yellow]")
-            continue
-
-        target_file = target_match.group(1)
-
-        if dry_run:
-            console.print(f"[cyan]  Would apply: {proposal_path.name} → {target_file}[/cyan]")
-        else:
-            # Extract the content between the last code block (``` markers)
-            code_blocks = re.findall(r'```(?:\w*)\n(.*?)```', content, re.DOTALL)
-            if code_blocks:
-                new_content = code_blocks[-1]  # Use the last/largest code block
-                from pathlib import Path as P
-                P(target_file).parent.mkdir(parents=True, exist_ok=True)
-                P(target_file).write_text(new_content)
-                console.print(f"[green]  Applied: {proposal_path.name} → {target_file}[/green]")
-                applied += 1
-            else:
-                console.print(f"[yellow]  Skip: {proposal_path.name} — no code block found to extract content[/yellow]")
-
-    if dry_run:
-        console.print(f"\n[dim]Dry run complete. Use without --dry-run to apply.[/dim]")
-    else:
-        console.print(f"\n[green]Applied {applied}/{len(proposals)} proposal(s).[/green]")
-
-
-@app.command()
 def pipeline(
     task: str = typer.Argument(..., help="The high-level task to decompose and execute"),
 ):
@@ -412,7 +295,7 @@ def delegate(
         raise typer.Exit(1)
 
     if not name:
-        name = _generate_name(task)
+        name = generate_agent_name(task)
 
     try:
         rec = spawn_with_orchestrator(

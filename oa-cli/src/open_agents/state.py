@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import json
 import time
@@ -55,10 +56,15 @@ def _ensure_dir() -> None:
 
 
 def load_agents() -> dict[str, AgentRecord]:
-    """Load all agents from state file."""
+    """Load all agents from state file (with shared lock)."""
     if not STATE_FILE.exists():
         return {}
-    raw = json.loads(STATE_FILE.read_text())
+    with open(STATE_FILE, "r") as f:
+        fcntl.flock(f, fcntl.LOCK_SH)
+        try:
+            raw = json.load(f)
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
     result = {}
     for name, data in raw.items():
         # Backwards compatibility: vul ontbrekende velden aan
@@ -78,10 +84,16 @@ def load_agents() -> dict[str, AgentRecord]:
 
 
 def save_agents(agents: dict[str, AgentRecord]) -> None:
-    """Write agents dict to state file."""
+    """Write agents dict to state file (with exclusive lock)."""
     _ensure_dir()
     raw = {name: asdict(rec) for name, rec in agents.items()}
-    STATE_FILE.write_text(json.dumps(raw, indent=2) + "\n")
+    with open(STATE_FILE, "w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            json.dump(raw, f, indent=2)
+            f.write("\n")
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
 
 
 def add_agent(rec: AgentRecord) -> None:

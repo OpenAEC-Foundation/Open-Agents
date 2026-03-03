@@ -8,7 +8,7 @@ import time
 from collections import deque
 from typing import Callable, Optional
 
-from .orchestrator import check_agent
+from .lifecycle import check_agent
 from .state import AgentRecord, list_agents
 
 logger = logging.getLogger(__name__)

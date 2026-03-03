@@ -47,7 +47,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"- Als je vastloopt, schrijf het probleem naar ./output/error.md en maak alsnog .done aan\n"
         )
     else:
-        # Proposal mode — agents write proposals for review
+        # Default mode — agents work within their workspace
         claude_md.write_text(
             f"# Taak: {task}\n"
             f"\n"
@@ -58,26 +58,6 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"- Schrijf alle resultaten naar ./output/\n"
             f"- Maak een ./output/result.md met een samenvatting van wat je hebt gedaan\n"
             f"- Maak een .done file in de root als je helemaal klaar bent\n"
-            f"\n"
-            f"## PROPOSAL MODE (BELANGRIJK)\n"
-            f"- Wijzig NOOIT bestanden buiten je eigen workspace directory\n"
-            f"- Als je wijzigingen wilt voorstellen aan externe bestanden, schrijf dan een PROPOSAL:\n"
-            f"  - Maak ./output/proposals/ directory aan\n"
-            f"  - Schrijf per bestand een proposal: ./output/proposals/<bestandsnaam>.proposal.md\n"
-            f"  - Elk proposal MOET dit EXACTE format volgen:\n"
-            f"    ```\n"
-            f"    Bestand: /volledig/absoluut/pad/naar/bestand.ext\n"
-            f"    \n"
-            f"    Waarom: <korte uitleg>\n"
-            f"    \n"
-            f"    ```<taal>\n"
-            f"    <volledige nieuwe inhoud van het bestand>\n"
-            f"    ```\n"
-            f"    ```\n"
-            f"  - BELANGRIJK: De eerste regel MOET zijn: Bestand: /absoluut/pad (zonder bold, zonder backticks)\n"
-            f"  - De laatste code block bevat de VOLLEDIGE nieuwe inhoud van het doelbestand\n"
-            f"  - Schrijf een ./output/proposals/SUMMARY.md met overzicht van alle voorgestelde wijzigingen\n"
-            f"- De eigenaar reviewt en keurt proposals goed voordat ze worden toegepast\n"
             f"\n"
             f"## Constraints\n"
             f"- Werk alleen binnen deze directory\n"
@@ -116,22 +96,3 @@ def read_output(workspace: str | Path) -> str | None:
     return None
 
 
-def list_proposals(workspace: str | Path) -> list[Path]:
-    """List all proposal files in a workspace."""
-    proposals_dir = Path(workspace) / "output" / "proposals"
-    if not proposals_dir.exists():
-        return []
-    return sorted(proposals_dir.glob("*.proposal.md"))
-
-
-def read_proposal(proposal_path: Path) -> str:
-    """Read a single proposal file."""
-    return proposal_path.read_text()
-
-
-def read_proposals_summary(workspace: str | Path) -> str | None:
-    """Read the proposals summary, if it exists."""
-    summary = Path(workspace) / "output" / "proposals" / "SUMMARY.md"
-    if summary.exists():
-        return summary.read_text()
-    return None

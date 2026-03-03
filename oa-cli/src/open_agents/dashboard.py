@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
-import time
-
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.widgets import DataTable, Footer, Header, RichLog, Static
 
 from .monitor import _build_hierarchy
-from .orchestrator import capture_agent_output, check_agent, kill_agent
+from .lifecycle import capture_agent_output, check_agent, kill_agent
 from .state import AgentRecord, list_agents
+from .utils import format_duration
 from .workspace import read_output
 
 try:
@@ -24,19 +23,6 @@ except Exception:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
-def _format_duration(start: float, end: float | None = None) -> str:
-    elapsed = (end or time.time()) - start
-    if elapsed < 60:
-        return str(int(elapsed)) + "s"
-    minutes = int(elapsed // 60)
-    seconds = int(elapsed % 60)
-    if minutes < 60:
-        return str(minutes) + "m" + str(seconds).zfill(2) + "s"
-    hours = int(minutes // 60)
-    minutes = minutes % 60
-    return str(hours) + "h" + str(minutes).zfill(2) + "m"
-
 
 def _status_counts(agents: list[AgentRecord]) -> str:
     running = sum(1 for a in agents if a.status == "running")
@@ -164,7 +150,7 @@ class AgentDetailPanel(Vertical):
         if len(task_display) > 200:
             task_display = task_display[:197] + "..."
 
-        duration = _format_duration(rec.created_at, rec.finished_at)
+        duration = format_duration(rec.created_at, rec.finished_at)
 
         meta_lines = [
             "  [#88aadd]Task[/#88aadd]",
@@ -336,7 +322,7 @@ class OADashboard(App):
                 _status_badge(rec.status),
                 "[#88aacc]" + model_short + "[/#88aacc]",
                 task_short,
-                "[yellow]" + _format_duration(rec.created_at, rec.finished_at) + "[/yellow]",
+                "[yellow]" + format_duration(rec.created_at, rec.finished_at) + "[/yellow]",
                 key=rec.name,
             )
 
