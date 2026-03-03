@@ -310,12 +310,12 @@ pnpm build:ext
 
 | Document | Purpose |
 |----------|---------|
-| [ROADMAP.md](ROADMAP.md) | Project status (single source of truth) |
-| [MASTERPLAN.md](MASTERPLAN.md) | Sprint plan with executable prompts |
-| [DECISIONS.md](DECISIONS.md) | Architecture decisions (D-001+) |
-| [REQUIREMENTS.md](REQUIREMENTS.md) | Functional & non-functional requirements |
-| [PRINCIPLES.md](PRINCIPLES.md) | 11 design principles |
-| [AGENTS.md](AGENTS.md) | 1015 agent definitions in 20 categories |
+| [ROADMAP.md](docs/ROADMAP.md) | Project status (single source of truth) |
+| [MASTERPLAN.md](docs/MASTERPLAN.md) | Sprint plan with executable prompts |
+| [DECISIONS.md](docs/DECISIONS.md) | Architecture decisions (D-001+) |
+| [REQUIREMENTS.md](docs/REQUIREMENTS.md) | Functional & non-functional requirements |
+| [PRINCIPLES.md](docs/PRINCIPLES.md) | 11 design principles |
+| [AGENTS.md](docs/AGENTS.md) | 1015 agent definitions in 20 categories |
 
 ---
 

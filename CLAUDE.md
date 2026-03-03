@@ -29,19 +29,19 @@ Elk bestand heeft een specifieke functie. **Gebruik ze actief — anders heeft h
 
 | Bestand | Functie | Wanneer raadplegen |
 |---------|---------|-------------------|
-| `MASTERPLAN.md` | **Sprintplan met uitvoerbare prompts.** Bevat 12 sprints, elke fase heeft een concrete prompt die je kopieert naar een Claude Code sessie. Dit is het BOUWPLAN. | Bij elke taak: welke fase ben ik, wat is de prompt, wat zijn de taken? |
-| `ROADMAP.md` | **Single source of truth voor STATUS.** Percentages, checkboxes, wat is af en wat niet. | Bij sessiestart: waar staan we? |
-| `DECISIONS.md` | **Alle beslissingen (open + genomen).** Genummerd (D-001+), met rationale en datum. | Bij elke architectuurkeuze: is dit al besloten? Nieuwe beslissing? Documenteer hier. |
-| `REQUIREMENTS.md` | **Functionele en non-functionele requirements.** FR-01..FR-14, NFR-01..NFR-05. | Bij feature-implementatie: voldoe ik aan de requirements? |
+| `docs/MASTERPLAN.md` | **Sprintplan met uitvoerbare prompts.** Bevat 12 sprints, elke fase heeft een concrete prompt die je kopieert naar een Claude Code sessie. Dit is het BOUWPLAN. | Bij elke taak: welke fase ben ik, wat is de prompt, wat zijn de taken? |
+| `docs/ROADMAP.md` | **Single source of truth voor STATUS.** Percentages, checkboxes, wat is af en wat niet. | Bij sessiestart: waar staan we? |
+| `docs/DECISIONS.md` | **Alle beslissingen (open + genomen).** Genummerd (D-001+), met rationale en datum. | Bij elke architectuurkeuze: is dit al besloten? Nieuwe beslissing? Documenteer hier. |
+| `docs/REQUIREMENTS.md` | **Functionele en non-functionele requirements.** FR-01..FR-14, NFR-01..NFR-05. | Bij feature-implementatie: voldoe ik aan de requirements? |
 
 ### Kennis & Research
 
 | Bestand | Functie | Wanneer raadplegen |
 |---------|---------|-------------------|
-| `AGENTS.md` | **Agent library definitie.** 1015 atomaire agents in 20 categorieën (A-T). Elke agent: id, naam, beschrijving, tools, model hint. | Bij Sprint 9 (agent library), bij assembly pipeline, bij het kiezen van agents voor templates. |
-| `PRINCIPLES.md` | **11 design uitgangspunten** die elke beslissing sturen. Atomaire agents, visuele orchestratie, privacy-first, etc. | Bij architectuurkeuzes: past dit bij onze principes? |
-| `SOURCES.md` | **Bronnenregister.** Research inzichten, vergelijkbare platforms (Langflow, Flowise, Dify, n8n), Anthropic Agent Teams model. | Bij research-first werk: wat weten we al? |
-| `OPEN-QUESTIONS.md` | **Onbeantwoorde vragen en risico's.** Pi.dev vs Agent SDK vergelijking, deployment vragen. | Bij onzekerheid: staat dit al als open vraag? |
+| `docs/AGENTS.md` | **Agent library definitie.** 1015 atomaire agents in 20 categorieën (A-T). Elke agent: id, naam, beschrijving, tools, model hint. | Bij Sprint 9 (agent library), bij assembly pipeline, bij het kiezen van agents voor templates. |
+| `docs/PRINCIPLES.md` | **11 design uitgangspunten** die elke beslissing sturen. Atomaire agents, visuele orchestratie, privacy-first, etc. | Bij architectuurkeuzes: past dit bij onze principes? |
+| `docs/SOURCES.md` | **Bronnenregister.** Research inzichten, vergelijkbare platforms (Langflow, Flowise, Dify, n8n), Anthropic Agent Teams model. | Bij research-first werk: wat weten we al? |
+| `docs/OPEN-QUESTIONS.md` | **Onbeantwoorde vragen en risico's.** Pi.dev vs Agent SDK vergelijking, deployment vragen. | Bij onzekerheid: staat dit al als open vraag? |
 
 ### Project & Community
 
@@ -60,7 +60,7 @@ Elk bestand heeft een specifieke functie. **Gebruik ze actief — anders heeft h
 | `CLAUDE.local.md` | **Credentials.** GitHub tokens, API keys. NIET gecommit. | Bij API calls of GitHub operaties. |
 
 > **GOUDEN REGEL**: GitHub = Single Source of Truth.
-> CLAUDE.md bevat HOE je werkt. ROADMAP.md bevat WAAR je staat. MASTERPLAN.md bevat WAT je bouwt.
+> CLAUDE.md bevat HOE je werkt. docs/ROADMAP.md bevat WAAR je staat. docs/MASTERPLAN.md bevat WAT je bouwt.
 
 ---
 
@@ -91,9 +91,10 @@ Open-Agents/
 ├── agents/
 │   └── presets/         # 10 voorgebouwde agent JSON configs
 ├── templates/           # Flow + pool + ERPNext templates
-├── docs/                # Documentatie
-│   ├── research/
-│   └── design/
+├── docs/                # Documentatie (AGENTS, MASTERPLAN, DECISIONS, ROADMAP, etc.)
+│   ├── design/
+│   ├── proposals/
+│   └── research/
 ├── docker-compose.yml   # Development environment
 └── .claude/             # Claude Code workspace config
 ```
@@ -204,7 +205,7 @@ Scope optioneel: `feat(frontend):`, `fix(backend):`
 2. `docs/HANDOFF-*.md` — lees het meest recente handoff document
 3. `oa start` — tmux sessie starten (als nog niet actief)
 4. `oa status` — lopende agents checken
-5. `ROADMAP.md` — waar staan we? Welke fase is actief?
+5. `docs/ROADMAP.md` — waar staan we? Welke fase is actief?
 6. `git status` — lokaal werk checken
 7. **Spawn orchestrator** — `oa run "taak" --name orchestrator --model claude/opus`
 8. **Delegeer ALLES** — Claude Code = doorgeefluik, niet de werker
@@ -224,11 +225,11 @@ Scope optioneel: `feat(frontend):`, `fix(backend):`
 
 | Wanneer | Update |
 |---------|--------|
-| Taak afgerond | `ROADMAP.md` checkboxes + percentage |
-| Beslissing genomen | `DECISIONS.md` verplaats naar "Genomen" |
-| Nieuwe open vraag | `OPEN-QUESTIONS.md` toevoegen |
-| Requirement veranderd | `REQUIREMENTS.md` updaten |
-| Agent toegevoegd/gewijzigd | `AGENTS.md` bijwerken |
+| Taak afgerond | `docs/ROADMAP.md` checkboxes + percentage |
+| Beslissing genomen | `docs/DECISIONS.md` verplaats naar "Genomen" |
+| Nieuwe open vraag | `docs/OPEN-QUESTIONS.md` toevoegen |
+| Requirement veranderd | `docs/REQUIREMENTS.md` updaten |
+| Agent toegevoegd/gewijzigd | `docs/AGENTS.md` bijwerken |
 | Release gemaakt | `CHANGELOG.md` bijwerken |
 
 > **Sync direct, niet achteraf.** Als je code commit maar vergeet ROADMAP.md te updaten, is de tracking onbetrouwbaar.

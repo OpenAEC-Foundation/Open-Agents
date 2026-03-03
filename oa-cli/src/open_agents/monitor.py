@@ -38,27 +38,28 @@ def _build_hierarchy(agents: list[AgentRecord]) -> list[tuple[AgentRecord, int]]
     """Build a flat list with indentation levels for parent/child display.
 
     Returns [(record, depth), ...] sorted: parents first, then children underneath.
+    Supports unlimited depth via recursive traversal.
     """
-    by_name = {r.name: r for r in agents}
-    roots = [r for r in agents if not getattr(r, "parent", None)]
     children_of: dict[str, list[AgentRecord]] = {}
+    roots: list[AgentRecord] = []
+    agent_names = {r.name for r in agents}
+
     for r in agents:
         p = getattr(r, "parent", None)
-        if p:
+        if p and p in agent_names:
             children_of.setdefault(p, []).append(r)
+        else:
+            roots.append(r)
 
     result: list[tuple[AgentRecord, int]] = []
-    # Sort roots by created_at
-    for root in sorted(roots, key=lambda r: r.created_at):
-        result.append((root, 0))
-        for child in sorted(children_of.get(root.name, []), key=lambda r: r.created_at):
-            result.append((child, 1))
 
-    # Orphans: children whose parent doesn't exist in current list
-    listed = {r.name for r, _ in result}
-    for r in sorted(agents, key=lambda r: r.created_at):
-        if r.name not in listed:
-            result.append((r, 1))
+    def _walk(node: AgentRecord, depth: int) -> None:
+        result.append((node, depth))
+        for child in sorted(children_of.get(node.name, []), key=lambda r: r.created_at):
+            _walk(child, depth + 1)
+
+    for root in sorted(roots, key=lambda r: r.created_at):
+        _walk(root, 0)
 
     return result
 
@@ -98,8 +99,11 @@ def render_status_table(agents: list[AgentRecord] | None = None) -> Table:
         else:
             model_style = "bright_magenta"
 
-        # Indent children with tree characters
-        prefix = "  └─ " if depth > 0 else ""
+        # Indent children with tree characters (multi-level)
+        if depth == 0:
+            prefix = ""
+        else:
+            prefix = "  " * (depth - 1) + "└─ "
         name_display = f"{prefix}{rec.name}"
 
         table.add_row(
