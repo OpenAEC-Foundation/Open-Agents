@@ -1,8 +1,8 @@
 # Open-Agents - Claude Instructies
 
-> **Versie**: 4
-> **Laatste update**: 2026-03-02
-> **Template versie**: 4.0 (oa-cli als primaire orchestratie)
+> **Versie**: 5
+> **Laatste update**: 2026-03-07
+> **Template versie**: 5.0 (oa-cli workflow best practices)
 > **Setup tier**: Standard
 
 ## Projectdoel
@@ -144,6 +144,114 @@ pnpm dev            # beide tegelijk
 
 ---
 
+## Known Issues & Workarounds
+
+> **Raadpleeg bij ELKE oa-sessie.** Deze issues zijn open en vereisen workarounds.
+
+### Issue #9 / #11: Agents negeren `oa run` en gebruiken Claude Code Agent tool
+
+**Probleem**: Wanneer een oa-agent geïnstrueerd wordt om sub-agents te spawnen via `oa run`, gebruikt hij in plaats daarvan Claude Code's ingebouwde Agent tool. Sub-agents zijn dan onzichtbaar voor `oa status` en kunnen niet communiceren via `oa send`/`oa inbox`.
+
+**Workaround: FLAT SPAWNING (L-004)**
+Spawn ALLE agents direct vanuit de top-level Claude Code sessie. Gebruik GEEN nested delegatie.
+
+```
+✅ CORRECT — Flat spawning:
+Meta-orchestrator (Claude Code sessie)
+├── worker-1 (oa run)
+├── worker-2 (oa run)
+├── worker-3 (oa run)
+└── worker-4 (oa run)
+
+❌ FOUT — Nested spawning (werkt NIET):
+Meta-orchestrator → orchestrator (oa run) → worker (oa run)
+```
+
+### Issue #10: Agent output verdwijnt in /tmp
+
+**Probleem**: Zonder `--direct` flag schrijven agents hun output naar `/tmp/oa-agent-*/`. Dit is volatiel en gaat verloren bij reboot.
+
+**Workaround: ALTIJD `--direct` gebruiken**
+```bash
+# ✅ CORRECT — output gaat naar project directory
+oa run "taak" --name worker-1 --direct
+
+# ❌ FOUT — output verdwijnt in /tmp
+oa run "taak" --name worker-1
+```
+
+### Issue #12: Ongestructureerde prompts → inconsistente output
+
+**Workaround**: Gebruik de 5-element prompt template (zie volgende sectie).
+
+---
+
+## 5-Element Task Prompt Template (L-010)
+
+Elke `oa run` prompt MOET deze 5 elementen bevatten voor consistente output:
+
+| # | Element | Waarom | Voorbeeld |
+|---|---------|--------|-----------|
+| 1 | **Absolute file paths** | Input/output locaties voorkomen verkeerde bestanden | `Lees: /path/to/input.md` `Schrijf naar: /path/to/output.md` |
+| 2 | **Explicit scope** | Voorkomt ongerichte output | `Scope: • Node categorieën • Socket types • Data flow` |
+| 3 | **Reference files** | Consistente structuur | `Volg format van: /path/to/example.md` |
+| 4 | **Quality rules** | Agents erven GEEN project CLAUDE.md | `Regels: Engels, < 500 regels, deterministic taal` |
+| 5 | **Source URLs** | Voorkomt hallucinaties | `Bronnen: https://docs.example.com` |
+
+### Voorbeeld: Complete oa run prompt
+
+```bash
+oa run 'Je bent een RESEARCHER.
+
+## Input
+Lees: /mnt/c/project/docs/SOURCES.md
+
+## Output
+Schrijf naar: /mnt/c/project/docs/research/topic-research.md
+
+## Scope
+- API surface analysis (alle publieke functies)
+- Versie-specifieke breaking changes
+- Best practices en anti-patterns
+
+## Format
+Volg de structuur van: /mnt/c/project/docs/research/existing-research.md
+
+## Regels
+- Engels
+- Minimaal 200 regels, maximaal 800 regels
+- Deterministic taal (ALWAYS/NEVER, niet "you might consider")
+- Alleen officiële documentatie als bron
+
+## Bronnen
+- https://docs.example.com/api
+- https://github.com/example/repo' --name topic-researcher --direct
+```
+
+---
+
+## Best Practices uit Multi-Agent Sessies
+
+### Batch grootte: 3-5 agents tegelijk
+Optimale parallelisatie zonder QA-overload. Quality gate na ELKE batch.
+
+### Stage → Merge → Verify → Cleanup patroon (L-005)
+Workers schrijven naar staging area, orchestrator merged naar main bestanden:
+```
+1. Workers schrijven naar: worker-output/<agent-naam>.md
+2. Orchestrator merged naar: docs/final-output.md
+3. Verify: controleer completeness
+4. Cleanup: verwijder worker-output/
+```
+
+### Phase overlap wanneer dependencies het toelaten (L-011)
+De pipeline hoeft niet strikt sequentieel. Foundation-taken (geen deps) kunnen eerder starten.
+
+### Research → Masterplan → Review → Create → Validate pipeline
+Bewezen pipeline voor kennisintensief werk. 15-25 agents totaal voor een volledig pakket.
+
+---
+
 ## Hoe Agents Context Meekrijgen
 
 Elke agent draait in een geïsoleerde workspace:
@@ -250,15 +358,18 @@ Scope optioneel: `feat(frontend):`, `fix(backend):`
 ## Kerngedrag
 
 1. **DELEGEER ALLES** — Claude Code = doorgeefluik, niet de werker. Spawn agents via `oa run` of `oa delegate`. Doe ZELF geen document reads, code edits, of analyses. (L-010, L-017)
-2. **Orchestrator-first** — Elke taak heeft minimaal 2 agents: 1 orchestrator + workers. Gebruik `oa delegate` voor automatische hiërarchie. (D-051)
-3. **Proposal mode** — Agents schrijven proposals, nooit directe wijzigingen. Review via `oa review`, apply via `oa apply`. (L-005, L-006)
-4. **Validator before apply** — Syntax-check proposals VOOR ze applied worden. Spawn een tester-agent als er twijfel is. (L-015)
-5. **Guardian agents** — Na elke batch: spawn guardians die core docs updaten (LESSONS, ROADMAP, DECISIONS, etc.)
-6. **Agent voor alles** — Error? Spawn fix-agent. Review nodig? Spawn reviewer. Context nodig? Spawn researcher. (L-016)
-7. **Documenteer beslissingen** — In DECISIONS.md
-8. **Kennis bewaren** — Generieke inzichten → LESSONS.md en core docs
-9. **Workspace-local** — Alle config in workspace, nooit global (CC_007)
-10. **Templates hergebruiken** — Check `agents/library/` en `templates/` voordat je nieuwe agents definieert
+2. **FLAT SPAWNING** — Spawn ALLE agents direct vanuit de top-level sessie. NOOIT nested (oa agent die oa agents spawnt). Claude Code's Agent tool overschrijft `oa run` instructies. (L-004, #9, #11)
+3. **ALTIJD --direct** — Elke `oa run` MOET `--direct` bevatten. Zonder --direct verdwijnt output in `/tmp`. (L-010, #10)
+4. **5-ELEMENT PROMPTS** — Elke oa run prompt MOET bevatten: absolute paden, explicit scope, reference files, quality rules, source URLs. (L-010, #12)
+5. **Orchestrator-first** — Elke taak heeft minimaal 2 agents: 1 orchestrator + workers. Gebruik `oa delegate` voor automatische hiërarchie. (D-051)
+6. **Proposal mode** — Agents schrijven proposals, nooit directe wijzigingen. Review via `oa review`, apply via `oa apply`. (L-005, L-006)
+7. **Validator before apply** — Syntax-check proposals VOOR ze applied worden. Spawn een tester-agent als er twijfel is. (L-015)
+8. **Guardian agents** — Na elke batch: spawn guardians die core docs updaten (LESSONS, ROADMAP, DECISIONS, etc.)
+9. **Agent voor alles** — Error? Spawn fix-agent. Review nodig? Spawn reviewer. Context nodig? Spawn researcher. (L-016)
+10. **Documenteer beslissingen** — In DECISIONS.md
+11. **Kennis bewaren** — Generieke inzichten → LESSONS.md en core docs
+12. **Workspace-local** — Alle config in workspace, nooit global (CC_007)
+13. **Templates hergebruiken** — Check `agents/library/` en `templates/` voordat je nieuwe agents definieert
 
 ---
 
@@ -267,11 +378,17 @@ Scope optioneel: `feat(frontend):`, `fix(backend):`
 ```bash
 # oa-cli (primair)
 oa start                    # tmux sessie starten
-oa run "taak"               # agent spawnen
+oa run "taak" --direct      # agent spawnen (ALTIJD --direct!)
+oa run "taak" -n naam --direct  # agent met naam
 oa status                   # agents overzicht
 oa dashboard                # TUI dashboard
 oa web                      # web UI op localhost:5174
 oa pipeline "taak"          # pipeline: planner -> workers -> combiner
+
+# Agent communicatie
+oa send <agent> "bericht" --from <naam>  # bericht sturen
+oa inbox <agent>            # berichten lezen
+oa broadcast "bericht" --from <naam>     # naar alle agents
 
 # Git status
 git status
