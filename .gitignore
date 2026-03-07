@@ -62,3 +62,6 @@ venv/
 
 # === Pi agent sessies ===
 .pi/sessions/
+
+# === Lokale content (niet voor GitHub) ===
+local/

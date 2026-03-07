@@ -13,7 +13,7 @@ from rich.panel import Panel
 from . import __version__
 from .config import OA_DIR, CONFIG_PATH, DEFAULT_CONFIG, load_config
 from .monitor import print_status
-from .utils import generate_agent_name
+from .utils import format_model_rich, generate_agent_name
 from .lifecycle import attach_agent, check_agent, clean_finished, kill_agent
 from .orchestrator import spawn_with_orchestrator
 from .spawner import spawn_agent
@@ -129,7 +129,7 @@ def run(
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1)
 
-    model_label = f"[cyan]{rec.model}[/cyan]" if rec.model == "claude" else f"[magenta]{rec.model}[/magenta]"
+    model_label = format_model_rich(rec.model)
     parent_label = f"  (child of [bold]{rec.parent}[/bold])" if rec.parent else ""
     console.print(f"[green]Agent '{rec.name}' spawned[/green]  ({model_label}){parent_label}")
     console.print(f"  Task: {rec.task}")

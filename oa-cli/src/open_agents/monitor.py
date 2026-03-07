@@ -7,7 +7,7 @@ from rich.table import Table
 
 from .messaging import unread_count
 from .state import AgentRecord, list_agents
-from .utils import format_duration
+from .utils import format_duration, format_model_label, format_model_rich, model_rich_color
 
 console = Console()
 
@@ -74,16 +74,8 @@ def render_status_table(agents: list[AgentRecord] | None = None) -> Table:
             ws_short = "..." + ws_short[-37:]
 
         model_str = getattr(rec, "model", "claude")
-        if "opus" in model_str:
-            model_style = "bold bright_cyan"
-        elif "sonnet" in model_str:
-            model_style = "bright_cyan"
-        elif "haiku" in model_str:
-            model_style = "bright_green"
-        elif model_str == "claude":
-            model_style = "bold bright_cyan"
-        else:
-            model_style = "bright_magenta"
+        model_label = format_model_label(model_str)
+        model_style = model_rich_color(model_str)
 
         # Indent children with tree characters (multi-level)
         if depth == 0:
@@ -98,7 +90,7 @@ def render_status_table(agents: list[AgentRecord] | None = None) -> Table:
 
         table.add_row(
             name_display,
-            f"[{model_style}]{model_str}[/{model_style}]",
+            f"[{model_style}]{model_label}[/{model_style}]",
             f"[{style}]{rec.status}[/{style}]",
             msg_display,
             rec.task[:50] + ("..." if len(rec.task) > 50 else ""),

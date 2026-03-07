@@ -10,7 +10,7 @@ from textual.widgets import DataTable, Footer, Header, RichLog, Static
 from .monitor import _build_hierarchy
 from .lifecycle import capture_agent_output, check_agent, kill_agent
 from .state import AgentRecord, list_agents
-from .utils import format_duration
+from .utils import format_duration, format_model_label, format_model_rich
 from .workspace import read_output
 
 try:
@@ -142,7 +142,7 @@ class AgentDetailPanel(Vertical):
         status_widget.update("  " + _status_markup(rec.status))
 
         # Metadata fields
-        model_str = getattr(rec, "model", "claude")
+        model_markup = format_model_rich(getattr(rec, "model", "claude"))
         ws_display = rec.workspace
         if len(ws_display) > 55:
             ws_display = "..." + ws_display[-54:]
@@ -156,7 +156,7 @@ class AgentDetailPanel(Vertical):
             "  [#88aadd]Task[/#88aadd]",
             "  [white]" + task_display + "[/white]",
             "",
-            "  [#88aadd]Model[/#88aadd]     [cyan]" + model_str + "[/cyan]"
+            "  [#88aadd]Model[/#88aadd]     " + model_markup
             + "    [#88aadd]Duration[/#88aadd]  [yellow]" + duration + "[/yellow]",
             "  [#88aadd]Workspace[/#88aadd] [#7799bb]" + ws_display + "[/#7799bb]",
         ]
@@ -297,7 +297,8 @@ class OADashboard(App):
         hierarchy = _build_hierarchy(agents)
 
         for rec, depth in hierarchy:
-            model_str = getattr(rec, "model", "claude")
+            model_label = format_model_label(getattr(rec, "model", "claude"))
+            model_markup = format_model_rich(getattr(rec, "model", "claude"))
 
             if depth == 0:
                 # Root agents: cyan name, no indent
@@ -313,14 +314,14 @@ class OADashboard(App):
                 task_short = task_short[:44] + "..."
 
             # Model: short label, legible
-            model_short = model_str
+            model_short = model_label
             if len(model_short) > 16:
                 model_short = model_short[:15] + "..."
 
             table.add_row(
                 name_markup,
                 _status_badge(rec.status),
-                "[#88aacc]" + model_short + "[/#88aacc]",
+                model_markup,
                 task_short,
                 "[yellow]" + format_duration(rec.created_at, rec.finished_at) + "[/yellow]",
                 key=rec.name,

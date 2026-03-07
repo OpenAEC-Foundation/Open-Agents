@@ -31,3 +31,39 @@ def format_duration(start: float, end: float | None = None) -> str:
 def validate_agent_name(name: str) -> bool:
     """Validate an agent name: lowercase alphanumeric + hyphens, 2-63 chars, starts with alnum."""
     return bool(re.match(r"^[a-z0-9][a-z0-9-]{0,61}$", name))
+
+
+# ---------------------------------------------------------------------------
+# Model display helpers
+# ---------------------------------------------------------------------------
+
+# (label, rich_color) tuples per model string
+_MODEL_DISPLAY = {
+    "claude":        ("claude (default)", "bold bright_cyan"),
+    "claude/opus":   ("opus",            "bold yellow"),
+    "claude/sonnet": ("sonnet",          "cyan"),
+    "claude/haiku":  ("haiku",           "green"),
+}
+
+
+def format_model_label(model: str) -> str:
+    """Return a short human-readable label for a model string."""
+    if model in _MODEL_DISPLAY:
+        return _MODEL_DISPLAY[model][0]
+    return model  # ollama/* or unknown — show as-is
+
+
+def format_model_rich(model: str) -> str:
+    """Return a Rich-markup string with color for a model."""
+    if model in _MODEL_DISPLAY:
+        label, color = _MODEL_DISPLAY[model]
+        return f"[{color}]{label}[/{color}]"
+    # ollama or unknown
+    return f"[bright_magenta]{model}[/bright_magenta]"
+
+
+def model_rich_color(model: str) -> str:
+    """Return just the Rich style string for a model (no brackets)."""
+    if model in _MODEL_DISPLAY:
+        return _MODEL_DISPLAY[model][1]
+    return "bright_magenta"

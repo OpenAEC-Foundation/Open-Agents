@@ -290,6 +290,94 @@ oa run "taak"
 
 ---
 
+## Skill-Backed Agent Architectuur
+
+### Concept
+
+Skill packages zijn externe repositories met diepe domeinkennis, opgeslagen als `SKILL.md` bestanden. Elke skill mappt 1:1 naar een **atomaire agent** in `agents/library/`. De agent's `systemPrompt` bevat de gecomprimeerde kern van de skill. Dit patroon is generiek — het werkt voor elke domein (AEC, ERP, DevOps, data engineering, etc.).
+
+### Architectuur
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Meta-Orchestrator (mens + Claude Code sessie)      │
+│  Denkt, strategiseert, delegeert                    │
+├─────────────────────────────────────────────────────┤
+│  Presets (agents/presets/)                           │
+│  Composities van meerdere atomaire agents            │
+│  Voorbeeld: "IFC Validatie Pipeline" = 4 agents     │
+├─────────────────────────────────────────────────────┤
+│  Atomaire Agents (agents/library/<domein>/)          │
+│  1:1 mapping met skills, enkelvoudige taak           │
+├─────────────────────────────────────────────────────┤
+│  Skill Packages (externe repos)                      │
+│  SKILL.md bestanden met diepe domeinkennis           │
+│  Generiek patroon, onafhankelijk van Open-Agents     │
+└─────────────────────────────────────────────────────┘
+```
+
+### Agent Template Format
+
+Atomaire agents gebruiken deze velden in hun JSON definitie:
+
+```json
+{
+  "id": "aec-blender-mesh-operations",
+  "name": "Blender Mesh Operations",
+  "atomic": true,
+  "skillRef": "aec-blender/skills/mesh-operations/SKILL.md",
+  "skillPackage": "blender-bonsai-ifcos-sverchok",
+  "executionContext": "blender-mcp",
+  "systemPrompt": "...(gecomprimeerde kern van SKILL.md)...",
+  "tools": ["blender-mcp"],
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}
+```
+
+| Veld | Beschrijving |
+|------|-------------|
+| `skillRef` | Pad naar de SKILL.md in het skill package |
+| `skillPackage` | Naam van het skill package (externe repo) |
+| `atomic` | `true` — dit is een atomaire, single-skill agent |
+| `executionContext` | Waar de agent draait: `blender-mcp`, `python-standalone`, etc. |
+
+### Huidige Skill Packages
+
+**blender-bonsai-ifcos-sverchok** — 73 skills → 73 atomaire agents
+
+| Categorie | Agents | Domein |
+|-----------|--------|--------|
+| `aec-blender/` | 26 | Blender Python API, mesh, materials, rendering, animation |
+| `aec-ifcopenshell/` | 19 | IFC model manipulatie, validatie, geometrie |
+| `aec-bonsai/` | 14 | Native IFC BIM authoring in Blender |
+| `aec-sverchok/` | 12 | Parametrisch/wiskundig ontwerp |
+| `aec-cross/` | 2 | Cross-technology workflow orchestratie |
+
+### Toekomstige Skill Packages
+
+Het patroon is ontworpen om te schalen naar elk domein:
+
+- **erpnext-frappe** — agents bestaan al in `agents/library/erpnext/`
+- **devops-infrastructure** — CI/CD, Kubernetes, monitoring
+- **data-engineering** — ETL, data pipelines, analytics
+- Elk domein kan zijn eigen skill package krijgen
+
+### Workspace Builder (Toekomst)
+
+Gepland commando om kant-en-klare workspaces te genereren vanuit skill packages:
+
+```bash
+oa workspace create --skills blender-bonsai-ifcos-sverchok
+```
+
+Dit zal:
+1. Skills extraheren uit het package
+2. `.claude/skills/` vullen met relevante skill bestanden
+3. Een CLAUDE.md genereren met domein-specifieke instructies
+4. Een ready-to-clone workspace opleveren voor eindgebruikers
+
+---
+
 ## Conventies
 
 ### Model IDs
@@ -357,7 +445,7 @@ Scope optioneel: `feat(frontend):`, `fix(backend):`
 
 ## Kerngedrag
 
-1. **DELEGEER ALLES** — Claude Code = doorgeefluik, niet de werker. Spawn agents via `oa run` of `oa delegate`. Doe ZELF geen document reads, code edits, of analyses. (L-010, L-017)
+1. **META-ORCHESTRATOR** — De Claude Code sessie + de gebruiker samen zijn het strategisch brein (de meta-orchestrator). Denken, strategiseren, en beslissen gebeurt HIER. Uitvoering wordt gedelegeerd via `oa run` of `oa delegate`. (L-010, L-017)
 2. **FLAT SPAWNING** — Spawn ALLE agents direct vanuit de top-level sessie. NOOIT nested (oa agent die oa agents spawnt). Claude Code's Agent tool overschrijft `oa run` instructies. (L-004, #9, #11)
 3. **ALTIJD --direct** — Elke `oa run` MOET `--direct` bevatten. Zonder --direct verdwijnt output in `/tmp`. (L-010, #10)
 4. **5-ELEMENT PROMPTS** — Elke oa run prompt MOET bevatten: absolute paden, explicit scope, reference files, quality rules, source URLs. (L-010, #12)

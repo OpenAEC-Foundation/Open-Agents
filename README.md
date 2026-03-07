@@ -6,7 +6,7 @@ Multi-agent orchestrator for Claude Code. Spawn and coordinate multiple AI agent
 
 **`oa`** is the primary tool: a tmux-based CLI that lets you spawn, monitor, and orchestrate multiple Claude Code agents in parallel. Each agent gets its own isolated workspace, CLAUDE.md instructions, and tmux window. Interact via the terminal, a Textual TUI dashboard, or a local React web UI.
 
-**Visual Canvas** (`packages/`) is the advanced option: a drag-and-drop canvas (React Flow) for building complex agent workflows with a Node.js backend, assembly engine, and 90+ pre-built library agents.
+**Visual Canvas** (`packages/`) is the advanced option: a drag-and-drop canvas (React Flow) for building complex agent workflows with a Node.js backend, assembly engine, and 160+ pre-built library agents (including 73 AEC domain agents).
 
 ---
 
@@ -187,6 +187,23 @@ oa pipeline "Build a CSV validator library with tests, type hints, and README"
 
 ---
 
+## Skill-Backed Agents
+
+Atomic agents can be backed by **external skill packages** — each skill maps to one agent with deep domain knowledge, tools, and prompt templates for a specific technology.
+
+The first skill package is **AEC** (Architecture, Engineering, Construction), providing 73 specialized agents across four technologies:
+
+| Skill package | Agents | Domain |
+|---------------|--------|--------|
+| `aec-blender` | 24 | Blender 3D modeling, geometry nodes, rendering |
+| `aec-bonsai` | 19 | Bonsai BIM authoring, IFC classification, spatial structure |
+| `aec-ifcopenshell` | 16 | IfcOpenShell IFC parsing, validation, transformation |
+| `aec-sverchok` | 14 | Sverchok parametric/generative design nodes |
+
+Skill-backed agents live in `agents/library/aec-{technology}/` and follow the same atomic agent format as all other library agents. The pattern is generic — any domain can provide its own skill package.
+
+---
+
 ## Proposal Mode
 
 All agents operate in **proposal mode** by default — they write proposed file changes to `./output/proposals/` instead of modifying your codebase directly. This keeps your files safe.
@@ -227,7 +244,7 @@ pnpm dev:backend    # Fastify API at http://localhost:3001
 **Features:**
 - Drag-and-drop agent nodes connected by edges
 - Flow pattern (A→B→C) and Pool pattern (dispatcher → parallel agents → aggregator)
-- 90+ pre-built agents (code review, translation, security audit, data transformation)
+- 160+ pre-built agents across 25 categories including AEC (architecture, engineering, construction)
 - Assembly Engine: describe a workflow in natural language → automatic canvas generation
 - AI Assembly Assistant (sidebar chatbot)
 - Safety & Audit: per-node permissions, bash blacklists, full audit trail
@@ -263,7 +280,11 @@ packages/                # TypeScript monorepo (pnpm workspaces)
 
 agents/
   presets/               # 10 preset agent configs
-  library/               # 80+ categorized agent library
+  library/               # 160+ categorized agent library
+    aec-blender/         # Blender 3D modeling agents
+    aec-bonsai/          # Bonsai BIM authoring agents
+    aec-ifcopenshell/    # IfcOpenShell IFC processing agents
+    aec-sverchok/        # Sverchok parametric design agents
 
 templates/
   flows/                 # Sequential flow templates
@@ -315,7 +336,7 @@ pnpm build:ext
 | [DECISIONS.md](docs/DECISIONS.md) | Architecture decisions (D-001+) |
 | [REQUIREMENTS.md](docs/REQUIREMENTS.md) | Functional & non-functional requirements |
 | [PRINCIPLES.md](docs/PRINCIPLES.md) | 11 design principles |
-| [AGENTS.md](docs/AGENTS.md) | 1015 agent definitions in 20 categories |
+| [AGENTS.md](docs/AGENTS.md) | 1015+ agent definitions in 25 categories |
 
 ---
 
