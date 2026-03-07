@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-03
-> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 11 (VS Code Bridge) In Progress — Sprint 13+ Planned
+> **Laatste update**: 2026-03-07
+> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 11 (VS Code Bridge) In Progress — AEC Agent Library: 73 skill-backed agents
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -27,7 +27,7 @@
 | Frappe App | 1 | 1 |
 | Library Ecosystem (10 types) | 0 | 10 |
 | LLM Asset Generation (Factory) | 1 | 1 |
-| Agent Library (doel: 1015+) | 220 | 1015 |
+| Agent Library (doel: 1015+) | 293 | 1015 |
 | CLI Agentic Layer (oa-cli) | 1 | 1 |
 | VS Code Bridge (Sprint 11) | 0 | 1 |
 | Agent Teams Patterns (Sprint 17) | 0 | 12 |
@@ -42,7 +42,7 @@
 **Fase 4c (Assistant)**: ████████████████████ **100%** - AI assembly assistant sidebar (Sprint 6c)
 **Fase 5 (Deployment)**: ████████████████████ **100%** - VS Code extension (Sprint 7) + Frappe app (Sprint 8)
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
-**Fase 7 (Agent Library)**: ████░░░░░░░░░░░░░░░░ **22%** - 220/1015 agents geïmplementeerd (10 directory-categorieën + 13 category JSON files, library loader)
+**Fase 7 (Agent Library)**: █████░░░░░░░░░░░░░░░ **29%** - 293/1015 agents geïmplementeerd (10 directory-categorieën + 13 category JSON files, library loader)
 **Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond), v0.2.0 released 2026-03-02
 **Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 14 commando's, Textual TUI, pipeline orchestrator, React web UI
 **Fase 10 (VS Code Bridge)**: █████████████░░░░░░░ **67%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator, package migratie, launch config werkend; test-workspace + E2E verificatie nog open
@@ -197,7 +197,8 @@
 - [x] 130 agents via category JSON files (categorieën A-M, elk 10 agents)
 - [x] Library loader (library-loader.ts) + source/readonly tracking + category filter UI
 - [x] 7 flow & pool templates (PR Assistant, Smart Translator, Multi-Reviewer, Security Audit, Codebase Profiler, ERPNext Feature Builder, Onboarding Assistant)
-- [ ] Overige 795+ agents (doorlopend)
+- [x] AEC Skill-Backed Agents: 73 atomaire agents (26 Blender, 19 IfcOpenShell, 14 Bonsai, 12 Sverchok, 2 Cross-tech) met modelHint tiering
+- [ ] Overige 722+ agents (doorlopend)
 
 ### Fase 8: Refactor & Consolidatie (Sprint 10)
 

@@ -124,4 +124,19 @@
 | L-032 | **9 agents is beheersbaar** — 3 audit (read-only) + 3 fix (code-wijzigend) + 3 research (read-only). Mix van read-only en write agents reduceert conflicten. | Totale sessie: 9 agents, allemaal succesvol afgerond, 4 commits gepusht. |
 | L-033 | **Web UI dependencies niet vergeten** — `npm install` nodig na package.json wijzigingen door agents. `npm run build` na elke UI wijziging. | Web build faalde door ontbrekende @tailwindcss/vite dependency. `npm install` loste het op. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-034, L-035, etc.*
+---
+
+## Sessie 2026-03-07 — Skill-Backed Agent Architecture & Showcase
+
+### Skill-Backed Agents
+
+| # | Les | Context |
+|---|-----|---------|
+| L-034 | **Skill-backed agents = 1:1 SKILL.md → JSON template mapping** — Elke skill uit een skill package mappt exact naar één atomaire agent JSON. De systemPrompt bevat de gecomprimeerde kern van de SKILL.md. Schaalbaar naar elk domein. | 73 AEC agents gegenereerd uit 73 skills. 4 generator-agents parallel, elk een technologie. |
+| L-035 | **Meta-orchestrator = mens + Claude Code sessie** — Het strategisch brein is de mens + Claude Code sessie samen. Agents zijn de handen. Denken en beslissen hier, uitvoeren via oa run. | Evolutie van L-010 "doorgeefluik" naar bewust strategisch partnerschap. |
+| L-036 | **Model tiering via modelHint** — syntax/errors→haiku (snel, goedkoop), impl/core→sonnet (gebalanceerd), agents/orchestrators→opus (diep). Default sonnet. | 73 templates kregen modelHint veld. Bespaart tokens zonder kwaliteitsverlies. |
+| L-037 | **Batch template generation: 4 agents parallel werkt uitstekend** — Elk 1 technologie, geen file overlap, 73 templates in ~10 minuten. | Bevestigt L-025 (3-5 agents optimaal) en L-003 (geen gedeelde bestanden). |
+| L-038 | **Art direction als context is essentieel voor visuele kwaliteit** — AI produceert technisch correcte maar lelijke output zonder expliciete esthetische richtlijnen. Kleurpaletten met hex codes, material recipes met exacte waarden, lighting setups, camera rules. | Showcase workspace kreeg ART_DIRECTION.md met Scandinavisch modernisme stijl. |
+| L-039 | **Workspace = geassembleerd product, skill package = bron** — De skill package repo is voor ontwikkeling. Een workspace is een kant-en-klaar product dat skills, CLAUDE.md, MCP config, en demo prompts combineert. Twee verschillende dingen. | Showcase workspace op apart pad, niet in skill package repo. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-040, L-041, etc.*
