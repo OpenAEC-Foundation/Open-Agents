@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import time
 from datetime import datetime
@@ -12,6 +13,15 @@ from .config import OA_DIR
 
 SESSION_LOG_PATH = OA_DIR / "session-log.json"
 
+# FIX: Replace hardcoded absolute paths with dynamic path resolution.
+# Hardcoded /mnt/c/Users/Freek Heijting/... paths fail on any other machine and
+# leak user identity and filesystem structure in source code.
+# Use OA_REPO_ROOT env var if set; otherwise derive from this file's location:
+#   guardians.py -> open_agents/ -> src/ -> oa-cli/ -> Open-Agents/ (repo root)
+_REPO_ROOT = Path(
+    os.environ.get("OA_REPO_ROOT", str(Path(__file__).parents[3]))
+)
+
 # Guardian registry: name -> config dict
 GUARDIANS: dict[str, dict] = {
     "lessons-guardian": {
@@ -19,11 +29,11 @@ GUARDIANS: dict[str, dict] = {
         "task": (
             "Je bent een lessen-schrijver. "
             "Lees ~/.oa/session-log.json en voeg nieuwe inzichten en lessen toe aan "
-            "/mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/LESSONS.md. "
+            f"{_REPO_ROOT / 'LESSONS.md'}. "
             "Schrijf alleen lessen die nog niet bestaan. Geen duplicaten. "
             "Schrijf ./output/result.md met samenvatting en maak .done aan."
         ),
-        "output": "/mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/LESSONS.md",
+        "output": str(_REPO_ROOT / "LESSONS.md"),
         "model": "claude/sonnet",
     },
     "roadmap-guardian": {
@@ -31,11 +41,11 @@ GUARDIANS: dict[str, dict] = {
         "task": (
             "Je bent een roadmap-updater. "
             "Scan recente agent outputs in ~/.oa/ en update checkboxes in "
-            "/mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/docs/ROADMAP.md. "
+            f"{_REPO_ROOT / 'docs' / 'ROADMAP.md'}. "
             "Markeer voltooide items als [x]. "
             "Schrijf ./output/result.md met samenvatting en maak .done aan."
         ),
-        "output": "/mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/docs/ROADMAP.md",
+        "output": str(_REPO_ROOT / "docs" / "ROADMAP.md"),
         "model": "claude/haiku",
     },
     "handoff-guardian": {
@@ -43,12 +53,12 @@ GUARDIANS: dict[str, dict] = {
         "task": (
             "Je bent een handoff-schrijver. "
             f"Schrijf een handoff document naar "
-            f"/mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/docs/HANDOFF-{datetime.now().strftime('%Y-%m-%d')}.md "
+            f"{_REPO_ROOT / 'docs' / ('HANDOFF-' + datetime.now().strftime('%Y-%m-%d') + '.md')} "
             "op basis van ~/.oa/session-log.json. "
             "Beschrijf wat er gedaan is, wat de status is, en wat de volgende stappen zijn. "
             "Schrijf ./output/result.md met samenvatting en maak .done aan."
         ),
-        "output": "/mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/docs/",
+        "output": str(_REPO_ROOT / "docs"),
         "model": "claude/sonnet",
     },
 }

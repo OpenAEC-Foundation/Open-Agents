@@ -6,10 +6,24 @@ export interface Agent {
   workspace: string;
   tmux_window: string;
   model: string;
-  parent: string | null;
   status: string;
+  pid: number | null;
   created_at: number;
   finished_at: number | null;
+  output_file: string | null;
+  parent: string | null;
+  // Hierarchy fields
+  depth: number;
+  lineage: string[];
+  task_hash: string;
+  max_children: number;
+  shared_results_dir: string | null;
+  // Auto-cleanup fields
+  last_activity: number;
+  auto_cleanup_minutes: number;
+  // Workspace origin
+  project_root: string | null;
+  // UI-only computed fields (not in Python backend)
   live_output?: string | null;
   result?: string | null;
   unread_messages?: number;

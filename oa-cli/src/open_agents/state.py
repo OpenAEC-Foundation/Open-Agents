@@ -13,6 +13,18 @@ from typing import Optional
 OA_DIR = Path.home() / ".oa"
 STATE_FILE = OA_DIR / "agents.json"
 
+# PERF: In-memory agent cache; re-reads disk only when file mtime changes.
+# Eliminates duplicate JSON loads within a single request cycle (N+1 reads).
+_cache: dict[str, "AgentRecord"] | None = None
+_cache_mtime: float = 0.0
+
+
+def _get_file_mtime() -> float:
+    try:
+        return STATE_FILE.stat().st_mtime if STATE_FILE.exists() else 0.0
+    except OSError:
+        return 0.0
+
 
 def _task_hash(task: str) -> str:
     """Compute a short deterministic hash of a task description."""
@@ -59,8 +71,19 @@ def _ensure_dir() -> None:
 
 
 def load_agents() -> dict[str, AgentRecord]:
-    """Load all agents from state file (with shared lock)."""
+    """Load all agents from state file (with shared lock).
+
+    PERF: Returns cached in-memory copy when file mtime is unchanged,
+    avoiding redundant JSON parses within a single request cycle.
+    """
+    global _cache, _cache_mtime
+    current_mtime = _get_file_mtime()
+    if _cache is not None and current_mtime == _cache_mtime:
+        # PERF: Cache hit — file unchanged since last read
+        return dict(_cache)
     if not STATE_FILE.exists():
+        _cache = {}
+        _cache_mtime = 0.0
         return {}
     with open(STATE_FILE, "r") as f:
         fcntl.flock(f, fcntl.LOCK_SH)
@@ -84,20 +107,42 @@ def load_agents() -> dict[str, AgentRecord]:
         data.setdefault("auto_cleanup_minutes", 20)
         data.setdefault("project_root", None)
         result[name] = AgentRecord(**data)
-    return result
+    # PERF: Store in cache keyed by current mtime
+    _cache = result
+    _cache_mtime = current_mtime
+    return dict(result)
 
 
 def save_agents(agents: dict[str, AgentRecord]) -> None:
-    """Write agents dict to state file (with exclusive lock)."""
+    """Write agents dict to state file (with exclusive lock).
+
+    PERF: Updates in-memory cache after write-through so subsequent
+    load_agents() calls within the same process skip disk I/O.
+    """
+    global _cache, _cache_mtime
     _ensure_dir()
     raw = {name: asdict(rec) for name, rec in agents.items()}
-    with open(STATE_FILE, "w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        try:
+    # FIX: Atomic write via temp file + rename to eliminate race condition.
+    # Previous pattern opened with mode 'w' (truncating immediately) BEFORE
+    # acquiring the exclusive lock — two concurrent callers could both truncate
+    # the file before either obtained the lock, corrupting agents.json permanently.
+    import os
+    import tempfile
+    tmp_fd, tmp_path = tempfile.mkstemp(dir=OA_DIR, suffix=".tmp")
+    try:
+        with os.fdopen(tmp_fd, "w") as f:
             json.dump(raw, f, indent=2)
             f.write("\n")
-        finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+        Path(tmp_path).replace(STATE_FILE)
+    except Exception:
+        Path(tmp_path).unlink(missing_ok=True)
+        raise
+    # PERF: Write-through cache update — avoids immediate re-read after save
+    _cache = dict(agents)
+    try:
+        _cache_mtime = STATE_FILE.stat().st_mtime
+    except OSError:
+        _cache = None  # fallback: let next load_agents() re-read from disk
 
 
 def add_agent(rec: AgentRecord) -> None:

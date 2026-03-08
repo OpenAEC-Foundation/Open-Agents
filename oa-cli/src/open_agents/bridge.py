@@ -16,7 +16,7 @@ from .lifecycle import capture_agent_output, check_agent, clean_finished, kill_a
 from .messaging import broadcast_message, mark_read, read_inbox, send_message, unread_count
 from .spawner import spawn_agent
 from .tmux import session_exists, start_session
-from .state import get_agent, list_agents
+from .state import get_agent, list_agents, update_agent
 from .utils import generate_agent_name
 from .workspace import read_output
 from .guardians import list_guardians, SESSION_LOG_PATH
@@ -51,6 +51,13 @@ WEB_DIR = Path(__file__).parent.parent.parent / "web" / "dist"
 app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path="")
 CORS(app)
 
+# PERF: Short-lived cache for /api/agents to prevent N+1 file reads per poll cycle.
+# The frontend polls every 2 s; caching for 1 s absorbs burst requests without
+# staling status information for more than one extra second.
+_AGENTS_CACHE_TTL = 1.0  # seconds
+_agents_result_cache: list | None = None
+_agents_result_cache_ts: float = 0.0
+
 
 # --- Static files (React SPA) ---
 
@@ -66,13 +73,21 @@ def index():
 @app.route("/api/agents")
 def api_list_agents():
     """List all agents with refreshed statuses."""
+    global _agents_result_cache, _agents_result_cache_ts
+    now = time.time()
+    # PERF: Return cached result within TTL to prevent N+1 file reads per poll
+    if _agents_result_cache is not None and (now - _agents_result_cache_ts) < _AGENTS_CACHE_TTL:
+        return jsonify(_agents_result_cache)
     agents = list_agents()
     for rec in agents:
         if rec.status == "running":
             check_agent(rec.name)
-    # Reload after status updates
+    # Reload once after all status updates (state.py cache makes this cheap)
     agents = list_agents()
-    return jsonify([_agent_to_dict(rec) for rec in agents])
+    result = [_agent_to_dict(rec) for rec in agents]
+    _agents_result_cache = result
+    _agents_result_cache_ts = now
+    return jsonify(result)
 
 
 @app.route("/api/agents/<name>")
@@ -81,8 +96,12 @@ def api_get_agent(name: str):
     rec = get_agent(name)
     if rec is None:
         return jsonify({"error": f"Agent '{name}' not found"}), 404
+    prev_status = rec.status
     check_agent(name)
-    rec = get_agent(name)
+    # PERF: Only re-read from disk if check_agent may have mutated state;
+    # state.py write-through cache makes this a cheap in-memory lookup.
+    if rec.status == "running":
+        rec = get_agent(name)
     data = _agent_to_dict(rec)
 
     # Add output
@@ -148,6 +167,48 @@ def api_kill_agent(name: str):
     return jsonify({"error": f"Agent '{name}' not found"}), 404
 
 
+@app.route("/api/agents/<name>/pause", methods=["POST"])
+def api_pause_agent(name: str):
+    """Pause a running agent by suspending its tmux pane."""
+    rec = get_agent(name)
+    if rec is None:
+        return jsonify({"error": f"Agent '{name}' not found"}), 404
+    if rec.status != "running":
+        return jsonify({"error": f"Agent '{name}' is not running (status: {rec.status})"}), 400
+
+    result = subprocess.run(
+        ["tmux", "pause-pane", "-t", rec.tmux_window],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return jsonify({"error": f"Failed to pause agent: {result.stderr.strip()}"}), 500
+
+    update_agent(name, status="paused")
+    return jsonify({"status": "paused", "name": name})
+
+
+@app.route("/api/agents/<name>/resume", methods=["POST"])
+def api_resume_agent_pane(name: str):
+    """Resume a paused agent by unpausing its tmux pane."""
+    rec = get_agent(name)
+    if rec is None:
+        return jsonify({"error": f"Agent '{name}' not found"}), 404
+    if rec.status != "paused":
+        return jsonify({"error": f"Agent '{name}' is not paused (status: {rec.status})"}), 400
+
+    result = subprocess.run(
+        ["tmux", "pause-pane", "-U", "-t", rec.tmux_window],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return jsonify({"error": f"Failed to resume agent: {result.stderr.strip()}"}), 500
+
+    update_agent(name, status="running")
+    return jsonify({"status": "running", "name": name})
+
+
 @app.route("/api/clean", methods=["POST"])
 def api_clean():
     """Clean finished agent workspaces."""
@@ -195,6 +256,24 @@ def api_list_guardians():
         g["last_triggered"] = last_triggered.get(g["name"])
 
     return jsonify(guardians)
+
+
+@app.route("/api/health")
+def api_health():
+    """Health check endpoint."""
+    return jsonify({"status": "ok"})
+
+
+@app.route("/api/pipeline")
+def api_list_pipelines():
+    """List active pipeline agents (planner, subtask, and combiner agents)."""
+    agents = list_agents()
+    pipeline_agents = [
+        _agent_to_dict(rec)
+        for rec in agents
+        if rec.name.startswith("pipe-")
+    ]
+    return jsonify(pipeline_agents)
 
 
 @app.route("/api/run", methods=["POST"])

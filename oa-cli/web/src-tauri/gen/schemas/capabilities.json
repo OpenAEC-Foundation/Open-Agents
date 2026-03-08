@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"Default permissions for Open-Agents desktop app","local":true,"windows":["main"],"permissions":["core:default","shell:allow-spawn","shell:allow-execute","shell:allow-kill","process:allow-exit","process:allow-restart","fs:allow-read","fs:allow-exists","dialog:allow-open","dialog:allow-save","os:default"]}}

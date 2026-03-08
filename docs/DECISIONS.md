@@ -72,6 +72,8 @@
 | D-048 | UI Strategie: drie interfaces, één state | Drie manieren om oa te gebruiken: CLI (terminal), TUI (Textual), React SPA (browser). Allemaal lezen/schrijven dezelfde ~/.oa/agents.json state en roepen dezelfde Python functies aan. Geen cloud, geen Claude API — alles lokaal op subscription. Tauri desktop app als toekomstige vierde optie. Zie D-048 Details. | 2026-03-02 |
 | D-049 | Live Session Viewing via tmux capture-pane | Gebruikers kunnen meekijken met draaiende agents. `tmux capture-pane` vangt terminal output op. TUI toont dit in detail panel, React SPA toont het in een streaming terminal view met polling elke 1-2s. Geen WebSocket nodig voor v1 — HTTP polling volstaat. | 2026-03-02 |
 | D-050 | React SPA met lokale Python bridge (geen API) | React SPA op localhost praat met een Flask bridge server die de oa-cli Python functies wrapt. Bridge serveert agent state + live tmux output. Geen cloud endpoints, geen token kosten. Bridge start via `oa web`. Later wrappable in Tauri voor native desktop. | 2026-03-02 |
+| D-052 | Open-Agents bouwen als Tauri 2 desktop applicatie | React frontend (ongewijzigd) + Rust shell + Python sidecar via HTTP. Cross-platform installatie (Win/Mac/Linux/Android), native performance, kleine installer (~50MB), geen Electron overhead. Referentie: Open PDF Studio als bewezen Tauri 2 patroon. Fases: MVP (Tauri wrapper) → native integratie → auto-update → bundled Python → Android | 2026-03-08 |
+| D-053 | Multi-provider auth via CLI browser login | Geen API keys in de app — elke provider heeft een CLI tool met browser-based login. Providers: Claude Code (claude login), OpenAI/Codex (codex login), Mistral CLI, Ollama (geen login). App detecteert welke CLI tools geïnstalleerd zijn, start login flow via Tauri shell plugin. | 2026-03-08 |
 
 ---
 
@@ -540,3 +542,33 @@ Bij het nemen van een beslissing, verplaats naar "Genomen" met rationale en datu
 | D-058 | open-pdf-studio async queue pattern — toepassen op oa-cli task scheduling | Task scheduling via async queue in plaats van direct spawn | Voorkomt race conditions bij parallelle agent spawns op gedeelde resources (tmux sessions, ~/.oa/agents.json state). Inspiratie uit open-pdf-studio's async-queue patroon voor stabiel concurrent design. Toekomstige task_queue.py module in oa-cli. | 2026-03-08 |
 | D-059 | Maximale delegatie als sessie-strategie — alles wat een agent kan doen, gaat naar een agent | Meta-orchestrator = strategisch brein, agents = handen. Consequent toepassen. | Schaalbare sessie-workflow: orchestrator analyseert/beslist, agents voeren uit. Voorkomt bottleneck van manual work in het hoofd van de gebruiker. Sessie focus op coördinatie, niet uitvoering. Versterkt D-047 (pipeline) en D-051 (orchestrator-first). | 2026-03-08 |
 
+
+---
+
+## D-052 — Context Skills: Skill Package Injection in `oa run` (2026-03-08)
+
+**Beslissing**: `oa run` uitgebreid met `--context-skills` flag voor automatische skill-injectie in agent prompts.
+
+**Aanleiding**: Kinetic Facade showcase (Linkedin_Showcase_Skillpackage) — agents maakten fouten die al gedocumenteerd stonden in de skill package (SNLite socket syntax, verkeerde node IDs, data nesting). Skills bestonden maar bereikten agents niet.
+
+**Implementatie** (Open-Agents oa-cli):
+- `--context-skills "id1,id2"` — comma-separated skill IDs
+- `_load_skills()` — resolveert via: template JSON `skillRef` → `skill_packages` config → `.claude/skills/` cwd → `~/.claude/skills/` global
+- `~/.oa/config.json`: nieuw veld `skill_packages` (lijst van absolute paden naar skill package repos)
+- Library path fix: `_resolve_library_dir()` via config > `OA_AGENTS_LIBRARY` env > `parents[3]` (was `parents[4]` = fout)
+- Bij `--template` met `skillRef`: auto-injectie als geen `--context-skills` opgegeven
+
+**Bewijs**: Test-agent (claude/haiku) genereerde correcte SNLite hexagon-grid node zonder debugging op eerste poging. 27k chars context, 2 skills tegelijk.
+
+**Impact**: Sluit de gap tussen skill packages (kennis) en agents (uitvoering). Fundamenteel voor schaalbare agent-kwaliteit.
+
+**Config voorbeeld**:
+```json
+{ "skill_packages": ["/absolute/path/to/skill-package-repo"] }
+```
+
+**Gebruik**:
+```bash
+oa run "Schrijf SNLite node" --context-skills "sverchok-errors-common,sverchok-syntax-scripting" --model claude/sonnet --direct
+oa run "" --template aec-sverchok/sv-builder --direct  # auto-injectie via skillRef
+```

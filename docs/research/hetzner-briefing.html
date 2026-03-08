@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPU Server Investering — Impertio Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --impertio-black: #0a0a0a;
+            --impertio-carbon: #1a1a1a;
+            --impertio-graphite: #2d2d2d;
+            --impertio-orange: #ff6b00;
+            --impertio-blaze: #ff8c00;
+            --impertio-amber: #ffaa00;
+            --impertio-green: #00ff88;
+            --impertio-terminal: #00cc6a;
+            --impertio-gray-dark: #444444;
+            --impertio-gray-mid: #888888;
+            --impertio-gray-light: #cccccc;
+            --impertio-white: #ffffff;
+            --impertio-off-white: #f0f0f0;
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: var(--impertio-off-white);
+            color: var(--impertio-black);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: var(--impertio-white);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* === HEADER === */
+        .header {
+            background: var(--impertio-black);
+            color: var(--impertio-white);
+            padding: 24px 32px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .header-left .logo {
+            font-size: 1.3rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        .header-left .logo span { color: var(--impertio-orange); }
+
+        .header-left .tagline {
+            font-size: 0.65rem;
+            color: var(--impertio-gray-mid);
+            font-style: italic;
+            margin-top: 2px;
+        }
+
+        .header-right {
+            text-align: right;
+            font-size: 0.65rem;
+            color: var(--impertio-gray-light);
+            line-height: 1.6;
+        }
+
+        .header-right .doc-type {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--impertio-orange);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* === TITLE BAR === */
+        .title-bar {
+            background: linear-gradient(135deg, var(--impertio-orange), var(--impertio-blaze));
+            color: var(--impertio-white);
+            padding: 18px 32px;
+        }
+
+        .title-bar h1 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .title-bar .subtitle {
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-top: 3px;
+        }
+
+        /* === CONTENT === */
+        .content {
+            padding: 20px 32px 16px;
+        }
+
+        /* --- Kans blok --- */
+        .opportunity {
+            background: var(--impertio-carbon);
+            color: var(--impertio-white);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+        }
+
+        .opportunity h2 {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--impertio-orange);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+        }
+
+        .opportunity p {
+            font-size: 0.78rem;
+            line-height: 1.55;
+            color: var(--impertio-gray-light);
+        }
+
+        .opportunity strong { color: var(--impertio-white); }
+
+        .opportunity .highlight {
+            color: var(--impertio-green);
+            font-weight: 700;
+        }
+
+        /* --- Grid twee kolommen --- */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+
+        /* --- Section headers --- */
+        .section-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--impertio-orange);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid var(--impertio-orange);
+        }
+
+        /* --- Server vergelijking --- */
+        .server-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.72rem;
+        }
+
+        .server-table th {
+            background: var(--impertio-black);
+            color: var(--impertio-white);
+            padding: 7px 10px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .server-table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--impertio-off-white);
+            vertical-align: top;
+        }
+
+        .server-table tr:nth-child(even) td {
+            background: #f8f8f8;
+        }
+
+        .server-table .recommended {
+            background: rgba(255, 107, 0, 0.07) !important;
+            border-left: 3px solid var(--impertio-orange);
+        }
+
+        .server-table .model-name {
+            font-weight: 700;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--impertio-orange);
+            color: var(--impertio-white);
+            font-size: 0.55rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .badge.green {
+            background: var(--impertio-terminal);
+        }
+
+        /* --- Kosten blok --- */
+        .cost-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .cost-card {
+            background: var(--impertio-off-white);
+            border-radius: 6px;
+            padding: 12px 14px;
+            text-align: center;
+        }
+
+        .cost-card.featured {
+            background: var(--impertio-carbon);
+            color: var(--impertio-white);
+        }
+
+        .cost-card .label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--impertio-gray-mid);
+            margin-bottom: 4px;
+        }
+
+        .cost-card.featured .label {
+            color: var(--impertio-orange);
+        }
+
+        .cost-card .amount {
+            font-size: 1.4rem;
+            font-weight: 900;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .cost-card.featured .amount {
+            color: var(--impertio-green);
+        }
+
+        .cost-card .detail {
+            font-size: 0.58rem;
+            color: var(--impertio-gray-mid);
+            margin-top: 2px;
+        }
+
+        /* --- Capabilities --- */
+        .cap-list {
+            list-style: none;
+            font-size: 0.72rem;
+            line-height: 1.7;
+        }
+
+        .cap-list li::before {
+            content: '';
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            background: var(--impertio-green);
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .cap-list li.warn::before {
+            background: var(--impertio-orange);
+        }
+
+        /* --- Urgentie blok --- */
+        .urgency {
+            background: linear-gradient(135deg, #1a0800, #2d1000);
+            border: 1px solid var(--impertio-orange);
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .urgency-icon {
+            font-size: 1.8rem;
+            flex-shrink: 0;
+        }
+
+        .urgency-text {
+            font-size: 0.72rem;
+            color: var(--impertio-off-white);
+            line-height: 1.5;
+        }
+
+        .urgency-text strong {
+            color: var(--impertio-orange);
+        }
+
+        /* --- Footer --- */
+        .footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--impertio-black);
+            color: var(--impertio-gray-mid);
+            padding: 10px 32px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.58rem;
+        }
+
+        .footer a {
+            color: var(--impertio-orange);
+            text-decoration: none;
+        }
+
+        /* === PRINT === */
+        @media print {
+            body { background: none; }
+            .page {
+                width: 100%;
+                min-height: auto;
+                box-shadow: none;
+            }
+        }
+
+        /* === SCREEN shadow === */
+        @media screen {
+            .page {
+                box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+                margin: 20px auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo">IMPERTIO <span>STUDIO</span></div>
+                <div class="tagline">AI ecosystems, deployed right.</div>
+            </div>
+            <div class="header-right">
+                <div class="doc-type">Investeringsvoorstel</div>
+                7 maart 2026 &bull; Vertrouwelijk<br>
+                Opgesteld door: Freek Heijting
+            </div>
+        </div>
+
+        <!-- TITLE -->
+        <div class="title-bar">
+            <h1>Dedicated GPU Server &mdash; Hetzner</h1>
+            <div class="subtitle">Eigen AI-infrastructuur voor het Open-Agents platform</div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content">
+
+            <!-- KANS -->
+            <div class="opportunity">
+                <h2>De kans</h2>
+                <p>
+                    Met eigen dedicated hardware draaien we <span class="highlight">open-source AI-modellen zonder tokenlimiet</span>.
+                    Dat opent twee wegen:
+                </p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px;">
+                    <div style="border-left: 3px solid var(--impertio-green); padding-left: 12px;">
+                        <div style="font-size: 0.62rem; font-weight: 700; color: var(--impertio-green); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Korte termijn &mdash; Intern</div>
+                        <div style="font-size: 0.73rem; color: var(--impertio-gray-light); line-height: 1.5;">
+                            <strong style="color: var(--impertio-white);">Exponentieel AI-gebruik voor onszelf.</strong>
+                            Met <strong style="color: var(--impertio-green);">Open-Agents</strong> &mdash; onze eigen orchestratie-engine &mdash;
+                            mixen we frontier AI (Claude, OpenAI) met lokale LLMs precies zoals we willen.
+                            De AI-modellen zijn de engines; Open-Agents bepaalt welke engine wanneer wordt ingezet.
+                            Dure tokens alleen voor orkestratie en kritieke beslissingen; al het uitvoerende werk onbeperkt lokaal.
+                        </div>
+                    </div>
+                    <div style="border-left: 3px solid var(--impertio-orange); padding-left: 12px;">
+                        <div style="font-size: 0.62rem; font-weight: 700; color: var(--impertio-orange); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Lange termijn &mdash; Klanten</div>
+                        <div style="font-size: 0.73rem; color: var(--impertio-gray-light); line-height: 1.5;">
+                            <strong style="color: var(--impertio-white);">AI-diensten aanbieden aan klanten.</strong>
+                            Zodra onze aanpak bewezen is, bieden we het agentic platform aan. Klantverzoeken spawnen automatisch
+                            AI-agents die taken orkestreren &mdash; op onze eigen infra, GDPR-compliant in Duitsland.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GEFASEERDE AANPAK -->
+            <div class="section-label">Gefaseerde aanpak</div>
+            <div class="two-col" style="margin-bottom: 12px;">
+
+                <!-- FASE 1 -->
+                <div style="background: var(--impertio-off-white); border-radius: 8px; padding: 14px 16px; border-left: 3px solid var(--impertio-terminal);">
+                    <div style="font-size: 0.6rem; font-weight: 700; color: var(--impertio-terminal); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">
+                        Fase 1 &mdash; Nu starten <span class="badge green">Start</span>
+                    </div>
+                    <div style="font-weight: 800; font-size: 0.9rem; margin-bottom: 4px;">GEX44 &mdash; &euro;184/mnd</div>
+                    <div style="font-size: 0.68rem; color: var(--impertio-gray-dark); line-height: 1.5;">
+                        RTX 4000 Ada &bull; <strong>20 GB VRAM</strong> &bull; 64 GB RAM<br>
+                        Setup: &euro;264
+                    </div>
+                    <ul class="cap-list" style="margin-top: 8px; font-size: 0.67rem;">
+                        <li>Kleinere LLMs draaien (Mistral 7B, Llama 8B, DeepSeek Coder)</li>
+                        <li>Open-Agents platform valideren en doorontwikkelen</li>
+                        <li>ERPNext-integratie testen en bewijzen</li>
+                        <li>Onbeperkt lokale agents spawnen (geen tokenlimiet)</li>
+                        <li>Embeddings, speech-to-text, image generation</li>
+                    </ul>
+                </div>
+
+                <!-- FASE 2 -->
+                <div style="background: var(--impertio-off-white); border-radius: 8px; padding: 14px 16px; border-left: 3px solid var(--impertio-orange);">
+                    <div style="font-size: 0.6rem; font-weight: 700; color: var(--impertio-orange); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">
+                        Fase 2 &mdash; Opschalen
+                    </div>
+                    <div style="font-weight: 800; font-size: 0.9rem; margin-bottom: 4px;">GEX131 &mdash; &euro;889/mnd</div>
+                    <div style="font-size: 0.68rem; color: var(--impertio-gray-dark); line-height: 1.5;">
+                        RTX PRO 6000 Blackwell &bull; <strong>96 GB VRAM</strong> &bull; 256 GB RAM<br>
+                        Setup: &euro;1.555 &bull; 2,4&times; snellere tensor performance
+                    </div>
+                    <ul class="cap-list" style="margin-top: 8px; font-size: 0.67rem;">
+                        <li>Zware LLMs: Llama 3 <strong>70B</strong>, DeepSeek 236B</li>
+                        <li>Klanten bedienen op productie-schaal</li>
+                        <li>Meerdere grote modellen tegelijk draaien</li>
+                        <li>RAM uitbreidbaar tot 768 GB</li>
+                        <li class="warn">GEX44 behouden als secundaire server</li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- MIGRATIE -->
+            <div style="background: var(--impertio-carbon); border-radius: 6px; padding: 10px 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px;">
+                <div style="font-size: 1.3rem; flex-shrink: 0;">&#8644;</div>
+                <div style="font-size: 0.68rem; color: var(--impertio-gray-light); line-height: 1.5;">
+                    <strong style="color: var(--impertio-white);">Migratie is simpel:</strong>
+                    Alles staat in Git. Nieuwe server opzetten duurt <strong style="color: var(--impertio-green);">1&ndash;2 uur</strong>.
+                    Modellen worden opnieuw gedownload, configuratie gekopieerd. Geen databases, geen complexe migratie.
+                </div>
+            </div>
+
+            <!-- TWEE KOLOMMEN: SERVER VERGELIJKING + MOGELIJKHEDEN -->
+            <div class="two-col">
+
+                <!-- LINKER KOLOM: Alle opties -->
+                <div>
+                    <div class="section-label">Alle Hetzner GPU-servers</div>
+                    <table class="server-table">
+                        <thead>
+                            <tr>
+                                <th>Server</th>
+                                <th>GPU / VRAM</th>
+                                <th>Prijs/mnd</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="recommended">
+                                <td class="model-name">GEX44 <span class="badge green">Fase 1</span></td>
+                                <td>RTX 4000 Ada<br><strong>20 GB</strong></td>
+                                <td><strong>&euro;184</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="model-name">GEX130</td>
+                                <td>RTX 6000 Ada<br><strong>48 GB</strong></td>
+                                <td>&euro;838</td>
+                            </tr>
+                            <tr class="recommended">
+                                <td class="model-name">GEX131 <span class="badge">Fase 2</span></td>
+                                <td>RTX PRO 6000<br><strong>96 GB</strong> Blackwell</td>
+                                <td><strong>&euro;889</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div style="font-size: 0.6rem; color: var(--impertio-gray-mid); margin-top: 6px; line-height: 1.4;">
+                        Alle servers: bare metal, Duitsland (Falkenstein), onbeperkt verkeer, per-uur billing mogelijk. GEX131 is slechts &euro;51/mnd meer dan GEX130 maar biedt <strong>2&times; VRAM</strong>.
+                    </div>
+                </div>
+
+                <!-- RECHTER KOLOM: Strategische waarde -->
+                <div>
+                    <div class="section-label">Strategische waarde</div>
+                    <ul class="cap-list">
+                        <li><strong>Hybride AI-strategie</strong>: frontier modellen (Claude, OpenAI) voor orkestratie en kritieke taken, lokale LLMs voor al het overige</li>
+                        <li><strong>Minder subscriptions</strong>: geen 20 Claude-accounts meer nodig &mdash; specialistisch werk draait lokaal, &eacute;&eacute;n account volstaat</li>
+                        <li><strong>GDPR &amp; privacy</strong>: klantgevoelige data gaat niet door cloud APIs &mdash; verwerking op eigen servers in DE</li>
+                        <li><strong>Concurrentievoordeel</strong>: agentic platform als dienst</li>
+                    </ul>
+
+                    <div style="margin-top: 10px;">
+                        <div class="section-label">Schaalbaarheid</div>
+                        <ul class="cap-list">
+                            <li><strong>Modulair</strong>: extra servers toevoegen wanneer nodig</li>
+                            <li><strong>Hybrid</strong>: Hetzner baseline + cloud GPU voor pieken</li>
+                            <li class="warn"><strong>Idle resources</strong>: GPU-compute verhuren via marktplaatsen</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- KOSTEN -->
+            <div class="section-label">Investering</div>
+            <div class="cost-grid">
+                <div class="cost-card featured">
+                    <div class="label">Fase 1 &mdash; per maand</div>
+                    <div class="amount">&euro;184</div>
+                    <div class="detail">GEX44 + setup &euro;264 eenmalig</div>
+                </div>
+                <div class="cost-card">
+                    <div class="label">Fase 2 &mdash; per maand</div>
+                    <div class="amount">&euro;889</div>
+                    <div class="detail">GEX131 + setup &euro;1.555 eenmalig</div>
+                </div>
+                <div class="cost-card">
+                    <div class="label">Fase 1+2 &mdash; per maand</div>
+                    <div class="amount">&euro;1.073</div>
+                    <div class="detail">beide servers samen</div>
+                </div>
+            </div>
+
+            <!-- URGENTIE -->
+            <div class="urgency">
+                <div class="urgency-icon">&#9200;</div>
+                <div class="urgency-text">
+                    <strong>Actie v&oacute;&oacute;r 1 april 2026:</strong>
+                    Hetzner verhoogt alle prijzen met 3&ndash;37% per 1 april vanwege stijgende DRAM-kosten.
+                    Bestellen v&oacute;&oacute;r die datum lockt de huidige prijs. We starten met de <strong>GEX44 (&euro;184/mnd)</strong>
+                    &mdash; laag instapbedrag, volledige validatie, en eenvoudige opschaling wanneer we er klaar voor zijn.
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <span>Impertio Studio B.V. &bull; KvK 96498242 &bull; <a href="https://impertio.nl">impertio.nl</a></span>
+            <span>Vertrouwelijk &mdash; Intern gebruik</span>
+        </div>
+    </div>
+</body>
+</html>

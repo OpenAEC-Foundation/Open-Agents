@@ -1,0 +1,22 @@
+[package]
+name = "open-agents-desktop"
+version = "0.2.0"
+description = "Open Agents Desktop Application"
+edition = "2021"
+
+[lib]
+name = "open_agents_desktop_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-shell = "2"
+tauri-plugin-process = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-os = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

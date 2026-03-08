@@ -1,6 +1,9 @@
 import type { Agent, Message, SpawnAgentBody } from '../types';
 
-const API = '/api';
+const IS_TAURI = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+export const API_BASE = IS_TAURI ? 'http://127.0.0.1:5174' : '';
+
+const API = `${API_BASE}/api`;
 
 export async function fetchAgents(): Promise<Agent[]> {
   const res = await fetch(`${API}/agents`);

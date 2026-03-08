@@ -409,6 +409,33 @@
 
 ---
 
+## Sprint 18: Tauri Desktop App — Planned
+
+**Doel**: Open-Agents als installeerbare native desktop applicatie (D-052)
+**Afhankelijk van**: Sprint 12 (oa-cli Done), Sprint 17 (Agent Teams basis)
+**Beslissingen**: D-052 (Tauri 2 architectuur), D-053 (multi-provider CLI auth)
+
+- [ ] Rust toolchain installeren + Tauri system dependencies (WSL)
+- [ ] src-tauri/ initialiseren met tauri init
+- [ ] tauri.conf.json configureren (window, CSP, bundle targets)
+- [ ] Cargo.toml met plugins (shell, process, fs, dialog, os)
+- [ ] lib.rs schrijven — Python sidecar management
+- [ ] main.rs entry point
+- [ ] capabilities/default.json permissions
+- [ ] vite.config.ts aanpassen voor Tauri
+- [ ] package.json — @tauri-apps/* dependencies toevoegen
+- [ ] api/client.ts — IS_TAURI dual-mode (1 regel)
+- [ ] npm run tauri:dev werkend krijgen
+- [ ] Eerste tauri:build — Windows installer
+- [ ] GitHub Actions release workflow
+- [ ] System tray met agent status
+- [ ] Desktop notificaties bij agent completion
+- [ ] Auto-updater via GitHub Releases
+- [ ] PyInstaller sidecar binary (geen Python vereist voor gebruiker)
+- [ ] Android support
+
+---
+
 ## Model Routing Strategie
 
 | Vraag type | Model | Waarom |

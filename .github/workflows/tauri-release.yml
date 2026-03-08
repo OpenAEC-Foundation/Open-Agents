@@ -1,0 +1,271 @@
+# ============================================================
+# GitHub Actions: Tauri Desktop App — Multi-Platform Release
+# ============================================================
+# Trigger:
+#   - push tags v* → full release build + GitHub Release
+#   - pull_request → test build only (no release upload)
+#
+# Matrix:
+#   - ubuntu-22.04  → AppImage + .deb
+#   - windows-latest → NSIS installer + .msi
+#   - macos-latest  → .dmg + .app
+#
+# Secrets required:
+#   TAURI_PRIVATE_KEY     - Base64-encoded private key for updater signing
+#   TAURI_KEY_PASSWORD    - Password for the private key
+#   GITHUB_TOKEN          - Auto-provided by GitHub Actions
+
+name: Tauri Release
+
+on:
+  push:
+    tags:
+      - 'v*'        # Triggers on version tags: v0.2.0, v1.0.0, etc.
+  pull_request:
+    branches:
+      - main        # Test builds on PRs to main (no release upload)
+
+jobs:
+  # ============================================================
+  # Job 1: Build Python sidecar binary with PyInstaller
+  # Runs per-platform before the Tauri build so the binary
+  # is available as an artifact for the Tauri bundler.
+  # ============================================================
+  build-sidecar:
+    name: Build Python Sidecar (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-22.04
+            binary-name: oa-bridge-x86_64-unknown-linux-gnu
+            artifact-name: sidecar-linux
+          - platform: windows-latest
+            binary-name: oa-bridge-x86_64-pc-windows-msvc.exe
+            artifact-name: sidecar-windows
+          - platform: macos-latest
+            binary-name: oa-bridge-aarch64-apple-darwin
+            artifact-name: sidecar-macos
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Python setup ──────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      # ── Install Python dependencies ───────────────────────────
+      - name: Install oa-cli Python dependencies
+        working-directory: oa-cli
+        run: |
+          pip install --upgrade pip
+          pip install pyinstaller
+          pip install -e .
+
+      # ── Build standalone binary with PyInstaller ──────────────
+      # Creates a single-file executable that includes Python runtime
+      # and all oa-cli dependencies. The binary is named per Tauri's
+      # sidecar naming convention: <name>-<target-triple>[.exe]
+      - name: Build PyInstaller sidecar binary (Linux/macOS)
+        if: runner.os != 'Windows'
+        working-directory: oa-cli
+        run: |
+          pyinstaller \
+            --onefile \
+            --name oa-bridge \
+            --hidden-import=open_agents.bridge \
+            --hidden-import=open_agents.spawner \
+            --hidden-import=open_agents.lifecycle \
+            --hidden-import=open_agents.state \
+            --hidden-import=open_agents.messaging \
+            --hidden-import=flask \
+            --hidden-import=flask_cors \
+            src/open_agents/bridge.py
+          # Rename to Tauri sidecar convention (target triple suffix)
+          mv dist/oa-bridge dist/${{ matrix.binary-name }}
+
+      - name: Build PyInstaller sidecar binary (Windows)
+        if: runner.os == 'Windows'
+        working-directory: oa-cli
+        shell: pwsh
+        run: |
+          pyinstaller `
+            --onefile `
+            --name oa-bridge `
+            --hidden-import=open_agents.bridge `
+            --hidden-import=open_agents.spawner `
+            --hidden-import=open_agents.lifecycle `
+            --hidden-import=open_agents.state `
+            --hidden-import=open_agents.messaging `
+            --hidden-import=flask `
+            --hidden-import=flask_cors `
+            src/open_agents/bridge.py
+          # Rename to Tauri sidecar convention
+          Move-Item dist/oa-bridge.exe dist/${{ matrix.binary-name }}
+
+      # ── Upload sidecar binary as artifact ─────────────────────
+      # The Tauri build job downloads this to bundle into the app.
+      - name: Upload sidecar binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: oa-cli/dist/${{ matrix.binary-name }}
+          retention-days: 1    # Only needed during this workflow run
+
+  # ============================================================
+  # Job 2: Build Tauri app + create GitHub Release
+  # Depends on sidecar build completing for all platforms.
+  # ============================================================
+  build-tauri:
+    name: Build Tauri App (${{ matrix.platform }})
+    needs: build-sidecar    # Wait for Python sidecars to be built
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-22.04
+            artifact-name: sidecar-linux
+            binary-name: oa-bridge-x86_64-unknown-linux-gnu
+          - platform: windows-latest
+            artifact-name: sidecar-windows
+            binary-name: oa-bridge-x86_64-pc-windows-msvc.exe
+          - platform: macos-latest
+            artifact-name: sidecar-macos
+            binary-name: oa-bridge-aarch64-apple-darwin
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Linux system dependencies ──────────────────────────────
+      # webkit2gtk-4.1 is required by Tauri 2 on Linux.
+      # appindicator3 enables system tray support.
+      # librsvg2 + patchelf are required by tauri-action.
+      - name: Install Linux system dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            libgtk-3-dev \
+            libglib2.0-dev \
+            libsoup-3.0-dev \
+            libjavascriptcoregtk-4.1-dev
+
+      # ── Node.js setup ─────────────────────────────────────────
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # ── pnpm setup ────────────────────────────────────────────
+      # Using pnpm to match the existing CI workflow
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+
+      # ── Rust stable toolchain ─────────────────────────────────
+      # dtolnay/rust-toolchain is the recommended action for Rust.
+      # stable is sufficient; nightly is not required for Tauri.
+      - name: Install Rust stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      # ── Rust build cache ──────────────────────────────────────
+      # Caches Cargo registry, git index, and compiled artifacts.
+      # This dramatically reduces Rust compile times on repeated runs.
+      - name: Cache Rust build artifacts
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: oa-cli/src-tauri -> target
+
+      # ── Node.js dependency cache ──────────────────────────────
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('oa-cli/web/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      # ── Install frontend dependencies ──────────────────────────
+      - name: Install frontend dependencies
+        working-directory: oa-cli/web
+        run: pnpm install --frozen-lockfile
+
+      # ── Download Python sidecar binary ────────────────────────
+      # Place the pre-built binary into src-tauri/binaries/ so
+      # Tauri can bundle it as an external binary (sidecar).
+      - name: Download Python sidecar binary
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: oa-cli/src-tauri/binaries/
+
+      # ── Ensure sidecar binary is executable (Linux/macOS) ─────
+      - name: Make sidecar binary executable
+        if: runner.os != 'Windows'
+        run: chmod +x oa-cli/src-tauri/binaries/${{ matrix.binary-name }}
+
+      # ── Build and publish release with tauri-action ───────────
+      # tauri-action handles:
+      #   - Running `tauri build` with the correct target
+      #   - Signing the update artifacts (via TAURI_PRIVATE_KEY)
+      #   - Creating/updating the GitHub Release and uploading artifacts
+      #
+      # On pull_request: builds but does NOT create a release
+      # On tag push:     builds AND creates a draft GitHub Release
+      - name: Build Tauri app and publish release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Tauri updater signing secrets — set in repo Settings → Secrets
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+        with:
+          # projectPath: root of the Tauri project (where src-tauri/ lives)
+          projectPath: oa-cli/web
+          # Only create a release when building from a version tag
+          tagName: ${{ github.ref_name }}       # e.g. v0.2.0
+          releaseName: 'Open Agents ${{ github.ref_name }}'
+          releaseBody: |
+            ## Open Agents ${{ github.ref_name }}
+
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for full details.
+
+            ### Downloads
+
+            | Platform | File | Notes |
+            |----------|------|-------|
+            | Windows  | `Open-Agents_x64-setup.exe` | NSIS installer (recommended) |
+            | Windows  | `Open-Agents_x64_en-US.msi` | MSI installer |
+            | macOS    | `Open-Agents.dmg` | Disk image |
+            | Linux    | `Open-Agents.AppImage` | Universal Linux (chmod +x first) |
+            | Linux    | `Open-Agents.deb` | Debian/Ubuntu package |
+
+            ### Requirements
+            - Python 3.10+ with oa-cli installed (for the Python bridge sidecar)
+            - tmux (for agent session management)
+
+            > **Note:** A bundled Python runtime (no install required) is planned for a future release.
+          # Creates a draft so you can review before publishing
+          releaseDraft: true
+          # Pre-release flag — set to false for stable releases
+          prerelease: false
+          # Include latest.json for the auto-updater (tauri-plugin-updater)
+          includeUpdaterJson: true

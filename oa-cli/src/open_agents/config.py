@@ -14,6 +14,8 @@ DEFAULT_CONFIG = {
     "max_workers": 5,
     "timeout_minutes": 60,
     "max_depth": 5,
+    "skill_packages": [],   # List of absolute paths to skill package repos
+    "agents_library": "",   # Absolute path to agents/library dir (empty = auto-resolve)
 }
 
 

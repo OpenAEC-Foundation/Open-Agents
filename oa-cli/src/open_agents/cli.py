@@ -30,7 +30,19 @@ app = typer.Typer(
 )
 console = Console()
 
-AGENTS_LIBRARY_DIR = Path(__file__).parents[4] / "agents" / "library"
+def _resolve_library_dir() -> Path:
+    """Resolve agents/library path: config > env > repo root (3 levels up from package)."""
+    import os
+    cfg = load_config()
+    if "agents_library" in cfg:
+        return Path(cfg["agents_library"])
+    if "OA_AGENTS_LIBRARY" in os.environ:
+        return Path(os.environ["OA_AGENTS_LIBRARY"])
+    # Installed in editable mode: cli.py → open_agents/ → src/ → oa-cli/ → repo root
+    return Path(__file__).parents[3] / "agents" / "library"
+
+
+AGENTS_LIBRARY_DIR = _resolve_library_dir()
 
 
 def _load_template(template_id: str) -> dict:
@@ -49,6 +61,79 @@ def _load_template(template_id: str) -> dict:
 
     console.print(f"[red]Template '{template_id}' not found in agents/library/[/red]")
     raise typer.Exit(1)
+
+
+def _load_skills(skill_ids: str) -> str:
+    """Load one or more skill SKILL.md files by id (comma-separated).
+
+    Resolution order per skill id:
+    1. agents/library/**/<id>.json  → reads 'skillRef' field → resolves relative to skill package
+    2. .claude/skills/**/<id>/SKILL.md  in current working dir (project skill package)
+    3. ~/.claude/skills/**/<id>/SKILL.md  (global fallback)
+
+    Returns a formatted context block ready to prepend to any agent prompt.
+    """
+    import os
+    ids = [s.strip() for s in skill_ids.split(",") if s.strip()]
+    blocks: list[str] = []
+
+    cfg = load_config()
+    # Search roots: skill_packages from config + .claude/skills in cwd + global ~/.claude/skills
+    skill_search_roots = [
+        *(Path(p) / ".claude" / "skills" for p in cfg.get("skill_packages", [])),
+        Path.cwd() / ".claude" / "skills",
+        Path.home() / ".claude" / "skills",
+    ]
+
+    for skill_id in ids:
+        content: str | None = None
+
+        # Strategy 1: find via template JSON skillRef → search in all skill_packages
+        lib_dir = _resolve_library_dir()
+        if lib_dir.exists():
+            for jf in lib_dir.rglob("*.json"):
+                if jf.stem == skill_id:
+                    try:
+                        tmpl = json.loads(jf.read_text())
+                        skill_ref = tmpl.get("skillRef", "")
+                        if skill_ref:
+                            # Try each skill package root for this skillRef
+                            search_bases = [
+                                lib_dir.parents[1],  # Open-Agents repo root
+                                *(Path(p) for p in cfg.get("skill_packages", [])),
+                            ]
+                            for base in search_bases:
+                                skill_path = base / skill_ref
+                                if skill_path.exists():
+                                    content = skill_path.read_text()
+                                    break
+                        if content:
+                            break
+                    except Exception:
+                        pass
+
+        # Strategy 2+: search .claude/skills/ directories
+        if content is None:
+            for root in skill_search_roots:
+                if not root.exists():
+                    continue
+                for skill_dir in root.rglob(skill_id):
+                    if skill_dir.is_dir():
+                        candidate = skill_dir / "SKILL.md"
+                        if candidate.exists():
+                            content = candidate.read_text()
+                            break
+                if content:
+                    break
+
+        if content:
+            blocks.append(f"## SKILL CONTEXT: {skill_id}\n\n{content.strip()}")
+        else:
+            blocks.append(f"## SKILL CONTEXT: {skill_id}\n\n[Skill not found — id: {skill_id}]")
+
+    if not blocks:
+        return ""
+    return "\n\n---\n\n".join(blocks)
 
 
 def _run_preflight_gate() -> bool:
@@ -133,6 +218,7 @@ def run(
     workspace: str = typer.Option("", "--workspace", "-w", help="Use existing workspace directory (skips workspace creation)"),
     direct: bool = typer.Option(False, "--direct", "-d", help="Direct write mode: agent writes to project instead of proposals"),
     template: str = typer.Option("", "--template", "-t", help="Agent template ID from agents/library/"),
+    context_skills: str = typer.Option("", "--context-skills", "-cs", help="Comma-separated skill IDs to inject as context (e.g. 'sverchok-errors-common,sverchok-syntax-scripting')"),
     guardians: bool = typer.Option(False, "--guardians/--no-guardians", help="Trigger batch_complete guardians after spawning"),
 ):
     """Spawn an agent with a task in a new tmux window."""
@@ -146,6 +232,15 @@ def run(
         task = (system_prompt + "\n\n" + task).strip() if task else system_prompt
         if model == "claude" and tmpl.get("modelHint"):
             model = tmpl["modelHint"]
+        # Auto-inject skillRef from template if no explicit --context-skills given
+        if not context_skills and tmpl.get("skillRef"):
+            context_skills = Path(tmpl["skillRef"]).parent.name  # use skill dir name as id
+
+    if context_skills:
+        skill_block = _load_skills(context_skills)
+        if skill_block:
+            task = (task + "\n\n---\n\n" + skill_block).strip() if task else skill_block
+            console.print(f"[dim]Skills injected: {context_skills}[/dim]")
 
     if not task:
         console.print("[red]No task provided. Pass a task argument or use --template.[/red]")

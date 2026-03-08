@@ -161,6 +161,8 @@ export function LiveCanvas() {
   const selectAgent = useAgentStore(s => s.selectAgent);
   const [messageEdges, setMessageEdges] = useState<Edge[]>([]);
   const messageCache = useRef<Map<string, Message[]>>(new Map());
+  // PERF: Cap messageCache to prevent unbounded memory growth in long sessions
+  const MAX_CACHE_SIZE = 500;
 
   // Fetch messages for all agents
   useEffect(() => {
@@ -173,6 +175,11 @@ export function LiveCanvas() {
       for (const agent of agents) {
         try {
           const { messages } = await api.fetchMessages(agent.name);
+          // PERF: Evict oldest entry when cache exceeds MAX_CACHE_SIZE
+          if (messageCache.current.size >= MAX_CACHE_SIZE && !messageCache.current.has(agent.name)) {
+            const oldestKey = messageCache.current.keys().next().value;
+            if (oldestKey !== undefined) messageCache.current.delete(oldestKey);
+          }
           messageCache.current.set(agent.name, messages);
 
           // Create edges for recent messages (last 5 per agent)
