@@ -44,9 +44,9 @@
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
 **Fase 7 (Agent Library)**: █████░░░░░░░░░░░░░░░ **29%** - 293/1015 agents geïmplementeerd (10 directory-categorieën + 13 category JSON files, library loader)
 **Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond), v0.2.0 released 2026-03-02
-**Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 14 commando's, Textual TUI, pipeline orchestrator, React web UI
+**Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 21+ commando's, Textual TUI, pipeline orchestrator, React web UI; checkpoints en resume geïmplementeerd
 **Fase 10 (VS Code Bridge)**: ████████████████░░░░ **80%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator, package migratie, launch config werkend; shared types mergen, test-workspace, CLI tool integreren bij agent sprint11-finisher
-**Fase 11 (Agent Teams Patterns)**: ████░░░░░░░░░░░░░░░ **20%** - Sprint 17 gestart: foundation, task_list.py + teams.py bij sprint17-teams, messaging.py + hooks.py bij sprint17-messaging
+**Fase 11 (Agent Teams Patterns)**: ███████████░░░░░░░░░ **55%** - Sprint 17 gestart: foundation, task_list.py + teams.py bij sprint17-teams, messaging.py + hooks.py bij sprint17-messaging
 
 ---
 
@@ -298,7 +298,7 @@
 - [x] `oa run --parent` parameter — agent hiërarchie
 - [x] Live session viewing via `tmux capture-pane` in web UI en TUI
 - [x] UI beslissingen: D-048 (3 interfaces), D-049 (live viewing), D-050 (React SPA)
-- [x] Totaal 14 CLI commando's: start, run, status, dashboard, attach, watch, kill, collect, clean, pipeline, web, version, setup, delegate
+- [x] Totaal 21+ CLI commando's: start, run, status, dashboard, attach, watch, kill, collect, clean, pipeline, web, version, setup, delegate, team, task, send, inbox, broadcast, guardian, checkpoint
 
 ---
 
@@ -308,11 +308,11 @@
 
 **Doel**: Automatische reflexen die triggeren op session_end en batch_complete
 
-- [ ] guardians.py met trigger_guardian(), register_guardian(), list_guardians()
-- [ ] Session log (~/.oa/session-log.json)
-- [ ] Integratie in oa stop command
-- [ ] Templates: guardian-lessons, guardian-roadmap, guardian-handoff
-- [ ] Session-start-orchestrator template
+- [x] guardians.py met trigger_guardian(), register_guardian(), list_guardians()
+- [x] Session log (~/.oa/session-log.json)
+- [x] Integratie in oa stop command
+- [x] Templates: guardian-lessons, guardian-roadmap, guardian-handoff
+- [x] Session-start-orchestrator template
 
 ---
 
@@ -394,13 +394,13 @@
 
 **Status**: Foundation gestart, items gedelegeerd:
 
-- [ ] Shared task list (`task_list.py`) — CRUD, file locking, JSON storage in `~/.oa/tasks/<team>/` — delegate: sprint17-teams
+- [x] Shared task list (`task_list.py`) — CRUD, file locking, JSON storage in `~/.oa/tasks/<team>/` — delegate: sprint17-teams
 - [ ] Task dependencies — `blockedBy` veld, auto-unblock bij status=completed
 - [ ] Inter-agent messaging (`messaging.py`) — mailbox per agent, DM + broadcast — delegate: sprint17-messaging
-- [ ] Team config (`teams.py`) — create/list/delete, members array, `~/.oa/teams/<team>/config.json` — delegate: sprint17-teams
+- [x] Team config (`teams.py`) — create/list/delete, members array, `~/.oa/teams/<team>/config.json` — delegate: sprint17-teams
 - [ ] Graceful shutdown protocol — request/approve/reject via messaging — delegate: sprint17-messaging
 - [ ] Quality hooks (`hooks.py`) — on_idle, on_task_complete callbacks — delegate: sprint17-messaging
-- [ ] CLI commando's: `oa team`, `oa task`, `oa send`, `oa inbox`, `oa broadcast` — delegate: sprint17-teams + sprint17-messaging
+- [x] CLI commando's: `oa team`, `oa task`, `oa send`, `oa inbox`, `oa broadcast` — delegate: sprint17-teams + sprint17-messaging
 - [ ] AgentRecord uitbreiden: `team` veld, `mailbox_path`
 - [ ] Workspace CLAUDE.md template: team context meegeven aan agents
 - [ ] Tests voor task list, messaging, team management
@@ -411,9 +411,9 @@
 
 ## Sprint 18: Tauri Desktop App — Planned
 
-**Doel**: Open-Agents als installeerbare native desktop applicatie (D-052)
+**Doel**: Open-Agents als installeerbare native desktop applicatie (D-054)
 **Afhankelijk van**: Sprint 12 (oa-cli Done), Sprint 17 (Agent Teams basis)
-**Beslissingen**: D-052 (Tauri 2 architectuur), D-053 (multi-provider CLI auth)
+**Beslissingen**: D-054 (Tauri 2 architectuur), D-053 (multi-provider CLI auth)
 
 - [ ] Rust toolchain installeren + Tauri system dependencies (WSL)
 - [ ] src-tauri/ initialiseren met tauri init

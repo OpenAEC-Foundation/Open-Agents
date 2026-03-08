@@ -69,7 +69,78 @@ export async function markRead(name: string): Promise<void> {
   });
 }
 
+export async function pauseAgent(name: string): Promise<void> {
+  await fetch(`${API}/agents/${encodeURIComponent(name)}/pause`, { method: 'POST' });
+}
+
+export async function resumeAgent(name: string): Promise<void> {
+  await fetch(`${API}/agents/${encodeURIComponent(name)}/resume`, { method: 'POST' });
+}
+
+export async function fetchPipelines(): Promise<Agent[]> {
+  const res = await fetch(`${API}/pipeline`);
+  return res.json();
+}
+
+// --- Teams ---
+
+export async function fetchTeams(): Promise<unknown> {
+  const res = await fetch(`${API}/teams`);
+  return res.json();
+}
+
+export async function createTeam(name: string, members: string[]): Promise<unknown> {
+  const res = await fetch(`${API}/teams`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, members }),
+  });
+  return res.json();
+}
+
+// --- Tasks ---
+
+export async function fetchTasks(team: string): Promise<unknown> {
+  const res = await fetch(`${API}/tasks/${encodeURIComponent(team)}`);
+  return res.json();
+}
+
+export async function createTask(team: string, task: object): Promise<unknown> {
+  const res = await fetch(`${API}/tasks/${encodeURIComponent(team)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(task),
+  });
+  return res.json();
+}
+
+export async function updateTask(team: string, taskId: string, update: object): Promise<unknown> {
+  const res = await fetch(`${API}/tasks/${encodeURIComponent(team)}/${encodeURIComponent(taskId)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(update),
+  });
+  return res.json();
+}
+
+// --- Checkpoints ---
+
+export async function fetchCheckpoints(): Promise<unknown> {
+  const res = await fetch(`${API}/checkpoints`);
+  return res.json();
+}
+
+export async function resumeFromCheckpoint(agent: string): Promise<unknown> {
+  const res = await fetch(`${API}/resume/${encodeURIComponent(agent)}`, { method: 'POST' });
+  return res.json();
+}
+
 // --- Guardians ---
+
+export async function fetchGuardians(): Promise<unknown> {
+  const res = await fetch(`${API}/guardians`);
+  return res.json();
+}
 
 export async function triggerGuardian(name: string): Promise<{ triggered: string[] }> {
   const res = await fetch(`${API}/guardians/trigger`, {
@@ -101,4 +172,11 @@ export async function fetchTemplates(): Promise<BackendTemplate[]> {
     throw new Error(`GET /api/templates failed: ${res.status}`);
   }
   return res.json() as Promise<BackendTemplate[]>;
+}
+
+// --- Session ---
+
+export async function fetchSessionStatus(): Promise<unknown> {
+  const res = await fetch(`${API}/session/status`);
+  return res.json();
 }

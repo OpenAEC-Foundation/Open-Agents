@@ -192,7 +192,7 @@ jobs:
       - name: Cache Rust build artifacts
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: oa-cli/src-tauri -> target
+          workspaces: oa-cli/web/src-tauri -> target
 
       # ── Node.js dependency cache ──────────────────────────────
       - name: Cache pnpm store
@@ -215,12 +215,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
-          path: oa-cli/src-tauri/binaries/
+          path: oa-cli/web/src-tauri/binaries/
 
       # ── Ensure sidecar binary is executable (Linux/macOS) ─────
       - name: Make sidecar binary executable
         if: runner.os != 'Windows'
-        run: chmod +x oa-cli/src-tauri/binaries/${{ matrix.binary-name }}
+        run: chmod +x oa-cli/web/src-tauri/binaries/${{ matrix.binary-name }}
 
       # ── Build and publish release with tauri-action ───────────
       # tauri-action handles:

@@ -527,6 +527,16 @@ def _agent_to_dict(rec) -> dict:
         "created_at": rec.created_at,
         "finished_at": rec.finished_at,
         "unread_messages": unread_count(rec.name),
+        "pid": getattr(rec, "pid", None),
+        "output_file": getattr(rec, "output_file", None),
+        "depth": getattr(rec, "depth", 0),
+        "lineage": getattr(rec, "lineage", []),
+        "task_hash": getattr(rec, "task_hash", ""),
+        "max_children": getattr(rec, "max_children", 10),
+        "shared_results_dir": getattr(rec, "shared_results_dir", None),
+        "last_activity": getattr(rec, "last_activity", 0.0),
+        "auto_cleanup_minutes": getattr(rec, "auto_cleanup_minutes", 20),
+        "project_root": getattr(rec, "project_root", None),
     }
 
 
