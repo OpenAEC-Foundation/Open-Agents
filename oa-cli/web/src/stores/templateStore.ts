@@ -20,7 +20,10 @@ const STORAGE_KEY = 'oa-templates';
 function loadFromStorage(): Template[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : getDefaultTemplates();
+    const stored: Template[] = raw ? JSON.parse(raw) : [];
+    const coreIds = new Set(getCoreAgentTemplates().map((t) => t.id));
+    const userTemplates = stored.filter((t) => !coreIds.has(t.id));
+    return [...getCoreAgentTemplates(), ...userTemplates];
   } catch {
     return getDefaultTemplates();
   }
@@ -30,8 +33,94 @@ function saveToStorage(templates: Template[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
 }
 
+function getCoreAgentTemplates(): Template[] {
+  return [
+    {
+      id: 'core-researcher',
+      name: 'Researcher',
+      description: 'Research a topic in depth and produce a structured report with key findings, sources, and recommendations.',
+      category: 'Research',
+      systemPrompt: 'Research the following topic in depth and produce a structured report with key findings, sources, and recommendations:\n\n[Topic here]',
+      modelHint: 'claude/sonnet',
+      nodes: [
+        { id: 'n1', type: 'trigger', position: { x: 100, y: 200 }, data: { triggerType: 'manual' } },
+        { id: 'n2', type: 'agent', position: { x: 350, y: 200 }, data: { model: 'claude/sonnet', task: 'Research the following topic in depth and produce a structured report with key findings, sources, and recommendations:\n\n[Topic here]' } },
+        { id: 'n3', type: 'output', position: { x: 600, y: 200 }, data: { outputType: 'file' } },
+      ],
+      edges: [
+        { id: 'e1', source: 'n1', target: 'n2' },
+        { id: 'e2', source: 'n2', target: 'n3' },
+      ],
+      config: {},
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+    {
+      id: 'core-developer',
+      name: 'Developer',
+      description: 'Implement a feature or fix. Reads relevant files first, then writes clean, well-structured code.',
+      category: 'Development',
+      systemPrompt: 'Implement the following feature/fix. Read relevant files first, then write clean, well-structured code:\n\n[Task here]',
+      modelHint: 'claude/sonnet',
+      nodes: [
+        { id: 'n1', type: 'trigger', position: { x: 100, y: 200 }, data: { triggerType: 'manual' } },
+        { id: 'n2', type: 'agent', position: { x: 350, y: 200 }, data: { model: 'claude/sonnet', task: 'Implement the following feature/fix. Read relevant files first, then write clean, well-structured code:\n\n[Task here]' } },
+        { id: 'n3', type: 'output', position: { x: 600, y: 200 }, data: { outputType: 'merge' } },
+      ],
+      edges: [
+        { id: 'e1', source: 'n1', target: 'n2' },
+        { id: 'e2', source: 'n2', target: 'n3' },
+      ],
+      config: {},
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+    {
+      id: 'core-reviewer',
+      name: 'Reviewer',
+      description: 'Review code or a document for quality, correctness, and improvements with actionable feedback.',
+      category: 'Quality',
+      systemPrompt: 'Review the following code or document for quality, correctness, and improvements. Provide actionable feedback:\n\n[File or content here]',
+      modelHint: 'claude/sonnet',
+      nodes: [
+        { id: 'n1', type: 'trigger', position: { x: 100, y: 200 }, data: { triggerType: 'manual' } },
+        { id: 'n2', type: 'agent', position: { x: 350, y: 200 }, data: { model: 'claude/sonnet', task: 'Review the following code or document for quality, correctness, and improvements. Provide actionable feedback:\n\n[File or content here]' } },
+        { id: 'n3', type: 'output', position: { x: 600, y: 200 }, data: { outputType: 'merge' } },
+      ],
+      edges: [
+        { id: 'e1', source: 'n1', target: 'n2' },
+        { id: 'e2', source: 'n2', target: 'n3' },
+      ],
+      config: {},
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+    {
+      id: 'core-analyzer',
+      name: 'Analyzer',
+      description: 'Analyze data, logs, or a codebase and provide a structured breakdown of patterns, issues, and insights.',
+      category: 'Analysis',
+      systemPrompt: 'Analyze the following data, logs, or codebase and provide a structured breakdown of patterns, issues, and insights:\n\n[Input here]',
+      modelHint: 'claude/haiku',
+      nodes: [
+        { id: 'n1', type: 'trigger', position: { x: 100, y: 200 }, data: { triggerType: 'manual' } },
+        { id: 'n2', type: 'agent', position: { x: 350, y: 200 }, data: { model: 'claude/haiku', task: 'Analyze the following data, logs, or codebase and provide a structured breakdown of patterns, issues, and insights:\n\n[Input here]' } },
+        { id: 'n3', type: 'output', position: { x: 600, y: 200 }, data: { outputType: 'file' } },
+      ],
+      edges: [
+        { id: 'e1', source: 'n1', target: 'n2' },
+        { id: 'e2', source: 'n2', target: 'n3' },
+      ],
+      config: {},
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    },
+  ];
+}
+
 function getDefaultTemplates(): Template[] {
   return [
+    ...getCoreAgentTemplates(),
     {
       id: 'tpl-code-review',
       name: 'Code Review',

@@ -74,6 +74,8 @@ export interface Template {
   name: string;
   description: string;
   category: string;
+  systemPrompt?: string;
+  modelHint?: string;
   nodes: FlowNodeData[];
   edges: FlowEdgeData[];
   config: Record<string, unknown>;

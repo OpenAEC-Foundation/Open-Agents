@@ -84,7 +84,14 @@ def api_list_agents():
             check_agent(rec.name)
     # Reload once after all status updates (state.py cache makes this cheap)
     agents = list_agents()
-    result = [_agent_to_dict(rec) for rec in agents]
+    result = []
+    for rec in agents:
+        d = _agent_to_dict(rec)
+        if rec.status == "running":
+            d["live_output"] = capture_agent_output(rec.tmux_window, lines=20)
+        else:
+            d["live_output"] = read_output(rec.workspace)
+        result.append(d)
     _agents_result_cache = result
     _agents_result_cache_ts = now
     return jsonify(result)
@@ -280,6 +287,46 @@ def api_list_pipelines():
 def api_run_agent():
     """Alias for /api/agents POST — spawn an agent via /api/run."""
     return api_spawn_agent()
+
+
+@app.route("/api/spawn", methods=["POST"])
+def api_spawn_alias():
+    """Alias for /api/agents POST — spawn an agent via /api/spawn."""
+    return api_spawn_agent()
+
+
+@app.route("/api/agents/<name>", methods=["DELETE"])
+def api_delete_agent(name: str):
+    """Delete/kill an agent via DELETE /api/agents/:name."""
+    success = kill_agent(name)
+    if success:
+        return jsonify({"status": "killed", "name": name})
+    return jsonify({"error": f"Agent '{name}' not found"}), 404
+
+
+@app.route("/api/agents/<name>/messages")
+def api_agent_messages_get(name: str):
+    """Get messages for an agent via /api/agents/:name/messages."""
+    unread_only = request.args.get("unread", "false").lower() == "true"
+    limit = request.args.get("limit", 50, type=int)
+    messages = read_inbox(name, unread_only=unread_only, limit=limit)
+    for msg in messages:
+        msg.pop("_file", None)
+    return jsonify({"agent": name, "messages": messages, "unread": unread_count(name)})
+
+
+@app.route("/api/agents/<name>/messages", methods=["POST"])
+def api_agent_messages_post(name: str):
+    """Send a message to an agent via /api/agents/:name/messages."""
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Missing JSON body"}), 400
+    sender = data.get("from", "user")
+    content = data.get("content")
+    if not content:
+        return jsonify({"error": "Missing 'content' field"}), 400
+    send_message(sender, name, content)
+    return jsonify({"status": "sent", "from": sender, "to": name}), 201
 
 
 # --- Messaging endpoints ---

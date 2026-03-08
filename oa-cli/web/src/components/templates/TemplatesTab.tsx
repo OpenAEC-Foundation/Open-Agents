@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useTemplateStore } from '../../stores/templateStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useAgentStore } from '../../stores/agentStore';
 import { TemplateCard } from './TemplateCard';
 import type { Template } from '../../types';
 
@@ -14,16 +15,38 @@ export function TemplatesTab() {
   const deleteTemplate = useTemplateStore((s) => s.deleteTemplate);
   const filtered = useTemplateStore((s) => s.getFiltered)();
   const setMainTab = useUIStore((s) => s.setMainTab);
+  const setPrefilledTask = useUIStore((s) => s.setPrefilledTask);
+  const spawnAgent = useAgentStore((s) => s.spawnAgent);
 
   useEffect(() => {
     loadTemplates();
   }, [loadTemplates]);
 
-  const categories = ['all', 'Quality', 'Development', 'Documentation', 'Security'];
+  const categories = ['all', 'Research', 'Development', 'Documentation', 'Quality', 'Analysis', 'Security'];
 
-  const handleUse = (_template: Template) => {
-    // Navigate to builder tab and load template
-    setMainTab('builder');
+  const getTaskFromTemplate = (template: Template): string => {
+    if (template.systemPrompt) return template.systemPrompt;
+    const agentNode = template.nodes.find((n) => n.type === 'agent');
+    return agentNode ? String(agentNode.data.task ?? '') : template.description;
+  };
+
+  const getModelFromTemplate = (template: Template): string => {
+    if (template.modelHint) return template.modelHint;
+    const agentNode = template.nodes.find((n) => n.type === 'agent');
+    return agentNode ? String(agentNode.data.model ?? 'claude/sonnet') : 'claude/sonnet';
+  };
+
+  const handleUse = (template: Template) => {
+    setPrefilledTask(getTaskFromTemplate(template), getModelFromTemplate(template));
+    setMainTab('dashboard');
+  };
+
+  const handleSpawn = async (template: Template) => {
+    await spawnAgent({
+      task: getTaskFromTemplate(template),
+      model: getModelFromTemplate(template),
+    });
+    setMainTab('dashboard');
   };
 
   return (
@@ -66,6 +89,7 @@ export function TemplatesTab() {
                 key={template.id}
                 template={template}
                 onUse={handleUse}
+                onSpawn={handleSpawn}
                 onDuplicate={duplicateTemplate}
                 onDelete={deleteTemplate}
               />
