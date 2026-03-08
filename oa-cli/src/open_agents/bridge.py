@@ -19,7 +19,7 @@ from .tmux import session_exists, start_session
 from .state import get_agent, list_agents, update_agent
 from .utils import generate_agent_name
 from .workspace import read_output
-from .guardians import list_guardians, SESSION_LOG_PATH
+from .guardians import list_guardians, trigger_guardian, SESSION_LOG_PATH
 
 try:
     from .teams import create_team, get_team, list_teams
@@ -263,6 +263,23 @@ def api_list_guardians():
         g["last_triggered"] = last_triggered.get(g["name"])
 
     return jsonify(guardians)
+
+
+@app.route("/api/guardians/trigger", methods=["POST"])
+def api_trigger_guardian():
+    """Manually trigger a specific guardian by name."""
+    data = request.get_json() or {}
+    event = data.get("event", "manual_trigger")
+    guardian = data.get("guardian")
+
+    if not guardian:
+        return jsonify({"error": "Missing 'guardian' field"}), 400
+
+    triggered = trigger_guardian(event, guardian_name=guardian)
+    if not triggered:
+        return jsonify({"error": f"Guardian '{guardian}' not found"}), 404
+
+    return jsonify({"triggered": triggered})
 
 
 @app.route("/api/health")

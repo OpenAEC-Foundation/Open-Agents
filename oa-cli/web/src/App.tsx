@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAgentStore } from './stores/agentStore';
 import { useUIStore } from './stores/uiStore';
 import { Header } from './components/layout/Header';
@@ -8,8 +8,10 @@ import { BuilderTab } from './components/builder/BuilderTab';
 import { TemplatesTab } from './components/templates/TemplatesTab';
 import { ContextTab } from './components/context/ContextTab';
 import { SettingsTab } from './components/settings/SettingsTab';
+import Onboarding from './components/Onboarding';
 
 export default function App() {
+  const [onboarded, setOnboarded] = useState(() => !!localStorage.getItem('oa_onboarded'));
   const activeMainTab = useUIStore((s) => s.activeMainTab);
   const fetchAgents = useAgentStore((s) => s.fetchAgents);
 
@@ -19,6 +21,10 @@ export default function App() {
     const interval = setInterval(fetchAgents, 2000);
     return () => clearInterval(interval);
   }, [fetchAgents]);
+
+  if (!onboarded) {
+    return <Onboarding onComplete={() => setOnboarded(true)} />;
+  }
 
   return (
     <div className="flex flex-col h-screen bg-oa-bg text-oa-text font-sans">

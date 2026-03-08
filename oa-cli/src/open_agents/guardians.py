@@ -89,15 +89,19 @@ def log_event(event_type: str, metadata: dict | None = None) -> None:
     SESSION_LOG_PATH.write_text(json.dumps(log, indent=2))
 
 
-def trigger_guardian(event_type: str) -> list[str]:
+def trigger_guardian(event_type: str, guardian_name: str | None = None) -> list[str]:
     """Spawn all guardians registered for the given event_type via oa run.
 
+    If guardian_name is provided, only that guardian is triggered (regardless of event_type match).
     Returns list of guardian names that were triggered.
     """
     triggered = []
 
     for name, config in GUARDIANS.items():
-        if config.get("trigger") != event_type:
+        if guardian_name is not None:
+            if name != guardian_name:
+                continue
+        elif config.get("trigger") != event_type:
             continue
 
         model = config.get("model", "claude/sonnet")

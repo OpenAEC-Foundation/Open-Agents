@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { fetchTemplates, type BackendTemplate } from '../api/client';
 import type { Template } from '../types';
 
 interface TemplateStore {
@@ -238,13 +239,56 @@ function getDefaultTemplates(): Template[] {
   ];
 }
 
+function mapBackendTemplate(bt: BackendTemplate): Template {
+  const now = Date.now();
+  return {
+    id: bt.id,
+    name: bt.name,
+    description: bt.description,
+    category: bt.category,
+    systemPrompt: bt.systemPrompt,
+    modelHint: bt.modelHint,
+    nodes: [
+      { id: 'n1', type: 'trigger', position: { x: 100, y: 200 }, data: { triggerType: 'manual' } },
+      { id: 'n2', type: 'agent', position: { x: 350, y: 200 }, data: { model: bt.modelHint, task: bt.systemPrompt } },
+      { id: 'n3', type: 'output', position: { x: 600, y: 200 }, data: { outputType: 'file' } },
+    ],
+    edges: [
+      { id: 'e1', source: 'n1', target: 'n2' },
+      { id: 'e2', source: 'n2', target: 'n3' },
+    ],
+    config: {},
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
 export const useTemplateStore = create<TemplateStore>((set, get) => ({
   templates: [],
   searchQuery: '',
   selectedCategory: 'all',
 
-  loadTemplates: () => {
-    set({ templates: loadFromStorage() });
+  loadTemplates: async () => {
+    try {
+      const backendTemplates = await fetchTemplates();
+      const apiTemplates = backendTemplates.map(mapBackendTemplate);
+      const apiIds = new Set(apiTemplates.map((t) => t.id));
+
+      // Merge: API templates take precedence; keep user localStorage templates not in API set
+      let raw: Template[] = [];
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        raw = stored ? (JSON.parse(stored) as Template[]) : [];
+      } catch {
+        // ignore
+      }
+      const coreIds = new Set(getCoreAgentTemplates().map((t) => t.id));
+      const userTemplates = raw.filter((t) => !coreIds.has(t.id) && !apiIds.has(t.id));
+      set({ templates: [...apiTemplates, ...userTemplates] });
+    } catch {
+      // Bridge down or endpoint not implemented — fall back to local storage + defaults
+      set({ templates: loadFromStorage() });
+    }
   },
 
   saveTemplate: (template) => {

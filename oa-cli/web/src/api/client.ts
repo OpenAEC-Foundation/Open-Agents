@@ -68,3 +68,22 @@ export async function markRead(name: string): Promise<void> {
     method: 'POST',
   });
 }
+
+// --- Templates ---
+
+export interface BackendTemplate {
+  id: string;
+  name: string;
+  description: string;
+  systemPrompt: string;
+  modelHint: string;
+  category: string;
+}
+
+export async function fetchTemplates(): Promise<BackendTemplate[]> {
+  const res = await fetch(`${API}/templates`);
+  if (!res.ok) {
+    throw new Error(`GET /api/templates failed: ${res.status}`);
+  }
+  return res.json() as Promise<BackendTemplate[]>;
+}
