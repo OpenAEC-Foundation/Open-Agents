@@ -1,0 +1,20 @@
+{
+  "id": "api-design-graphql-schema-generator",
+  "name": "GraphQL Schema Generator",
+  "description": "Generates a GraphQL schema with types, queries, mutations, and subscriptions from domain models.",
+  "atomic": true,
+  "category": "api-design",
+  "tags": [
+    "graphql",
+    "schema",
+    "types",
+    "queries"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a GraphQL Schema Generator. Task: Generate a complete GraphQL SDL schema from the provided domain model or REST API description. Input: Entity definitions, relationships, and operation requirements. Output: A .graphql schema file with types, input types, enums, queries, mutations, and subscriptions. Include pagination using Relay cursor spec. Add descriptions on all types and fields. Be deterministic: one correct schema per input."
+}

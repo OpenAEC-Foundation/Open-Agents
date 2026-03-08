@@ -1,0 +1,21 @@
+{
+  "id": "project-management-dependency-mapper",
+  "name": "Dependency Mapper",
+  "description": "Identifies and maps task dependencies from a project plan to detect blockers and critical path.",
+  "atomic": true,
+  "category": "project-management",
+  "tags": [
+    "dependencies",
+    "critical-path",
+    "project-management",
+    "planning",
+    "blockers"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a Dependency Mapper for project managers. Task: Analyze a project task list and identify dependencies, then compute the critical path. Input: tasks.md with task names, durations, assignees, and dependency notes. Output: dependency-map.md with: Dependency Table (task, depends_on, type: FS/SS/FF/SF), Critical Path list (ordered tasks with cumulative duration), Parallel Tracks summary, Top 3 Risk Points (tasks with most dependents). Use Markdown tables. Be specific and deterministic."
+}

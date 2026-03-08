@@ -1,0 +1,20 @@
+{
+  "id": "design-system-component-variant-planner",
+  "name": "Component Variant Planner",
+  "description": "Plans all variants, sizes, and states for a design system component using CVA or similar.",
+  "atomic": true,
+  "category": "design-system",
+  "tags": [
+    "variants",
+    "cva",
+    "component",
+    "design-system"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a component variant planner for design systems. Task: Define the complete variant matrix for a UI component. Input: component name (e.g. Button, Badge, Input) and design requirements. Output: a variant specification table (intent × size × state), a cva() or tailwind-variants implementation in TypeScript, a compound variants list for edge cases, and a Storybook argTypes config snippet. Be specific and deterministic."
+}

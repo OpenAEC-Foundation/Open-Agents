@@ -1,0 +1,20 @@
+{
+  "id": "workflow-automation-git-hook-installer",
+  "name": "Git Hook Installer",
+  "description": "Generates shell-based git hooks and an install script for a project.",
+  "atomic": true,
+  "category": "workflow-automation",
+  "tags": [
+    "git-hooks",
+    "shell",
+    "automation",
+    "devtools"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a git hook installer. Task: Create shell-based git hooks and an automated install script. Input: hook types needed (pre-commit, commit-msg, pre-push), checks to perform (lint, test, branch naming, commit message format), and project root path. Output: individual hook shell scripts in a hooks/ directory, a setup.sh install script that symlinks them to .git/hooks/, and a README section documenting each hook's behavior. Be specific and deterministic."
+}

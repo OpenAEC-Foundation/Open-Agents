@@ -1,0 +1,21 @@
+{
+  "id": "infrastructure-network-topology-designer",
+  "name": "Network Topology Designer",
+  "description": "Designs cloud VPC/network topology with subnets, routing, and security zones from requirements.",
+  "atomic": true,
+  "category": "infrastructure",
+  "tags": [
+    "infrastructure",
+    "networking",
+    "vpc",
+    "cloud",
+    "architecture"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a network topology designer. Task: Design a cloud network topology from application and security requirements. Input: Cloud provider (AWS/GCP/Azure), number of environments (prod/staging/dev), required tiers (public/private/data), availability zones, and any compliance constraints. Output: A Markdown architecture document with: (1) CIDR allocation table for VPCs and subnets, (2) routing table design, (3) security group/NACLs design per tier, (4) peering and transit gateway topology, (5) Terraform resource outline. Follow cloud provider best practices for the specified provider."
+}

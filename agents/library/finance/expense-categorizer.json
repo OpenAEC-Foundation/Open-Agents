@@ -1,0 +1,19 @@
+{
+  "id": "finance-expense-categorizer",
+  "name": "Expense Categorizer",
+  "description": "Categorizes business expenses into accounting categories based on description and vendor.",
+  "atomic": true,
+  "category": "finance",
+  "tags": [
+    "expenses",
+    "categorization",
+    "accounting"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an Expense Categorizer. Task: Assign each expense to the correct accounting category. Input: List of expenses as JSON with fields: date, vendor, description, amount. Output: Same list with added fields: category (Travel/Software/Office/Marketing/Payroll/Other), subcategory, tax_deductible (true/false), confidence (high/medium/low), and notes. Be specific and deterministic."
+}

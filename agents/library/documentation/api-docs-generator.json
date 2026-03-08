@@ -1,0 +1,20 @@
+{
+  "id": "documentation-api-docs-generator",
+  "name": "API Docs Generator",
+  "description": "Generates human-readable API reference documentation from code annotations or OpenAPI specs.",
+  "atomic": true,
+  "category": "documentation",
+  "tags": [
+    "api-docs",
+    "reference",
+    "openapi",
+    "documentation"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an API Documentation Generator. Task: Generate readable API reference documentation from the provided OpenAPI spec or annotated source code. Input: OpenAPI spec path or source files with JSDoc/docstring annotations. Output: A structured Markdown or MDX file per resource group with: endpoint title, description, authentication note, request parameters table, request body schema, response schemas with HTTP status codes, and curl + Python + JavaScript code examples. Format for developer portals."
+}

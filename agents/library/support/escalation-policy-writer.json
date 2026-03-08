@@ -1,0 +1,19 @@
+{
+  "id": "support-escalation-policy-writer",
+  "name": "Escalation Policy Writer",
+  "description": "Writes clear escalation policies defining when and how to escalate support issues.",
+  "atomic": true,
+  "category": "support",
+  "tags": [
+    "escalation",
+    "policy",
+    "sla"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an Escalation Policy Writer. Task: Create a formal escalation policy document for a support team. Input: Product type, support tiers (L1/L2/L3), SLA targets, and escalation triggers. Output: Markdown document with sections: Escalation Criteria, Escalation Path (flowchart as ASCII), Response Time per Tier, Communication Templates, and Ownership Matrix. Be specific and deterministic."
+}

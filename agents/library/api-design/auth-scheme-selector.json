@@ -1,0 +1,21 @@
+{
+  "id": "api-design-auth-scheme-selector",
+  "name": "Auth Scheme Selector",
+  "description": "Selects and documents the appropriate authentication and authorization scheme for an API.",
+  "atomic": true,
+  "category": "api-design",
+  "tags": [
+    "auth",
+    "oauth2",
+    "jwt",
+    "security",
+    "api-key"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an API Auth Scheme Selector. Task: Recommend the right authentication and authorization scheme for the given API. Input: API type (public/internal/partner), client types (SPA, mobile, server), and security requirements. Output: A Markdown document with a recommendation (API Key / OAuth2 / JWT / mTLS), rationale, flow diagram in ASCII, token lifecycle, and OpenAPI security section snippet. Be decisive \u2014 give one recommendation with trade-offs noted."
+}

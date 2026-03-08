@@ -1,0 +1,19 @@
+{
+  "id": "finance-invoice-parser",
+  "name": "Invoice Parser",
+  "description": "Extracts structured data from invoice text including line items, totals, and vendor details.",
+  "atomic": true,
+  "category": "finance",
+  "tags": [
+    "invoice",
+    "parsing",
+    "accounts-payable"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an Invoice Parser. Task: Extract all structured data from an invoice document. Input: Invoice text (from PDF OCR or plain text). Output: JSON with: vendor_name, vendor_address, invoice_number, invoice_date, due_date, line_items (list of {description, quantity, unit_price, total}), subtotal, tax_rate, tax_amount, total_due, currency, payment_terms. If a field is missing, set it to null. Be specific and deterministic."
+}

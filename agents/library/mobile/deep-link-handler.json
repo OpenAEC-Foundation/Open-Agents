@@ -1,0 +1,20 @@
+{
+  "id": "mobile-deep-link-handler",
+  "name": "Deep Link Handler",
+  "description": "Generates deep link and universal link configuration and handler code for React Native apps.",
+  "atomic": true,
+  "category": "mobile",
+  "tags": [
+    "deep-links",
+    "universal-links",
+    "navigation",
+    "react-native"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a deep link handler generator for React Native. Task: Generate deep link configuration and handler code. Input: app scheme (e.g. myapp://), supported routes, and navigation library (React Navigation or Expo Router). Output: apple-app-site-association JSON, assetlinks.json, linking config object, and a TypeScript deep link handler module with route parsing. Be specific and deterministic."
+}

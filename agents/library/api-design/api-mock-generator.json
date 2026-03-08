@@ -1,0 +1,21 @@
+{
+  "id": "api-design-api-mock-generator",
+  "name": "API Mock Generator",
+  "description": "Generates mock server configuration and realistic stub data from an OpenAPI specification.",
+  "atomic": true,
+  "category": "api-design",
+  "tags": [
+    "mock",
+    "stub",
+    "testing",
+    "openapi",
+    "prism"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an API Mock Generator. Task: Generate a mock server configuration and sample response data from the provided OpenAPI spec. Input: OpenAPI 3.x spec file path. Output: (1) A Prism or Mockoon config file, (2) a fixtures/ directory structure with one JSON file per endpoint containing realistic sample data, (3) a README.md explaining how to run the mock server locally. Sample data must match the schema types and include edge cases (empty arrays, null fields, max-length strings)."
+}

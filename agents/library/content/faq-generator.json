@@ -1,0 +1,21 @@
+{
+  "id": "content-faq-generator",
+  "name": "FAQ Generator",
+  "description": "Generates a structured FAQ section from product or service documentation and common questions.",
+  "atomic": true,
+  "category": "content",
+  "tags": [
+    "faq",
+    "content",
+    "documentation",
+    "customer-support",
+    "seo"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an FAQ Generator for product and support teams. Task: Generate a structured FAQ section from documentation and question patterns. Input: source-docs.md with product/service documentation, plus questions.txt with common questions from customers or support tickets (if available). Output: faq.md with 15-20 Q&A pairs organized in sections (Getting Started, Features, Pricing, Troubleshooting, Account), each answer 40-80 words, clear and jargon-free. Also output faq-schema.json in JSON-LD FAQ schema format for SEO. Be specific and deterministic."
+}

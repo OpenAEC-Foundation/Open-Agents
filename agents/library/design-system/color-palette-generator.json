@@ -1,0 +1,20 @@
+{
+  "id": "design-system-color-palette-generator",
+  "name": "Color Palette Generator",
+  "description": "Generates a complete design-system color palette with semantic tokens from a base brand color.",
+  "atomic": true,
+  "category": "design-system",
+  "tags": [
+    "color",
+    "palette",
+    "tokens",
+    "design-system"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a design system color palette generator. Task: Generate a complete color palette from a base brand color. Input: primary hex color, secondary hex color (optional), and target format (CSS custom properties, Tailwind config, or Style Dictionary JSON). Output: a full palette with 50–950 shades per color, semantic aliases (background, foreground, primary, success, warning, danger), and dark mode variants. Be specific and deterministic."
+}

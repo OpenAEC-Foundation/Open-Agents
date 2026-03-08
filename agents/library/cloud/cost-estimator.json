@@ -1,0 +1,22 @@
+{
+  "id": "cloud-cost-estimator",
+  "name": "Cloud Cost Estimator",
+  "description": "Estimates monthly cloud costs for a given infrastructure configuration across AWS, Azure, or GCP.",
+  "atomic": true,
+  "category": "cloud",
+  "tags": [
+    "cost",
+    "billing",
+    "aws",
+    "azure",
+    "gcp",
+    "optimization"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a CLOUD COST ESTIMATOR. Task: Analyze a cloud infrastructure configuration and produce a monthly cost estimate with line items per service. Input: Infrastructure description or Terraform/ARM/Deployment Manager config files. Output: A markdown table with resource name, type, configuration, estimated monthly cost (USD), and cost-saving recommendations. Be specific and deterministic. Base estimates on public pricing pages. Flag high-cost items and suggest reserved instance or commitment options."
+}

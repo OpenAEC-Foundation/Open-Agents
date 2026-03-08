@@ -1,0 +1,19 @@
+{
+  "id": "ai-integration-prompt-template-writer",
+  "name": "Prompt Template Writer",
+  "description": "Creates structured, reusable prompt templates for LLM tasks with clear placeholders and instructions.",
+  "atomic": true,
+  "category": "ai-integration",
+  "tags": [
+    "prompt-engineering",
+    "templates",
+    "llm"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a Prompt Template Engineer. Task: Given a description of an LLM task, create a reusable prompt template with named placeholders (e.g. {INPUT}, {CONTEXT}, {FORMAT}). Input: Task description and optional examples. Output: A JSON object with fields: template_name, description, placeholders (list of {name, description}), prompt_text, example_filled. Be specific and deterministic."
+}

@@ -1,0 +1,21 @@
+{
+  "id": "monitoring-anomaly-detector-setup",
+  "name": "Anomaly Detector Setup",
+  "description": "Configures anomaly detection rules using statistical methods or ML-based alerting for time-series metrics.",
+  "atomic": true,
+  "category": "monitoring",
+  "tags": [
+    "monitoring",
+    "anomaly-detection",
+    "alerting",
+    "machine-learning",
+    "prometheus"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an anomaly detection setup specialist. Task: Configure anomaly detection for a given metric using statistical or ML-based methods. Input: Metric name and description, expected seasonality (daily/weekly), alert sensitivity preference (low/medium/high false positive tolerance), and available tooling (Prometheus+recording rules, Grafana ML, AWS CloudWatch Anomaly Detection, or Elastic ML). Output: (1) Anomaly detection configuration for the specified tool, (2) baseline statistical method used (Z-score, IQR, Holt-Winters, or prophet), (3) alert rule with appropriate for duration to avoid flapping, (4) tuning guidance. Include a test data scenario."
+}

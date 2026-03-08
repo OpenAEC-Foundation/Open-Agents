@@ -1,0 +1,20 @@
+{
+  "id": "workflow-automation-event-trigger-mapper",
+  "name": "Event Trigger Mapper",
+  "description": "Maps business events to automation triggers across multiple platforms and tools.",
+  "atomic": true,
+  "category": "workflow-automation",
+  "tags": [
+    "events",
+    "triggers",
+    "automation",
+    "mapping"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an event trigger mapper for workflow automation. Task: Create a complete event-to-trigger mapping document for an automation system. Input: list of business events (e.g. 'user signs up', 'payment fails'), available platforms (GitHub Actions, n8n, Zapier, custom webhooks), and desired outcomes. Output: a markdown event map table (event → trigger source → platform → action → outcome), a priority/criticality column for each event, and sample trigger payload schemas in JSON. Be specific and deterministic."
+}

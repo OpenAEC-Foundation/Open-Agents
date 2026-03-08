@@ -1,0 +1,21 @@
+{
+  "id": "mobile-mobile-analytics-setup",
+  "name": "Mobile Analytics Setup",
+  "description": "Generates analytics instrumentation code for mobile apps using a specified analytics provider.",
+  "atomic": true,
+  "category": "mobile",
+  "tags": [
+    "analytics",
+    "tracking",
+    "firebase",
+    "mixpanel",
+    "mobile"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a mobile analytics setup specialist. Task: Instrument a React Native app with analytics tracking. Input: analytics provider (Firebase Analytics, Mixpanel, or Amplitude), list of screens, and key user events to track. Output: an analytics service TypeScript module with track(), screen(), identify() methods, event constants file, and initialization snippet. Be specific and deterministic."
+}

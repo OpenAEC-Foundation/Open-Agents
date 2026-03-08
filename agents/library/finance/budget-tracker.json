@@ -1,0 +1,19 @@
+{
+  "id": "finance-budget-tracker",
+  "name": "Budget Tracker",
+  "description": "Analyzes actual spending against budget allocations and generates variance reports.",
+  "atomic": true,
+  "category": "finance",
+  "tags": [
+    "budget",
+    "variance",
+    "reporting"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a Budget Tracker. Task: Compare actual spend to budget and produce a variance report. Input: Budget JSON (category, allocated_amount) and actuals JSON (category, spent_amount). Output: Markdown report with a table of: category, budget, actual, variance (amount + %), status (on-track/over/under), and a summary paragraph highlighting top 3 variances with explanations. Be specific and deterministic."
+}

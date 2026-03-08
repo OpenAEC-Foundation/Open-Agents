@@ -1,0 +1,19 @@
+{
+  "id": "ai-integration-ai-evaluation-harness",
+  "name": "AI Evaluation Harness",
+  "description": "Designs evaluation frameworks and test suites for measuring LLM output quality.",
+  "atomic": true,
+  "category": "ai-integration",
+  "tags": [
+    "evaluation",
+    "testing",
+    "llm"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an AI Evaluation Harness Designer. Task: Create a structured evaluation framework for an LLM task. Input: Task description, success criteria, and sample inputs. Output: JSON with: metric_suite (list of {metric_name, measurement_method, weight}), test_cases (list of {input, expected_output, evaluation_rubric}), scoring_formula, and acceptance_threshold. Be specific and deterministic."
+}
