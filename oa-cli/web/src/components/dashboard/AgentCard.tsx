@@ -8,40 +8,55 @@ interface AgentCardProps {
   onSelect: (name: string) => void;
 }
 
+const STATUS_COLORS: Record<string, string> = {
+  running: 'var(--color-status-running)',
+  done: 'var(--color-status-done)',
+  error: 'var(--color-status-failed)',
+  failed: 'var(--color-status-failed)',
+  timeout: 'var(--color-status-timeout)',
+  killed: 'var(--color-status-killed)',
+};
+
 export const AgentCard = memo(function AgentCard({ agent, selected, onSelect }: AgentCardProps) {
   const isRunning = agent.status === 'running';
   const [, setTick] = useState(0);
 
   useEffect(() => {
     if (!isRunning) return;
-    const id = setInterval(() => setTick(t => t + 1), 1000);
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, [isRunning]);
 
   const mColor = modelColor(agent.model);
   const duration = formatDuration(agent.created_at, agent.finished_at);
-  const dotColor = isRunning ? '#ff6b00' : agent.status === 'done' ? '#4ade80' : '#f87171';
+  const dotColor = STATUS_COLORS[agent.status] ?? 'var(--color-oa-text-dim)';
 
   return (
     <div
       role="button"
       tabIndex={0}
       onClick={() => onSelect(agent.name)}
-      onKeyDown={e => e.key === 'Enter' && onSelect(agent.name)}
-      onMouseEnter={e => {
-        if (!selected) (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,107,0,0.35)';
-      }}
-      onMouseLeave={e => {
-        if (!selected) (e.currentTarget as HTMLDivElement).style.borderColor = '#222222';
-      }}
+      onKeyDown={(e) => e.key === 'Enter' && onSelect(agent.name)}
       style={{
-        background: '#111111',
-        border: `1px solid ${selected ? '#ff6b00' : '#222222'}`,
+        background: selected ? 'var(--color-oa-accent-bg)' : 'var(--color-oa-surface)',
+        border: `1px solid ${selected ? 'var(--color-oa-accent)' : 'var(--color-oa-border)'}`,
         borderRadius: '8px',
         padding: '10px 12px',
         cursor: 'pointer',
-        transition: 'border-color 150ms',
+        transition: 'border-color 120ms, background 120ms',
         outline: 'none',
+      }}
+      onMouseEnter={(e) => {
+        if (!selected) {
+          (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--color-oa-accent)';
+          (e.currentTarget as HTMLDivElement).style.background = 'var(--color-oa-surface-hover)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!selected) {
+          (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--color-oa-border)';
+          (e.currentTarget as HTMLDivElement).style.background = 'var(--color-oa-surface)';
+        }
       }}
     >
       {/* Name + status dot */}
@@ -54,8 +69,8 @@ export const AgentCard = memo(function AgentCard({ agent, selected, onSelect }: 
           }}
         />
         <span
-          className="text-white font-bold truncate flex-1 leading-tight"
-          style={{ fontSize: '16px' }}
+          className="font-bold truncate flex-1 leading-tight text-sm"
+          style={{ color: 'var(--color-oa-text)' }}
         >
           {agent.name}
         </span>
@@ -70,23 +85,28 @@ export const AgentCard = memo(function AgentCard({ agent, selected, onSelect }: 
       <div className="flex items-center gap-2 mb-1.5">
         <span
           className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold leading-none"
-          style={{ background: `${mColor}22`, color: mColor, border: `1px solid ${mColor}33` }}
+          style={{ background: `${mColor}22`, color: mColor, border: `1px solid ${mColor}44` }}
         >
           {modelLabel(agent.model)}
         </span>
-        <span className="text-[10px] text-neutral-500 font-mono">{duration}</span>
+        <span className="text-[10px] font-mono" style={{ color: 'var(--color-oa-text-dim)' }}>
+          {duration}
+        </span>
       </div>
 
       {/* Task preview */}
       {agent.task && (
-        <div className="text-[11px] text-neutral-400 italic line-clamp-2 leading-snug">
+        <div
+          className="text-[11px] italic line-clamp-2 leading-snug"
+          style={{ color: 'var(--color-oa-text-muted)' }}
+        >
           {agent.task}
         </div>
       )}
 
       {/* Parent indicator */}
       {agent.parent && (
-        <div className="text-[10px] text-neutral-600 truncate mt-1">
+        <div className="text-[10px] truncate mt-1" style={{ color: 'var(--color-oa-text-dim)' }}>
           ↳ {agent.parent}
         </div>
       )}

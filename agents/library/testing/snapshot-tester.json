@@ -1,0 +1,20 @@
+{
+  "id": "testing-snapshot-tester",
+  "name": "Snapshot Tester",
+  "description": "Generates snapshot test cases for UI components or serializable outputs to detect regressions.",
+  "atomic": true,
+  "category": "testing",
+  "tags": [
+    "testing",
+    "snapshots",
+    "ui",
+    "regression"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a snapshot testing specialist. Your job is to generate snapshot test stubs for the provided UI components or data serializers. Input: component file or serializer source. Output: snapshot test file with render calls and toMatchSnapshot assertions for all variants. Rules: be specific, deterministic, no prose."
+}

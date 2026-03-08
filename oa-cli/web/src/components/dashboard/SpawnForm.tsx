@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircle, Trash2, XCircle, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAgentStore } from '../../stores/agentStore';
 import { useUIStore } from '../../stores/uiStore';
@@ -94,20 +94,29 @@ export function SpawnForm() {
     }
   };
 
-  const inputClass = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff6b35]/20 focus:border-[#ff6b35] transition-colors bg-white placeholder:text-gray-400';
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '8px 12px',
+    border: '1px solid var(--color-oa-border)',
+    borderRadius: '8px',
+    fontSize: '13px',
+    background: 'var(--color-oa-surface)',
+    color: 'var(--color-oa-text)',
+    outline: 'none',
+    transition: 'border-color 150ms',
+  };
 
   return (
-    <div className="bg-white border-t border-gray-200 p-4 space-y-3">
+    <div className="p-4 space-y-3" style={{ background: 'var(--color-oa-sidebar)', borderTop: '1px solid var(--color-oa-border)' }}>
       {/* Template */}
       <div>
-        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+        <label className="block text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--color-oa-text-muted)' }}>
           Template
         </label>
         <select
           value={template}
           onChange={(e) => handleTemplateChange(e.target.value)}
-          className={inputClass}
-          style={{ color: '#1a2a3a' }}
+          style={inputStyle}
         >
           {TEMPLATES.map((t) => (
             <option key={t.label} value={t.label}>{t.label}</option>
@@ -117,7 +126,7 @@ export function SpawnForm() {
 
       {/* Task */}
       <div>
-        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+        <label className="block text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--color-oa-text-muted)' }}>
           Task
         </label>
         <textarea
@@ -131,40 +140,54 @@ export function SpawnForm() {
           }}
           placeholder="Describe the task… (Ctrl+Enter)"
           rows={4}
-          className={`${inputClass} resize-y leading-relaxed`}
-          style={{ color: '#1a2a3a' }}
+          style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }}
         />
       </div>
 
       {/* Model */}
       <div>
-        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+        <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--color-oa-text-muted)' }}>
           Model
         </label>
         <div className="flex items-center gap-1.5 flex-wrap">
-          {CLAUDE_MODELS.map((m) => (
-            <button
-              key={m.value}
-              onClick={() => { setModel(m.value); setUseOllama(false); }}
-              className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-                model === m.value && !useOllama
-                  ? 'bg-[#ff6b35] text-white border-[#ff6b35]'
-                  : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400 hover:text-gray-700'
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
+          {CLAUDE_MODELS.map((m) => {
+            const active = model === m.value && !useOllama;
+            return (
+              <button
+                key={m.value}
+                onClick={() => { setModel(m.value); setUseOllama(false); }}
+                style={{
+                  padding: '3px 12px',
+                  borderRadius: '999px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  border: `1px solid ${active ? 'var(--color-oa-accent)' : 'var(--color-oa-border)'}`,
+                  background: active ? 'var(--color-oa-accent)' : 'var(--color-oa-surface)',
+                  color: active ? '#fff' : 'var(--color-oa-text-muted)',
+                  cursor: 'pointer',
+                  transition: 'all 120ms',
+                }}
+              >
+                {m.label}
+              </button>
+            );
+          })}
           <button
             onClick={() => {
               if (!useOllama) { setUseOllama(true); setModel(OLLAMA_MODELS[0].value); }
               else { setUseOllama(false); setModel('claude/sonnet'); }
             }}
-            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-              useOllama
-                ? 'bg-[#ff6b35] text-white border-[#ff6b35]'
-                : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400 hover:text-gray-700'
-            }`}
+            style={{
+              padding: '3px 12px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: 600,
+              border: `1px solid ${useOllama ? 'var(--color-oa-accent)' : 'var(--color-oa-border)'}`,
+              background: useOllama ? 'var(--color-oa-accent)' : 'var(--color-oa-surface)',
+              color: useOllama ? '#fff' : 'var(--color-oa-text-muted)',
+              cursor: 'pointer',
+              transition: 'all 120ms',
+            }}
           >
             ollama
           </button>
@@ -173,8 +196,7 @@ export function SpawnForm() {
           <select
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            className={`mt-2 ${inputClass}`}
-            style={{ color: '#1a2a3a' }}
+            style={{ ...inputStyle, marginTop: '8px' }}
           >
             {OLLAMA_MODELS.map((m) => (
               <option key={m.value} value={m.value}>{m.label}</option>
@@ -187,7 +209,8 @@ export function SpawnForm() {
       <div>
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+          className="flex items-center gap-1 text-xs cursor-pointer transition-colors"
+          style={{ color: 'var(--color-oa-text-dim)' }}
         >
           {showAdvanced ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           Advanced options
@@ -198,14 +221,12 @@ export function SpawnForm() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Name (optional)"
-              className={inputClass}
-              style={{ color: '#1a2a3a' }}
+              style={inputStyle}
             />
             <select
               value={parent}
               onChange={(e) => setParent(e.target.value)}
-              className={inputClass}
-              style={{ color: '#1a2a3a' }}
+              style={inputStyle}
             >
               <option value="">No parent</option>
               {running.map((a) => (
@@ -221,18 +242,41 @@ export function SpawnForm() {
         <button
           onClick={handleSpawn}
           disabled={!task.trim()}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all ${
-            task.trim()
-              ? 'bg-[#ff6b35] text-white cursor-pointer hover:bg-[#e55a2a]'
-              : 'bg-gray-100 text-gray-400 cursor-default'
-          }`}
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
+            padding: '9px 16px',
+            borderRadius: '8px',
+            fontWeight: 600,
+            fontSize: '13px',
+            border: 'none',
+            background: task.trim() ? 'var(--color-oa-accent)' : 'var(--color-oa-border)',
+            color: task.trim() ? '#fff' : 'var(--color-oa-text-dim)',
+            cursor: task.trim() ? 'pointer' : 'default',
+            transition: 'background 150ms',
+          }}
         >
           <Zap size={14} />
           Spawn Agent
         </button>
         <button
           onClick={() => useAgentStore.getState().cleanAgents()}
-          className="flex items-center gap-1.5 px-3 py-2.5 bg-white text-gray-500 border border-gray-200 rounded-lg text-sm cursor-pointer hover:text-gray-700 hover:border-gray-300 transition-colors"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '9px 12px',
+            borderRadius: '8px',
+            fontSize: '13px',
+            border: '1px solid var(--color-oa-border)',
+            background: 'var(--color-oa-surface)',
+            color: 'var(--color-oa-text-muted)',
+            cursor: 'pointer',
+            transition: 'all 120ms',
+          }}
         >
           <Trash2 size={13} />
           Clean

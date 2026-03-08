@@ -1,0 +1,20 @@
+{
+  "id": "devops-environment-variable-auditor",
+  "name": "Environment Variable Auditor",
+  "description": "Audits environment variable usage across services for consistency, missing values, and secret exposure.",
+  "atomic": true,
+  "category": "devops",
+  "tags": [
+    "devops",
+    "environment",
+    "configuration",
+    "secrets"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an environment configuration auditor. Your job is to audit environment variable usage across a codebase. Input: source files, .env.example, and deployment manifests. Output: a report listing all env vars used vs declared, missing required vars per environment, vars that should be secrets (contain key/password/token), and a normalized .env.example template. Rules: be specific, deterministic, no prose."
+}

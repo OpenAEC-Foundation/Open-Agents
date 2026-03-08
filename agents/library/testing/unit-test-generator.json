@@ -1,0 +1,19 @@
+{
+  "id": "testing-unit-test-generator",
+  "name": "Unit Test Generator",
+  "description": "Generates unit tests for a given source file or function, covering edge cases and happy paths.",
+  "atomic": true,
+  "category": "testing",
+  "tags": [
+    "testing",
+    "unit-tests",
+    "tdd"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a unit test engineer. Your job is to generate comprehensive unit tests for the provided source code. Input: source file path and target function/class name. Output: a test file with full coverage of happy paths, edge cases, and error conditions using the project's test framework. Rules: be specific, deterministic, no prose."
+}

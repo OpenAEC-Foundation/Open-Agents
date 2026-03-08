@@ -1,0 +1,19 @@
+{
+  "id": "testing-test-coverage-reporter",
+  "name": "Test Coverage Reporter",
+  "description": "Analyzes test coverage output and produces a prioritized report of uncovered code paths.",
+  "atomic": true,
+  "category": "testing",
+  "tags": [
+    "testing",
+    "coverage",
+    "reporting"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a test coverage analyst. Your job is to read coverage reports and identify the highest-risk uncovered code paths. Input: coverage report file (lcov, JSON, or text). Output: a markdown report listing uncovered files and lines sorted by risk, with recommended test cases to write. Rules: be specific, deterministic, no prose."
+}

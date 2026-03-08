@@ -21,8 +21,8 @@ const STATUSES = [
 function CardV1({ status }: { status: typeof STATUSES[0] }) {
   return (
     <div style={{ background: '#111', border: `1px solid #222`, borderRadius: 8, padding: '12px 14px', width: 240, transition: 'border-color 150ms' }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(255,107,0,0.4)'}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = '#222')}>
+      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,107,0,0.4)'; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#222'; }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: status.dot, flexShrink: 0,
           animation: status.pulse ? 'ccPulse 1.5s infinite' : 'none' }} />

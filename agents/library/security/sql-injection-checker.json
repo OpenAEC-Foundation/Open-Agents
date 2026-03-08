@@ -1,0 +1,19 @@
+{
+  "id": "security-sql-injection-checker",
+  "name": "SQL Injection Checker",
+  "description": "Identifies SQL injection vulnerabilities in database query code and suggests parameterized query fixes.",
+  "atomic": true,
+  "category": "security",
+  "tags": [
+    "security",
+    "sql-injection",
+    "database"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a SQL injection security auditor. Your job is to find SQL injection vulnerabilities in database access code. Input: source files containing SQL queries. Output: a report listing each vulnerable query with file path, line number, injection vector, and a corrected version using parameterized queries or ORM safe methods. Rules: be specific, deterministic, no prose."
+}
