@@ -7,15 +7,13 @@ import { Terminal } from '../shared/Terminal';
 import { EmptyState } from '../shared/EmptyState';
 import type { DetailTab } from '../../types';
 
-const DETAIL_TABS: DetailTab[] = ['session', 'output', 'proposals', 'info'];
+const DETAIL_TABS: DetailTab[] = ['session', 'output', 'info'];
 
 export function AgentDetail() {
   const selectedAgent = useAgentStore((s) => s.selectedAgent);
   const detail = useAgentStore((s) => s.agentDetail);
-  const proposals = useAgentStore((s) => s.proposals);
   const fetchDetail = useAgentStore((s) => s.fetchDetail);
   const killAgent = useAgentStore((s) => s.killAgent);
-  const applyProposal = useAgentStore((s) => s.applyProposal);
 
   const activeTab = useUIStore((s) => s.activeDetailTab);
   const setTab = useUIStore((s) => s.setDetailTab);
@@ -66,11 +64,6 @@ export function AgentDetail() {
             }`}
           >
             {tab}
-            {tab === 'proposals' && proposals && proposals.proposals.length > 0 && (
-              <span className="text-[10px] bg-oa-accent-bg px-1.5 py-px rounded-full text-oa-accent">
-                {proposals.proposals.length}
-              </span>
-            )}
             {tab === 'session' && detail.status === 'running' && (
               <span className="w-1.5 h-1.5 rounded-full bg-status-done inline-block animate-pulse" />
             )}
@@ -88,36 +81,6 @@ export function AgentDetail() {
           <pre className="absolute inset-3 p-3 bg-neutral-900 border border-oa-border rounded-md font-mono text-xs leading-relaxed text-neutral-300 overflow-auto whitespace-pre-wrap break-words">
             {detail.result || 'No output yet.'}
           </pre>
-        )}
-
-        {activeTab === 'proposals' && (
-          <div className="p-3 space-y-3">
-            {proposals?.summary && (
-              <div className="text-xs text-oa-text-muted bg-oa-bg p-3 rounded border border-oa-border-light">
-                {proposals.summary}
-              </div>
-            )}
-            {!proposals?.proposals.length ? (
-              <div className="text-center text-oa-text-dim text-sm py-8">No proposals yet.</div>
-            ) : (
-              proposals.proposals.map((p) => (
-                <div key={p.filename} className="border border-oa-border rounded-md overflow-hidden">
-                  <div className="flex items-center justify-between px-3 py-2 bg-oa-surface border-b border-oa-border-light">
-                    <span className="font-mono text-xs text-oa-accent">{p.filename}</span>
-                    <button
-                      onClick={() => applyProposal(detail.name, p.filename)}
-                      className="px-2 py-0.5 bg-oa-accent text-oa-bg rounded text-[10px] font-bold cursor-pointer hover:brightness-110"
-                    >
-                      Apply
-                    </button>
-                  </div>
-                  <pre className="p-3 text-xs font-mono text-neutral-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">
-                    {p.content}
-                  </pre>
-                </div>
-              ))
-            )}
-          </div>
         )}
 
         {activeTab === 'info' && (
