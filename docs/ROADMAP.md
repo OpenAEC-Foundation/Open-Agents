@@ -412,7 +412,7 @@
 
 - [x] Shared task list (`task_list.py`) — CRUD, file locking, JSON storage in `~/.oa/tasks/<team>/` — delegate: sprint17-teams
 - [ ] Task dependencies — `blockedBy` veld, auto-unblock bij status=completed
-- [ ] Inter-agent messaging (`messaging.py`) — mailbox per agent, DM + broadcast — delegate: sprint17-messaging
+- [x] Inter-agent messaging (`messaging.py`) — mailbox per agent, DM + broadcast — werkend (send/inbox/broadcast volledig functioneel)
 - [x] Team config (`teams.py`) — create/list/delete, members array, `~/.oa/teams/<team>/config.json` — delegate: sprint17-teams
 - [ ] Graceful shutdown protocol — request/approve/reject via messaging — delegate: sprint17-messaging
 - [ ] Quality hooks (`hooks.py`) — on_idle, on_task_complete callbacks — delegate: sprint17-messaging
