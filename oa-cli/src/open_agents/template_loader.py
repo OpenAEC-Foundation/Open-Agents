@@ -8,6 +8,9 @@ from typing import Any
 # REPO_ROOT: oa-cli/src/open_agents/ → oa-cli/src/ → oa-cli/ → repo root
 REPO_ROOT = Path(__file__).parents[3]
 LIBRARY_DIR = REPO_ROOT / "agents" / "library"
+PRESETS_DIR = REPO_ROOT / "agents" / "presets"
+
+SCAN_DIRS = [d for d in [LIBRARY_DIR, PRESETS_DIR] if d.is_dir()]
 
 
 def _template_id(path: Path) -> str:
@@ -26,45 +29,41 @@ def _load_json(path: Path) -> dict[str, Any] | list[dict[str, Any]] | None:
 
 
 def list_templates() -> list[dict[str, Any]]:
-    """Return all templates from agents/library/**/*.json."""
-    if not LIBRARY_DIR.is_dir():
-        return []
-
+    """Return all templates from agents/library/ and agents/presets/."""
     results: list[dict[str, Any]] = []
-    for path in sorted(LIBRARY_DIR.rglob("*.json")):
-        data = _load_json(path)
-        if data is None:
-            continue
-        computed_id = _template_id(path)
-        if isinstance(data, list):
-            for item in data:
-                if isinstance(item, dict):
-                    item.setdefault("id", item.get("name", computed_id))
-                    results.append(item)
-        else:
-            data.setdefault("id", computed_id)
-            results.append(data)
+    for scan_dir in SCAN_DIRS:
+        for path in sorted(scan_dir.rglob("*.json")):
+            data = _load_json(path)
+            if data is None:
+                continue
+            computed_id = _template_id(path) if scan_dir == LIBRARY_DIR else f"presets/{path.stem}"
+            if isinstance(data, list):
+                for item in data:
+                    if isinstance(item, dict):
+                        item.setdefault("id", item.get("name", computed_id))
+                        results.append(item)
+            else:
+                data.setdefault("id", computed_id)
+                results.append(data)
     return results
 
 
 def load_template(template_id: str) -> dict[str, Any] | None:
     """Load a single template by id (path slug) or by name field."""
-    if not LIBRARY_DIR.is_dir():
-        return None
-
-    for path in LIBRARY_DIR.rglob("*.json"):
-        data = _load_json(path)
-        if data is None:
-            continue
-        computed_id = _template_id(path)
-        if isinstance(data, list):
-            for item in data:
-                if isinstance(item, dict):
-                    item.setdefault("id", item.get("name", computed_id))
-                    if item.get("id") == template_id or item.get("name") == template_id:
-                        return item
-        else:
-            if computed_id == template_id or data.get("name") == template_id:
-                data.setdefault("id", computed_id)
-                return data
+    for scan_dir in SCAN_DIRS:
+        for path in scan_dir.rglob("*.json"):
+            data = _load_json(path)
+            if data is None:
+                continue
+            computed_id = _template_id(path) if scan_dir == LIBRARY_DIR else f"presets/{path.stem}"
+            if isinstance(data, list):
+                for item in data:
+                    if isinstance(item, dict):
+                        item.setdefault("id", item.get("name", computed_id))
+                        if item.get("id") == template_id or item.get("name") == template_id:
+                            return item
+            else:
+                if computed_id == template_id or data.get("name") == template_id:
+                    data.setdefault("id", computed_id)
+                    return data
     return None
