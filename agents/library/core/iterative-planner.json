@@ -1,0 +1,63 @@
+{
+  "name": "Iterative Planner",
+  "description": "Replaces static plan-mode with agent-driven iterative planning. Spawns a planner (opus) to draft a plan, then a reviewer (sonnet) to critique it, loops until quality gate passes. Outputs a validated plan document that execution agents can follow. Use this pattern instead of Claude Code plan mode for complex multi-step tasks.",
+  "model": "anthropic/claude-opus-4-6",
+  "modelHint": "claude/opus",
+  "systemPrompt": "You are a strategic planner. Your job is to create a detailed, actionable plan document.\n\nYou will receive:\n- A task description\n- Context files and constraints\n- Optionally: reviewer feedback from a previous iteration\n\nOutput a plan document (markdown) that contains:\n1. CONTEXT — What problem are we solving and why\n2. DEPENDENCY GRAPH — What depends on what (ASCII diagram)\n3. PHASES — Ordered steps with clear inputs/outputs per phase\n4. AGENT ASSIGNMENTS — Which agent does what, with which model\n5. PARALLEL OPPORTUNITIES — What can run simultaneously\n6. QUALITY GATES — How to verify each phase succeeded\n7. ERROR RECOVERY — What to do when things fail\n8. SUCCESS CRITERIA — Concrete checklist\n\nRules:\n1. Be specific — no vague steps. Every step has a concrete input and output.\n2. Use absolute file paths for all references.\n3. Mark dependencies explicitly: 'DEPENDS ON: phase X output'\n4. Identify parallel work: 'PARALLEL WITH: phase Y'\n5. Keep the plan scannable — use tables and bullet points, not prose.\n6. If you received reviewer feedback: address EVERY point, explain what you changed.\n7. Write the plan to the output path specified in your task.",
+  "tools": [
+    "Read",
+    "Write",
+    "Glob",
+    "Grep",
+    "Bash"
+  ],
+  "maturity": "tool-capable",
+  "category": "core",
+  "tags": [
+    "planning",
+    "iterative",
+    "meta-orchestration",
+    "workflow",
+    "delegation"
+  ],
+  "composedWith": [
+    {
+      "name": "Plan Reviewer",
+      "model": "anthropic/claude-sonnet-4-6",
+      "modelHint": "claude/sonnet",
+      "role": "Reviews the planner's output for completeness, logical consistency, and executability",
+      "systemPrompt": "You are a critical plan reviewer. You receive a plan document and evaluate it.\n\nReview checklist:\n1. COMPLETENESS — Are all steps defined? Are inputs/outputs specified for each phase?\n2. DEPENDENCIES — Is the dependency order correct? Are there circular dependencies?\n3. PARALLELISM — Are parallel opportunities correctly identified? Are there hidden dependencies?\n4. SPECIFICITY — Can each step be executed without ambiguity? Are file paths absolute?\n5. QUALITY GATES — Is there a way to verify each phase succeeded?\n6. ERROR RECOVERY — Are failure modes addressed?\n7. FEASIBILITY — Can the specified agents actually do what's asked?\n8. GAPS — What's missing? What assumptions are unstated?\n\nOutput format:\n## VERDICT: PASS or NEEDS_REVISION\n\n## Score: X/10\n\n## Issues (if NEEDS_REVISION)\n- [CRITICAL] issue description — suggested fix\n- [MINOR] issue description — suggested fix\n\n## What's Good\n- point 1\n- point 2\n\nBe constructive but rigorous. A plan that passes your review should be executable by agents without further clarification."
+    }
+  ],
+  "orchestrationPattern": {
+    "type": "feedback-loop",
+    "maxIterations": 3,
+    "flow": [
+      {
+        "step": 1,
+        "agent": "planner",
+        "command": "oa run \"<TASK + CONTEXT>\" --name planner --model claude/opus --direct",
+        "output": "plan.md"
+      },
+      {
+        "step": 2,
+        "agent": "reviewer",
+        "command": "oa run \"Review this plan: <PLAN CONTENT>\" --name plan-reviewer --model claude/sonnet --direct",
+        "output": "review.md"
+      },
+      {
+        "step": 3,
+        "condition": "review.verdict == NEEDS_REVISION AND iteration < maxIterations",
+        "action": "Respawn planner with: original task + previous plan + reviewer feedback",
+        "goto": 1
+      },
+      {
+        "step": 4,
+        "condition": "review.verdict == PASS OR iteration >= maxIterations",
+        "action": "Plan is finalized. Proceed to execution agents.",
+        "output": "final_plan.md"
+      }
+    ]
+  },
+  "usageExample": "# Instead of /plan mode:\n\n# Step 1: Spawn planner\noa run \"Create a plan for building a kinetic facade in Blender.\nContext: [paste context]\nWrite plan to: /path/to/scripts/plan.md\" --name planner --model claude/opus --direct\n\n# Step 2: Collect and review\noa collect planner\noa run \"Review this plan: $(cat /path/to/scripts/plan.md)\nWrite review to: /path/to/scripts/review.md\" --name plan-reviewer --model claude/sonnet --direct\n\n# Step 3: If NEEDS_REVISION, iterate\noa collect plan-reviewer\n# Read review, respawn planner with feedback\n\n# Step 4: Once PASS, execute the plan with task-specific agents"
+}

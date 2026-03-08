@@ -6,6 +6,7 @@ export function SpawnForm() {
   const [model, setModel] = useState('claude/sonnet');
   const [name, setName] = useState('');
   const [parent, setParent] = useState('');
+  const [feedback, setFeedback] = useState<{ ok: boolean; msg: string } | null>(null);
 
   const spawn = useAgentStore((s) => s.spawnAgent);
   const running = useAgentStore((s) => s.getRunning)();
@@ -23,8 +24,11 @@ export function SpawnForm() {
       setTask('');
       setName('');
       setParent('');
-    } catch {
-      // ignore
+      setFeedback({ ok: true, msg: 'Agent spawned!' });
+    } catch (e) {
+      setFeedback({ ok: false, msg: e instanceof Error ? e.message : 'Spawn failed' });
+    } finally {
+      setTimeout(() => setFeedback(null), 3000);
     }
   };
 
@@ -99,6 +103,14 @@ export function SpawnForm() {
           Clean
         </button>
       </div>
+      {feedback && (
+        <div
+          className="mt-1.5 px-2 py-1 rounded text-[11px] font-medium text-center animate-fade-in"
+          style={{ color: feedback.ok ? '#4ade80' : '#f87171', background: 'rgba(255,255,255,0.04)' }}
+        >
+          {feedback.msg}
+        </div>
+      )}
     </div>
   );
 }

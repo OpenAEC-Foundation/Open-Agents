@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-07
-> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 11 (VS Code Bridge) In Progress — AEC Agent Library: 73 skill-backed agents
+> **Laatste update**: 2026-03-08
+> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 11 (VS Code Bridge) In Progress — Sprint 17 (Agent Teams) In Progress — AEC Agent Library: 73 skill-backed agents
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -45,7 +45,8 @@
 **Fase 7 (Agent Library)**: █████░░░░░░░░░░░░░░░ **29%** - 293/1015 agents geïmplementeerd (10 directory-categorieën + 13 category JSON files, library loader)
 **Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond), v0.2.0 released 2026-03-02
 **Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 14 commando's, Textual TUI, pipeline orchestrator, React web UI
-**Fase 10 (VS Code Bridge)**: █████████████░░░░░░░ **67%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator, package migratie, launch config werkend; test-workspace + E2E verificatie nog open
+**Fase 10 (VS Code Bridge)**: ████████████████░░░░ **80%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator, package migratie, launch config werkend; shared types mergen, test-workspace, CLI tool integreren bij agent sprint11-finisher
+**Fase 11 (Agent Teams Patterns)**: ████░░░░░░░░░░░░░░░ **20%** - Sprint 17 gestart: foundation, task_list.py + teams.py bij sprint17-teams, messaging.py + hooks.py bij sprint17-messaging
 
 ---
 
@@ -231,6 +232,12 @@
 
 **Bron**: Gemigreerd van Open-VSCode-Controller (D-043)
 
+**Status**: 3 items onderweg via agent: sprint11-finisher
+- Shared types mergen (bridge events, agent types, constants) — *in progress*
+- test-workspace migreren — *in progress*
+- CLI tool integreren — *in progress*
+
+**Voltooide items**:
 - [x] ClaudeCLIRuntime adapter (`packages/backend/src/runtimes/claude-cli.ts`)
 - [x] `cli/claude` ModelProvider + ModelId in shared types
 - [x] Bridge health check + runtime registratie in server.ts
@@ -238,10 +245,12 @@
 - [x] ConnectionIndicator met bridge status
 - [x] MIGRATION-VSCODE-BRIDGE.md instructiedocument
 - [x] Package migratie: `vscode-extension` → `packages/vscode-bridge`
-- [ ] Shared types mergen (bridge events, agent types, constants)
 - [x] Launch configuratie (.vscode/launch.json)
-- [ ] test-workspace migreren
-- [ ] CLI tool integreren
+
+**Pending**:
+- [ ] Shared types mergen (bridge events, agent types, constants) — delegate: sprint11-finisher
+- [ ] test-workspace migreren — delegate: sprint11-finisher
+- [ ] CLI tool integreren — delegate: sprint11-finisher
 - [ ] E2E verificatie: canvas → cli/claude agent → terminal → result
 
 ---
@@ -292,6 +301,18 @@
 - [x] Totaal 14 CLI commando's: start, run, status, dashboard, attach, watch, kill, collect, clean, pipeline, web, version, setup, delegate
 
 ---
+
+---
+
+## Guardian Agents Module — In Progress (2026-03-08)
+
+**Doel**: Automatische reflexen die triggeren op session_end en batch_complete
+
+- [ ] guardians.py met trigger_guardian(), register_guardian(), list_guardians()
+- [ ] Session log (~/.oa/session-log.json)
+- [ ] Integratie in oa stop command
+- [ ] Templates: guardian-lessons, guardian-roadmap, guardian-handoff
+- [ ] Session-start-orchestrator template
 
 ---
 
@@ -365,19 +386,21 @@
 
 ---
 
-### Sprint 17: oa-cli Agent Teams Patterns — Planned
+### Sprint 17: oa-cli Agent Teams Patterns — In Progress
 
 **Doel**: Agent Teams patterns (D-052, L-022 t/m L-029) implementeren in oa-cli
 **Afhankelijk van**: Sprint 12 (oa-cli basis Done)
 **Bron**: Claude Code Agent Teams referentie-architectuur
 
-- [ ] Shared task list (`task_list.py`) — CRUD, file locking, JSON storage in `~/.oa/tasks/<team>/`
+**Status**: Foundation gestart, items gedelegeerd:
+
+- [ ] Shared task list (`task_list.py`) — CRUD, file locking, JSON storage in `~/.oa/tasks/<team>/` — delegate: sprint17-teams
 - [ ] Task dependencies — `blockedBy` veld, auto-unblock bij status=completed
-- [ ] Inter-agent messaging (`messaging.py`) — mailbox per agent, DM + broadcast
-- [ ] Team config (`teams.py`) — create/list/delete, members array, `~/.oa/teams/<team>/config.json`
-- [ ] Graceful shutdown protocol — request/approve/reject via messaging
-- [ ] Quality hooks (`hooks.py`) — on_idle, on_task_complete callbacks
-- [ ] CLI commando's: `oa team`, `oa task`, `oa msg`, `oa broadcast`, `oa shutdown`
+- [ ] Inter-agent messaging (`messaging.py`) — mailbox per agent, DM + broadcast — delegate: sprint17-messaging
+- [ ] Team config (`teams.py`) — create/list/delete, members array, `~/.oa/teams/<team>/config.json` — delegate: sprint17-teams
+- [ ] Graceful shutdown protocol — request/approve/reject via messaging — delegate: sprint17-messaging
+- [ ] Quality hooks (`hooks.py`) — on_idle, on_task_complete callbacks — delegate: sprint17-messaging
+- [ ] CLI commando's: `oa team`, `oa task`, `oa send`, `oa inbox`, `oa broadcast` — delegate: sprint17-teams + sprint17-messaging
 - [ ] AgentRecord uitbreiden: `team` veld, `mailbox_path`
 - [ ] Workspace CLAUDE.md template: team context meegeven aan agents
 - [ ] Tests voor task list, messaging, team management

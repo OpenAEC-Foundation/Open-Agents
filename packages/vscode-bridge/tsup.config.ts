@@ -17,4 +17,12 @@ export default defineConfig([
     sourcemap: true,
     noExternal: ["@open-agents/shared"],
   },
+  {
+    entry: { cli: "src/cli.ts" },
+    format: ["esm"],
+    outDir: "dist",
+    sourcemap: true,
+    noExternal: ["@open-agents/shared"],
+    banner: { js: "#!/usr/bin/env node" },
+  },
 ]);

@@ -34,18 +34,18 @@ AGENTS_LIBRARY_DIR = Path(__file__).parents[4] / "agents" / "library"
 
 
 def _load_template(template_id: str) -> dict:
-    """Search all JSON files in agents/library/ for a template with the given id."""
+    """Search all JSON files in agents/library/ for a template with the given id (filename stem)."""
     if not AGENTS_LIBRARY_DIR.exists():
         console.print(f"[red]Agents library not found at {AGENTS_LIBRARY_DIR}[/red]")
         raise typer.Exit(1)
 
     for json_file in AGENTS_LIBRARY_DIR.rglob("*.json"):
-        try:
-            data = json.loads(json_file.read_text())
-            if data.get("id") == template_id:
-                return data
-        except Exception:
-            continue
+        if json_file.stem == template_id:
+            try:
+                return json.loads(json_file.read_text())
+            except Exception:
+                console.print(f"[red]Failed to parse template file: {json_file}[/red]")
+                raise typer.Exit(1)
 
     console.print(f"[red]Template '{template_id}' not found in agents/library/[/red]")
     raise typer.Exit(1)
@@ -176,6 +176,52 @@ def run(
         triggered = trigger_guardian("batch_complete")
         if triggered:
             console.print(f"[dim]Guardians triggered: {', '.join(triggered)}[/dim]")
+
+
+@app.command(name="templates")
+def templates_cmd(
+    category: str = typer.Option("", "--category", "-c", help="Filter by category"),
+):
+    """List all available agent templates from agents/library/."""
+    from rich.table import Table
+
+    if not AGENTS_LIBRARY_DIR.exists():
+        console.print(f"[red]Agents library not found at {AGENTS_LIBRARY_DIR}[/red]")
+        raise typer.Exit(1)
+
+    rows = []
+    for json_file in sorted(AGENTS_LIBRARY_DIR.rglob("*.json")):
+        try:
+            data = json.loads(json_file.read_text())
+        except Exception:
+            continue
+        if not data.get("name"):
+            continue
+        tmpl_id = json_file.stem
+        tmpl_category = data.get("category") or json_file.parent.name
+        if category and tmpl_category != category:
+            continue
+        model = data.get("modelHint") or data.get("model", "")
+        desc = data.get("description", "")
+        if len(desc) > 60:
+            desc = desc[:57] + "..."
+        rows.append((tmpl_id, data["name"], tmpl_category, model, desc))
+
+    if not rows:
+        console.print("[dim]No templates found.[/dim]")
+        return
+
+    table = Table(title=f"Agent Templates ({len(rows)} total)")
+    table.add_column("ID", style="cyan", no_wrap=True)
+    table.add_column("Name", style="bold")
+    table.add_column("Category", style="yellow")
+    table.add_column("Model", style="green")
+    table.add_column("Description", max_width=60)
+
+    for row in rows:
+        table.add_row(*row)
+
+    console.print(table)
 
 
 @app.command()
@@ -479,6 +525,270 @@ def guardians_cmd(
 def version():
     """Show the CLI version."""
     console.print(f"open-agents-cli v{__version__}")
+
+
+# --- Team commands ---
+
+team_app = typer.Typer(name="team", help="Manage agent teams.", no_args_is_help=True)
+app.add_typer(team_app)
+
+
+@team_app.command("create")
+def team_create(
+    name: str = typer.Argument(..., help="Team name"),
+    members: list[str] = typer.Option([], "--member", "-m", help="Initial member agent names"),
+):
+    """Create a new agent team."""
+    from .teams import create_team
+
+    config = create_team(name, members=list(members))
+    console.print(f"[green]Team '{name}' created.[/green]")
+    if config["members"]:
+        console.print(f"  Members: {', '.join(config['members'])}")
+
+
+@team_app.command("list")
+def team_list():
+    """List all teams."""
+    from .teams import list_teams
+    from rich.table import Table
+
+    teams = list_teams()
+    if not teams:
+        console.print("[dim]No teams found.[/dim]")
+        return
+
+    table = Table(title="Agent Teams")
+    table.add_column("Name", style="cyan")
+    table.add_column("Members", style="green")
+    for t in teams:
+        members = ", ".join(t.get("members", [])) or "[dim]none[/dim]"
+        table.add_row(t["name"], members)
+    console.print(table)
+
+
+@team_app.command("add-member")
+def team_add_member(
+    team: str = typer.Argument(..., help="Team name"),
+    agent: str = typer.Argument(..., help="Agent name to add"),
+):
+    """Add an agent to a team."""
+    from .teams import add_member
+
+    try:
+        config = add_member(team, agent)
+        console.print(f"[green]Added '{agent}' to team '{team}'.[/green]")
+        console.print(f"  Members: {', '.join(config['members'])}")
+    except FileNotFoundError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+
+
+@team_app.command("delete")
+def team_delete(
+    name: str = typer.Argument(..., help="Team name to delete"),
+):
+    """Delete a team."""
+    from .teams import delete_team
+
+    if delete_team(name):
+        console.print(f"[yellow]Team '{name}' deleted.[/yellow]")
+    else:
+        console.print(f"[red]Team '{name}' not found.[/red]")
+        raise typer.Exit(1)
+
+
+# --- Task commands ---
+
+task_app = typer.Typer(name="task", help="Manage shared team tasks.", no_args_is_help=True)
+app.add_typer(task_app)
+
+
+@task_app.command("create")
+def task_create(
+    team: str = typer.Argument(..., help="Team name"),
+    title: str = typer.Argument(..., help="Task title"),
+    description: str = typer.Option("", "--desc", "-d", help="Task description"),
+    assigned_to: str = typer.Option("", "--assign", "-a", help="Assign to agent name"),
+    blocked_by: list[str] = typer.Option([], "--blocked-by", "-b", help="Task IDs this is blocked by"),
+):
+    """Create a new task for a team."""
+    from .task_list import create_task
+
+    task = create_task(
+        team=team,
+        title=title,
+        description=description,
+        assigned_to=assigned_to or None,
+        blocked_by=list(blocked_by),
+    )
+    console.print(f"[green]Task created[/green]  id={task['id']}")
+    console.print(f"  Title: {task['title']}")
+    console.print(f"  Team: {team}  |  Status: {task['status']}")
+
+
+@task_app.command("list")
+def task_list_cmd(
+    team: str = typer.Argument(..., help="Team name"),
+):
+    """List all tasks for a team."""
+    from .task_list import list_tasks
+    from rich.table import Table
+
+    STATUS_COLOR = {
+        "pending": "yellow",
+        "in_progress": "cyan",
+        "completed": "green",
+        "blocked": "red",
+    }
+
+    tasks = list_tasks(team)
+    if not tasks:
+        console.print(f"[dim]No tasks found for team '{team}'.[/dim]")
+        return
+
+    table = Table(title=f"Tasks: {team}")
+    table.add_column("ID", style="dim")
+    table.add_column("Title")
+    table.add_column("Status")
+    table.add_column("Assigned", style="dim")
+    for t in tasks:
+        status = t.get("status", "pending")
+        color = STATUS_COLOR.get(status, "white")
+        table.add_row(
+            t["id"],
+            t["title"],
+            f"[{color}]{status}[/{color}]",
+            t.get("assigned_to") or "-",
+        )
+    console.print(table)
+
+
+@task_app.command("done")
+def task_done(
+    team: str = typer.Argument(..., help="Team name"),
+    task_id: str = typer.Argument(..., help="Task ID to mark as completed"),
+):
+    """Mark a task as completed."""
+    from .task_list import update_task
+
+    try:
+        task = update_task(team, task_id, "completed")
+        console.print(f"[green]Task '{task_id}' marked as completed.[/green]")
+        console.print(f"  Title: {task['title']}")
+    except FileNotFoundError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+
+
+@task_app.command("update")
+def task_update(
+    team: str = typer.Argument(..., help="Team name"),
+    task_id: str = typer.Argument(..., help="Task ID"),
+    status: str = typer.Argument(..., help="New status: pending|in_progress|completed|blocked"),
+):
+    """Update a task's status."""
+    from .task_list import update_task
+
+    try:
+        task = update_task(team, task_id, status)
+        console.print(f"[green]Task '{task_id}' status set to '{status}'.[/green]")
+        console.print(f"  Title: {task['title']}")
+    except (FileNotFoundError, ValueError) as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+
+
+# --- Checkpoint commands ---
+
+checkpoint_app = typer.Typer(name="checkpoint", help="Manage agent checkpoints for crash-recovery.", no_args_is_help=True)
+app.add_typer(checkpoint_app)
+
+
+@checkpoint_app.command("list")
+def checkpoint_list():
+    """List all incomplete (non-completed) checkpoints."""
+    from .checkpoint import list_incomplete
+    from rich.table import Table
+
+    items = list_incomplete()
+    if not items:
+        console.print("[dim]No incomplete checkpoints.[/dim]")
+        return
+
+    table = Table(title="Incomplete Checkpoints")
+    table.add_column("Agent", style="cyan")
+    table.add_column("Status", style="yellow")
+    table.add_column("Updated", style="dim")
+    table.add_column("Task", max_width=50)
+
+    for cp in items:
+        table.add_row(
+            cp.get("agent_name", "?"),
+            cp.get("status", "?"),
+            cp.get("updated_at", "?")[:19],
+            cp.get("task", "")[:50],
+        )
+    console.print(table)
+
+
+@checkpoint_app.command("show")
+def checkpoint_show(name: str = typer.Argument(..., help="Agent name")):
+    """Show details of a checkpoint."""
+    from .checkpoint import load_checkpoint
+
+    cp = load_checkpoint(name)
+    if cp is None:
+        console.print(f"[red]No checkpoint found for '{name}'.[/red]")
+        raise typer.Exit(1)
+
+    console.print(f"[bold]Checkpoint: {cp['agent_name']}[/bold]")
+    console.print(f"  Status:  {cp['status']}")
+    console.print(f"  Model:   {cp['model']}")
+    console.print(f"  Created: {cp['created_at'][:19]}")
+    console.print(f"  Updated: {cp['updated_at'][:19]}")
+    console.print(f"  Task:    {cp['task']}")
+    notes = cp.get("progress_notes", [])
+    if notes:
+        console.print("  Progress notes:")
+        for n in notes:
+            console.print(f"    - {n}")
+    snapshot = cp.get("output_snapshot", "")
+    if snapshot:
+        console.print(f"  Output snapshot (last 200 chars):\n    {snapshot[-200:]}")
+
+
+@app.command()
+def resume(name: str = typer.Argument(..., help="Agent name to resume from checkpoint")):
+    """Resume an agent from its last checkpoint."""
+    from .checkpoint import load_checkpoint, resume_from_checkpoint
+
+    if not session_exists():
+        console.print("[red]No oa session. Run 'oa start' first.[/red]")
+        raise typer.Exit(1)
+
+    cp = load_checkpoint(name)
+    if cp is None:
+        console.print(f"[red]No checkpoint found for '{name}'.[/red]")
+        raise typer.Exit(1)
+
+    if cp.get("status") == "completed":
+        console.print(f"[yellow]Checkpoint for '{name}' is already completed.[/yellow]")
+        raise typer.Exit(1)
+
+    resume_task = resume_from_checkpoint(name)
+    resume_name = f"{name}-resume"
+    model = cp.get("model", "claude/sonnet")
+
+    try:
+        rec = spawn_agent(resume_name, resume_task, model=model)
+    except RuntimeError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+
+    console.print(f"[green]Resume agent '{rec.name}' spawned[/green]  (model: {model})")
+    console.print(f"  Original agent: {name}")
+    console.print(f"  Workspace: {rec.workspace}")
 
 
 if __name__ == "__main__":

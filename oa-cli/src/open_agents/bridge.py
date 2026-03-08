@@ -19,6 +19,31 @@ from .tmux import session_exists, start_session
 from .state import get_agent, list_agents
 from .utils import generate_agent_name
 from .workspace import read_output
+from .guardians import list_guardians, SESSION_LOG_PATH
+
+try:
+    from .teams import create_team, get_team, list_teams
+    _teams_ok = True
+except ImportError:
+    _teams_ok = False
+
+try:
+    from .task_list import create_task, list_tasks, update_task
+    _tasks_ok = True
+except ImportError:
+    _tasks_ok = False
+
+try:
+    from .template_loader import list_templates, load_template
+    _templates_ok = True
+except ImportError:
+    _templates_ok = False
+
+try:
+    from .checkpoint import list_incomplete, resume_from_checkpoint
+    _checkpoints_ok = True
+except ImportError:
+    _checkpoints_ok = False
 
 # Resolve the web/dist directory (built React SPA)
 WEB_DIR = Path(__file__).parent.parent.parent / "web" / "dist"
@@ -143,6 +168,41 @@ def api_session_status():
     return jsonify({"exists": session_exists()})
 
 
+# --- Guardians endpoint ---
+
+
+@app.route("/api/guardians")
+def api_list_guardians():
+    """List all configured guardians with last-triggered info from session log."""
+    guardians = list_guardians()
+
+    # Load session log to find last triggered timestamps
+    last_triggered: dict[str, float] = {}
+    if SESSION_LOG_PATH.exists():
+        try:
+            import json as _json
+            log = _json.loads(SESSION_LOG_PATH.read_text())
+            for entry in log:
+                if entry.get("event") == "guardian_triggered":
+                    name = entry.get("guardian", "")
+                    ts = entry.get("timestamp", 0)
+                    if name and ts > last_triggered.get(name, 0):
+                        last_triggered[name] = ts
+        except Exception:
+            pass
+
+    for g in guardians:
+        g["last_triggered"] = last_triggered.get(g["name"])
+
+    return jsonify(guardians)
+
+
+@app.route("/api/run", methods=["POST"])
+def api_run_agent():
+    """Alias for /api/agents POST — spawn an agent via /api/run."""
+    return api_spawn_agent()
+
+
 # --- Messaging endpoints ---
 
 
@@ -194,6 +254,118 @@ def api_mark_read(name: str):
     """Mark messages as read for an agent."""
     count = mark_read(name)
     return jsonify({"marked_read": count})
+
+
+# --- Broadcast alias ---
+
+
+@app.route("/api/broadcast", methods=["POST"])
+def api_broadcast_alias():
+    """Alias for /api/messages/broadcast."""
+    return api_broadcast()
+
+
+# --- Teams endpoints ---
+
+
+@app.route("/api/teams")
+def api_list_teams():
+    if not _teams_ok:
+        return jsonify({"error": "teams module not available"}), 501
+    return jsonify(list_teams())
+
+
+@app.route("/api/teams", methods=["POST"])
+def api_create_team():
+    if not _teams_ok:
+        return jsonify({"error": "teams module not available"}), 501
+    data = request.get_json() or {}
+    name = data.get("name")
+    members = data.get("members", [])
+    if not name:
+        return jsonify({"error": "Missing 'name'"}), 400
+    return jsonify(create_team(name, members)), 201
+
+
+@app.route("/api/teams/<name>")
+def api_get_team(name: str):
+    if not _teams_ok:
+        return jsonify({"error": "teams module not available"}), 501
+    team = get_team(name)
+    if team is None:
+        return jsonify({"error": f"Team '{name}' not found"}), 404
+    return jsonify(team)
+
+
+# --- Tasks endpoints ---
+
+
+@app.route("/api/tasks/<team>")
+def api_list_tasks(team: str):
+    if not _tasks_ok:
+        return jsonify({"error": "task_list module not available"}), 501
+    return jsonify(list_tasks(team))
+
+
+@app.route("/api/tasks/<team>", methods=["POST"])
+def api_create_task(team: str):
+    if not _tasks_ok:
+        return jsonify({"error": "task_list module not available"}), 501
+    data = request.get_json() or {}
+    title = data.get("title")
+    description = data.get("description", "")
+    if not title:
+        return jsonify({"error": "Missing 'title'"}), 400
+    return jsonify(create_task(team, title, description)), 201
+
+
+@app.route("/api/tasks/<team>/<task_id>", methods=["PUT"])
+def api_update_task(team: str, task_id: str):
+    if not _tasks_ok:
+        return jsonify({"error": "task_list module not available"}), 501
+    data = request.get_json() or {}
+    status = data.get("status")
+    if not status:
+        return jsonify({"error": "Missing 'status'"}), 400
+    return jsonify(update_task(team, task_id, status))
+
+
+# --- Templates endpoints ---
+
+
+@app.route("/api/templates")
+def api_list_templates():
+    if not _templates_ok:
+        return jsonify({"error": "template_loader module not available"}), 501
+    return jsonify(list_templates())
+
+
+@app.route("/api/templates/<template_id>")
+def api_load_template(template_id: str):
+    if not _templates_ok:
+        return jsonify({"error": "template_loader module not available"}), 501
+    tpl = load_template(template_id)
+    if tpl is None:
+        return jsonify({"error": f"Template '{template_id}' not found"}), 404
+    return jsonify(tpl)
+
+
+# --- Checkpoints endpoints ---
+
+
+@app.route("/api/checkpoints")
+def api_list_checkpoints():
+    if not _checkpoints_ok:
+        return jsonify({"error": "checkpoint module not available"}), 501
+    return jsonify(list_incomplete())
+
+
+@app.route("/api/resume/<agent>", methods=["POST"])
+def api_resume_agent(agent: str):
+    if not _checkpoints_ok:
+        return jsonify({"error": "checkpoint module not available"}), 501
+    result = resume_from_checkpoint(agent)
+    return jsonify(result)
 
 
 # --- Helpers ---

@@ -12,6 +12,9 @@
   "categories": ["Other"],
   "activationEvents": ["onStartupFinished"],
   "main": "./dist/extension.js",
+  "bin": {
+    "open-agents-bridge": "./dist/cli.js"
+  },
   "contributes": {
     "commands": [
       {
