@@ -4,19 +4,15 @@ user-invocable: false
 description: "Deterministic reference for the Open-Agents state file (agents.json). Use when Claude needs to inspect agent state, read AgentRecord fields, understand status values, or trace state transitions. Activates for: agents.json, agent state, status running/done/failed, AgentRecord fields, ~/.oa/, state file."
 ---
 
-# oa-state-agents-json
+## Critical Rules
 
-## Quick Reference
+ALWAYS find agents.json at `~/.oa/agents.json` (OA_DIR = Path.home() / ".oa", STATE_FILE = OA_DIR / "agents.json") — because the path is hardcoded in state.py and never changes.
 
-### Critical Rules
+ALWAYS use file locking when reading/writing agents.json — because the state module uses `fcntl.LOCK_SH` (read) and atomic write via tempfile + rename (write); direct text editor edits while agents are running will corrupt state.
 
-Find agents.json at `~/.oa/agents.json` (OA_DIR = Path.home() / ".oa", STATE_FILE = OA_DIR / "agents.json") because the path is hardcoded in state.py and never changes.
+ALWAYS check all 6 status values (not just 3) — because valid statuses are: `running`, `done`, `failed`, `killed`, `timeout`, `error`.
 
-Use file locking when reading/writing agents.json because the state module uses `fcntl.LOCK_SH` (read) and atomic write via tempfile + rename (write) — direct text editor edits while agents are running will corrupt state.
-
-Check all 6 status values (not just 3) because valid statuses are: `running`, `done`, `failed`, `killed`, `timeout`, `error`.
-
-Use `created_at` (not `started_at`) for the spawn timestamp because the actual field name is `created_at` (float, Unix timestamp) — `started_at` does not exist.
+ALWAYS use `created_at` (not `started_at`) for the spawn timestamp — because the actual field name is `created_at` (float, Unix timestamp); `started_at` does not exist.
 
 ## AgentRecord Schema (state.py)
 

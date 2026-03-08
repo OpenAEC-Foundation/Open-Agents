@@ -1,4 +1,4 @@
----
+﻿---
 name: oa-library-discovery
 description: "Find and reuse agent templates from agents/library/. Use when selecting an existing template before spawning, checking available templates by category or tag, or using --template flag. Activates for: agents/library, --template, template id, reuse template, find template."
 user-invocable: false
@@ -24,17 +24,17 @@ Need to run a task?
 
 1. Scan the library directory to discover available categories:
    ```bash
-   ls /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/agents/library/
+   ls <project-root>/agents/library/
    ```
 
 2. Search for templates by category or keyword:
    ```bash
-   grep -rl "research" /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/agents/library/ --include="*.json"
+   grep -rl "research" <project-root>/agents/library/ --include="*.json"
    ```
 
 3. Read a template to check its fields before using it:
    ```bash
-   cat /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/agents/library/research/researcher.json
+   cat <project-root>/agents/library/research/researcher.json
    ```
 
 4. Spawn using a template (oa-cli resolves `modelHint` automatically):
@@ -51,7 +51,7 @@ Need to run a task?
 | `name` | Human-readable name | Yes |
 | `description` | One-sentence summary | Yes |
 | `model` | Full model ID (e.g. `anthropic/claude-sonnet-4-6`) | Yes |
-| `modelHint` | Short model alias: `claude/haiku`, `claude/sonnet`, `claude/opus` | Yes |
+| `modelHint` | Short model alias: `claude/haiku`, `claude/sonnet`, `claude/opus` | No |
 | `systemPrompt` | Agent instructions injected before task | Yes |
 | `tools` | Minimal tool set (`Read`, `Write`, `Bash`, etc.) | Yes |
 | `maturity` | `tool-capable` or `prompt-only` | Recommended |
@@ -62,12 +62,12 @@ Need to run a task?
 
 ### Pattern 1: Find all research templates
 ```bash
-ls /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/agents/library/research/
+ls <project-root>/agents/library/research/
 ```
 
 ### Pattern 2: Grep templates by tag
 ```bash
-grep -rl '"review"' /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/agents/library/ --include="*.json"
+grep -rl '"review"' <project-root>/agents/library/ --include="*.json"
 ```
 
 ### Pattern 3: Spawn with template

@@ -18,14 +18,29 @@ export function Header() {
   }, []);
 
   return (
-    <header className="flex items-center justify-between px-5 py-2.5 border-b border-oa-border bg-oa-surface shrink-0">
+    <header
+      className="flex items-center justify-between px-5 py-2.5 shrink-0"
+      style={{
+        background: '#0a0a0a',
+        borderBottom: '1px solid rgba(255, 107, 0, 0.35)',
+      }}
+    >
       <div className="flex items-center gap-3">
-        <span className="bg-gradient-to-br from-oa-accent to-cyan-600 text-oa-bg font-extrabold text-xs px-2 py-1 rounded-md tracking-wider">
+        <span
+          className="font-extrabold text-xs px-2 py-1 rounded-md tracking-wider"
+          style={{
+            background: 'linear-gradient(135deg, #ff6b00, #ff8c00)',
+            color: '#0a0a0a',
+          }}
+        >
           OA
         </span>
         <Bot size={15} className="text-oa-accent" />
-        <h1 className="text-[15px] font-bold tracking-tight text-neutral-100">
-          Open Agents Command Centre
+        <h1 className="text-[15px] font-bold tracking-tight text-neutral-100 flex items-baseline gap-2">
+          Open Agents
+          <span className="text-[11px] font-medium" style={{ color: '#888888' }}>
+            by Impertio
+          </span>
         </h1>
         {running.length > 0 && (
           <span className="relative flex h-2 w-2 ml-1">

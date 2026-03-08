@@ -1,24 +1,20 @@
----
+﻿---
 name: oa-library-templates
 user-invocable: false
 description: "Reference for creating and storing agent templates in the Open-Agents library. Use when Claude needs to write a new agent JSON template or understand the library structure. Activates for: save template, add to library, new agent template, agents/library, template format."
 ---
 
-# oa-library-templates
+## Critical Rules
 
-## Quick Reference
+ALWAYS check for duplicate agents before writing a new template — because the library must remain deduplicated; search by name, description, and tags.
 
-### Critical Rules
+ALWAYS use the minimum model that can reliably perform the task — because haiku costs significantly less than sonnet and should be preferred whenever input/output is well-defined.
 
-Check for duplicate agents before writing a new template because the library must remain deduplicated — search by name, description, and tags.
+ALWAYS match an existing `agents/library/` directory for the category — because putting a template in the wrong category breaks discoverability; verify the directory exists before writing.
 
-Use the minimum model that can reliably perform the task because haiku costs significantly less than sonnet and should be preferred whenever input/output is well-defined.
+NEVER use model shorthand in templates — because the runner resolves model IDs literally; shorthand breaks the agent launch; always use the full model identifier.
 
-Match an existing `agents/library/` directory for the category because putting a template in the wrong category breaks discoverability — verify the directory exists before writing.
-
-Use the full model identifier (never shorthand) because the runner resolves model IDs literally — shorthand breaks the agent launch.
-
-### Decision Tree: Which Model?
+## Decision Tree: Which Model?
 
 ```
 Task type?
@@ -41,6 +37,7 @@ Every agent template MUST include these fields:
   "name": "Descriptive Agent Name",
   "description": "One-line description of what this agent does and when to use it.",
   "model": "anthropic/claude-haiku-4-5-20251001",
+  "modelHint": "claude/haiku",
   "systemPrompt": "You are a [role] that [primary task].\n\nOutput format: [describe expected output].\n\nRules:\n1. [First rule]\n2. [Second rule]",
   "tools": ["Read", "Glob", "Grep"],
   "maturity": "tool-capable",
@@ -56,6 +53,7 @@ Every agent template MUST include these fields:
 | `name` | string | Title case, 2-4 words, action-oriented ("Validate IFC Psets") |
 | `description` | string | Single sentence, starts with verb, explains purpose and when to use |
 | `model` | string | Full ID from Model IDs table — NEVER shorthand |
+| `modelHint` | string | Optional short alias: "claude/haiku", "claude/sonnet", or "claude/opus" |
 | `systemPrompt` | string | Self-contained role + output format + numbered rules. Max 500 words |
 | `tools` | array | Minimum set required — remove any tool not strictly needed |
 | `maturity` | string | One of: `"prompt-only"`, `"tool-capable"`, `"orchestrator"` |
@@ -144,6 +142,7 @@ agents/library/review-quality/check-naming-conventions.json
   "name": "Validate IFC Psets",
   "description": "Validates IFC property set names and values against a reference schema.",
   "model": "anthropic/claude-haiku-4-5-20251001",
+  "modelHint": "claude/haiku",
   "systemPrompt": "You are an IFC property set validator.\n\nRead the provided IFC file or extracted property sets and validate them against the reference schema.\n\nOutput format: For each property set, report:\n- Pset name: PASS/FAIL\n- Missing required properties\n- Invalid value types\n- Summary: X/Y property sets valid\n\nRules:\n1. Read the target file before analysis.\n2. Compare each Pset_ prefixed set against the schema.\n3. Flag missing required properties as FAIL.\n4. Report results sorted by severity (FAIL first, then PASS).\n5. Do not modify any files — this is a read-only validation.",
   "tools": ["Read", "Glob", "Grep"],
   "maturity": "tool-capable",

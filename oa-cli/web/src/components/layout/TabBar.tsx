@@ -16,16 +16,39 @@ export function TabBar() {
   const setTab = useUIStore((s) => s.setMainTab);
 
   return (
-    <div className="flex border-b border-oa-border bg-oa-surface shrink-0">
+    <div
+      className="flex shrink-0"
+      style={{ background: '#1a1a1a', borderBottom: '1px solid #2d2d2d' }}
+    >
       {TABS.map((tab) => (
         <button
           key={tab.id}
           onClick={() => setTab(tab.id)}
-          className={`flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold cursor-pointer transition-colors border-b-2 ${
+          className="flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold cursor-pointer transition-colors border-b-2"
+          style={
             activeTab === tab.id
-              ? 'text-oa-accent border-oa-accent bg-oa-accent/10'
-              : 'text-oa-text-muted border-transparent hover:text-neutral-300 hover:bg-neutral-800/40'
-          }`}
+              ? {
+                  color: '#ff6b00',
+                  borderBottomColor: '#ff6b00',
+                  background: 'rgba(255, 107, 0, 0.10)',
+                }
+              : {
+                  color: '#cccccc',
+                  borderBottomColor: 'transparent',
+                }
+          }
+          onMouseEnter={(e) => {
+            if (activeTab !== tab.id) {
+              (e.currentTarget as HTMLButtonElement).style.background = '#2d2d2d';
+              (e.currentTarget as HTMLButtonElement).style.color = '#f0f0f0';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== tab.id) {
+              (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+              (e.currentTarget as HTMLButtonElement).style.color = '#cccccc';
+            }
+          }}
         >
           {tab.icon}
           {tab.label}

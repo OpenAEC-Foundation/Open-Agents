@@ -2,17 +2,14 @@
 name: oa-agent-library-builder
 user-invocable: false
 description: "Grows the agent library from successful oa runs. Use when reviewing completed agent output that follows a clear, repeatable pattern, or when the user mentions saving an agent as a template. Activates for: oa collect shows success, save as template, make reusable, add to library."
+disable-model-invocation: true
 ---
 
-# OA Agent Library Builder
+## Critical Rules
 
-## When to Trigger
+ALWAYS save a template when an agent run produces a clear, repeatable pattern — reuse prevents redundant spawning.
 
-Activate this skill when ANY of these conditions are met:
-- `oa collect` shows a successful agent result
-- User says "save this as template", "make this reusable", or "add to library"
-- You are reviewing agent output that follows a clear, repeatable pattern
-- User asks to create a new agent template from an existing run
+NEVER create a template for one-off tasks — templates add maintenance cost without reuse value.
 
 ## Template Extraction Process
 

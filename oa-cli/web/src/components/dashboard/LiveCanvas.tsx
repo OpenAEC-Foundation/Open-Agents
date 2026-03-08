@@ -18,6 +18,7 @@ import '@xyflow/react/dist/style.css';
 import { useAgentStore, statusColor, modelColor, formatDuration, modelLabel } from '../../stores/agentStore';
 import type { Agent, Message } from '../../types';
 import * as api from '../../api/client';
+import { CheckCircle2, XCircle, Clock, Bot } from 'lucide-react';
 
 // --- Agent Node Component ---
 
@@ -28,58 +29,93 @@ function AgentNodeComponent({ data }: NodeProps) {
   const sColor = statusColor(agent.status);
   const mColor = modelColor(agent.model);
 
+  const isRunning = agent.status === 'running';
+  const isDone = agent.status === 'done';
+  const isFailed = agent.status === 'failed' || agent.status === 'error';
+
   return (
     <div
-      className="relative rounded-xl border-2 px-4 py-3 min-w-[180px] max-w-[240px] transition-all duration-200"
+      className="relative rounded-lg min-w-[220px] max-w-[280px] transition-all duration-200 group"
       style={{
-        borderColor: selected ? '#f97316' : sColor,
-        background: selected ? 'rgba(249,115,22,0.08)' : 'rgba(15,32,53,0.95)',
-        boxShadow: agent.status === 'running'
-          ? `0 0 12px ${sColor}40`
+        borderLeft: `4px solid ${selected ? '#f97316' : sColor}`,
+        background: selected
+          ? 'linear-gradient(135deg, rgba(249,115,22,0.10) 0%, rgba(15,15,17,0.98) 100%)'
+          : 'linear-gradient(135deg, rgba(23,23,23,0.98) 0%, rgba(10,10,12,0.99) 100%)',
+        boxShadow: isRunning
+          ? `0 0 16px ${sColor}35, 0 4px 12px rgba(0,0,0,0.5)`
           : selected
-          ? '0 0 12px rgba(249,115,22,0.25)'
-          : '0 2px 8px rgba(0,0,0,0.4)',
+          ? '0 0 14px rgba(249,115,22,0.2), 0 4px 12px rgba(0,0,0,0.5)'
+          : '0 4px 12px rgba(0,0,0,0.5)',
+        border: `1px solid ${selected ? 'rgba(249,115,22,0.3)' : 'rgba(255,255,255,0.06)'}`,
+        borderLeftWidth: '4px',
+        borderLeftColor: selected ? '#f97316' : sColor,
       }}
     >
-      <Handle type="target" position={Position.Top} className="!bg-neutral-600 !w-2 !h-2 !border-0" />
-      <Handle type="source" position={Position.Bottom} className="!bg-neutral-600 !w-2 !h-2 !border-0" />
-
-      {/* Status indicator */}
-      <div
-        className="absolute -top-1.5 -right-1.5 w-3 h-3 rounded-full border-2 border-neutral-900"
-        style={{
-          background: sColor,
-          animation: agent.status === 'running' ? 'ccPulse 2s infinite' : 'none',
-        }}
+      <Handle
+        type="target"
+        position={Position.Top}
+        className="!opacity-0 group-hover:!opacity-100 !transition-opacity !bg-neutral-500 !w-2 !h-2 !border-0"
       />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className="!opacity-0 group-hover:!opacity-100 !transition-opacity !bg-neutral-500 !w-2 !h-2 !border-0"
+      />
+
+      <div className="px-3 py-2.5">
+        {/* Header row: icon + name + status badge */}
+        <div className="flex items-center gap-2 mb-1.5">
+          <Bot size={13} className="text-neutral-500 shrink-0" />
+          <div className="text-[13px] font-bold text-white truncate flex-1 leading-tight">
+            {agent.name}
+          </div>
+          {/* Status icon top-right */}
+          <div className="shrink-0 ml-auto">
+            {isRunning && (
+              <span
+                className="block w-2.5 h-2.5 rounded-full"
+                style={{ background: sColor, animation: 'ccPulse 2s infinite' }}
+              />
+            )}
+            {isDone && <CheckCircle2 size={13} color="#22c55e" />}
+            {isFailed && <XCircle size={13} color="#ef4444" />}
+          </div>
+        </div>
+
+        {/* Model badge + duration */}
+        <div className="flex items-center gap-1.5 mb-2">
+          <span
+            className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold leading-none"
+            style={{ background: `${mColor}22`, color: mColor, border: `1px solid ${mColor}33` }}
+          >
+            {modelLabel(agent.model)}
+          </span>
+          <span className="text-[10px] text-neutral-500 font-mono flex items-center gap-0.5">
+            <Clock size={9} />
+            {formatDuration(agent.created_at, agent.finished_at)}
+          </span>
+        </div>
+
+        {/* Task text */}
+        {agent.task && (
+          <div className="text-[11px] text-neutral-400 italic line-clamp-2 leading-tight">
+            {agent.task}
+          </div>
+        )}
+      </div>
 
       {/* Unread badge */}
       {msgs > 0 && (
-        <div className="absolute -top-2 -left-2 bg-yellow-500 text-black text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+        <div className="absolute -top-2 -left-2 bg-yellow-500 text-black text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
           {msgs}
         </div>
       )}
 
-      {/* Name */}
-      <div className="text-sm font-semibold text-white truncate">{agent.name}</div>
-
-      {/* Model badge */}
-      <div className="flex items-center gap-1.5 mt-1">
-        <span
-          className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
-          style={{ background: `${mColor}20`, color: mColor }}
-        >
-          {modelLabel(agent.model)}
-        </span>
-        <span className="text-[10px] text-neutral-500">
-          {formatDuration(agent.created_at, agent.finished_at)}
-        </span>
-      </div>
-
-      {/* Task */}
-      <div className="text-[11px] text-neutral-400 mt-1.5 line-clamp-2 leading-tight">
-        {agent.task}
-      </div>
+      {/* Hover overlay */}
+      <div
+        className="absolute inset-0 rounded-lg pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
+        style={{ background: 'rgba(255,255,255,0.025)' }}
+      />
     </div>
   );
 }
@@ -165,8 +201,12 @@ export function LiveCanvas() {
   const messageCache = useRef<Map<string, Message[]>>(new Map());
   // PERF: Cap messageCache to prevent unbounded memory growth in long sessions
   const MAX_CACHE_SIZE = 500;
+
   // Persist user-dragged positions — only auto-layout NEW agents
-  const userPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const manualPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
+
+  // Local controlled nodes state — needed so applyNodeChanges works during drag
+  const [flowNodes, setFlowNodes] = useState<Node[]>([]);
 
   // Fetch messages for all agents
   useEffect(() => {
@@ -230,23 +270,29 @@ export function LiveCanvas() {
     [agents]
   );
 
-  // Mark selected + apply persisted positions
-  const nodes = useMemo(
-    () => layoutNodes.map(n => ({
-      ...n,
-      position: userPositions.current.get(n.id) ?? n.position,
-      data: { ...n.data, selected: n.id === selectedAgent },
-    })),
-    [layoutNodes, selectedAgent]
-  );
+  // Sync layoutNodes → flowNodes, but preserve manualPositions for known nodes
+  useEffect(() => {
+    setFlowNodes(prev => {
+      const prevMap = new Map(prev.map(n => [n.id, n]));
+      return layoutNodes.map(n => ({
+        ...n,
+        // Use manual position if available, else fall back to auto-layout
+        position: manualPositions.current.get(n.id) ?? n.position,
+        data: { ...n.data, selected: n.id === selectedAgent },
+        // Preserve dragging state from previous render to avoid flicker
+        dragging: prevMap.get(n.id)?.dragging ?? false,
+      }));
+    });
+  }, [layoutNodes, selectedAgent]);
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
-    // Persist position changes from drag
+    // Persist drag positions (both during and after drag)
     for (const change of changes) {
       if (change.type === 'position' && change.position) {
-        userPositions.current.set(change.id, change.position);
+        manualPositions.current.set(change.id, change.position);
       }
     }
+    setFlowNodes(prev => applyNodeChanges(changes, prev));
   }, []);
 
   // Combine hierarchy edges + message edges
@@ -277,7 +323,7 @@ export function LiveCanvas() {
   return (
     <div className="flex-1 h-full">
       <ReactFlow
-        nodes={nodes}
+        nodes={flowNodes}
         edges={allEdges}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}

@@ -3,6 +3,7 @@ name: oa-orchestration-pipeline
 description: "Automated planner→workers→combiner pipeline for complex multi-step tasks. Use when a task requires planning then parallel execution then synthesis. Activates for: oa pipeline, pipeline, planner, combiner, multi-step task."
 user-invocable: false
 allowed-tools: Bash(oa *)
+disable-model-invocation: true
 ---
 
 ## Critical Rules
@@ -38,7 +39,8 @@ oa pipeline "Research competitor pricing and write a comparison report"
 
 ### Pattern 2: Pipeline with model override
 ```bash
-oa pipeline "Refactor the auth module across 5 files" --model claude/opus
+oa pipeline "Refactor the auth module across 5 files" \
+  --model claude/opus
 ```
 
 ### Pattern 3: Monitor pipeline progress

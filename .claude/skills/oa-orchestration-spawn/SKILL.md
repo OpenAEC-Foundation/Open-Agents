@@ -3,6 +3,7 @@ name: oa-orchestration-spawn
 description: "Exact CLI reference for spawning oa agents. Use when: spawning an agent via oa run, configuring agent flags, selecting --model, using --direct, managing agent names. Activates for: oa run, spawn agent, start agent, agent flags, --direct, --model."
 allowed-tools: Bash(oa *)
 user-invocable: false
+disable-model-invocation: true
 ---
 
 ## Live system state
@@ -39,14 +40,21 @@ oa run "task description" --name worker-1 --model claude/sonnet --direct
 
 ### Pattern 2: Full flag reference
 ```bash
-oa run "task"
-  --name worker-name       # agent name (auto-generated if omitted)
-  --model claude/sonnet    # REQUIRED: claude/sonnet | claude/opus | claude/haiku | ollama/<model>
-  --direct                 # REQUIRED: write to project dir instead of /tmp
-  --parent orchestrator    # optional: parent agent name for hierarchy tracking
-  --template template-id   # optional: load systemPrompt from agents/library/<id>.json
-  --context-skills skill   # optional: inject skill context blocks (comma-separated IDs)
-  --guardians              # optional: trigger batch_complete guardians after spawn
+oa run "task" \
+  --name worker-name \
+  --model claude/sonnet \
+  --direct \
+  --parent orchestrator \
+  --template template-id \
+  --context-skills skill \
+  --guardians
+# --name: agent name (auto-generated if omitted)
+# --model: REQUIRED: claude/sonnet | claude/opus | claude/haiku | ollama/<model>
+# --direct: REQUIRED: write to project dir instead of /tmp
+# --parent: optional: parent agent name for hierarchy tracking
+# --template: optional: load systemPrompt from agents/library/<id>.json
+# --context-skills: optional: inject skill context blocks (comma-separated IDs)
+# --guardians: optional: trigger batch_complete guardians after spawn
 ```
 
 ### Pattern 3: Named parallel workers
