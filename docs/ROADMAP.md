@@ -4,7 +4,7 @@
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
 > **Laatste update**: 2026-03-08
-> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 11 (VS Code Bridge) In Progress — Sprint 17 (Agent Teams) In Progress — AEC Agent Library: 73 skill-backed agents
+> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 11 (VS Code Bridge) In Progress — Sprint 17 (Agent Teams) In Progress — Agent Library: 284 templates (15 categories) — 22 skills gebouwd
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -27,7 +27,7 @@
 | Frappe App | 1 | 1 |
 | Library Ecosystem (10 types) | 0 | 10 |
 | LLM Asset Generation (Factory) | 1 | 1 |
-| Agent Library (doel: 1015+) | 293 | 1015 |
+| Agent Library (doel: 1015+) | 284 | 1015 |
 | CLI Agentic Layer (oa-cli) | 1 | 1 |
 | VS Code Bridge (Sprint 11) | 0 | 1 |
 | Agent Teams Patterns (Sprint 17) | 0 | 12 |
@@ -42,7 +42,7 @@
 **Fase 4c (Assistant)**: ████████████████████ **100%** - AI assembly assistant sidebar (Sprint 6c)
 **Fase 5 (Deployment)**: ████████████████████ **100%** - VS Code extension (Sprint 7) + Frappe app (Sprint 8)
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
-**Fase 7 (Agent Library)**: █████░░░░░░░░░░░░░░░ **29%** - 293/1015 agents geïmplementeerd (10 directory-categorieën + 13 category JSON files, library loader)
+**Fase 7 (Agent Library)**: █████░░░░░░░░░░░░░░░ **28%** - 284/1015 agents geïmplementeerd (15 directory-categorieën: aec-blender/bonsai/cross/ifcopenshell/sverchok, code-dev, communication, core, data-transform, erpnext, file-system, git-versioning, research, review-quality, text-language)
 **Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond), v0.2.0 released 2026-03-02
 **Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 21+ commando's, Textual TUI, pipeline orchestrator, React web UI; checkpoints en resume geïmplementeerd
 **Fase 10 (VS Code Bridge)**: ████████████████░░░░ **80%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator, package migratie, launch config werkend; shared types mergen, test-workspace, CLI tool integreren bij agent sprint11-finisher
