@@ -1,3 +1,28 @@
+# Research Results Summary
+
+## Drag-and-Drop Library Research (2026-03-08)
+
+### Task Completed ✅
+Research the best lightweight drag-and-drop approach for a React kanban board (3 columns: Running, Done, Failed) with agent sessions and real-time updates (polling every 2s).
+
+### Recommendation
+**Use @dnd-kit** — 10 kB gzip, actively maintained, perfect for real-time updates without card jumping.
+
+**Key findings:**
+- **@dnd-kit**: 10 kB (gzip) ✅ **RECOMMENDED**
+- **react-beautiful-dnd**: 38 kB (gzip), deprecated Aug 2025 ❌
+- **HTML5 Native**: 0 kB but risky, poor touch support ⚠️
+
+**Why @dnd-kit:**
+1. Smallest modern bundle (3.4× lighter than react-beautiful-dnd)
+2. Transform-based positioning prevents card jumping during polling updates
+3. React 19 compatible, actively maintained
+4. Excellent re-render performance with memoization
+
+**Implementation:** Use @dnd-kit/sortable for kanban columns, memoize AgentCard components, separate data state from drag state.
+
+---
+
 # API Congruency Report: bridge.py ↔ TypeScript Client
 
 **Date:** 2026-03-08

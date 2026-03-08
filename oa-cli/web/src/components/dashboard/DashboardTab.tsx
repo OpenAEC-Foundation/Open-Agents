@@ -1,4 +1,4 @@
-import { LiveCanvas } from './LiveCanvas';
+import { KanbanBoard } from './KanbanBoard';
 import { AgentPanel } from './AgentPanel';
 import { SpawnForm } from './SpawnForm';
 import { ActivityFeed } from './ActivityFeed';
@@ -51,7 +51,7 @@ export function DashboardTab() {
           )}
         </div>
 
-        <LiveCanvas />
+        <KanbanBoard />
       </div>
 
       {/* Right: Agent detail panel */}

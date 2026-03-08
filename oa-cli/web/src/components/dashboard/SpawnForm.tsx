@@ -94,24 +94,20 @@ export function SpawnForm() {
     }
   };
 
-  const modelPillClass = (value: string) => {
-    const active = model === value && !useOllama;
-    if (!active) return 'bg-transparent border-neutral-700/40 text-neutral-500 hover:text-neutral-300 hover:border-neutral-600';
-    if (value.includes('opus')) return 'bg-violet-950/60 border-violet-700/50 text-violet-300';
-    if (value.includes('sonnet')) return 'bg-blue-950/60 border-blue-700/50 text-blue-300';
-    return 'bg-cyan-950/60 border-cyan-700/50 text-cyan-300';
-  };
+  const inputClass = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#ff6b35]/20 focus:border-[#ff6b35] transition-colors bg-white placeholder:text-gray-400';
 
   return (
-    <div className="border-b border-oa-border bg-oa-surface">
-      {/* Section header */}
-      <div className="px-3 pt-3 pb-2 flex items-center gap-2">
-        <Zap size={12} className="text-oa-accent" />
-        <span className="text-[10px] font-bold text-oa-text-muted uppercase tracking-widest">Spawn</span>
+    <div className="bg-white border-t border-gray-200 p-4 space-y-3">
+      {/* Template */}
+      <div>
+        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+          Template
+        </label>
         <select
           value={template}
           onChange={(e) => handleTemplateChange(e.target.value)}
-          className="ml-auto text-[10px] bg-transparent text-oa-text-dim border-none outline-none cursor-pointer"
+          className={inputClass}
+          style={{ color: '#1a2a3a' }}
         >
           {TEMPLATES.map((t) => (
             <option key={t.label} value={t.label}>{t.label}</option>
@@ -119,8 +115,11 @@ export function SpawnForm() {
         </select>
       </div>
 
-      <div className="px-3 pb-3 space-y-2">
-        {/* Task textarea — main focus */}
+      {/* Task */}
+      <div>
+        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+          Task
+        </label>
         <textarea
           value={task}
           onChange={(e) => setTask(e.target.value)}
@@ -131,17 +130,27 @@ export function SpawnForm() {
             }
           }}
           placeholder="Describe the task… (Ctrl+Enter)"
-          rows={5}
-          className="w-full px-2.5 py-2 bg-oa-bg border border-oa-border rounded-lg text-oa-text text-[12px] placeholder-oa-text-dim resize-y leading-relaxed focus:outline-none focus:border-oa-accent/50 transition-colors"
+          rows={4}
+          className={`${inputClass} resize-y leading-relaxed`}
+          style={{ color: '#1a2a3a' }}
         />
+      </div>
 
-        {/* Model pills */}
-        <div className="flex items-center gap-1 flex-wrap">
+      {/* Model */}
+      <div>
+        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+          Model
+        </label>
+        <div className="flex items-center gap-1.5 flex-wrap">
           {CLAUDE_MODELS.map((m) => (
             <button
               key={m.value}
               onClick={() => { setModel(m.value); setUseOllama(false); }}
-              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border transition-all cursor-pointer ${modelPillClass(m.value)}`}
+              className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                model === m.value && !useOllama
+                  ? 'bg-[#ff6b35] text-white border-[#ff6b35]'
+                  : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400 hover:text-gray-700'
+              }`}
             >
               {m.label}
             </button>
@@ -151,96 +160,98 @@ export function SpawnForm() {
               if (!useOllama) { setUseOllama(true); setModel(OLLAMA_MODELS[0].value); }
               else { setUseOllama(false); setModel('claude/sonnet'); }
             }}
-            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
               useOllama
-                ? 'bg-orange-950/60 border-orange-700/50 text-orange-300'
-                : 'bg-transparent border-neutral-700/40 text-neutral-500 hover:text-neutral-300 hover:border-neutral-600'
+                ? 'bg-[#ff6b35] text-white border-[#ff6b35]'
+                : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400 hover:text-gray-700'
             }`}
           >
             ollama
           </button>
-          {useOllama && (
+        </div>
+        {useOllama && (
+          <select
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            className={`mt-2 ${inputClass}`}
+            style={{ color: '#1a2a3a' }}
+          >
+            {OLLAMA_MODELS.map((m) => (
+              <option key={m.value} value={m.value}>{m.label}</option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      {/* Advanced: name + parent */}
+      <div>
+        <button
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+        >
+          {showAdvanced ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          Advanced options
+        </button>
+        {showAdvanced && (
+          <div className="flex gap-2 mt-2">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Name (optional)"
+              className={inputClass}
+              style={{ color: '#1a2a3a' }}
+            />
             <select
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="text-[10px] bg-oa-bg border border-oa-border rounded px-1.5 py-0.5 text-oa-text"
+              value={parent}
+              onChange={(e) => setParent(e.target.value)}
+              className={inputClass}
+              style={{ color: '#1a2a3a' }}
             >
-              {OLLAMA_MODELS.map((m) => (
-                <option key={m.value} value={m.value}>{m.label}</option>
+              <option value="">No parent</option>
+              {running.map((a) => (
+                <option key={a.name} value={a.name}>{a.name}</option>
               ))}
             </select>
-          )}
-        </div>
-
-        {/* Advanced toggle: name + parent */}
-        <div>
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center gap-1 text-[10px] text-neutral-600 hover:text-neutral-400 transition-colors cursor-pointer"
-          >
-            {showAdvanced ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
-            name / parent
-          </button>
-          {showAdvanced && (
-            <div className="flex gap-2 mt-1.5">
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Name (optional)"
-                className="flex-1 px-2.5 py-1.5 bg-oa-bg border border-oa-border rounded-lg text-oa-text text-[11px] placeholder-oa-text-dim focus:outline-none"
-              />
-              <select
-                value={parent}
-                onChange={(e) => setParent(e.target.value)}
-                className="flex-1 px-2.5 py-1.5 bg-oa-bg border border-oa-border rounded-lg text-oa-text text-[11px]"
-              >
-                <option value="">No parent</option>
-                {running.map((a) => (
-                  <option key={a.name} value={a.name}>{a.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-2">
-          <button
-            onClick={handleSpawn}
-            disabled={!task.trim()}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg font-bold text-[12px] transition-all ${
-              task.trim()
-                ? 'text-white cursor-pointer hover:brightness-110'
-                : 'bg-oa-border text-oa-text-dim cursor-default'
-            }`}
-            style={task.trim() ? { background: 'linear-gradient(135deg, #f97316, #c2410c)' } : undefined}
-          >
-            <Zap size={12} />
-            Spawn
-          </button>
-          <button
-            onClick={() => useAgentStore.getState().cleanAgents()}
-            className="flex items-center gap-1 px-2.5 py-2 bg-oa-bg text-oa-text-muted border border-oa-border rounded-lg text-[11px] cursor-pointer hover:text-oa-text transition-colors"
-          >
-            <Trash2 size={11} />
-            Clean
-          </button>
-        </div>
-
-        {/* Feedback */}
-        {feedback && (
-          <div
-            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium animate-fade-in border ${
-              feedback.ok
-                ? 'bg-green-950/60 border-green-800/40 text-green-400'
-                : 'bg-red-950/60 border-red-800/40 text-red-400'
-            }`}
-          >
-            {feedback.ok ? <CheckCircle size={11} /> : <XCircle size={11} />}
-            {feedback.msg}
           </div>
         )}
       </div>
+
+      {/* Actions */}
+      <div className="flex gap-2">
+        <button
+          onClick={handleSpawn}
+          disabled={!task.trim()}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+            task.trim()
+              ? 'bg-[#ff6b35] text-white cursor-pointer hover:bg-[#e55a2a]'
+              : 'bg-gray-100 text-gray-400 cursor-default'
+          }`}
+        >
+          <Zap size={14} />
+          Spawn Agent
+        </button>
+        <button
+          onClick={() => useAgentStore.getState().cleanAgents()}
+          className="flex items-center gap-1.5 px-3 py-2.5 bg-white text-gray-500 border border-gray-200 rounded-lg text-sm cursor-pointer hover:text-gray-700 hover:border-gray-300 transition-colors"
+        >
+          <Trash2 size={13} />
+          Clean
+        </button>
+      </div>
+
+      {/* Feedback */}
+      {feedback && (
+        <div
+          className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border ${
+            feedback.ok
+              ? 'bg-green-50 border-green-200 text-green-700'
+              : 'bg-red-50 border-red-200 text-red-700'
+          }`}
+        >
+          {feedback.ok ? <CheckCircle size={12} /> : <XCircle size={12} />}
+          {feedback.msg}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,35 +1,46 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 
 @theme {
-  /* Impertio Studio — Dark Theme */
-  --color-oa-bg: #0a0a0a;
-  --color-oa-surface: #1a1a1a;
-  --color-oa-surface-hover: #2d2d2d;
-  --color-oa-border: #2d2d2d;
-  --color-oa-border-light: #222222;
-  --color-oa-text: #f0f0f0;
-  --color-oa-text-muted: #cccccc;
-  --color-oa-text-dim: #888888;
+  /* Licht thema — Impertio/opencompany246 */
+  --color-oa-bg: #f9fafb;
+  --color-oa-surface: #ffffff;
+  --color-oa-surface-hover: #f1f3f5;
+  --color-oa-border: #d1d5db;
+  --color-oa-border-light: #e5e7eb;
+  --color-oa-text: #1a2a3a;
+  --color-oa-text-muted: #6b7b8d;
+  --color-oa-text-dim: #9ca3af;
 
-  /* Impertio Orange — main accent */
-  --color-oa-accent: #ff6b00;
-  --color-oa-accent-bg: rgba(255, 107, 0, 0.15);
+  /* Oranje accent */
+  --color-oa-accent: #ff6b35;
+  --color-oa-accent-bg: rgba(255,107,53,0.1);
+  --color-oa-accent-hover: #e55a2a;
 
-  --color-status-running: #00ff88;
-  --color-status-done: #28a745;
-  --color-status-failed: #dc3545;
-  --color-status-timeout: #ffc107;
-  --color-status-killed: #888888;
+  /* Navy voor header/sidebar */
+  --color-oa-navy: #1a2a3a;
+  --color-oa-navy-light: #2d4356;
 
-  --color-model-opus: #a78bfa;
-  --color-model-sonnet: #60a5fa;
-  --color-model-haiku: #00ff88;
-  --color-model-ollama: #ff8c00;
+  /* Status kleuren */
+  --color-status-running: #2563eb;
+  --color-status-done: #16a34a;
+  --color-status-failed: #dc2626;
+  --color-status-timeout: #d97706;
+  --color-status-killed: #6b7280;
 
-  --font-sans: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  /* Model kleuren */
+  --color-model-opus: #7c3aed;
+  --color-model-sonnet: #2563eb;
+  --color-model-haiku: #0891b2;
+  --color-model-ollama: #ff6b35;
 
-  --animate-pulse: ccPulse 2s infinite;
-  --animate-fade-in: ccFadeIn 0.3s ease-out;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { margin: 0; overflow: hidden; background: #f9fafb; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
