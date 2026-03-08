@@ -21,6 +21,7 @@ from .tmux import session_exists, start_session
 from .state import get_agent, list_agents
 from .messaging import broadcast_message, mark_read, read_inbox, send_message, unread_count
 from .workspace import read_output
+from .guardians import list_guardians, log_event, register_guardian, trigger_guardian
 
 app = typer.Typer(
     name="oa",
@@ -28,6 +29,26 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 console = Console()
+
+AGENTS_LIBRARY_DIR = Path(__file__).parents[4] / "agents" / "library"
+
+
+def _load_template(template_id: str) -> dict:
+    """Search all JSON files in agents/library/ for a template with the given id."""
+    if not AGENTS_LIBRARY_DIR.exists():
+        console.print(f"[red]Agents library not found at {AGENTS_LIBRARY_DIR}[/red]")
+        raise typer.Exit(1)
+
+    for json_file in AGENTS_LIBRARY_DIR.rglob("*.json"):
+        try:
+            data = json.loads(json_file.read_text())
+            if data.get("id") == template_id:
+                return data
+        except Exception:
+            continue
+
+    console.print(f"[red]Template '{template_id}' not found in agents/library/[/red]")
+    raise typer.Exit(1)
 
 
 def _run_preflight_gate() -> bool:
@@ -105,16 +126,29 @@ def start(
 
 @app.command()
 def run(
-    task: str = typer.Argument(..., help="The task description for the agent"),
+    task: str = typer.Argument(None, help="The task description for the agent"),
     name: str = typer.Option("", "--name", "-n", help="Agent name (auto-generated if empty)"),
     model: str = typer.Option("claude", "--model", "-m", help="Model: 'claude' or 'ollama/<model>' (e.g. ollama/qwen3:8b)"),
     parent: str = typer.Option("", "--parent", "-p", help="Parent/orchestrator agent name (for hierarchy)"),
     workspace: str = typer.Option("", "--workspace", "-w", help="Use existing workspace directory (skips workspace creation)"),
     direct: bool = typer.Option(False, "--direct", "-d", help="Direct write mode: agent writes to project instead of proposals"),
+    template: str = typer.Option("", "--template", "-t", help="Agent template ID from agents/library/"),
+    guardians: bool = typer.Option(False, "--guardians/--no-guardians", help="Trigger batch_complete guardians after spawning"),
 ):
     """Spawn an agent with a task in a new tmux window."""
     if not session_exists():
         console.print("[red]No oa session. Run 'oa start' first.[/red]")
+        raise typer.Exit(1)
+
+    if template:
+        tmpl = _load_template(template)
+        system_prompt = tmpl.get("systemPrompt", "")
+        task = (system_prompt + "\n\n" + task).strip() if task else system_prompt
+        if model == "claude" and tmpl.get("modelHint"):
+            model = tmpl["modelHint"]
+
+    if not task:
+        console.print("[red]No task provided. Pass a task argument or use --template.[/red]")
         raise typer.Exit(1)
 
     if not name:
@@ -135,6 +169,13 @@ def run(
     console.print(f"  Task: {rec.task}")
     console.print(f"  Workspace: {rec.workspace}")
     console.print(f"  Window: {rec.tmux_window}")
+
+    log_event("agent_spawned", {"agent": rec.name, "model": rec.model, "task": rec.task[:120]})
+
+    if guardians:
+        triggered = trigger_guardian("batch_complete")
+        if triggered:
+            console.print(f"[dim]Guardians triggered: {', '.join(triggered)}[/dim]")
 
 
 @app.command()
@@ -377,6 +418,61 @@ def broadcast(
     """Broadcast a message to all running agents."""
     paths = broadcast_message(sender, message)
     console.print(f"[green]Broadcast sent to {len(paths) - 1} agent(s)[/green]")
+
+
+@app.command()
+def stop(
+    no_guardians: bool = typer.Option(False, "--no-guardians", help="Skip session_end guardian triggers"),
+):
+    """Stop the oa tmux session and trigger session_end guardians."""
+    from .tmux import SESSION_NAME, _tmux, session_exists
+
+    log_event("session_end", {"session": SESSION_NAME})
+
+    if not no_guardians:
+        triggered = trigger_guardian("session_end")
+        if triggered:
+            console.print(f"[dim]Guardians triggered: {', '.join(triggered)}[/dim]")
+            console.print("[dim]Guardians are running in background — session will close now.[/dim]")
+
+    if session_exists():
+        _tmux(f"kill-session -t {SESSION_NAME}", check=False)
+        console.print("[yellow]Session 'oa' stopped.[/yellow]")
+    else:
+        console.print("[dim]No active oa session.[/dim]")
+
+
+@app.command(name="guardians")
+def guardians_cmd(
+    register: bool = typer.Option(False, "--register", help="Register a new guardian (interactive)"),
+    trigger: str = typer.Option("", "--trigger", help="Manually trigger guardians for an event type"),
+):
+    """List, trigger, or register guardian agents."""
+    from rich.table import Table
+
+    if trigger:
+        triggered = trigger_guardian(trigger)
+        if triggered:
+            console.print(f"[green]Triggered {len(triggered)} guardian(s): {', '.join(triggered)}[/green]")
+        else:
+            console.print(f"[yellow]No guardians registered for event '{trigger}'.[/yellow]")
+        return
+
+    items = list_guardians()
+    if not items:
+        console.print("[dim]No guardians registered.[/dim]")
+        return
+
+    table = Table(title="Registered Guardians")
+    table.add_column("Name", style="cyan")
+    table.add_column("Trigger", style="yellow")
+    table.add_column("Model", style="green")
+    table.add_column("Task (preview)", max_width=50)
+
+    for g in items:
+        table.add_row(g["name"], g["trigger"], g["model"], g["task_preview"])
+
+    console.print(table)
 
 
 @app.command()

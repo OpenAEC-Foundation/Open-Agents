@@ -139,4 +139,29 @@
 | L-038 | **Art direction als context is essentieel voor visuele kwaliteit** — AI produceert technisch correcte maar lelijke output zonder expliciete esthetische richtlijnen. Kleurpaletten met hex codes, material recipes met exacte waarden, lighting setups, camera rules. | Showcase workspace kreeg ART_DIRECTION.md met Scandinavisch modernisme stijl. |
 | L-039 | **Workspace = geassembleerd product, skill package = bron** — De skill package repo is voor ontwikkeling. Een workspace is een kant-en-klaar product dat skills, CLAUDE.md, MCP config, en demo prompts combineert. Twee verschillende dingen. | Showcase workspace op apart pad, niet in skill package repo. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-040, L-041, etc.*
+---
+
+## Sessie 2026-03-08 — Iterative Planning & Orchestration Patterns
+
+### Planning
+
+| # | Les | Context |
+|---|-----|---------|
+| L-040 | **Iteratieve planning via agents > statische plan mode** — In plaats van Claude Code's ingebouwde plan mode (die één shot maakt), spawn een planner-agent (opus) + reviewer-agent (sonnet) in een feedback loop. Sneller, parallelliseerbaar, en het plan wordt een versioneerbaar artefact. | Ontwikkeld tijdens kinetic facade showcase. Plan mode was te rigide voor complexe multi-agent workflows. |
+| L-041 | **Vier orchestratie patronen, elk voor een ander doel** — `oa run` = one-shot, `oa pipeline` = lineaire decompose+execute, `oa delegate` = autonome orchestrator+workers, iterative-planner = planning fase met feedback loop. De planning fase KAN voorafgaan aan pipeline of delegate. Ze zijn lagen, niet alternatieven. | Template: `agents/library/core/iterative-planner.json`. |
+| L-042 | **Templates zijn metadata, niet executable** — `oa run` heeft geen `--template` flag. Templates in de library zijn patronen die de meta-orchestrator leest en handmatig omzet naar `oa run` commands. Feature gap: `oa run --template core/iterative-planner` zou templates direct executable moeten maken. | Alle 90+ templates in de library zijn documentatie, niet integrated in de CLI. |
+
+---
+
+## Sessie 2026-03-08 — open-pdf-studio Research & Workspace Config
+
+### Overdraagbare Patronen van open-pdf-studio
+
+| # | Les | Context |
+|---|-----|---------|
+| L-043 | **Async task queue pattern voorkomt race conditions** — Serialiseer gerelateerde async operaties via een promise-chain (last = previous.then(next)). UI update synchroon, I/O geserialiseerd. Toepasbaar op agent spawns die dezelfde resource raken. | open-pdf-studio `openFiles()`: UI tabs instant, file loads geserialiseerd via `fileOpenQueue = fileOpenQueue.then(...)`. |
+| L-044 | **Session checkpoint pattern voor agent crash-recovery** — Sla intermediate agent state op als JSON blob na elke significante stap. Bij crash: resume vanuit checkpoint in plaats van herstart. De orchestrator beheert checkpoints. | open-pdf-studio slaat volledige sessie op (tabs, pagina, scroll, annotaties) bij elke state-wijziging. Vertaalt naar: `~/.oa/checkpoints/<agent-id>.json`. |
+| L-045 | **Release pipeline als oa pipeline bewijs** — Een standaard CI/CD release workflow (create release → N× parallel builders → combine & publish) is exact het oa pipeline patroon. Dit valideert dat oa pipeline het juiste abstractieniveau heeft voor multi-step, multi-platform builds. | open-pdf-studio release.yml: planner (draft release) → 4× workers (macos-intel, macos-arm, win-sys, win-user) → combiner (upload artifacts). |
+| L-046 | **`permissions.defaultMode: "bypassPermissions"` = correct veld voor skip-all** — `dangerouslySkipPermissions` bestaat niet als settings veld. De juiste manier om alle permissievragen te skippen in workspace settings is `permissions.defaultMode: "bypassPermissions"`. | Schema-validatie fout bij poging om `dangerouslySkipPermissions` toe te voegen aan `.claude/settings.json`. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-047, L-048, etc.*

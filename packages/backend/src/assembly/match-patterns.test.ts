@@ -38,8 +38,8 @@ function makePattern(
     maxNodes: 5,
     tags: [],
     tokenProfile: {
-      inputMultiplier: 1,
-      outputMultiplier: 1,
+      avgInputPerNode: 1000,
+      avgOutputPerNode: 500,
       costMultiplier: 1,
     },
     ...overrides,
@@ -189,7 +189,7 @@ describe("matchPatterns", () => {
       const pattern = makePattern("p1", "linear", {
         minNodes: 2,
         maxNodes: 5,
-        tokenProfile: { inputMultiplier: 1, outputMultiplier: 1, costMultiplier: 4 },
+        tokenProfile: { avgInputPerNode: 1000, avgOutputPerNode: 500, costMultiplier: 4 },
       });
 
       const withBudget = matchPatterns(intent, [pattern], true);
@@ -206,7 +206,7 @@ describe("matchPatterns", () => {
       const pattern = makePattern("p1", "linear", {
         minNodes: 2,
         maxNodes: 5,
-        tokenProfile: { inputMultiplier: 1, outputMultiplier: 1, costMultiplier: 3 },
+        tokenProfile: { avgInputPerNode: 1000, avgOutputPerNode: 500, costMultiplier: 3 },
       });
 
       const result = matchPatterns(intent, [pattern], true);

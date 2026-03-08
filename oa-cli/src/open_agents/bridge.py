@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import json
+import os
+import signal
+import subprocess
+import time
 from pathlib import Path
 
 from flask import Flask, Response, jsonify, request, send_from_directory
@@ -211,8 +215,34 @@ def _agent_to_dict(rec) -> dict:
     }
 
 
+def _kill_port(port: int) -> None:
+    """Kill any process occupying the given port using lsof."""
+    try:
+        result = subprocess.run(
+            ["lsof", f"-ti:{port}"],
+            capture_output=True,
+            text=True,
+        )
+        pids = result.stdout.strip().splitlines()
+        if not pids:
+            return
+        for pid_str in pids:
+            pid = int(pid_str.strip())
+            print(f"[bridge] Killing stale process {pid} on port {port}...")
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+        time.sleep(1)
+        print(f"[bridge] Port {port} cleared.")
+    except FileNotFoundError:
+        # lsof not available; skip
+        pass
+
+
 def run_bridge(port: int = 5174) -> None:
     """Start the bridge server."""
+    _kill_port(port)
     print(f"Open Agents bridge running on http://localhost:{port}")
     print(f"Web UI: http://localhost:{port}")
     print(f"Serving static files from: {WEB_DIR}")
