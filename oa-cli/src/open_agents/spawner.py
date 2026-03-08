@@ -63,6 +63,7 @@ def _build_claude_command(workspace: Path, name: str, claude_model: str | None =
     claude_prompt = "Lees CLAUDE.md en voer de taak uit. Schrijf al je output naar ./output/ en maak een .done file als je klaar bent."
     model_flag = f" --model {claude_model}" if claude_model else ""
     return (
+        f"export PATH=\"$HOME/.local/bin:$PATH\" && "
         f"cd {workspace} && "
         f"unset CLAUDECODE && "
         f"{CLAUDE_CMD}{model_flag} --dangerously-skip-permissions -p {shlex.quote(claude_prompt)}; "
@@ -79,6 +80,7 @@ def _build_ollama_command(workspace: Path, name: str, ollama_model: str) -> str:
     TERM=dumb prevents ollama from writing spinner/progress ANSI codes.
     """
     return (
+        f"export PATH=\"$HOME/.local/bin:$PATH\" && "
         f"cd {workspace} && "
         f"TERM=dumb cat CLAUDE.md | {OLLAMA_CMD} run {shlex.quote(ollama_model)} "
         f"2>/dev/null | sed 's/\\x1b\\[[0-9;]*[a-zA-Z]//g' "

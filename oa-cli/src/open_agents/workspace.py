@@ -30,6 +30,37 @@ def _messaging_instructions(agent_name: str) -> str:
     )
 
 
+def _spawning_instructions(agent_name: str, project_root: str | None = None) -> str:
+    """Generate sub-agent spawning instructions for CLAUDE.md."""
+    direct_flag = " --direct" if project_root else ""
+    return (
+        f"\n"
+        f"## Sub-Agent Spawning\n"
+        f"Als je een sub-taak wilt delegeren aan een andere agent:\n"
+        f"\n"
+        f"**GEBRUIK ALTIJD de Bash tool met `oa run`:**\n"
+        f"```bash\n"
+        f"oa run \"<taakomschrijving>\" --name <agent-naam> --model claude/sonnet "
+        f"--parent {agent_name}{direct_flag} --direct\n"
+        f"```\n"
+        f"\n"
+        f"**GEBRUIK NOOIT de ingebouwde Agent tool voor het spawnen van sub-agents.**\n"
+        f"De Agent tool maakt in-process subagents die onzichtbaar zijn voor `oa status`.\n"
+        f"Alleen `oa run` via Bash registreert agents correct in het oa-systeem.\n"
+        f"\n"
+        f"**Monitoring:**\n"
+        f"- `oa status` — bekijk alle lopende agents\n"
+        f"- `oa collect <naam>` — haal output op van een voltooide agent\n"
+        f"- `oa watch <naam>` — volg een agent live\n"
+        f"\n"
+        f"**Regels:**\n"
+        f"- Geef altijd `--parent {agent_name}` mee\n"
+        f"- Gebruik `--model claude/sonnet` (of haiku/opus) — nooit bare `claude`\n"
+        f"- Gebruik `--direct` als de sub-agent naar het project moet schrijven\n"
+        f"- Wacht op sub-agents met polling: `oa status` of `oa collect <naam>`\n"
+    )
+
+
 def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None) -> Path:
     """Create a temporary workspace directory with a CLAUDE.md file.
 
@@ -45,6 +76,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
 
     claude_md = workspace / "CLAUDE.md"
     messaging = _messaging_instructions(agent_name)
+    spawning = _spawning_instructions(agent_name, str(project_root) if project_root else None)
 
     if project_root:
         # Direct write mode — agents write to the real project
@@ -64,6 +96,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"- Schrijf GEEN proposals — schrijf direct naar de echte bestanden\n"
             f"- Maak GEEN proposals/ directory aan\n"
             f"{messaging}"
+            f"{spawning}"
             f"\n"
             f"## Constraints\n"
             f"- Vraag niet om bevestiging, werk zelfstandig\n"
@@ -82,6 +115,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"- Maak een ./output/result.md met een samenvatting van wat je hebt gedaan\n"
             f"- Maak een .done file in de root als je helemaal klaar bent\n"
             f"{messaging}"
+            f"{spawning}"
             f"\n"
             f"## Constraints\n"
             f"- Werk alleen binnen deze directory\n"

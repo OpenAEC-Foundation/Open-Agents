@@ -69,6 +69,21 @@ export async function markRead(name: string): Promise<void> {
   });
 }
 
+// --- Guardians ---
+
+export async function triggerGuardian(name: string): Promise<{ triggered: string[] }> {
+  const res = await fetch(`${API}/guardians/trigger`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event: 'manual_trigger', guardian: name }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error ?? res.statusText);
+  }
+  return res.json();
+}
+
 // --- Templates ---
 
 export interface BackendTemplate {
