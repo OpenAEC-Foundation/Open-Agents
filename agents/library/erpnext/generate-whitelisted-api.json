@@ -17,5 +17,6 @@
     "api",
     "frappe"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "erpnext-generate-whitelisted-api"
 }

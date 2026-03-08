@@ -16,5 +16,7 @@
     "repository",
     "analysis",
     "health-check"
-  ]
+  ],
+  "id": "research-github-repo-analyzer",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

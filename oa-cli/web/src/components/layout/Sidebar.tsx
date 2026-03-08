@@ -8,6 +8,7 @@ import {
   LayersIcon,
   Library,
   Settings,
+  Sparkles,
   Users,
   XCircle,
 } from 'lucide-react';
@@ -15,13 +16,14 @@ import { useAgentStore, formatTime, formatDuration } from '../../stores/agentSto
 import { useUIStore } from '../../stores/uiStore';
 import type { MainTab } from '../../types';
 
-const TABS: { id: MainTab; label: string; icon: React.ReactNode }[] = [
+const TABS: { id: MainTab; label: string; icon: React.ReactNode; highlight?: boolean }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={15} /> },
   { id: 'builder', label: 'Agent Builder', icon: <Cpu size={15} /> },
   { id: 'templates', label: 'Templates', icon: <Library size={15} /> },
   { id: 'context', label: 'Context', icon: <LayersIcon size={15} /> },
   { id: 'teams', label: 'Teams', icon: <Users size={15} /> },
   { id: 'settings', label: 'Settings', icon: <Settings size={15} /> },
+  { id: 'demo', label: 'Playground', icon: <Sparkles size={15} />, highlight: true },
 ];
 
 export function Sidebar() {
@@ -41,7 +43,7 @@ export function Sidebar() {
   }, []);
 
   return (
-    <div className="w-[196px] min-w-[196px] bg-oa-surface border-r border-oa-border flex flex-col shrink-0">
+    <div className="w-[196px] min-w-[196px] flex flex-col shrink-0" style={{ background: 'var(--color-oa-sidebar)', borderRight: '1px solid var(--color-oa-border)' }}>
       {/* Logo + status */}
       <div className="px-4 py-4 border-b border-oa-border">
         <div className="flex items-center gap-2.5">
@@ -82,7 +84,7 @@ export function Sidebar() {
           )}
           {agents.length > 0 && (
             <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full text-oa-text-dim font-semibold"
-              style={{ background: 'rgba(11,25,41,0.8)' }}>
+              style={{ background: 'var(--color-oa-border)' }}>
               <Activity size={9} />
               {agents.length}
             </span>
@@ -99,6 +101,8 @@ export function Sidebar() {
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all cursor-pointer text-left ${
               activeTab === tab.id
                 ? 'text-oa-accent'
+                : tab.highlight
+                ? 'text-oa-accent/60 hover:text-oa-accent'
                 : 'text-oa-text-muted hover:text-oa-text'
             }`}
             style={
@@ -107,7 +111,7 @@ export function Sidebar() {
                 : undefined
             }
           >
-            <span className={activeTab === tab.id ? 'text-oa-accent' : 'text-oa-text-dim'}>
+            <span className={activeTab === tab.id || tab.highlight ? 'text-oa-accent' : 'text-oa-text-dim'}>
               {tab.icon}
             </span>
             {tab.label}

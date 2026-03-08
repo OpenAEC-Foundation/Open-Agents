@@ -15,5 +15,7 @@
     "gitignore",
     "security",
     "cleanup"
-  ]
+  ],
+  "id": "git-versioning-gitignore-optimizer",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

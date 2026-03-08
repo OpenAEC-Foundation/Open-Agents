@@ -13,5 +13,7 @@
     "messaging",
     "communication",
     "formatting"
-  ]
+  ],
+  "id": "communication-slack-message-formatter",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

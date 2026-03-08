@@ -15,5 +15,7 @@
     "orchestration",
     "oa-run",
     "agents"
-  ]
+  ],
+  "id": "core-oa-orchestration-spawn",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

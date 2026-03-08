@@ -12,5 +12,7 @@
     "rules",
     "prompt",
     "quality"
-  ]
+  ],
+  "id": "core-oa-prompting-scope",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

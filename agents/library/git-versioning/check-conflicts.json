@@ -16,5 +16,6 @@
     "merge",
     "conflicts"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "git-versioning-check-conflicts"
 }

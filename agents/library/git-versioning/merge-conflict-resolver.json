@@ -15,5 +15,7 @@
     "merge",
     "conflicts",
     "resolution"
-  ]
+  ],
+  "id": "git-versioning-merge-conflict-resolver",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

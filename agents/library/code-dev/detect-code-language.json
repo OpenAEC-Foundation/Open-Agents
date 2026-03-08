@@ -11,5 +11,6 @@
     "language",
     "detection"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "code-dev-detect-code-language"
 }

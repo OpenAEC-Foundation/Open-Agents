@@ -49,7 +49,7 @@ export function ActivityFeed() {
                 className="flex items-start gap-2 py-1.5 px-1.5 rounded hover:bg-gray-50 transition-colors group"
               >
                 <Icon size={13} className={`${iconClass} shrink-0 mt-0.5`} />
-                <span className="text-[11px] flex-1 leading-snug text-[#1a2a3a]">
+                <span className="text-[11px] flex-1 leading-snug text-[#1e293b]">
                   {event.text}
                 </span>
                 <span className="text-[10px] text-gray-400 font-mono shrink-0 mt-0.5">

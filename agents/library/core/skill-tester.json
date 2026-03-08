@@ -11,5 +11,11 @@
   ],
   "maturity": "tool-capable",
   "category": "core",
-  "tags": ["quality", "testing", "skills", "validation"]
+  "tags": [
+    "quality",
+    "testing",
+    "skills",
+    "validation"
+  ],
+  "id": "core-skill-tester"
 }

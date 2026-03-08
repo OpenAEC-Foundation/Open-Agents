@@ -19,5 +19,7 @@
     "extractor",
     "templates",
     "reusable"
-  ]
+  ],
+  "id": "core-oa-agent-library-builder",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

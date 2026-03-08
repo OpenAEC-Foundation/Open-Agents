@@ -13,5 +13,7 @@
     "haiku",
     "sonnet",
     "opus"
-  ]
+  ],
+  "id": "core-oa-prompting-model-tiering",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

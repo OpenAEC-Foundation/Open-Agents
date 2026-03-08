@@ -16,5 +16,6 @@
     "debug",
     "explanation"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "research-explain-error"
 }

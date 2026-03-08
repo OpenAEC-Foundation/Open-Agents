@@ -16,5 +16,6 @@
     "pr",
     "documentation"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "git-versioning-generate-pr-description"
 }

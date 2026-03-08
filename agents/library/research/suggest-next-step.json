@@ -15,5 +15,6 @@
     "suggestion",
     "planning"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "research-suggest-next-step"
 }

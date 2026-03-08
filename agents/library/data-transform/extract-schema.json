@@ -11,5 +11,6 @@
     "schema",
     "extraction"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "data-transform-extract-schema"
 }

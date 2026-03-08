@@ -14,5 +14,7 @@
     "review",
     "pull-request",
     "code-quality"
-  ]
+  ],
+  "id": "review-quality-pr-reviewer",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

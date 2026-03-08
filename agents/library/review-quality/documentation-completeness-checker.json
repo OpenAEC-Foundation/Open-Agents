@@ -14,5 +14,7 @@
     "documentation",
     "docstrings",
     "readme"
-  ]
+  ],
+  "id": "review-quality-documentation-completeness-checker",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

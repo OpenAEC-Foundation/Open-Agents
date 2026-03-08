@@ -16,5 +16,6 @@
     "analysis",
     "security"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "research-analyze-dependencies"
 }

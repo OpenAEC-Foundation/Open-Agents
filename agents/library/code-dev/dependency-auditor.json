@@ -15,5 +15,7 @@
     "security",
     "audit",
     "packages"
-  ]
+  ],
+  "id": "code-dev-dependency-auditor",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

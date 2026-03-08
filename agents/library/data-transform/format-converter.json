@@ -16,5 +16,7 @@
     "yaml",
     "csv",
     "xml"
-  ]
+  ],
+  "id": "data-transform-format-converter",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

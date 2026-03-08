@@ -15,5 +15,7 @@
     "data-cleaning",
     "csv",
     "json"
-  ]
+  ],
+  "id": "data-transform-data-deduplicator",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

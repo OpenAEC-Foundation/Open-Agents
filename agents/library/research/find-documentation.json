@@ -17,5 +17,6 @@
     "search",
     "api"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "research-find-documentation"
 }

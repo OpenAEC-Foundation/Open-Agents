@@ -12,5 +12,7 @@
     "5-element",
     "structure",
     "template"
-  ]
+  ],
+  "id": "core-oa-prompting-5element",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

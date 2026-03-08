@@ -13,41 +13,41 @@ export function DashboardTab() {
   const total = agents.length;
 
   return (
-    <div className="flex flex-1 overflow-hidden">
+    <div className="flex flex-1 overflow-hidden" style={{ background: 'var(--color-oa-bg)' }}>
       {/* Left sidebar: Spawn form + Activity + Guardians */}
-      <div className="w-[260px] min-w-[260px] border-r border-gray-200 flex flex-col bg-white">
+      <div className="w-[260px] min-w-[260px] flex flex-col shrink-0" style={{ background: 'var(--color-oa-sidebar)', borderRight: '1px solid var(--color-oa-border)' }}>
         <SpawnForm />
         <ActivityFeed />
         <GuardianPanel />
       </div>
 
       {/* Center: stats bar + Live agent canvas */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
+      <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'var(--color-oa-bg)' }}>
         {/* Thin stats bar */}
-        <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-200 bg-white shrink-0">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Agents</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 shrink-0" style={{ borderBottom: '1px solid var(--color-oa-border)', background: 'var(--color-oa-surface)' }}>
+          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--color-oa-text-dim)' }}>Agents</span>
           {running > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-cyan-50 text-cyan-600 border border-cyan-200">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: 'rgba(59,130,246,0.1)', color: 'var(--color-status-running)', border: '1px solid rgba(59,130,246,0.25)' }}>
               {running} running
             </span>
           )}
           {done > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-50 text-green-600 border border-green-200">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: 'rgba(34,197,94,0.1)', color: 'var(--color-status-done)', border: '1px solid rgba(34,197,94,0.25)' }}>
               {done} done
             </span>
           )}
           {failed > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-500 border border-red-200">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--color-status-failed)', border: '1px solid rgba(239,68,68,0.25)' }}>
               {failed} failed
             </span>
           )}
           {total > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-500 border border-gray-200 ml-auto">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold ml-auto" style={{ background: 'var(--color-oa-bg)', color: 'var(--color-oa-text-muted)', border: '1px solid var(--color-oa-border)' }}>
               {total} total
             </span>
           )}
           {total === 0 && (
-            <span className="text-[10px] text-gray-300 ml-auto">No agents yet</span>
+            <span className="text-[10px] ml-auto" style={{ color: 'var(--color-oa-text-dim)' }}>No agents yet</span>
           )}
         </div>
 
@@ -55,7 +55,7 @@ export function DashboardTab() {
       </div>
 
       {/* Right: Agent detail panel */}
-      <div className="border-l border-gray-200 bg-white">
+      <div style={{ borderLeft: '1px solid var(--color-oa-border)', background: 'var(--color-oa-surface)' }}>
         <AgentPanel />
       </div>
     </div>

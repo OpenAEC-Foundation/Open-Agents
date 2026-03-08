@@ -15,5 +15,7 @@
     "documentation",
     "openapi",
     "extraction"
-  ]
+  ],
+  "id": "research-api-documentation-extractor",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

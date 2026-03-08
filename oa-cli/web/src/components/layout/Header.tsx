@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Activity, Bot, CheckCircle, XCircle, Zap } from 'lucide-react';
 import { useAgentStore, formatTime, formatDuration } from '../../stores/agentStore';
 import { useUIStore } from '../../stores/uiStore';
+import { ThemePicker } from './ThemePicker';
 
 export function Header() {
   const [now, setNow] = useState(Date.now());
@@ -18,21 +19,15 @@ export function Header() {
   }, []);
 
   return (
-    <header
-      className="flex items-center justify-between px-5 py-2.5 shrink-0 border-b border-[#2d4356]"
-      style={{ background: '#1a2a3a' }}
-    >
+    <header className="flex items-center justify-between px-5 py-2.5 shrink-0" style={{ background: 'var(--color-oa-surface)', borderBottom: '1px solid var(--color-oa-border)' }}>
       <div className="flex items-center gap-3">
-        <span
-          className="font-extrabold text-xs px-2 py-1 rounded-md tracking-wider text-white"
-          style={{ background: '#ff6b35' }}
-        >
+        <span className="font-extrabold text-xs px-2 py-1 rounded-md tracking-wider text-white" style={{ background: 'var(--color-oa-accent)' }}>
           OA
         </span>
-        <Bot size={15} className="text-[#ff6b35]" />
-        <h1 className="text-[15px] font-bold tracking-tight text-white flex items-baseline gap-2">
+        <Bot size={15} style={{ color: 'var(--color-oa-accent)' }} />
+        <h1 className="text-[15px] font-bold tracking-tight flex items-baseline gap-2" style={{ color: 'var(--color-oa-text)' }}>
           Open Agents
-          <span className="text-[11px] font-medium text-gray-400">
+          <span className="text-[11px] font-medium" style={{ color: 'var(--color-oa-text-muted)' }}>
             by Impertio
           </span>
         </h1>
@@ -44,40 +39,41 @@ export function Header() {
         )}
       </div>
 
-      <div className="flex items-center gap-5">
-        <span className="font-mono text-sm text-gray-400 tracking-wide">
+      <div className="flex items-center gap-4">
+        <span className="font-mono text-sm tracking-wide" style={{ color: 'var(--color-oa-text-muted)' }}>
           {formatTime(new Date(now))}
         </span>
-        <span className="text-xs text-gray-500">
+        <span className="text-xs" style={{ color: 'var(--color-oa-text-dim)' }}>
           uptime{' '}
-          <span className="font-mono text-gray-400 text-xs">
+          <span className="font-mono text-xs" style={{ color: 'var(--color-oa-text-muted)' }}>
             {formatDuration(sessionStart / 1000, null)}
           </span>
         </span>
         <div className="flex gap-1.5">
           {running.length > 0 && (
-            <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-blue-900/50 text-blue-300 font-semibold">
+            <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200 font-semibold">
               <Zap size={10} className="shrink-0" />
               {running.length} active
             </span>
           )}
           {done.length > 0 && (
-            <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-green-900/50 text-green-400 font-semibold">
+            <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-200 font-semibold">
               <CheckCircle size={10} className="shrink-0" />
               {done.length} done
             </span>
           )}
           {failed.length > 0 && (
-            <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-red-900/50 text-red-400 font-semibold">
+            <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 font-semibold">
               <XCircle size={10} className="shrink-0" />
               {failed.length} failed
             </span>
           )}
-          <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-gray-300 font-semibold">
+          <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-semibold" style={{ background: 'var(--color-oa-bg)', border: '1px solid var(--color-oa-border)', color: 'var(--color-oa-text-muted)' }}>
             <Activity size={10} className="shrink-0" />
             {agents.length} total
           </span>
         </div>
+        <ThemePicker />
       </div>
     </header>
   );

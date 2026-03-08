@@ -16,5 +16,7 @@
     "versioning",
     "migration",
     "api"
-  ]
+  ],
+  "id": "research-breaking-changes-detector",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

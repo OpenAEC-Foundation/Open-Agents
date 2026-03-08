@@ -15,5 +15,7 @@
     "ownership",
     "churn",
     "risk"
-  ]
+  ],
+  "id": "git-versioning-git-blame-analyzer",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

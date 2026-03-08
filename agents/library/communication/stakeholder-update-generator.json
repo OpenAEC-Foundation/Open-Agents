@@ -14,5 +14,7 @@
     "updates",
     "communication",
     "non-technical"
-  ]
+  ],
+  "id": "communication-stakeholder-update-generator",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

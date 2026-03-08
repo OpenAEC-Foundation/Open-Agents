@@ -11,5 +11,6 @@
     "markdown",
     "format"
   ],
-  "modelHint": "claude/sonnet"
+  "modelHint": "claude/sonnet",
+  "id": "communication-format-markdown"
 }

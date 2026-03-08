@@ -16,5 +16,7 @@
     "merge",
     "parallel",
     "race-conditions"
-  ]
+  ],
+  "id": "core-oa-teams-coordination",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

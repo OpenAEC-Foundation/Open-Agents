@@ -16,5 +16,6 @@
     "profile",
     "overview"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "research-profile-codebase"
 }

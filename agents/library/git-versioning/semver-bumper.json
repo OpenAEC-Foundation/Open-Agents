@@ -14,5 +14,7 @@
     "versioning",
     "releases",
     "git"
-  ]
+  ],
+  "id": "git-versioning-semver-bumper",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

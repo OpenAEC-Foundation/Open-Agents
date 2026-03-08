@@ -11,5 +11,6 @@
     "grammar",
     "spelling"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "text-language-fix-grammar"
 }

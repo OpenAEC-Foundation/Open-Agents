@@ -15,5 +15,7 @@
     "agents-json",
     "status",
     "inspection"
-  ]
+  ],
+  "id": "core-oa-state-agents-json",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

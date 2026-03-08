@@ -15,5 +15,7 @@
     "breaking-changes",
     "versioning",
     "compatibility"
-  ]
+  ],
+  "id": "review-quality-api-breaking-change-detector",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

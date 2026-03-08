@@ -11,5 +11,6 @@
     "json",
     "validation"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "data-transform-validate-json"
 }

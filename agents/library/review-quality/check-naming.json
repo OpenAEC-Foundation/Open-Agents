@@ -15,5 +15,6 @@
     "naming",
     "conventions"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "review-quality-check-naming"
 }

@@ -11,5 +11,6 @@
     "validation",
     "schema"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "review-quality-validate-api-response"
 }

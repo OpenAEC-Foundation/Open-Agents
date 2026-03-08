@@ -14,5 +14,7 @@
     "commits",
     "conventional-commits",
     "validation"
-  ]
+  ],
+  "id": "git-versioning-commit-message-validator",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

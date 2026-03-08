@@ -13,5 +13,7 @@
     "notes",
     "summary",
     "action-items"
-  ]
+  ],
+  "id": "communication-meeting-notes-summarizer",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

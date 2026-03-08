@@ -10,5 +10,7 @@
     "text",
     "translate",
     "language"
-  ]
+  ],
+  "id": "core-translate",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

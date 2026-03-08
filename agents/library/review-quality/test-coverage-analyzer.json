@@ -14,5 +14,7 @@
     "testing",
     "coverage",
     "quality"
-  ]
+  ],
+  "id": "review-quality-test-coverage-analyzer",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

@@ -16,5 +16,7 @@
     "types",
     "annotations",
     "pep484"
-  ]
+  ],
+  "id": "code-dev-python-type-annotator",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

@@ -13,5 +13,7 @@
     "updates",
     "project-management",
     "stakeholders"
-  ]
+  ],
+  "id": "communication-status-update-writer",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

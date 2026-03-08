@@ -15,5 +15,7 @@
     "lessons",
     "documentation",
     "session"
-  ]
+  ],
+  "id": "core-oa-quality-guardians",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

@@ -65,7 +65,7 @@ export interface SpawnAgentBody {
 }
 
 // Tab types
-export type MainTab = 'dashboard' | 'builder' | 'templates' | 'context' | 'teams' | 'settings';
+export type MainTab = 'dashboard' | 'builder' | 'templates' | 'context' | 'teams' | 'settings' | 'demo';
 export type DetailTab = 'session' | 'output' | 'info';
 
 // Template types

@@ -15,5 +15,6 @@
     "count",
     "metrics"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "file-system-count-lines"
 }

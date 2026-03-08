@@ -12,5 +12,11 @@
   ],
   "maturity": "tool-capable",
   "category": "core",
-  "tags": ["quality", "assessment", "root-cause", "improvement"]
+  "tags": [
+    "quality",
+    "assessment",
+    "root-cause",
+    "improvement"
+  ],
+  "id": "core-output-assessor"
 }

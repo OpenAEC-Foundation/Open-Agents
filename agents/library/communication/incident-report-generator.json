@@ -13,5 +13,7 @@
     "postmortem",
     "reports",
     "reliability"
-  ]
+  ],
+  "id": "communication-incident-report-generator",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

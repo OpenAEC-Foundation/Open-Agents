@@ -14,5 +14,7 @@
     "search",
     "grep",
     "files"
-  ]
+  ],
+  "id": "core-search-in-files",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

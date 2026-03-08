@@ -11,5 +11,6 @@
     "nlp",
     "entities"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "text-language-extract-entities"
 }

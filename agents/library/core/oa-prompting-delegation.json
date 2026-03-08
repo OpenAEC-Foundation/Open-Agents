@@ -15,5 +15,7 @@
     "parallel",
     "pipeline",
     "scope"
-  ]
+  ],
+  "id": "core-oa-prompting-delegation",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

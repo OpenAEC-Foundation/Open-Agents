@@ -11,5 +11,6 @@
     "json",
     "flatten"
   ],
-  "modelHint": "claude/sonnet"
+  "modelHint": "claude/sonnet",
+  "id": "data-transform-flatten-json"
 }

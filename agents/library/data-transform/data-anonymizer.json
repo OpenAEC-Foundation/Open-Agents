@@ -15,5 +15,7 @@
     "anonymization",
     "PII",
     "GDPR"
-  ]
+  ],
+  "id": "data-transform-data-anonymizer",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

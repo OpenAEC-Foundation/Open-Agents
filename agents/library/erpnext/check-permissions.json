@@ -15,5 +15,6 @@
     "permissions",
     "security"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "erpnext-check-permissions"
 }

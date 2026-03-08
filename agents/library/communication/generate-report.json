@@ -11,5 +11,6 @@
     "generation",
     "documentation"
   ],
-  "modelHint": "claude/sonnet"
+  "modelHint": "claude/sonnet",
+  "id": "communication-generate-report"
 }

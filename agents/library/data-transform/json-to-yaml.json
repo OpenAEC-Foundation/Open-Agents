@@ -11,5 +11,6 @@
     "json",
     "yaml"
   ],
-  "modelHint": "claude/sonnet"
+  "modelHint": "claude/sonnet",
+  "id": "data-transform-json-to-yaml"
 }

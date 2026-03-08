@@ -15,5 +15,6 @@
     "documentation",
     "quality"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "review-quality-check-documentation"
 }

@@ -16,5 +16,6 @@
     "commit",
     "conventional"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "git-versioning-generate-commit-msg-conventional"
 }

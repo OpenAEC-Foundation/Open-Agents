@@ -16,5 +16,6 @@
     "changelog",
     "documentation"
   ],
-  "modelHint": "claude/sonnet"
+  "modelHint": "claude/sonnet",
+  "id": "git-versioning-generate-changelog"
 }

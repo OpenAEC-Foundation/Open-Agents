@@ -15,5 +15,6 @@
     "impact",
     "risk"
   ],
-  "modelHint": "claude/sonnet"
+  "modelHint": "claude/sonnet",
+  "id": "research-estimate-impact"
 }

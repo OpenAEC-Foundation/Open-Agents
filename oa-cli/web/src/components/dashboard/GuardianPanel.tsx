@@ -69,7 +69,7 @@ export function GuardianPanel() {
                 className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm"
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-mono font-semibold text-[#1a2a3a] truncate flex-1">
+                  <span className="text-xs font-mono font-semibold text-[#1e293b] truncate flex-1">
                     {g.name}
                   </span>
                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-500 ml-2 shrink-0">

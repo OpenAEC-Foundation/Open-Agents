@@ -11,5 +11,6 @@
     "compare",
     "analysis"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "text-language-compare-texts"
 }

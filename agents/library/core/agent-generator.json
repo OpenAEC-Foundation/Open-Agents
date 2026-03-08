@@ -11,5 +11,11 @@
   ],
   "maturity": "tool-capable",
   "category": "core",
-  "tags": ["generation", "skills", "agents", "automation"]
+  "tags": [
+    "generation",
+    "skills",
+    "agents",
+    "automation"
+  ],
+  "id": "core-agent-generator"
 }

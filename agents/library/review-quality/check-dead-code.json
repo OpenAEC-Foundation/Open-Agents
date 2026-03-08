@@ -15,5 +15,6 @@
     "dead-code",
     "cleanup"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "review-quality-check-dead-code"
 }

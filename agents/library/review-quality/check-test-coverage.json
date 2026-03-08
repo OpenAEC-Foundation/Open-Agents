@@ -15,5 +15,6 @@
     "testing",
     "coverage"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "review-quality-check-test-coverage"
 }

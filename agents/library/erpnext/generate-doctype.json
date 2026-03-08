@@ -16,5 +16,6 @@
     "doctype",
     "generation"
   ],
-  "modelHint": "claude/sonnet"
+  "modelHint": "claude/sonnet",
+  "id": "erpnext-generate-doctype"
 }

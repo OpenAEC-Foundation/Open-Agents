@@ -13,5 +13,7 @@
     "writing",
     "technical",
     "content"
-  ]
+  ],
+  "id": "communication-technical-blog-post-outliner",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

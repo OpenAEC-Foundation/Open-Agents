@@ -9,11 +9,19 @@ import { ContextTab } from './components/context/ContextTab';
 import { SettingsTab } from './components/settings/SettingsTab';
 import { TeamsTab } from './components/teams/TeamsTab';
 import Onboarding from './components/Onboarding';
+import { DemoTab } from './components/demo/DemoTab';
+import { applyTheme, getThemeById } from './themes';
 
 export default function App() {
   const [onboarded, setOnboarded] = useState(() => !!localStorage.getItem('oa_onboarded'));
   const activeMainTab = useUIStore((s) => s.activeMainTab);
+  const themeId = useUIStore((s) => s.themeId);
   const fetchAgents = useAgentStore((s) => s.fetchAgents);
+
+  // Apply theme whenever it changes
+  useEffect(() => {
+    applyTheme(getThemeById(themeId));
+  }, [themeId]);
 
   useEffect(() => {
     fetchAgents();
@@ -57,6 +65,7 @@ export default function App() {
         {activeMainTab === 'context' && <ContextTab />}
         {activeMainTab === 'teams' && <TeamsTab />}
         {activeMainTab === 'settings' && <SettingsTab />}
+        {activeMainTab === 'demo' && <DemoTab />}
       </div>
     </div>
   );

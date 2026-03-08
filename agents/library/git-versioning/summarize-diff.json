@@ -16,5 +16,6 @@
     "diff",
     "summary"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "git-versioning-summarize-diff"
 }

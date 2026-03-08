@@ -15,5 +15,6 @@
     "readability",
     "quality"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "review-quality-rate-readability"
 }

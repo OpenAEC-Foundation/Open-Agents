@@ -12,5 +12,11 @@
   ],
   "maturity": "tool-capable",
   "category": "core",
-  "tags": ["quality", "monitoring", "trends", "guardian"]
+  "tags": [
+    "quality",
+    "monitoring",
+    "trends",
+    "guardian"
+  ],
+  "id": "core-guardian-quality"
 }

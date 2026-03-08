@@ -16,5 +16,6 @@
     "files",
     "changes"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "git-versioning-list-changed-files"
 }

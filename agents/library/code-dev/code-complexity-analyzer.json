@@ -15,5 +15,7 @@
     "refactor",
     "quality",
     "metrics"
-  ]
+  ],
+  "id": "code-dev-code-complexity-analyzer",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

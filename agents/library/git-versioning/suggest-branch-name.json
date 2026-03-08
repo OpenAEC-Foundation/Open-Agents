@@ -11,5 +11,6 @@
     "branch",
     "naming"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "git-versioning-suggest-branch-name"
 }

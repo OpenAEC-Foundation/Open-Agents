@@ -11,5 +11,6 @@
     "tasks",
     "organization"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "communication-create-checklist"
 }

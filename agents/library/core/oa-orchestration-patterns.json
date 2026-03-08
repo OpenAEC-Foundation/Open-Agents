@@ -15,5 +15,7 @@
     "swarm",
     "batch",
     "orchestration"
-  ]
+  ],
+  "id": "core-oa-orchestration-patterns",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

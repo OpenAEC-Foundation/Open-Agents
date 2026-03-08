@@ -16,5 +16,6 @@
     "report",
     "query"
   ],
-  "modelHint": "claude/sonnet"
+  "modelHint": "claude/sonnet",
+  "id": "erpnext-generate-report-query"
 }

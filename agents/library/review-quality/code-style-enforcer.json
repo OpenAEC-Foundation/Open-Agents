@@ -15,5 +15,7 @@
     "linting",
     "conventions",
     "formatting"
-  ]
+  ],
+  "id": "review-quality-code-style-enforcer",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

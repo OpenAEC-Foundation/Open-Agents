@@ -15,5 +15,6 @@
     "analysis",
     "codebase"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "research-analyze-architecture"
 }

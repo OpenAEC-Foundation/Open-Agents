@@ -11,5 +11,6 @@
     "commit",
     "classification"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "git-versioning-classify-commit"
 }

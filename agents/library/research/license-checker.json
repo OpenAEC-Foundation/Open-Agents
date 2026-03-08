@@ -15,5 +15,7 @@
     "compliance",
     "legal",
     "dependencies"
-  ]
+  ],
+  "id": "research-license-checker",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

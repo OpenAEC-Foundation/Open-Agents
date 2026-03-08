@@ -15,5 +15,6 @@
     "accessibility",
     "wcag"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "review-quality-check-accessibility"
 }

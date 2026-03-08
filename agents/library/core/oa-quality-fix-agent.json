@@ -17,5 +17,7 @@
     "validation",
     "error-handling",
     "spawn"
-  ]
+  ],
+  "id": "core-oa-quality-fix-agent",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

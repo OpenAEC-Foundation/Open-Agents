@@ -16,5 +16,6 @@
     "print",
     "template"
   ],
-  "modelHint": "claude/sonnet"
+  "modelHint": "claude/sonnet",
+  "id": "erpnext-generate-print-format"
 }

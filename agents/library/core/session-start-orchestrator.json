@@ -16,5 +16,6 @@
     "orchestration",
     "recovery",
     "meta"
-  ]
+  ],
+  "id": "core-session-start-orchestrator"
 }

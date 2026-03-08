@@ -59,5 +59,6 @@
       }
     ]
   },
-  "usageExample": "# Instead of /plan mode:\n\n# Step 1: Spawn planner\noa run \"Create a plan for building a kinetic facade in Blender.\nContext: [paste context]\nWrite plan to: /path/to/scripts/plan.md\" --name planner --model claude/opus --direct\n\n# Step 2: Collect and review\noa collect planner\noa run \"Review this plan: $(cat /path/to/scripts/plan.md)\nWrite review to: /path/to/scripts/review.md\" --name plan-reviewer --model claude/sonnet --direct\n\n# Step 3: If NEEDS_REVISION, iterate\noa collect plan-reviewer\n# Read review, respawn planner with feedback\n\n# Step 4: Once PASS, execute the plan with task-specific agents"
+  "usageExample": "# Instead of /plan mode:\n\n# Step 1: Spawn planner\noa run \"Create a plan for building a kinetic facade in Blender.\nContext: [paste context]\nWrite plan to: /path/to/scripts/plan.md\" --name planner --model claude/opus --direct\n\n# Step 2: Collect and review\noa collect planner\noa run \"Review this plan: $(cat /path/to/scripts/plan.md)\nWrite review to: /path/to/scripts/review.md\" --name plan-reviewer --model claude/sonnet --direct\n\n# Step 3: If NEEDS_REVISION, iterate\noa collect plan-reviewer\n# Read review, respawn planner with feedback\n\n# Step 4: Once PASS, execute the plan with task-specific agents",
+  "id": "core-iterative-planner"
 }

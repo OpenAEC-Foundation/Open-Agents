@@ -11,5 +11,6 @@
     "comparison",
     "decision"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "research-compare-approaches"
 }

@@ -21,7 +21,7 @@ export function SystemHealth() {
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Active Agents</div>
         <div className="flex items-end gap-2">
-          <div className="text-4xl font-black text-[#1a2a3a] font-mono leading-none">{running.length}</div>
+          <div className="text-4xl font-black text-[#1e293b] font-mono leading-none">{running.length}</div>
           <div className="text-xs text-gray-400 mb-1">running</div>
         </div>
       </div>
@@ -70,7 +70,7 @@ export function SystemHealth() {
           ].map(([label, value]) => (
             <div key={label} className="flex justify-between">
               <span className="text-gray-400">{label}</span>
-              <span className="font-mono text-[#1a2a3a]">{value}</span>
+              <span className="font-mono text-[#1e293b]">{value}</span>
             </div>
           ))}
 
@@ -78,7 +78,7 @@ export function SystemHealth() {
           <div className="pt-1">
             <div className="flex justify-between mb-1.5">
               <span className="text-gray-400">Success Rate</span>
-              <span className="font-mono text-[#1a2a3a]">{successRate}%</span>
+              <span className="font-mono text-[#1e293b]">{successRate}%</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-1.5">
               <div

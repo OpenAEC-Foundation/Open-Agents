@@ -15,5 +15,6 @@
     "style",
     "lint"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "review-quality-check-style"
 }

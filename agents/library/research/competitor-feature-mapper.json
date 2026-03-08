@@ -16,5 +16,7 @@
     "comparison",
     "features",
     "matrix"
-  ]
+  ],
+  "id": "research-competitor-feature-mapper",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

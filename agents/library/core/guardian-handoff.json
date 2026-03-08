@@ -16,5 +16,6 @@
     "session-end",
     "continuity",
     "meta"
-  ]
+  ],
+  "id": "core-guardian-handoff"
 }

@@ -461,6 +461,20 @@ def web(
     run_bridge(port=port)
 
 
+@app.command(name="vscode-bridge")
+def vscode_bridge(
+    port: int = typer.Option(5175, "--port", "-p", help="VS Code bridge server port"),
+):
+    """Start the VS Code bridge server (lightweight REST/SSE API on port 5175)."""
+    from .bridge import start_vscode_bridge
+
+    console.print(f"[bold cyan]Starting VS Code bridge...[/bold cyan]")
+    console.print(f"  Bridge: http://localhost:{port}")
+    console.print(f"  Health: http://localhost:{port}/health")
+    console.print("[dim]Press Ctrl-C to stop[/dim]\n")
+    start_vscode_bridge(port=port)
+
+
 @app.command()
 def delegate(
     task: str = typer.Argument(..., help="The high-level task to delegate"),

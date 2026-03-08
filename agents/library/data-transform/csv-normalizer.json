@@ -15,5 +15,7 @@
     "normalization",
     "cleaning",
     "data-quality"
-  ]
+  ],
+  "id": "data-transform-csv-normalizer",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001"
 }

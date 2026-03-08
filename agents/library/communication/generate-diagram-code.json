@@ -11,5 +11,6 @@
     "mermaid",
     "visualization"
   ],
-  "modelHint": "claude/sonnet"
+  "modelHint": "claude/sonnet",
+  "id": "communication-generate-diagram-code"
 }

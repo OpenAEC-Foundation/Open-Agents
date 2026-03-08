@@ -15,5 +15,6 @@
     "doctype",
     "explanation"
   ],
-  "modelHint": "claude/sonnet"
+  "modelHint": "claude/sonnet",
+  "id": "erpnext-explain-doctype"
 }

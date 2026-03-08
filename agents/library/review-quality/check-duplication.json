@@ -15,5 +15,6 @@
     "duplication",
     "dry"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "review-quality-check-duplication"
 }

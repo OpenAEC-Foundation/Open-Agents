@@ -11,5 +11,6 @@
     "tasks",
     "extraction"
   ],
-  "modelHint": "claude/haiku"
+  "modelHint": "claude/haiku",
+  "id": "text-language-extract-action-items"
 }
