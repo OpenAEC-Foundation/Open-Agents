@@ -22,7 +22,8 @@ export function TemplatesTab() {
     loadTemplates();
   }, [loadTemplates]);
 
-  const categories = ['all', 'Research', 'Development', 'Documentation', 'Quality', 'Analysis', 'Security'];
+  const allTemplates = useTemplateStore((s) => s.templates);
+  const categories = ['all', ...Array.from(new Set(allTemplates.map((t) => t.category).filter(Boolean))).sort()];
 
   const getTaskFromTemplate = (template: Template): string => {
     if (template.systemPrompt) return template.systemPrompt;

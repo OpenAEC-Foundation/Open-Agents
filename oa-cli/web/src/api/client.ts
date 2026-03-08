@@ -173,10 +173,10 @@ export async function triggerGuardian(name: string): Promise<{ triggered: string
 export interface BackendTemplate {
   id: string;
   name: string;
-  description: string;
-  systemPrompt: string;
-  modelHint: string;
-  category: string;
+  description?: string;
+  systemPrompt?: string;
+  modelHint?: string;
+  category?: string;
 }
 
 export async function fetchTemplates(): Promise<BackendTemplate[]> {

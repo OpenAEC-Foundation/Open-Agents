@@ -241,16 +241,22 @@ function getDefaultTemplates(): Template[] {
 
 function mapBackendTemplate(bt: BackendTemplate): Template {
   const now = Date.now();
+  // Normalise directory-style categories like "code-dev" → "Code Dev"
+  const rawCat = bt.category || '';
+  const category = rawCat
+    ? rawCat.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+    : 'General';
+  const model = bt.modelHint || 'claude/sonnet';
   return {
     id: bt.id,
     name: bt.name,
-    description: bt.description,
-    category: bt.category,
+    description: bt.description || bt.systemPrompt?.slice(0, 120) || bt.name,
+    category,
     systemPrompt: bt.systemPrompt,
-    modelHint: bt.modelHint,
+    modelHint: model,
     nodes: [
       { id: 'n1', type: 'trigger', position: { x: 100, y: 200 }, data: { triggerType: 'manual' } },
-      { id: 'n2', type: 'agent', position: { x: 350, y: 200 }, data: { model: bt.modelHint, task: bt.systemPrompt } },
+      { id: 'n2', type: 'agent', position: { x: 350, y: 200 }, data: { model, task: bt.systemPrompt } },
       { id: 'n3', type: 'output', position: { x: 600, y: 200 }, data: { outputType: 'file' } },
     ],
     edges: [
