@@ -65,17 +65,18 @@ def _status_badge(status: str) -> str:
     return "[#8888aa]" + status + "[/#8888aa]"
 
 
-def _workspace_label(rec) -> str:
-    """Return short workspace label: project folder name or tmp."""
+def _workspace_label(rec, agents: dict | None = None) -> str:
+    """Return short workspace label: project folder name, inherited from lineage, or tmp."""
     project_root = getattr(rec, "project_root", None)
     if project_root:
         return Path(project_root).name[:20]
-    # Fallback: extract uuid suffix from /tmp/oa-agent-<uuid>/
-    ws = getattr(rec, "workspace", "") or ""
-    name = Path(ws).name  # e.g. "oa-agent-abc123"
-    if name.startswith("oa-agent-"):
-        return "[#666688]tmp[/#666688]"
-    return "[#666688]?[/#666688]"
+    # Traverse lineage to find root's project_root
+    if agents:
+        for ancestor_name in reversed(getattr(rec, "lineage", [])):
+            ancestor = agents.get(ancestor_name)
+            if ancestor and getattr(ancestor, "project_root", None):
+                return "[#667788]" + Path(ancestor.project_root).name[:20] + "[/#667788]"
+    return "[#666688]tmp[/#666688]"
 
 
 # ---------------------------------------------------------------------------
@@ -334,7 +335,7 @@ class OADashboard(App):
             if len(model_short) > 16:
                 model_short = model_short[:15] + "..."
 
-            ws_label = _workspace_label(rec)
+            ws_label = _workspace_label(rec, self._agents)
             table.add_row(
                 name_markup,
                 _status_badge(rec.status),

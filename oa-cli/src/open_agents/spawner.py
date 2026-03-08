@@ -143,9 +143,11 @@ def spawn_agent(
         if parent_rec:
             child_depth = parent_rec.depth + 1
             child_lineage = parent_rec.lineage + [parent]
-            # Erft shared_results_dir van parent als niet expliciet opgegeven
+            # Erft shared_results_dir en project_root van parent als niet expliciet opgegeven
             if shared_results_dir is None:
                 shared_results_dir = parent_rec.shared_results_dir
+            if project_root is None and getattr(parent_rec, "project_root", None):
+                project_root = parent_rec.project_root
 
     # --- Maak shared_results_dir aan als root-agent (depth=0) ---
     if child_depth == 0 and shared_results_dir is None:
