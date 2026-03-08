@@ -1,15 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  --color-oa-bg: #0a0a0a;
-  --color-oa-surface: #0f0f0f;
-  --color-oa-border: #262626;
-  --color-oa-border-light: #1a1a1a;
-  --color-oa-text: #e5e5e5;
-  --color-oa-text-muted: #8b95a5;
-  --color-oa-text-dim: #7a8494;
-  --color-oa-accent: #22d3ee;
-  --color-oa-accent-bg: #164e63;
+  /* Dark navy theme — inspired by opencompany246.nl */
+  --color-oa-bg: #0b1929;
+  --color-oa-surface: #0f2035;
+  --color-oa-surface-hover: #162843;
+  --color-oa-border: #1e3650;
+  --color-oa-border-light: #162843;
+  --color-oa-text: #e2e8f0;
+  --color-oa-text-muted: #94a7be;
+  --color-oa-text-dim: #6b8399;
+
+  /* Warm orange accent (brand color opencompany246) */
+  --color-oa-accent: #f97316;
+  --color-oa-accent-bg: #7c2d12;
 
   --color-status-running: #22d3ee;
   --color-status-done: #4ade80;

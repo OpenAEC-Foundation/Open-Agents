@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { Search } from 'lucide-react';
 import { useAgentStore, statusColor, modelColor, modelLabel, formatDuration } from '../../stores/agentStore';
 import { SpawnForm } from './SpawnForm';
 
@@ -5,6 +7,14 @@ export function AgentList() {
   const hierarchy = useAgentStore((s) => s.getHierarchy)();
   const selectedAgent = useAgentStore((s) => s.selectedAgent);
   const selectAgent = useAgentStore((s) => s.selectAgent);
+  const [search, setSearch] = useState('');
+
+  const filtered = search.trim()
+    ? hierarchy.filter(({ agent }) =>
+        agent.name.toLowerCase().includes(search.toLowerCase()) ||
+        agent.task.toLowerCase().includes(search.toLowerCase())
+      )
+    : hierarchy;
 
   return (
     <div className="w-[300px] min-w-[300px] border-r border-oa-border flex flex-col bg-oa-bg">
@@ -12,25 +22,48 @@ export function AgentList() {
         Agents
       </div>
 
+      {/* Search bar */}
+      <div className="px-2 py-1.5 border-b border-oa-border-light">
+        <div className="flex items-center gap-1.5 bg-neutral-900 rounded px-2 py-1">
+          <Search size={11} className="text-oa-text-dim shrink-0" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search agents..."
+            className="bg-transparent text-xs text-oa-text outline-none placeholder:text-oa-text-dim flex-1 min-w-0"
+          />
+        </div>
+      </div>
+
       <div className="flex-1 overflow-y-auto">
-        {hierarchy.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="px-4 py-10 text-center text-oa-text-dim text-sm">
-            No agents yet.<br />Spawn one below.
+            {hierarchy.length === 0 ? (
+              <>No agents yet.<br />Spawn one below.</>
+            ) : (
+              'No matches.'
+            )}
           </div>
         ) : (
-          hierarchy.map(({ agent, depth }) => {
+          filtered.map(({ agent, depth }) => {
             const isSelected = selectedAgent === agent.name;
             const isRunning = agent.status === 'running';
+            const taskPreview = isRunning
+              ? (agent.task.length > 60 ? agent.task.slice(0, 60) + '\u2026' : agent.task)
+              : (agent.task.length > 45 ? agent.task.slice(0, 45) + '\u2026' : agent.task);
             return (
               <div
                 key={agent.name}
                 onClick={() => selectAgent(agent.name)}
                 className={`py-2 px-2.5 cursor-pointer border-b border-oa-border-light transition-colors ${
-                  isSelected ? 'bg-slate-800' : 'hover:bg-neutral-900'
+                  isSelected
+                    ? 'bg-slate-700 ring-1 ring-inset ring-oa-accent/30'
+                    : 'hover:bg-neutral-900'
                 }`}
                 style={{
                   paddingLeft: `${10 + depth * 18}px`,
-                  borderLeft: `3px solid ${statusColor(agent.status)}`,
+                  borderLeft: `3px solid ${isSelected ? '#22d3ee' : statusColor(agent.status)}`,
                 }}
               >
                 <div className="flex items-center gap-1.5">
@@ -44,7 +77,7 @@ export function AgentList() {
                       animation: isRunning ? 'ccPulse 2s infinite' : 'none',
                     }}
                   />
-                  <span className="text-xs font-semibold flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                  <span className={`text-xs font-semibold flex-1 overflow-hidden text-ellipsis whitespace-nowrap ${isSelected ? 'text-white' : ''}`}>
                     {agent.name}
                   </span>
                   <span
@@ -58,10 +91,10 @@ export function AgentList() {
                   </span>
                 </div>
                 <div
-                  className="text-[11px] text-oa-text-dim mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap"
+                  className={`text-[11px] mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap ${isRunning ? 'text-oa-text' : 'text-oa-text-dim'}`}
                   style={{ paddingLeft: depth > 0 ? '18px' : '0' }}
                 >
-                  {agent.task.length > 45 ? agent.task.slice(0, 45) + '\u2026' : agent.task}
+                  {taskPreview}
                 </div>
               </div>
             );

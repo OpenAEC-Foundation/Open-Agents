@@ -8,9 +8,11 @@ import {
   Position,
   type Node,
   type Edge,
+  type NodeChange,
   BackgroundVariant,
   type NodeProps,
   MarkerType,
+  applyNodeChanges,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useAgentStore, statusColor, modelColor, formatDuration, modelLabel } from '../../stores/agentStore';
@@ -30,13 +32,13 @@ function AgentNodeComponent({ data }: NodeProps) {
     <div
       className="relative rounded-xl border-2 px-4 py-3 min-w-[180px] max-w-[240px] transition-all duration-200"
       style={{
-        borderColor: selected ? '#22d3ee' : sColor,
-        background: selected ? 'rgba(34,211,238,0.08)' : 'rgba(30,30,30,0.95)',
+        borderColor: selected ? '#f97316' : sColor,
+        background: selected ? 'rgba(249,115,22,0.08)' : 'rgba(15,32,53,0.95)',
         boxShadow: agent.status === 'running'
           ? `0 0 12px ${sColor}40`
           : selected
-          ? '0 0 12px rgba(34,211,238,0.3)'
-          : '0 2px 8px rgba(0,0,0,0.3)',
+          ? '0 0 12px rgba(249,115,22,0.25)'
+          : '0 2px 8px rgba(0,0,0,0.4)',
       }}
     >
       <Handle type="target" position={Position.Top} className="!bg-neutral-600 !w-2 !h-2 !border-0" />
@@ -163,6 +165,8 @@ export function LiveCanvas() {
   const messageCache = useRef<Map<string, Message[]>>(new Map());
   // PERF: Cap messageCache to prevent unbounded memory growth in long sessions
   const MAX_CACHE_SIZE = 500;
+  // Persist user-dragged positions — only auto-layout NEW agents
+  const userPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
 
   // Fetch messages for all agents
   useEffect(() => {
@@ -220,20 +224,30 @@ export function LiveCanvas() {
     return () => clearInterval(interval);
   }, [agents]);
 
-  // Build layout
+  // Build layout — preserve user-dragged positions for existing agents
   const { nodes: layoutNodes, edges: hierarchyEdges } = useMemo(
     () => layoutAgents(agents),
     [agents]
   );
 
-  // Mark selected
+  // Mark selected + apply persisted positions
   const nodes = useMemo(
     () => layoutNodes.map(n => ({
       ...n,
+      position: userPositions.current.get(n.id) ?? n.position,
       data: { ...n.data, selected: n.id === selectedAgent },
     })),
     [layoutNodes, selectedAgent]
   );
+
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    // Persist position changes from drag
+    for (const change of changes) {
+      if (change.type === 'position' && change.position) {
+        userPositions.current.set(change.id, change.position);
+      }
+    }
+  }, []);
 
   // Combine hierarchy edges + message edges
   const allEdges = useMemo(
@@ -254,7 +268,7 @@ export function LiveCanvas() {
         <div className="text-center">
           <div className="text-4xl mb-4">&#x1f916;</div>
           <div className="text-lg font-medium">No agents running</div>
-          <div className="text-sm mt-1">Spawn agents with <code className="bg-neutral-800 px-1.5 py-0.5 rounded text-cyan-400">oa run</code></div>
+          <div className="text-sm mt-1">Spawn agents with <code className="px-1.5 py-0.5 rounded text-oa-accent" style={{ background: 'rgba(249,115,22,0.12)' }}>oa run</code></div>
         </div>
       </div>
     );
@@ -267,6 +281,7 @@ export function LiveCanvas() {
         edges={allEdges}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
+        onNodesChange={onNodesChange}
         nodeTypes={nodeTypes}
         fitView
         fitViewOptions={{ padding: 0.3 }}

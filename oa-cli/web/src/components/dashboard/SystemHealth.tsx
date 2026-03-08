@@ -13,12 +13,17 @@ export function SystemHealth() {
     ? Math.round((done.length / (done.length + failed.length)) * 100)
     : agents.length > 0 ? 100 : 0;
 
+  const successBarColor = successRate >= 80 ? '#4ade80' : successRate >= 50 ? '#fbbf24' : '#f87171';
+
   return (
     <div className="flex flex-col overflow-y-auto">
-      {/* Active agents */}
-      <div className="px-3 py-2 border-b border-oa-border-light">
-        <div className="text-[10px] font-bold text-oa-text-muted uppercase tracking-widest mb-2">Active Agents</div>
-        <div className="text-3xl font-bold text-oa-accent font-mono">{running.length}</div>
+      {/* Active agents — prominent counter */}
+      <div className="px-3 py-3 border-b border-oa-border-light">
+        <div className="text-[10px] font-bold text-oa-text-muted uppercase tracking-widest mb-1">Active Agents</div>
+        <div className="flex items-end gap-2">
+          <div className="text-5xl font-bold text-oa-accent font-mono leading-none">{running.length}</div>
+          <div className="text-xs text-oa-text-dim mb-1">running</div>
+        </div>
       </div>
 
       {/* Model distribution */}
@@ -61,13 +66,27 @@ export function SystemHealth() {
             ['Total', `${agents.length}`],
             ['Completed', `${done.length}`],
             ['Failed', `${failed.length}`],
-            ['Success Rate', `${successRate}%`],
+            ['Session tokens', '0'],
           ].map(([label, value]) => (
             <div key={label} className="flex justify-between">
               <span className="text-oa-text-dim">{label}</span>
               <span className="font-mono text-neutral-300">{value}</span>
             </div>
           ))}
+
+          {/* Success rate with progress bar */}
+          <div className="pt-0.5">
+            <div className="flex justify-between mb-1">
+              <span className="text-oa-text-dim">Success Rate</span>
+              <span className="font-mono text-neutral-300">{successRate}%</span>
+            </div>
+            <div className="w-full bg-neutral-800 rounded-full h-1.5">
+              <div
+                className="h-1.5 rounded-full transition-all duration-500"
+                style={{ width: `${successRate}%`, background: successBarColor }}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

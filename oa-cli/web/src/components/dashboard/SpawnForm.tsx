@@ -67,7 +67,7 @@ export function SpawnForm() {
       setName('');
       setParent('');
       setTemplate('Custom task');
-      setFeedback({ ok: true, msg: 'Agent spawned successfully!' });
+      setFeedback({ ok: true, msg: 'Agent spawned!' });
     } catch (e) {
       setFeedback({ ok: false, msg: e instanceof Error ? e.message : 'Spawn failed' });
     } finally {
@@ -75,24 +75,28 @@ export function SpawnForm() {
     }
   };
 
+  const inputClass =
+    'w-full px-3 py-2 bg-oa-bg border border-oa-border rounded-lg text-oa-text text-[13px] placeholder-oa-text-dim transition-colors';
+  const labelClass = 'text-[11px] font-semibold text-oa-text-muted uppercase tracking-wider mb-1.5 block';
+
   return (
     <div className="border-t border-oa-border bg-oa-surface">
-      {/* Card header */}
-      <div className="px-3 pt-3 pb-2 flex items-center gap-2 border-b border-oa-border/50">
-        <Zap size={11} className="text-oa-accent" />
-        <span className="text-[10px] font-bold text-oa-text-muted uppercase tracking-widest">
+      {/* Section header */}
+      <div className="px-4 pt-4 pb-3 flex items-center gap-2 border-b border-oa-border/60">
+        <Zap size={13} className="text-oa-accent" />
+        <span className="text-[11px] font-bold text-oa-text-muted uppercase tracking-widest">
           Spawn Agent
         </span>
       </div>
 
-      <div className="p-2.5 space-y-1.5">
-        {/* Template dropdown */}
+      <div className="p-4 space-y-3">
+        {/* Template */}
         <div>
-          <div className="text-[9px] uppercase text-oa-text-dim tracking-widest mb-0.5 font-semibold">Template</div>
+          <label className={labelClass}>Template</label>
           <select
             value={template}
             onChange={(e) => handleTemplateChange(e.target.value)}
-            className="w-full px-2 py-1.5 bg-oa-bg border border-neutral-700 rounded text-oa-text text-xs mb-0"
+            className={inputClass}
           >
             {TEMPLATES.map((t) => (
               <option key={t.label} value={t.label}>{t.label}</option>
@@ -100,13 +104,13 @@ export function SpawnForm() {
           </select>
         </div>
 
-        {/* Model dropdown */}
+        {/* Model */}
         <div>
-          <div className="text-[9px] uppercase text-oa-text-dim tracking-widest mb-0.5 font-semibold">Model</div>
+          <label className={labelClass}>Model</label>
           <select
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            className="w-full px-2 py-1.5 bg-oa-bg border border-neutral-700 rounded text-oa-text text-xs font-mono"
+            className={`${inputClass} font-mono`}
           >
             <option value="claude/opus">claude/opus</option>
             <option value="claude/sonnet">claude/sonnet</option>
@@ -121,9 +125,9 @@ export function SpawnForm() {
           </select>
         </div>
 
-        {/* Task textarea */}
+        {/* Task */}
         <div>
-          <div className="text-[9px] uppercase text-oa-text-dim tracking-widest mb-0.5 font-semibold">Task</div>
+          <label className={labelClass}>Task</label>
           <textarea
             value={task}
             onChange={(e) => setTask(e.target.value)}
@@ -133,24 +137,24 @@ export function SpawnForm() {
                 handleSpawn();
               }
             }}
-            placeholder="Describe the task... (Ctrl+Enter to spawn)"
-            rows={3}
-            className="w-full px-2 py-1.5 bg-oa-bg border border-neutral-700 rounded text-oa-text text-xs resize-y font-sans leading-relaxed"
+            placeholder="Describe the task… (Ctrl+Enter to spawn)"
+            rows={4}
+            className={`${inputClass} resize-y leading-relaxed`}
           />
         </div>
 
         {/* Name + parent */}
-        <div className="flex gap-1">
+        <div className="flex gap-2">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Name (optional)"
-            className="flex-1 px-2 py-1 bg-oa-bg border border-neutral-700 rounded text-oa-text text-[11px]"
+            className="flex-1 px-3 py-2 bg-oa-bg border border-oa-border rounded-lg text-oa-text text-[13px] placeholder-oa-text-dim"
           />
           <select
             value={parent}
             onChange={(e) => setParent(e.target.value)}
-            className="flex-1 px-2 py-1 bg-oa-bg border border-neutral-700 rounded text-oa-text text-[11px]"
+            className="flex-1 px-3 py-2 bg-oa-bg border border-oa-border rounded-lg text-oa-text text-[13px]"
           >
             <option value="">No parent</option>
             {running.map((a) => (
@@ -160,36 +164,39 @@ export function SpawnForm() {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-1.5">
+        <div className="flex gap-2 pt-1">
           <button
             onClick={handleSpawn}
             disabled={!task.trim()}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded font-bold text-xs transition-all ${
+            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg font-semibold text-[13px] transition-all ${
               task.trim()
-                ? 'bg-oa-accent text-oa-bg cursor-pointer hover:brightness-110'
-                : 'bg-oa-bg text-oa-text-dim cursor-default'
+                ? 'text-white cursor-pointer hover:brightness-110'
+                : 'bg-oa-border text-oa-text-dim cursor-default'
             }`}
+            style={task.trim() ? { background: 'linear-gradient(135deg, #f97316, #c2410c)' } : undefined}
           >
-            <Zap size={11} />
+            <Zap size={13} />
             Spawn
           </button>
           <button
             onClick={() => useAgentStore.getState().cleanAgents()}
-            className="flex items-center gap-1 px-3 py-1.5 bg-oa-bg text-neutral-400 border border-neutral-700 rounded text-[11px] cursor-pointer hover:text-neutral-200"
+            className="flex items-center gap-1.5 px-3 py-2 bg-oa-bg text-oa-text-muted border border-oa-border rounded-lg text-[13px] cursor-pointer hover:text-oa-text transition-colors"
           >
-            <Trash2 size={10} />
+            <Trash2 size={12} />
             Clean
           </button>
         </div>
 
         {/* Feedback */}
         {feedback && (
-          <div className={`flex items-center justify-center gap-1.5 mt-0.5 px-2 py-1.5 rounded text-[11px] font-medium text-center animate-fade-in border ${
-            feedback.ok
-              ? 'bg-green-950/60 border-green-800/40 text-green-400'
-              : 'bg-red-950/60 border-red-800/40 text-red-400'
-          }`}>
-            {feedback.ok ? <CheckCircle size={11} /> : <XCircle size={11} />}
+          <div
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium animate-fade-in border ${
+              feedback.ok
+                ? 'bg-green-950/60 border-green-800/40 text-green-400'
+                : 'bg-red-950/60 border-red-800/40 text-red-400'
+            }`}
+          >
+            {feedback.ok ? <CheckCircle size={12} /> : <XCircle size={12} />}
             {feedback.msg}
           </div>
         )}

@@ -115,8 +115,8 @@ export function AgentPanel() {
             onClick={() => setTab(t)}
             className={`flex-1 py-2 text-xs font-medium transition-colors ${
               tab === t
-                ? 'text-cyan-400 border-b-2 border-cyan-400 bg-cyan-400/5'
-                : 'text-neutral-500 hover:text-neutral-300'
+                ? 'text-oa-accent border-b-2 border-oa-accent bg-oa-accent/5'
+                : 'text-oa-text-dim hover:text-oa-text'
             }`}
           >
             {t === 'messages' ? `Messages ${messages.length > 0 ? `(${messages.length})` : ''}` : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -210,12 +210,13 @@ export function AgentPanel() {
               onChange={e => setMsgInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSend()}
               placeholder={`Message ${selectedAgent}...`}
-              className="flex-1 bg-neutral-800 border border-neutral-700 rounded px-2.5 py-1.5 text-xs text-white placeholder-neutral-600"
+              className="flex-1 bg-oa-bg border border-oa-border rounded-lg px-2.5 py-1.5 text-xs text-oa-text placeholder-oa-text-dim"
             />
             <button
               onClick={handleSend}
               disabled={!msgInput.trim()}
-              className="px-3 py-1.5 text-xs font-medium rounded bg-cyan-600 text-white hover:bg-cyan-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1.5 text-xs font-medium rounded-lg text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:brightness-110"
+              style={{ background: 'linear-gradient(135deg, #f97316, #c2410c)' }}
             >
               Send
             </button>
