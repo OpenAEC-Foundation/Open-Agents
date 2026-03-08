@@ -230,3 +230,17 @@ def list_conversations(agent_name: str) -> dict[str, int]:
         sender = msg.get("from", "unknown")
         convos[sender] = convos.get(sender, 0) + 1
     return convos
+
+
+def shutdown_request(agent_name: str, sender: str = "system") -> Path:
+    """Send a graceful shutdown request to an agent.
+
+    The agent can check its inbox for messages with type='shutdown_request'
+    and decide to comply or reject (by continuing work).
+    """
+    return send_message(
+        sender=sender,
+        recipient=agent_name,
+        content="Shutdown requested. Please save your work and exit gracefully.",
+        metadata={"type": "shutdown_request"},
+    )

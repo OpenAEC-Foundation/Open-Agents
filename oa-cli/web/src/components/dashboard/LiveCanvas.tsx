@@ -22,100 +22,130 @@ import { CheckCircle2, XCircle, Clock, Bot } from 'lucide-react';
 
 // --- Agent Node Component ---
 
+function statusBorderColor(status: string): string {
+  switch (status) {
+    case 'running': return '#3b82f6';
+    case 'done': return '#22c55e';
+    case 'failed':
+    case 'error': return '#ef4444';
+    case 'killed':
+    case 'timeout': return '#9ca3af';
+    default: return '#9ca3af';
+  }
+}
+
 function AgentNodeComponent({ data }: NodeProps) {
   const agent = data.agent as Agent;
   const msgs = (data.unread ?? 0) as number;
   const selected = data.selected as boolean;
-  const sColor = statusColor(agent.status);
   const mColor = modelColor(agent.model);
 
   const isRunning = agent.status === 'running';
   const isDone = agent.status === 'done';
   const isFailed = agent.status === 'failed' || agent.status === 'error';
 
+  const borderColor = statusBorderColor(agent.status);
+
+  const boxShadow = selected
+    ? `0 0 0 2px #ff6b35, 0 4px 16px rgba(0,0,0,0.12)`
+    : isRunning
+    ? `0 0 12px rgba(59,130,246,0.25), 0 2px 8px rgba(0,0,0,0.08)`
+    : '0 2px 8px rgba(0,0,0,0.08)';
+
   return (
     <div
-      className="relative rounded-lg min-w-[220px] max-w-[280px] transition-all duration-200 group"
+      className="relative rounded-lg min-w-[220px] max-w-[280px] transition-all duration-200 group bg-white"
       style={{
-        borderLeft: `4px solid ${selected ? '#f97316' : sColor}`,
-        background: selected
-          ? 'linear-gradient(135deg, rgba(249,115,22,0.10) 0%, rgba(15,15,17,0.98) 100%)'
-          : 'linear-gradient(135deg, rgba(23,23,23,0.98) 0%, rgba(10,10,12,0.99) 100%)',
-        boxShadow: isRunning
-          ? `0 0 16px ${sColor}35, 0 4px 12px rgba(0,0,0,0.5)`
-          : selected
-          ? '0 0 14px rgba(249,115,22,0.2), 0 4px 12px rgba(0,0,0,0.5)'
-          : '0 4px 12px rgba(0,0,0,0.5)',
-        border: `1px solid ${selected ? 'rgba(249,115,22,0.3)' : 'rgba(255,255,255,0.06)'}`,
+        borderLeft: `4px solid ${borderColor}`,
+        border: `1px solid #e5e7eb`,
         borderLeftWidth: '4px',
-        borderLeftColor: selected ? '#f97316' : sColor,
+        borderLeftColor: borderColor,
+        boxShadow,
       }}
     >
       <Handle
         type="target"
         position={Position.Top}
-        className="!opacity-0 group-hover:!opacity-100 !transition-opacity !bg-neutral-500 !w-2 !h-2 !border-0"
+        className="!opacity-0 group-hover:!opacity-100 !transition-opacity !bg-gray-400 !w-2 !h-2 !border-0"
       />
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!opacity-0 group-hover:!opacity-100 !transition-opacity !bg-neutral-500 !w-2 !h-2 !border-0"
+        className="!opacity-0 group-hover:!opacity-100 !transition-opacity !bg-gray-400 !w-2 !h-2 !border-0"
       />
 
       <div className="px-3 py-2.5">
-        {/* Header row: icon + name + status badge */}
+        {/* Header row: icon + name + model badge */}
         <div className="flex items-center gap-2 mb-1.5">
-          <Bot size={13} className="text-neutral-500 shrink-0" />
-          <div className="text-[13px] font-bold text-white truncate flex-1 leading-tight">
+          <Bot size={13} className="text-gray-400 shrink-0" />
+          <div
+            className="text-[13px] font-bold truncate flex-1 leading-tight"
+            style={{ color: '#1a2a3a' }}
+          >
             {agent.name}
           </div>
-          {/* Status icon top-right */}
-          <div className="shrink-0 ml-auto">
-            {isRunning && (
-              <span
-                className="block w-2.5 h-2.5 rounded-full"
-                style={{ background: sColor, animation: 'ccPulse 2s infinite' }}
-              />
-            )}
-            {isDone && <CheckCircle2 size={13} color="#22c55e" />}
-            {isFailed && <XCircle size={13} color="#ef4444" />}
-          </div>
-        </div>
-
-        {/* Model badge + duration */}
-        <div className="flex items-center gap-1.5 mb-2">
+          {/* Model badge */}
           <span
-            className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold leading-none"
-            style={{ background: `${mColor}22`, color: mColor, border: `1px solid ${mColor}33` }}
+            className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold leading-none shrink-0"
+            style={{ background: `${mColor}18`, color: mColor, border: `1px solid ${mColor}30` }}
           >
             {modelLabel(agent.model)}
           </span>
-          <span className="text-[10px] text-neutral-500 font-mono flex items-center gap-0.5">
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-100 mb-2" />
+
+        {/* Task text */}
+        {agent.task && (
+          <div className="text-[11px] text-gray-500 line-clamp-2 leading-tight mb-2">
+            {agent.task}
+          </div>
+        )}
+
+        {/* Footer: status + duration */}
+        <div className="flex items-center gap-1.5">
+          {isRunning && (
+            <>
+              <span
+                className="block w-2 h-2 rounded-full shrink-0"
+                style={{ background: '#3b82f6', animation: 'ccPulse 2s infinite' }}
+              />
+              <span className="text-[10px] text-blue-500 font-medium">running</span>
+            </>
+          )}
+          {isDone && (
+            <>
+              <CheckCircle2 size={12} className="text-green-500 shrink-0" />
+              <span className="text-[10px] text-green-600 font-medium">done</span>
+            </>
+          )}
+          {isFailed && (
+            <>
+              <XCircle size={12} className="text-red-500 shrink-0" />
+              <span className="text-[10px] text-red-500 font-medium">failed</span>
+            </>
+          )}
+          {!isRunning && !isDone && !isFailed && (
+            <>
+              <span className="block w-2 h-2 rounded-full bg-gray-400 shrink-0" />
+              <span className="text-[10px] text-gray-400 font-medium">{agent.status}</span>
+            </>
+          )}
+          <span className="text-gray-300 mx-0.5">•</span>
+          <span className="text-[10px] text-gray-400 font-mono flex items-center gap-0.5">
             <Clock size={9} />
             {formatDuration(agent.created_at, agent.finished_at)}
           </span>
         </div>
-
-        {/* Task text */}
-        {agent.task && (
-          <div className="text-[11px] text-neutral-400 italic line-clamp-2 leading-tight">
-            {agent.task}
-          </div>
-        )}
       </div>
 
       {/* Unread badge */}
       {msgs > 0 && (
-        <div className="absolute -top-2 -left-2 bg-yellow-500 text-black text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+        <div className="absolute -top-2 -left-2 bg-yellow-400 text-gray-900 text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
           {msgs}
         </div>
       )}
-
-      {/* Hover overlay */}
-      <div
-        className="absolute inset-0 rounded-lg pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
-        style={{ background: 'rgba(255,255,255,0.025)' }}
-      />
     </div>
   );
 }
@@ -176,8 +206,8 @@ function layoutAgents(agents: Agent[]): { nodes: Node[]; edges: Edge[] } {
         source: agent.name,
         target: child.name,
         animated: child.status === 'running',
-        style: { stroke: '#555', strokeWidth: 1.5 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#555' },
+        style: { stroke: '#d1d5db', strokeWidth: 1.5 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#d1d5db' },
       });
     }
 
@@ -244,12 +274,12 @@ export function LiveCanvas() {
               target: msg.to === '_broadcast' ? msg.from : msg.to,
               animated: true,
               label: snippet,
-              labelStyle: { fill: '#fbbf24', fontSize: 10, fontWeight: 500 },
-              labelBgStyle: { fill: '#1a1a1a', fillOpacity: 0.9 },
+              labelStyle: { fill: '#ff6b35', fontSize: 10, fontWeight: 500 },
+              labelBgStyle: { fill: '#ffffff', fillOpacity: 0.95 },
               labelBgPadding: [4, 2] as [number, number],
               labelBgBorderRadius: 4,
-              style: { stroke: '#fbbf24', strokeWidth: 1.5, strokeDasharray: '5 3' },
-              markerEnd: { type: MarkerType.ArrowClosed, color: '#fbbf24' },
+              style: { stroke: '#ff6b35', strokeWidth: 1.5, strokeDasharray: '5 3' },
+              markerEnd: { type: MarkerType.ArrowClosed, color: '#ff6b35' },
             });
           }
         } catch {
@@ -310,11 +340,19 @@ export function LiveCanvas() {
 
   if (agents.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center text-neutral-500">
+      <div className="flex-1 flex items-center justify-center" style={{ background: '#f9fafb' }}>
         <div className="text-center">
           <div className="text-4xl mb-4">&#x1f916;</div>
-          <div className="text-lg font-medium">No agents running</div>
-          <div className="text-sm mt-1">Spawn agents with <code className="px-1.5 py-0.5 rounded text-oa-accent" style={{ background: 'rgba(249,115,22,0.12)' }}>oa run</code></div>
+          <div className="text-lg font-medium" style={{ color: '#1a2a3a' }}>No agents running</div>
+          <div className="text-sm mt-1 text-gray-500">
+            Spawn agents with{' '}
+            <code
+              className="px-1.5 py-0.5 rounded text-[#ff6b35]"
+              style={{ background: 'rgba(255,107,53,0.08)' }}
+            >
+              oa run
+            </code>
+          </div>
         </div>
       </div>
     );
@@ -331,27 +369,33 @@ export function LiveCanvas() {
         nodeTypes={nodeTypes}
         fitView
         fitViewOptions={{ padding: 0.3 }}
-        className="bg-oa-bg"
+        style={{ background: '#f9fafb' }}
         proOptions={{ hideAttribution: true }}
         nodesDraggable={true}
         nodesConnectable={false}
         defaultEdgeOptions={{
-          animated: true,
-          style: { stroke: '#555', strokeWidth: 1.5 },
+          animated: false,
+          style: { stroke: '#d1d5db', strokeWidth: 1.5 },
         }}
       >
-        <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#262626" />
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={24}
+          size={1}
+          color="#d1d5db"
+          style={{ background: '#f9fafb' }}
+        />
         <Controls
           showInteractive={false}
-          className="!bg-neutral-900 !border-neutral-700 !rounded-lg [&>button]:!bg-neutral-900 [&>button]:!border-neutral-700 [&>button]:!text-neutral-400 [&>button:hover]:!bg-neutral-800"
+          className="!bg-white !border-gray-200 !rounded-lg [&>button]:!bg-white [&>button]:!border-gray-200 [&>button]:!text-gray-500 [&>button:hover]:!bg-gray-50"
         />
         <MiniMap
           nodeColor={(n) => {
             const agent = (n.data as any)?.agent as Agent | undefined;
-            return agent ? statusColor(agent.status) : '#555';
+            return agent ? statusBorderColor(agent.status) : '#d1d5db';
           }}
-          className="!bg-neutral-900 !border-neutral-700 !rounded-lg"
-          maskColor="rgba(0,0,0,0.5)"
+          className="!bg-white !border !border-gray-200 !rounded-lg"
+          maskColor="rgba(249,250,251,0.6)"
         />
       </ReactFlow>
     </div>

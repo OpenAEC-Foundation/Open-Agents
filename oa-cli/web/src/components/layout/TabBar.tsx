@@ -16,39 +16,16 @@ export function TabBar() {
   const setTab = useUIStore((s) => s.setMainTab);
 
   return (
-    <div
-      className="flex shrink-0"
-      style={{ background: '#1a1a1a', borderBottom: '1px solid #2d2d2d' }}
-    >
+    <div className="flex shrink-0 bg-white border-b border-gray-200">
       {TABS.map((tab) => (
         <button
           key={tab.id}
           onClick={() => setTab(tab.id)}
-          className="flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold cursor-pointer transition-colors border-b-2"
-          style={
+          className={`flex items-center gap-1.5 px-5 py-3 text-xs font-semibold cursor-pointer transition-colors border-b-2 ${
             activeTab === tab.id
-              ? {
-                  color: '#ff6b00',
-                  borderBottomColor: '#ff6b00',
-                  background: 'rgba(255, 107, 0, 0.10)',
-                }
-              : {
-                  color: '#cccccc',
-                  borderBottomColor: 'transparent',
-                }
-          }
-          onMouseEnter={(e) => {
-            if (activeTab !== tab.id) {
-              (e.currentTarget as HTMLButtonElement).style.background = '#2d2d2d';
-              (e.currentTarget as HTMLButtonElement).style.color = '#f0f0f0';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (activeTab !== tab.id) {
-              (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-              (e.currentTarget as HTMLButtonElement).style.color = '#cccccc';
-            }
-          }}
+              ? 'text-[#ff6b35] border-[#ff6b35] bg-orange-50'
+              : 'text-gray-500 border-transparent hover:text-gray-800 hover:bg-gray-50'
+          }`}
         >
           {tab.icon}
           {tab.label}

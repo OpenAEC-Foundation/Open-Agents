@@ -106,6 +106,65 @@ def list_tasks(team: str) -> list[dict]:
     return tasks
 
 
+def claim_task(team: str, task_id: str, agent_name: str) -> dict:
+    """Claim a task for an agent using exclusive file locking.
+
+    Only pending tasks can be claimed. Sets status to in_progress.
+    Raises FileNotFoundError if task not found, ValueError if not claimable.
+    """
+    path = _task_path(team, task_id)
+    if not path.exists():
+        raise FileNotFoundError(f"Task '{task_id}' not found in team '{team}'")
+
+    with open(path, "r+") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            task = json.load(f)
+            if task["status"] != "pending":
+                raise ValueError(
+                    f"Task '{task_id}' cannot be claimed (status: {task['status']})"
+                )
+            task["status"] = "in_progress"
+            task["assigned_to"] = agent_name
+            task["updated_at"] = time.time()
+            f.seek(0)
+            f.truncate()
+            json.dump(task, f, indent=2)
+            f.write("\n")
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
+    return task
+
+
+def complete_task(team: str, task_id: str) -> dict:
+    """Mark a task as completed and auto-unblock dependent tasks.
+
+    Any task in the same team that lists this task_id in blocked_by
+    will have it removed. If blocked_by becomes empty and the task
+    is blocked, its status changes to pending.
+    """
+    task = update_task(team, task_id, "completed")
+
+    # Auto-unblock dependent tasks
+    team_dir = TASKS_DIR / team
+    if team_dir.exists():
+        for json_file in team_dir.glob("*.json"):
+            if json_file.stem == task_id:
+                continue
+            try:
+                dep_task = _read_task(json_file)
+                if task_id in dep_task.get("blocked_by", []):
+                    dep_task["blocked_by"].remove(task_id)
+                    dep_task["updated_at"] = time.time()
+                    if not dep_task["blocked_by"] and dep_task["status"] == "blocked":
+                        dep_task["status"] = "pending"
+                    _write_task(json_file, dep_task)
+            except Exception:
+                continue
+
+    return task
+
+
 def delete_task(team: str, task_id: str) -> bool:
     """Delete a task. Returns True if it existed."""
     path = _task_path(team, task_id)

@@ -19,7 +19,7 @@ from .orchestrator import spawn_with_orchestrator
 from .spawner import spawn_agent
 from .tmux import session_exists, start_session
 from .state import get_agent, list_agents
-from .messaging import broadcast_message, mark_read, read_inbox, send_message, unread_count
+from .messaging import broadcast_message, mark_read, read_inbox, send_message, shutdown_request, unread_count
 from .workspace import read_output
 from .guardians import list_guardians, log_event, register_guardian, trigger_guardian
 
@@ -561,6 +561,16 @@ def broadcast(
     console.print(f"[green]Broadcast sent to {len(paths) - 1} agent(s)[/green]")
 
 
+@app.command(name="shutdown-request")
+def shutdown_request_cmd(
+    name: str = typer.Argument(..., help="Agent name to send shutdown request to"),
+    sender: str = typer.Option("user", "--from", "-f", help="Sender name"),
+):
+    """Send a graceful shutdown request to an agent."""
+    path = shutdown_request(name, sender=sender)
+    console.print(f"[yellow]Shutdown request sent to '{name}'.[/yellow]")
+
+
 @app.command()
 def stop(
     no_guardians: bool = typer.Option(False, "--no-guardians", help="Skip session_end guardian triggers"),
@@ -772,6 +782,41 @@ def task_done(
         console.print(f"[green]Task '{task_id}' marked as completed.[/green]")
         console.print(f"  Title: {task['title']}")
     except FileNotFoundError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+
+
+@task_app.command("claim")
+def task_claim_cmd(
+    team: str = typer.Argument(..., help="Team name"),
+    task_id: str = typer.Argument(..., help="Task ID to claim"),
+    agent: str = typer.Option(..., "--agent", "-a", help="Agent name claiming the task"),
+):
+    """Claim a pending task for an agent (with file locking)."""
+    from .task_list import claim_task
+
+    try:
+        task = claim_task(team, task_id, agent)
+        console.print(f"[green]Task '{task_id}' claimed by '{agent}'.[/green]")
+        console.print(f"  Title: {task['title']}")
+    except (FileNotFoundError, ValueError) as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+
+
+@task_app.command("complete")
+def task_complete_cmd(
+    team: str = typer.Argument(..., help="Team name"),
+    task_id: str = typer.Argument(..., help="Task ID to complete"),
+):
+    """Mark a task as completed and auto-unblock dependent tasks."""
+    from .task_list import complete_task
+
+    try:
+        task = complete_task(team, task_id)
+        console.print(f"[green]Task '{task_id}' completed.[/green]")
+        console.print(f"  Title: {task['title']}")
+    except (FileNotFoundError, ValueError) as e:
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1)
 

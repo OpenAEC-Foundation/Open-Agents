@@ -61,7 +61,7 @@ export function AgentPanel() {
 
   if (!selectedAgent || !agent) {
     return (
-      <div className="w-[320px] min-w-[320px] border-l border-neutral-800 bg-neutral-950 flex items-center justify-center text-neutral-600 text-sm">
+      <div className="w-[320px] min-w-[320px] border-l border-gray-200 bg-white flex items-center justify-center text-gray-400 text-sm">
         Select an agent on the canvas
       </div>
     );
@@ -100,70 +100,69 @@ export function AgentPanel() {
     });
   }
 
-  // Output lines with line numbers
   const outputLines = outputText ? outputText.split('\n') : [];
 
   return (
-    <div className="w-[320px] min-w-[320px] border-l border-neutral-800 bg-neutral-950 flex flex-col">
+    <div className="w-[320px] min-w-[320px] border-l border-gray-200 bg-white flex flex-col">
       {/* Header */}
-      <div className="px-3 py-2.5 border-b border-neutral-800">
+      <div className="p-4 border-b border-gray-200">
         {/* Breadcrumb */}
         {breadcrumb.length > 0 && (
-          <div className="flex items-center gap-1 mb-1.5 flex-wrap">
+          <div className="flex items-center gap-1 mb-2 flex-wrap">
             {breadcrumb.map((name, i) => (
               <span key={i} className="flex items-center gap-1">
-                <span className="text-[10px] text-cyan-600 font-mono">{name}</span>
-                <ChevronRight size={9} className="text-neutral-600" />
+                <span className="text-[10px] text-[#6b7b8d] font-mono">{name}</span>
+                <ChevronRight size={9} className="text-gray-300" />
               </span>
             ))}
-            <span className="text-[10px] text-cyan-400 font-mono font-semibold">{agent.name}</span>
+            <span className="text-[10px] text-[#1a2a3a] font-mono font-semibold">{agent.name}</span>
           </div>
         )}
 
         {/* Agent name + badges */}
         <div className="flex items-center gap-2 flex-wrap">
           {breadcrumb.length === 0 && (
-            <span className="text-white font-semibold text-sm">{agent.name}</span>
+            <span className="text-[#1a2a3a] font-bold text-sm">{agent.name}</span>
           )}
           {/* Status badge */}
           <span
             className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold border"
-            style={{ background: `${sColor}15`, color: sColor, borderColor: `${sColor}30` }}
+            style={{ background: `${sColor}18`, color: sColor, borderColor: `${sColor}35` }}
           >
             {agent.status}
           </span>
           {/* Model badge */}
           <span
             className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold border"
-            style={{ background: `${mColor}15`, color: mColor, borderColor: `${mColor}30` }}
+            style={{ background: `${mColor}18`, color: mColor, borderColor: `${mColor}35` }}
           >
             {modelLabel(agent.model)}
           </span>
           {/* Duration */}
-          <span className="text-[10px] text-neutral-500 font-mono ml-auto">
+          <span className="text-[10px] text-[#6b7b8d] font-mono ml-auto">
             {formatDuration(agent.created_at, agent.finished_at)}
           </span>
         </div>
 
         {/* Depth indicator */}
         {agent.depth > 0 && (
-          <div className="mt-1 text-[10px] text-neutral-600">
+          <div className="mt-1 text-[10px] text-[#6b7b8d]">
             depth {agent.depth}
-            {agent.parent && <> · child of <span className="text-cyan-700">{agent.parent}</span></>}
+            {agent.parent && <> · child of <span className="text-[#1a2a3a]">{agent.parent}</span></>}
           </div>
         )}
       </div>
 
       {/* Sub-tabs */}
-      <div className="flex border-b border-neutral-800">
+      <div className="flex border-b border-gray-200 bg-white">
         {(['info', 'messages', 'output'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 py-1.5 text-[11px] font-medium transition-colors cursor-pointer ${
+            className={`flex-1 py-2 text-[11px] font-medium transition-colors cursor-pointer border-b-2 ${
               tab === t
-                ? 'text-oa-accent border-b-2 border-oa-accent bg-oa-accent/5'
-                : 'text-oa-text-dim hover:text-oa-text'
+                ? 'text-[#ff6b35] border-[#ff6b35] bg-orange-50'
+                : 'text-gray-500 border-transparent hover:text-gray-800 hover:bg-gray-50'
             }`}
           >
             {t === 'messages'
@@ -175,19 +174,19 @@ export function AgentPanel() {
 
       {/* Info tab */}
       {tab === 'info' && (
-        <div className="flex-1 overflow-auto p-3 space-y-3">
+        <div className="flex-1 overflow-auto p-4 space-y-4">
           <div>
-            <div className="text-[10px] uppercase text-neutral-600 font-semibold tracking-wider mb-1">Task</div>
-            <div className="text-[11px] text-neutral-300 leading-relaxed">{agent.task}</div>
+            <div className="text-xs uppercase text-gray-400 font-semibold tracking-wider mb-1">Task</div>
+            <div className="text-xs text-[#1a2a3a] leading-relaxed">{agent.task}</div>
           </div>
           <div>
-            <div className="text-[10px] uppercase text-neutral-600 font-semibold tracking-wider mb-1">Workspace</div>
-            <div className="text-[10px] text-neutral-500 font-mono break-all">{agent.workspace}</div>
+            <div className="text-xs uppercase text-gray-400 font-semibold tracking-wider mb-1">Workspace</div>
+            <div className="text-[10px] text-[#6b7b8d] font-mono break-all">{agent.workspace}</div>
           </div>
           {agent.max_children > 0 && (
             <div>
-              <div className="text-[10px] uppercase text-neutral-600 font-semibold tracking-wider mb-1">Children</div>
-              <div className="text-[11px] text-neutral-400">
+              <div className="text-xs uppercase text-gray-400 font-semibold tracking-wider mb-1">Children</div>
+              <div className="text-xs text-[#1a2a3a]">
                 {agents.filter(a => a.parent === agent.name).length} / {agent.max_children} max
               </div>
             </div>
@@ -195,7 +194,7 @@ export function AgentPanel() {
           {agent.status === 'running' && (
             <button
               onClick={() => killAgent(agent.name)}
-              className="w-full py-1.5 text-xs font-semibold rounded-lg bg-red-900/30 text-red-400 hover:bg-red-900/50 border border-red-900/40 transition-colors cursor-pointer"
+              className="w-full py-1.5 text-xs font-semibold rounded-lg border border-red-300 text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
             >
               Kill Agent
             </button>
@@ -207,44 +206,46 @@ export function AgentPanel() {
       {tab === 'messages' && (
         <div className="flex-1 overflow-auto p-3 space-y-2">
           {messages.length === 0 && (
-            <div className="text-neutral-600 text-xs text-center py-4">No messages yet</div>
+            <div className="text-gray-400 text-xs text-center py-4">No messages yet</div>
           )}
           {messages.map((msg, i) => (
             <div
               key={i}
-              className={`rounded-lg px-3 py-2 text-xs ${
+              className={`rounded-xl px-3 py-2 text-xs ${
                 msg.from === selectedAgent
-                  ? 'bg-cyan-900/20 border border-cyan-800/30 ml-4'
-                  : 'bg-neutral-800/50 border border-neutral-700/30 mr-4'
+                  ? 'bg-orange-50 border border-orange-100 ml-6'
+                  : 'bg-gray-100 border border-gray-200 mr-6'
               }`}
             >
               <div className="flex items-center gap-1.5 mb-1">
-                <span className="font-semibold text-neutral-300">{msg.from}</span>
-                <span className="text-neutral-600 ml-auto text-[10px]">
+                <span className="font-semibold text-[#1a2a3a]">{msg.from}</span>
+                <span className="text-gray-400 ml-auto text-[10px]">
                   {new Date(msg.timestamp * 1000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
-                {!msg.read && <span className="text-[9px] bg-yellow-500 text-black px-1 rounded font-bold">NEW</span>}
+                {!msg.read && <span className="text-[9px] bg-[#ff6b35] text-white px-1 rounded font-bold">NEW</span>}
               </div>
-              <div className="text-neutral-400 leading-relaxed whitespace-pre-wrap">{msg.content}</div>
+              <div className={`leading-relaxed whitespace-pre-wrap ${msg.from === selectedAgent ? 'text-[#ff6b35]' : 'text-[#6b7b8d]'}`}>
+                {msg.content}
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Terminal output tab */}
+      {/* Output tab */}
       {tab === 'output' && (
-        <div className="flex-1 flex flex-col overflow-hidden bg-black">
-          <div className="flex items-center justify-between px-3 py-1.5 border-b border-neutral-800 bg-neutral-900/80">
+        <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
+          <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-white">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">output</span>
+              <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">output</span>
               {outputLines.length > 0 && (
-                <span className="text-[10px] text-neutral-600">{outputLines.length} lines</span>
+                <span className="text-[10px] text-gray-400">{outputLines.length} lines</span>
               )}
             </div>
             <button
               onClick={handleCopyOutput}
               disabled={!outputText}
-              className="flex items-center gap-1 text-[10px] text-neutral-500 hover:text-neutral-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               <ClipboardCopy size={11} />
               {copied ? 'Copied!' : 'Copy'}
@@ -252,25 +253,14 @@ export function AgentPanel() {
           </div>
           <div
             ref={outputRef}
-            className="flex-1 overflow-auto p-0 font-mono text-[11px] leading-[1.6]"
+            className="flex-1 overflow-auto p-3 font-mono text-sm leading-relaxed bg-gray-50 rounded"
           >
             {outputLines.length === 0 ? (
-              <div className="p-3 text-neutral-600">No output yet...</div>
+              <div className="text-gray-400 text-xs">No output yet...</div>
             ) : (
-              <table className="w-full border-collapse">
-                <tbody>
-                  {outputLines.map((line, i) => (
-                    <tr key={i} className="group hover:bg-neutral-900/40">
-                      <td className="select-none text-right pr-3 pl-2 text-neutral-700 group-hover:text-neutral-500 text-[10px] w-8 align-top pt-px border-r border-neutral-800/60">
-                        {i + 1}
-                      </td>
-                      <td className="pl-3 pr-2 text-green-400 whitespace-pre-wrap break-all align-top">
-                        {line || '\u00a0'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <pre className="text-[#1a2a3a] whitespace-pre-wrap break-all text-[11px]">
+                {outputText}
+              </pre>
             )}
           </div>
         </div>
@@ -278,7 +268,7 @@ export function AgentPanel() {
 
       {/* Message input (messages tab) */}
       {tab === 'messages' && (
-        <div className="p-3 border-t border-neutral-800">
+        <div className="p-3 border-t border-gray-200">
           <div className="flex gap-2">
             <input
               type="text"
@@ -286,13 +276,12 @@ export function AgentPanel() {
               onChange={e => setMsgInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSend()}
               placeholder={`Message ${selectedAgent}...`}
-              className="flex-1 bg-oa-bg border border-oa-border rounded-lg px-2.5 py-1.5 text-xs text-oa-text placeholder-oa-text-dim focus:outline-none"
+              className="flex-1 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-[#1a2a3a] placeholder-gray-400 focus:outline-none focus:border-[#ff6b35]"
             />
             <button
               onClick={handleSend}
               disabled={!msgInput.trim()}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:brightness-110 cursor-pointer"
-              style={{ background: 'linear-gradient(135deg, #f97316, #c2410c)' }}
+              className="px-3 py-1.5 text-xs font-semibold rounded-lg text-white bg-[#ff6b35] hover:bg-[#e55a25] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               Send
             </button>

@@ -10,11 +10,6 @@ interface Guardian {
   last_triggered: number | null;
 }
 
-const TRIGGER_COLORS: Record<string, string> = {
-  session_end: '#a78bfa',
-  batch_complete: '#60a5fa',
-};
-
 function fmt(ts: number | null): string {
   if (!ts) return '—';
   return new Date(ts * 1000).toLocaleTimeString('en-GB', {
@@ -54,65 +49,50 @@ export function GuardianPanel() {
   if (guardians.length === 0) return null;
 
   return (
-    <div className="border-t border-oa-border bg-oa-surface">
+    <div className="border-t border-gray-200 bg-white">
       {/* Collapsible header */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-bold text-oa-text-muted uppercase tracking-widest hover:text-oa-text transition-colors"
+        className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wide hover:text-gray-600 transition-colors"
       >
         <span>Guardians ({guardians.length})</span>
-        <span className="text-oa-text-dim">{open ? '▲' : '▼'}</span>
+        <span className="text-gray-300">{open ? '▲' : '▼'}</span>
       </button>
 
       {open && (
-        <div className="px-3 pb-2 space-y-1.5">
+        <div className="px-3 pb-3 space-y-2">
           {guardians.map((g) => {
             const state = triggerStates[g.name] ?? 'idle';
             return (
               <div
                 key={g.name}
-                className="rounded border border-oa-border bg-oa-bg p-2"
+                className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm"
               >
-                <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-[11px] font-mono text-oa-text truncate flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-mono font-semibold text-[#1a2a3a] truncate flex-1">
                     {g.name}
                   </span>
-                  <span
-                    className="text-[9px] font-bold px-1.5 py-0.5 rounded ml-2 shrink-0"
-                    style={{
-                      color: TRIGGER_COLORS[g.trigger] ?? '#9ca3af',
-                      background: 'rgba(255,255,255,0.05)',
-                    }}
-                  >
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-500 ml-2 shrink-0">
                     {g.trigger}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-[10px] text-oa-text-dim">
+                  <div className="flex items-center gap-3 text-[10px] text-gray-400">
                     <span className="font-mono">{g.model.split('/')[1] ?? g.model}</span>
                     <span>last: {fmt(g.last_triggered)}</span>
                   </div>
                   <button
                     onClick={() => handleRun(g.name)}
                     disabled={state === 'loading'}
-                    className="text-[9px] px-1.5 py-0.5 rounded font-bold transition-colors shrink-0 ml-2"
-                    style={{
-                      background:
-                        state === 'success'
-                          ? 'rgba(34,197,94,0.15)'
-                          : state === 'error'
-                          ? 'rgba(239,68,68,0.15)'
-                          : 'rgba(255,255,255,0.07)',
-                      color:
-                        state === 'success'
-                          ? '#4ade80'
-                          : state === 'error'
-                          ? '#f87171'
-                          : state === 'loading'
-                          ? '#9ca3af'
-                          : '#e5e7eb',
-                      cursor: state === 'loading' ? 'not-allowed' : 'pointer',
-                    }}
+                    className={`text-xs px-2 py-1 rounded font-semibold transition-colors shrink-0 ml-2 ${
+                      state === 'success'
+                        ? 'bg-green-100 text-green-600'
+                        : state === 'error'
+                        ? 'bg-red-100 text-red-500'
+                        : state === 'loading'
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-[#ff6b35] text-white hover:bg-[#e55a2a]'
+                    }`}
                   >
                     {state === 'loading' ? '…' : state === 'success' ? '✓ ok' : state === 'error' ? '✗ err' : '▶ Run'}
                   </button>

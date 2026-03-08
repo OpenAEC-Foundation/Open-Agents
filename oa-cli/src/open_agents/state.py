@@ -13,6 +13,40 @@ from typing import Optional
 OA_DIR = Path.home() / ".oa"
 STATE_FILE = OA_DIR / "agents.json"
 
+
+# --- Team/Task/Message schemas (Sprint 17) ---
+
+@dataclass
+class TaskRecord:
+    """Shared task record for agent teams."""
+    id: str
+    team: str
+    description: str
+    status: str = "todo"  # todo | claimed | done | blocked
+    claimed_by: Optional[str] = None
+    depends_on: list = field(default_factory=list)
+    created_at: str = ""
+    completed_at: Optional[str] = None
+
+
+@dataclass
+class TeamConfig:
+    """Team configuration record."""
+    name: str
+    members: list = field(default_factory=list)
+    created_at: str = ""
+
+
+@dataclass
+class Message:
+    """Inter-agent message record."""
+    id: str
+    from_agent: str
+    to_agent: str  # or "broadcast"
+    content: str
+    sent_at: str = ""
+    read: bool = False
+
 # PERF: In-memory agent cache; re-reads disk only when file mtime changes.
 # Eliminates duplicate JSON loads within a single request cycle (N+1 reads).
 _cache: dict[str, "AgentRecord"] | None = None

@@ -16,23 +16,23 @@ export function SystemHealth() {
   const successBarColor = successRate >= 80 ? '#4ade80' : successRate >= 50 ? '#fbbf24' : '#f87171';
 
   return (
-    <div className="flex flex-col overflow-y-auto">
+    <div className="flex flex-col overflow-y-auto p-3 gap-3">
       {/* Active agents — prominent counter */}
-      <div className="px-3 py-3 border-b border-oa-border-light">
-        <div className="text-[10px] font-bold text-oa-text-muted uppercase tracking-widest mb-1">Active Agents</div>
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Active Agents</div>
         <div className="flex items-end gap-2">
-          <div className="text-5xl font-bold text-oa-accent font-mono leading-none">{running.length}</div>
-          <div className="text-xs text-oa-text-dim mb-1">running</div>
+          <div className="text-4xl font-black text-[#1a2a3a] font-mono leading-none">{running.length}</div>
+          <div className="text-xs text-gray-400 mb-1">running</div>
         </div>
       </div>
 
       {/* Model distribution */}
-      <div className="px-3 py-2 border-b border-oa-border-light">
-        <div className="text-[10px] font-bold text-oa-text-muted uppercase tracking-widest mb-2">Models</div>
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Models</div>
         {modelDist.length === 0 ? (
-          <div className="text-xs text-oa-text-dim">No agents</div>
+          <div className="text-xs text-gray-400">No agents</div>
         ) : (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {modelDist.map((m) => (
               <div key={m.label} className="flex items-center gap-2 text-xs">
                 <span
@@ -41,7 +41,7 @@ export function SystemHealth() {
                 >
                   {modelLabel(m.model)}
                 </span>
-                <div className="flex-1 bg-neutral-800 rounded-full h-1.5">
+                <div className="flex-1 bg-gray-100 rounded-full h-1.5">
                   <div
                     className="h-1.5 rounded-full transition-all"
                     style={{
@@ -50,7 +50,7 @@ export function SystemHealth() {
                     }}
                   />
                 </div>
-                <span className="font-mono text-neutral-400 min-w-[16px] text-right">{m.count}</span>
+                <span className="font-mono text-gray-500 min-w-[16px] text-right">{m.count}</span>
               </div>
             ))}
           </div>
@@ -58,9 +58,9 @@ export function SystemHealth() {
       </div>
 
       {/* Resources */}
-      <div className="px-3 py-2 border-b border-oa-border-light">
-        <div className="text-[10px] font-bold text-oa-text-muted uppercase tracking-widest mb-2">Resources</div>
-        <div className="space-y-1 text-xs">
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Resources</div>
+        <div className="space-y-1.5 text-xs">
           {[
             ['Uptime', formatDuration(sessionStart / 1000, null)],
             ['Total', `${agents.length}`],
@@ -69,18 +69,18 @@ export function SystemHealth() {
             ['Session tokens', '0'],
           ].map(([label, value]) => (
             <div key={label} className="flex justify-between">
-              <span className="text-oa-text-dim">{label}</span>
-              <span className="font-mono text-neutral-300">{value}</span>
+              <span className="text-gray-400">{label}</span>
+              <span className="font-mono text-[#1a2a3a]">{value}</span>
             </div>
           ))}
 
           {/* Success rate with progress bar */}
-          <div className="pt-0.5">
-            <div className="flex justify-between mb-1">
-              <span className="text-oa-text-dim">Success Rate</span>
-              <span className="font-mono text-neutral-300">{successRate}%</span>
+          <div className="pt-1">
+            <div className="flex justify-between mb-1.5">
+              <span className="text-gray-400">Success Rate</span>
+              <span className="font-mono text-[#1a2a3a]">{successRate}%</span>
             </div>
-            <div className="w-full bg-neutral-800 rounded-full h-1.5">
+            <div className="w-full bg-gray-100 rounded-full h-1.5">
               <div
                 className="h-1.5 rounded-full transition-all duration-500"
                 style={{ width: `${successRate}%`, background: successBarColor }}

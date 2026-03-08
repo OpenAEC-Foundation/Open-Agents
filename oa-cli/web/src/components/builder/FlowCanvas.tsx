@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -27,35 +27,57 @@ const nodeTypes = {
 interface Props {
   initialNodes?: Node[];
   initialEdges?: Edge[];
-  onNodesChange?: (nodes: Node[]) => void;
-  onEdgesChange?: (edges: Edge[]) => void;
   onNodeSelect?: (node: Node | null) => void;
+  onNodesUpdate?: (nodes: Node[]) => void;
+  onEdgesUpdate?: (edges: Edge[]) => void;
+  onDeleteSelected?: () => void;
 }
 
-export function FlowCanvas({ initialNodes = [], initialEdges = [], onNodeSelect }: Props) {
+export function FlowCanvas({
+  initialNodes = [],
+  initialEdges = [],
+  onNodeSelect,
+  onNodesUpdate,
+  onEdgesUpdate,
+}: Props) {
   const [nodes, setNodes, onNodesChangeHandler] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChangeHandler] = useEdgesState(initialEdges);
 
+  useEffect(() => { onNodesUpdate?.(nodes); }, [nodes, onNodesUpdate]);
+  useEffect(() => { onEdgesUpdate?.(edges); }, [edges, onEdgesUpdate]);
+
   const onConnect = useCallback(
     (params: Connection) => {
-      setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: '#22d3ee' } }, eds));
+      setEdges((eds) =>
+        addEdge({ ...params, animated: true, style: { stroke: '#ff6b00', strokeWidth: 2 } }, eds)
+      );
     },
     [setEdges]
   );
 
   const onNodeClick = useCallback(
-    (_: React.MouseEvent, node: Node) => {
-      onNodeSelect?.(node);
-    },
+    (_: React.MouseEvent, node: Node) => { onNodeSelect?.(node); },
     [onNodeSelect]
   );
 
-  const onPaneClick = useCallback(() => {
-    onNodeSelect?.(null);
-  }, [onNodeSelect]);
+  const onPaneClick = useCallback(() => { onNodeSelect?.(null); }, [onNodeSelect]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(
+        (e.target as HTMLElement).tagName
+      )) {
+        setNodes((nds) => nds.filter((n) => !n.selected));
+        setEdges((eds) => eds.filter((e) => !e.selected));
+        onNodeSelect?.(null);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [setNodes, setEdges, onNodeSelect]);
 
   return (
-    <div className="flex-1 h-full">
+    <div className="flex-1 h-full" style={{ background: '#0a0a0a' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -66,14 +88,17 @@ export function FlowCanvas({ initialNodes = [], initialEdges = [], onNodeSelect 
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
         fitView
-        className="bg-oa-bg"
+        style={{ background: '#0a0a0a' }}
         defaultEdgeOptions={{
           animated: true,
-          style: { stroke: '#22d3ee', strokeWidth: 2 },
+          style: { stroke: '#ff6b00', strokeWidth: 2 },
         }}
       >
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#262626" />
-        <Controls className="!bg-oa-surface !border-oa-border !rounded-lg [&>button]:!bg-oa-surface [&>button]:!border-oa-border [&>button]:!text-oa-text-muted [&>button:hover]:!bg-neutral-800" />
+        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#222222" />
+        <Controls
+          className="!rounded-lg"
+          style={{ background: '#111111', border: '1px solid #222222' }}
+        />
       </ReactFlow>
     </div>
   );
