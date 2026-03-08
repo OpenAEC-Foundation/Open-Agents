@@ -26,17 +26,19 @@ Multi-agent orchestrator for Claude Code. Spawn and coordinate multiple AI agent
 
 ## Installation
 
-```bash
-cd oa-cli
-pip install -e .
-```
-
-The `oa` binary is installed to `~/.local/bin`. Add it to your PATH if needed:
+### Linux / macOS
 
 ```bash
-# Add to ~/.bashrc or ~/.zshrc
-export PATH="$HOME/.local/bin:$PATH"
+./install.sh
 ```
+
+### Windows
+
+```powershell
+.\install.ps1
+```
+
+The installer checks for Python 3.10+, Node.js, tmux, and Claude Code CLI, installs missing dependencies, and builds the web UI automatically.
 
 Verify the installation:
 
@@ -49,22 +51,29 @@ oa version
 ## Quick Start
 
 ```bash
-# 1. Start the tmux session
+# 1. Start the oa session
 oa start
 
 # 2. Spawn an agent with a task
-oa run "Write a Python function that validates email addresses"
+oa run "Write a Python function that validates email addresses" --model claude/sonnet
 
-# 3. Check the status of all agents
+# 3. Check status
 oa status
 
-# 4. Open the interactive TUI dashboard
-oa dashboard
+# 4. View live output
+oa watch <agent-name>
 
 # 5. Run a multi-agent pipeline
 oa pipeline "Build a CSV validator library with tests and README"
 
-# 6. Open the web UI
+# 6. Open the interactive TUI dashboard
+oa dashboard
+
+# 7. Create an agent team for collaborative work
+oa team create my-project
+oa run "Refactor authentication module" --name auth-worker
+
+# 8. Open the web UI for visual monitoring
 oa web
 ```
 
@@ -74,13 +83,17 @@ oa web
 
 - **Zero API key setup** — runs directly on your Claude Code subscription
 - **Parallel agent execution** — spawn multiple Claude Code agents simultaneously, each isolated in its own tmux window and workspace
+- **Nested spawning** — agents can create their own child agents with parent/child relationships and duplicate task prevention
 - **Proposal mode** — agents write proposals instead of modifying files directly; you review and apply with `oa apply`
 - **Pipeline orchestration** — automatic Planner → parallel Workers → Combiner flow for complex tasks
 - **Delegate mode** — spawn an orchestrator agent that autonomously creates and manages its own worker agents
-- **Hierarchical agents** — parent/child relationships with depth limits and duplicate task prevention
+- **Agent Teams** — shared task lists, inter-agent messaging, and coordinated workflows (Sprint 17)
+- **Guardian agents** — automatic reflexes triggered on session end and batch completion
 - **Interactive TUI dashboard** — real-time Textual dashboard with agent table, live output, and keyboard shortcuts
-- **Web UI** — React SPA served locally via Flask bridge for visual agent monitoring
+- **Web UI** — React SPA at `localhost:5174` with agent monitoring and canvas builder
 - **Multi-model support** — Claude (default), Claude Opus 4.6, Claude Sonnet 4.6, or local Ollama models
+- **Skill packages** — external knowledge domains (AEC: 73 Blender/BIM/IFC agents)
+- **Pre-built templates** — 10+ agent templates for common workflows (code review, testing, translation)
 - **Visual Canvas** (advanced) — drag-and-drop React Flow canvas for building complex multi-agent workflows
 
 ---
@@ -95,7 +108,7 @@ oa web
 | `oa run "<task>"` | Spawn an agent in a new tmux window with its own workspace |
 | `oa status` | Show status table of all agents (name, status, task, duration, workspace) |
 | `oa dashboard` | Open the interactive Textual TUI dashboard |
-| `oa web` | Start the local web UI at http://localhost:5174 |
+| `oa web` | Start the web UI at [localhost:5174](http://localhost:5174) |
 | `oa version` | Show CLI version |
 
 ### Agent Management
@@ -107,6 +120,18 @@ oa web
 | `oa kill <name>` | Stop a running agent and close its tmux window |
 | `oa collect <name>` | Display the output of a completed agent (`output.md`) |
 | `oa clean` | Clean up workspaces of all completed agents |
+
+### Agent Teams (Collaborative Workflows)
+
+| Command | Description |
+|---------|-------------|
+| `oa team create <name>` | Create a new agent team with shared task list |
+| `oa team list` | Show all teams and their members |
+| `oa task list [team]` | View tasks in a team (filters by status, owner) |
+| `oa task create <team> "<description>"` | Add a task to a team |
+| `oa send <agent> "<message>"` | Send a direct message to an agent |
+| `oa inbox <agent>` | Check messages for an agent |
+| `oa broadcast "<message>"` | Send a message to all agents in a team |
 
 ### Proposal Workflow
 
@@ -139,8 +164,9 @@ oa run "Generate documentation" --model ollama/qwen3:8b
 |--------|-------|-------------|
 | `--name NAME` | `-n` | Agent name (auto-generated if omitted) |
 | `--model MODEL` | `-m` | Model selection (see Model Selection below) |
-| `--parent NAME` | `-p` | Parent/orchestrator agent (for hierarchies) |
+| `--parent NAME` | `-p` | Parent agent name (enables nested spawning with hierarchy) |
 | `--workspace DIR` | `-w` | Use an existing workspace directory |
+| `--direct` | `-d` | Write directly to codebase (skip proposal mode) |
 
 ---
 
@@ -187,11 +213,13 @@ oa pipeline "Build a CSV validator library with tests, type hints, and README"
 
 ---
 
-## Skill-Backed Agents
+## Skill Packages & Domain Agents
 
-Atomic agents can be backed by **external skill packages** — each skill maps to one agent with deep domain knowledge, tools, and prompt templates for a specific technology.
+Agents can be backed by **external skill packages** — curated collections of agents with deep domain knowledge, tools, and prompt templates for specific technologies or domains.
 
-The first skill package is **AEC** (Architecture, Engineering, Construction), providing 73 specialized agents across four technologies:
+### AEC (Architecture, Engineering, Construction) — 73 Agents
+
+The first production skill package provides domain-specific agents for:
 
 | Skill package | Agents | Domain |
 |---------------|--------|--------|
@@ -200,7 +228,7 @@ The first skill package is **AEC** (Architecture, Engineering, Construction), pr
 | `aec-ifcopenshell` | 16 | IfcOpenShell IFC parsing, validation, transformation |
 | `aec-sverchok` | 14 | Sverchok parametric/generative design nodes |
 
-Skill-backed agents live in `agents/library/aec-{technology}/` and follow the same atomic agent format as all other library agents. The pattern is generic — any domain can provide its own skill package.
+These agents are loaded automatically into the Library UI and can be dragged onto the canvas.
 
 ---
 
@@ -221,6 +249,28 @@ oa apply auth-refactor
 # Or preview first
 oa apply auth-refactor --dry-run
 ```
+
+---
+
+## Guardian Agents
+
+Guardian agents are automatic reflexes that trigger at session end and batch completion. They can:
+
+- **Summarize learnings** from completed tasks into project documentation
+- **Update the roadmap** with progress and blockers
+- **Generate handoff notes** for team continuity
+
+Guardian agents are defined in templates and run autonomously:
+
+```bash
+# Guardian agents trigger automatically on `oa stop`
+oa stop
+```
+
+Guardian templates include:
+- `guardian-lessons` — Extract insights from session logs
+- `guardian-roadmap` — Update ROADMAP.md with progress
+- `guardian-handoff` — Create handoff notes for next session
 
 ---
 
@@ -295,15 +345,17 @@ templates/
 
 | Layer | Technology |
 |-------|-----------|
-| CLI orchestrator | Python + typer + rich + tmux |
-| TUI dashboard | Textual (>=0.80) |
-| CLI web UI | React 19 + Vite + Flask bridge |
+| CLI orchestrator | Python 3.10+ + typer + rich + tmux |
+| TUI dashboard | Textual (>=0.80) — 60/40 split with live output |
+| CLI web UI | React 19 + Vite + Flask bridge (localhost:5174) |
 | Canvas editor | React Flow (xyflow v12) |
 | Canvas frontend | React 19 + Vite + Tailwind CSS 4 + Zustand |
-| Canvas backend | Node.js + Fastify |
+| Canvas backend | Node.js + Fastify + TypeScript |
 | Agent runtime | Claude Code CLI (subscription) + Claude Agent SDK + OpenAI/Mistral/Ollama adapters |
 | Knowledge engine | TypeScript — model profiles, cost estimation, graph validation |
-| Assembly | Haiku (intent) + TypeScript (patterns) + Sonnet (graph gen) |
+| Assembly | Haiku 4.5 (intent) + TypeScript (patterns) + Sonnet 4.6 (graph gen) |
+| Skill packages | Markdown definitions + Python/YAML agent configs |
+| Orchestration | Pipeline (Planner → Workers → Combiner) + Agent Teams (task lists, messaging) |
 | Monorepo | pnpm workspaces |
 | CI/CD | GitHub Actions (typecheck, test, build) |
 

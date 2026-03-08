@@ -10,5 +10,6 @@
     "text",
     "markdown",
     "format"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

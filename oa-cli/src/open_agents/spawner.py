@@ -162,9 +162,14 @@ def spawn_agent(
     else:
         workspace = Path(workspace)
 
-    # Create tmux window
+    # Create tmux window — use -P to get the new window index, avoiding
+    # duplicate-name ambiguity when send-keys targets by name.
     window_name = f"agent-{name}"
-    _tmux(f"new-window -t {SESSION_NAME} -n {shlex.quote(window_name)}")
+    result = _tmux(
+        f"new-window -t {SESSION_NAME} -n {shlex.quote(window_name)} -P -F '#{{window_index}}'"
+    )
+    window_index = result.stdout.strip()
+    send_target = f"{SESSION_NAME}:{window_index}" if window_index else f"{SESSION_NAME}:{shlex.quote(window_name)}"
 
     # Build runtime-specific command
     if model.startswith("ollama/"):
@@ -183,10 +188,7 @@ def spawn_agent(
     script = workspace / ".oa-run.sh"
     script.write_text(f"#!/bin/bash\n{agent_command}\n")
     script.chmod(0o755)
-    _tmux(
-        f"send-keys -t {SESSION_NAME}:{shlex.quote(window_name)} "
-        f"{shlex.quote(str(script))} Enter"
-    )
+    _tmux(f"send-keys -t {send_target} {shlex.quote(str(script))} Enter")
 
     # Record state
     rec = AgentRecord(

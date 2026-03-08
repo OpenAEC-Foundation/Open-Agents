@@ -164,4 +164,40 @@
 | L-045 | **Release pipeline als oa pipeline bewijs** — Een standaard CI/CD release workflow (create release → N× parallel builders → combine & publish) is exact het oa pipeline patroon. Dit valideert dat oa pipeline het juiste abstractieniveau heeft voor multi-step, multi-platform builds. | open-pdf-studio release.yml: planner (draft release) → 4× workers (macos-intel, macos-arm, win-sys, win-user) → combiner (upload artifacts). |
 | L-046 | **`permissions.defaultMode: "bypassPermissions"` = correct veld voor skip-all** — `dangerouslySkipPermissions` bestaat niet als settings veld. De juiste manier om alle permissievragen te skippen in workspace settings is `permissions.defaultMode: "bypassPermissions"`. | Schema-validatie fout bij poging om `dangerouslySkipPermissions` toe te voegen aan `.claude/settings.json`. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-047, L-048, etc.*
+---
+
+## Sessie 2026-03-08 — Skill Package Fase 0: Skills, Protocol & Research
+
+### WSL & Bestandssysteem
+
+| # | Les | Context |
+|---|-----|---------|
+| L-047 | **WSL/NTFS corrupt bestand fix — gebruik python3 -c met open(path,"w",newline="\n")** — De Write tool van Claude Code schrijft op Windows filesystem soms met \r\n line endings of BOM-tekens, wat YAML frontmatter en markdown parsers breekt. Gebruik altijd `python3 -c "open(path,'w',newline='\\n').write(content)"` voor skills op het Windows filesystem. | Skill bestanden op /mnt/c/ hadden corrupt frontmatter na Write tool. python3 workaround loste het volledig op. |
+
+### Claude 4.x Skill Schrijven
+
+| # | Les | Context |
+|---|-----|---------|
+| L-048 | **Claude 4.x overtriggering — bare ALWAYS/NEVER vervangen door reason-bearing imperatives** — Claude 4.x modellen volgen bare ALWAYS/NEVER instructies te letterlijk en triggeren bij elke vage overeenkomst. Gebruik reason-bearing imperatives: "ALWAYS use X because Y" of "NEVER do X when Z" zodat het model context mee kan wegen. | Skills met bare ALWAYS/NEVER triggerde op niet-bedoelde user prompts. Na omschrijven naar reason-bearing formaat nam false positive rate sterk af. |
+| L-049 | **Skill description budget — max 50 woorden, alleen trigger-condities, geen capability claims** — Claude Code's skill selection gebruikt de description veld voor matching. Te lange descriptions bevatten ruis (capability claims, uitleg) die matching verslechtert. Hou descriptions onder 50 woorden en schrijf alleen TRIGGER WHEN / DO NOT TRIGGER WHEN condities. | SKILL-PROTOCOL.md sectie 2.3: description is trigger-selector, niet marketingtekst. Beschrijvingen boven 50 woorden leidden tot slechte skill selectie. |
+| L-050 | **Skills zijn directories, niet losse .md bestanden — gebruik officiële SKILL.md structuur** — Losse `.claude/skills/foo.md` bestanden zijn de oude aanpak. De officiële structuur is een directory per skill: `.claude/skills/foo/SKILL.md` (+ optioneel examples/, tests/). Dit maakt skills versie-controleerbaar en uitbreidbaar met bijlagen. | 14 skills gemigreerd van losse .md naar directory-structuur. SKILL-PROTOCOL.md documenteert het volledige formaat. |
+
+### Agent Spawning & tmux Targeting
+
+| # | Les | Context |
+|---|-----|---------|
+| L-051 | **Duplicate tmux window names breken send-keys targeting** — tmux staat duplicate window names toe. Als een agent spawn mislukt na `new-window` maar voordat `send-keys` commands uitvoerd worden, blijft een leeg window bestaan. Bij hergebruik van dezelfde agent naam mislukken alle volgende `send-keys` calls met "ambiguous target" error. | Oorzaak: security fix (shell=True → shlex.split) maakte fouten zichtbaar die eerder stil faalden. Fix: gebruik `new-window -P -F "#{window_index}"` om het window index terug te krijgen, en target `send-keys` op index i.p.v. naam. Workaround: `oa kill <naam>` + handmatig duplicate tmux windows verwijderen. |
+
+---
+
+## Sessie 2026-03-08 — Nested Spawning, Product Assessment & Parallel Fixes
+
+### Orchestratie & Architectuur
+
+| # | Les | Context |
+|---|-----|---------|
+| L-052 | **Nested spawning fix = twee bestanden, <40 regels totaal** — Agents kunnen sub-agents spawnen via `oa run` als (1) PATH `/home/freek/.local/bin` aanwezig is in de shell omgeving en (2) de CLAUDE.md instructie expliciet zegt "gebruik Bash tool met oa run, nooit de ingebouwde Agent tool". Minimale ingreep, maximaal effect. | Eerder mislukte nested spawning omdat agents de ingebouwde Agent tool gebruikten (invisible voor oa status). PATH + CLAUDE.md instructie lost dit volledig op. |
+| L-053 | **Product assessment via opus agent geeft eerlijker beeld dan zelf scannen** — Een dedicated product-assessor agent (opus) die de volledige codebase doorloopt rapporteert eerlijker over wat werkt, gedeeltelijk werkt, en kapot is dan de meta-orchestrator die neigt naar optimisme. Aparte assessment-stap vóór fix-planning is essentieel. | product-assessor agent ontdekte: template_loader.py ontbrak, 2 template-systemen die niet communiceren, Onboarding niet geïntegreerd, guardian trigger niet beschikbaar via UI. |
+| L-054 | **Parallel agents voor top-N fixes is efficiënter dan sequentieel** — Na een product assessment: spawn N fix-agents parallel (één per fix), niet sequentieel. Voorwaarde: fixes mogen geen gedeelde bestanden bewerken. Bij de top-5 fixes waren alle targets gescheiden (template_loader.py, templateStore.ts, App.tsx, bridge.py, GuardianPanel.tsx). | 5 fix-agents parallel afgerond in de tijd van 1-2 sequentiële agents. Bevestigt L-037 (batch template generation) en L-003 (geen gedeelde bestanden). |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-055, L-056, etc.*

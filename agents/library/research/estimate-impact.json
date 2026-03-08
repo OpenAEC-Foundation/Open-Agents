@@ -14,5 +14,6 @@
     "analysis",
     "impact",
     "risk"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

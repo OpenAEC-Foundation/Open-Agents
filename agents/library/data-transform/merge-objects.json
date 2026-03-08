@@ -10,5 +10,6 @@
     "data",
     "merge",
     "json"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

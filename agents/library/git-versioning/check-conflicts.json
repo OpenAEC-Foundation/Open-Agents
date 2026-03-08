@@ -15,5 +15,6 @@
     "git",
     "merge",
     "conflicts"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

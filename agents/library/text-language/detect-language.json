@@ -10,5 +10,6 @@
     "text",
     "language",
     "detection"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

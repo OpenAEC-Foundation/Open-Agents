@@ -8,6 +8,7 @@ import { BuilderTab } from './components/builder/BuilderTab';
 import { TemplatesTab } from './components/templates/TemplatesTab';
 import { ContextTab } from './components/context/ContextTab';
 import { SettingsTab } from './components/settings/SettingsTab';
+import { TeamsTab } from './components/teams/TeamsTab';
 import Onboarding from './components/Onboarding';
 
 export default function App() {
@@ -59,6 +60,7 @@ export default function App() {
         {activeMainTab === 'builder' && <BuilderTab />}
         {activeMainTab === 'templates' && <TemplatesTab />}
         {activeMainTab === 'context' && <ContextTab />}
+        {activeMainTab === 'teams' && <TeamsTab />}
         {activeMainTab === 'settings' && <SettingsTab />}
       </div>
     </div>

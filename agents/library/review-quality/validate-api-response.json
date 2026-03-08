@@ -10,5 +10,6 @@
     "api",
     "validation",
     "schema"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

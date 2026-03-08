@@ -16,6 +16,19 @@ export function AgentPanel() {
   const outputRef = useRef<HTMLDivElement>(null);
 
   const agent = agents.find(a => a.name === selectedAgent);
+  const [streamOutput, setStreamOutput] = useState<string>('');
+
+  // SSE streaming for running agents
+  useEffect(() => {
+    if (!selectedAgent || agent?.status !== 'running') {
+      setStreamOutput('');
+      return;
+    }
+    const cleanup = api.streamAgentOutput(selectedAgent, (output) => {
+      setStreamOutput(output);
+    });
+    return cleanup;
+  }, [selectedAgent, agent?.status]);
 
   // Fetch detail and messages
   useEffect(() => {
@@ -44,7 +57,7 @@ export function AgentPanel() {
     if (tab === 'output' && outputRef.current) {
       outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }
-  }, [tab, detail?.live_output, detail?.result]);
+  }, [tab, streamOutput, detail?.live_output, detail?.result]);
 
   if (!selectedAgent || !agent) {
     return (
@@ -56,7 +69,7 @@ export function AgentPanel() {
 
   const sColor = statusColor(agent.status);
   const mColor = modelColor(agent.model);
-  const outputText = detail?.live_output || detail?.result || '';
+  const outputText = (agent.status === 'running' && streamOutput) ? streamOutput : (detail?.live_output || detail?.result || '');
 
   async function handleSend() {
     if (!msgInput.trim() || !selectedAgent) return;

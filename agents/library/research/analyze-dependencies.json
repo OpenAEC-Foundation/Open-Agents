@@ -15,5 +15,6 @@
     "dependencies",
     "analysis",
     "security"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

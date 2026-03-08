@@ -10,5 +10,6 @@
     "report",
     "generation",
     "documentation"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

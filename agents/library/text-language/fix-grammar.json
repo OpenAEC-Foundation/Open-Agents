@@ -10,5 +10,6 @@
     "text",
     "grammar",
     "spelling"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

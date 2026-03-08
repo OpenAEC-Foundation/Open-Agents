@@ -10,5 +10,6 @@
     "data",
     "transform",
     "keys"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

@@ -10,5 +10,6 @@
     "data",
     "csv",
     "json"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

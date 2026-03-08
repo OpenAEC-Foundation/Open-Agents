@@ -1,4 +1,4 @@
-import { Cpu, LayersIcon, LayoutDashboard, Library, Settings } from 'lucide-react';
+import { Cpu, LayersIcon, LayoutDashboard, Library, Settings, Users } from 'lucide-react';
 import { useUIStore } from '../../stores/uiStore';
 import type { MainTab } from '../../types';
 
@@ -7,6 +7,7 @@ const TABS: { id: MainTab; label: string; icon: React.ReactNode }[] = [
   { id: 'builder', label: 'Agent Builder', icon: <Cpu size={13} /> },
   { id: 'templates', label: 'Templates', icon: <Library size={13} /> },
   { id: 'context', label: 'Context Builder', icon: <LayersIcon size={13} /> },
+  { id: 'teams', label: 'Teams', icon: <Users size={13} /> },
   { id: 'settings', label: 'Settings', icon: <Settings size={13} /> },
 ];
 

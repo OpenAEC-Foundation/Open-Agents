@@ -15,5 +15,6 @@
     "code",
     "examples",
     "search"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

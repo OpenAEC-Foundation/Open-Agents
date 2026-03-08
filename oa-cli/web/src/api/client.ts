@@ -98,6 +98,19 @@ export async function createTeam(name: string, members: string[]): Promise<unkno
   return res.json();
 }
 
+export async function deleteTeam(name: string): Promise<void> {
+  await fetch(`${API}/teams/${encodeURIComponent(name)}`, { method: 'DELETE' });
+}
+
+export async function addTeamMember(team: string, agent: string): Promise<unknown> {
+  const res = await fetch(`${API}/teams/${encodeURIComponent(team)}/members`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ agent }),
+  });
+  return res.json();
+}
+
 // --- Tasks ---
 
 export async function fetchTasks(team: string): Promise<unknown> {
@@ -172,6 +185,21 @@ export async function fetchTemplates(): Promise<BackendTemplate[]> {
     throw new Error(`GET /api/templates failed: ${res.status}`);
   }
   return res.json() as Promise<BackendTemplate[]>;
+}
+
+// --- SSE Streaming ---
+
+export function streamAgentOutput(name: string, onData: (output: string, status: string) => void): () => void {
+  const es = new EventSource(`${API}/agents/${encodeURIComponent(name)}/stream`);
+  es.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      onData(data.output ?? '', data.status ?? '');
+    } catch {
+      // ignore parse errors
+    }
+  };
+  return () => es.close();
 }
 
 // --- Session ---

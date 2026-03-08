@@ -10,5 +10,6 @@
     "text",
     "title",
     "generation"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

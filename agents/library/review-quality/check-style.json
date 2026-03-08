@@ -14,5 +14,6 @@
     "code",
     "style",
     "lint"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

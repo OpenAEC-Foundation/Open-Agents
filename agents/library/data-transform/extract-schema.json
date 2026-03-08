@@ -10,5 +10,6 @@
     "data",
     "schema",
     "extraction"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

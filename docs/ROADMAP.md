@@ -46,7 +46,7 @@
 **Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond), v0.2.0 released 2026-03-02
 **Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 21+ commando's, Textual TUI, pipeline orchestrator, React web UI; checkpoints en resume geïmplementeerd
 **Fase 10 (VS Code Bridge)**: ████████████████░░░░ **80%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator, package migratie, launch config werkend; shared types mergen, test-workspace, CLI tool integreren bij agent sprint11-finisher
-**Fase 11 (Agent Teams Patterns)**: ███████████░░░░░░░░░ **55%** - Sprint 17 gestart: foundation, task_list.py + teams.py bij sprint17-teams, messaging.py + hooks.py bij sprint17-messaging
+**Fase 11 (Agent Teams Patterns)**: ████████████░░░░░░░░ **58%** - Sprint 17 in progress: task_list.py, teams.py, messaging.py (send/inbox/broadcast werkend), CLI commando's volledig; hooks.py, graceful shutdown, tests, TUI/web views nog open
 
 ---
 
@@ -301,6 +301,22 @@
 - [x] Totaal 21+ CLI commando's: start, run, status, dashboard, attach, watch, kill, collect, clean, pipeline, web, version, setup, delegate, team, task, send, inbox, broadcast, guardian, checkpoint
 
 ---
+
+---
+
+## Skill Package — Fase 0 ✅ Complete (2026-03-08)
+
+**Doel**: Research, protocol en pilot skills voor het Open-Agents Skill Package systeem.
+
+- [x] Anthropic officiële skill guidelines onderzocht → `docs/research/anthropic-skills-guidelines.md`
+- [x] Competitor analysis gedaan (Cursor, Copilot, Windsurf)
+- [x] Testing framework research gedaan
+- [x] SKILL-PROTOCOL.md geschreven door opus synthesizer → `docs/skills/SKILL-PROTOCOL.md`
+- [x] 14 pilot skills gemigreerd naar officiële directory-structuur (`.claude/skills/*/SKILL.md`)
+- [x] Skills voldoen aan Claude 4.x best practices (reason-bearing imperatives, descriptions <50 woorden)
+- [x] Lessen gedocumenteerd: L-047 t/m L-050 in LESSONS.md
+
+**Volgende**: Fase 1 — masterplan verfijnen + agent-koppeling ontwerpen
 
 ---
 

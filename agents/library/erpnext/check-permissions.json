@@ -14,5 +14,6 @@
     "erpnext",
     "permissions",
     "security"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

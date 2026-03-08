@@ -8,5 +8,6 @@
     "Glob",
     "Grep"
   ],
-  "maturity": "tool-capable"
+  "maturity": "tool-capable",
+  "modelHint": "claude/sonnet"
 }

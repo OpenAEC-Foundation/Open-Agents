@@ -10,5 +10,6 @@
     "diagram",
     "mermaid",
     "visualization"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

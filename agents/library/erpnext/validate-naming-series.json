@@ -10,5 +10,6 @@
     "erpnext",
     "naming",
     "validation"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

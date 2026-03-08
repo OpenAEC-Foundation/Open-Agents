@@ -12,5 +12,6 @@
     "file",
     "detection",
     "type"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

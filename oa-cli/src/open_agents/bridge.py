@@ -22,7 +22,7 @@ from .workspace import read_output
 from .guardians import list_guardians, trigger_guardian, SESSION_LOG_PATH
 
 try:
-    from .teams import create_team, get_team, list_teams
+    from .teams import create_team, get_team, list_teams, add_member, delete_team
     _teams_ok = True
 except ImportError:
     _teams_ok = False
@@ -163,6 +163,42 @@ def api_spawn_agent():
         return jsonify(_agent_to_dict(rec)), 201
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 400
+
+
+@app.route("/api/agents/<name>/stream")
+def api_agent_stream(name: str):
+    """Stream agent output via Server-Sent Events (SSE)."""
+    def generate():
+        while True:
+            rec = get_agent(name)
+            if rec is None:
+                data = json.dumps({"error": f"Agent '{name}' not found"})
+                yield f"data: {data}\n\n"
+                break
+
+            if rec.status == "running":
+                check_agent(name)
+                rec = get_agent(name)
+                output = capture_agent_output(rec.tmux_window, lines=50)
+            else:
+                output = read_output(rec.workspace)
+
+            data = json.dumps({"output": output or "", "status": rec.status})
+            yield f"data: {data}\n\n"
+
+            if rec.status != "running":
+                break
+
+            time.sleep(1)
+
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @app.route("/api/agents/<name>/kill", methods=["POST"])
@@ -438,6 +474,30 @@ def api_get_team(name: str):
     if team is None:
         return jsonify({"error": f"Team '{name}' not found"}), 404
     return jsonify(team)
+
+
+@app.route("/api/teams/<name>", methods=["DELETE"])
+def api_delete_team(name: str):
+    if not _teams_ok:
+        return jsonify({"error": "teams module not available"}), 501
+    deleted = delete_team(name)
+    if not deleted:
+        return jsonify({"error": f"Team '{name}' not found"}), 404
+    return jsonify({"deleted": name})
+
+
+@app.route("/api/teams/<name>/members", methods=["POST"])
+def api_add_member(name: str):
+    if not _teams_ok:
+        return jsonify({"error": "teams module not available"}), 501
+    data = request.get_json() or {}
+    agent_name = data.get("agent")
+    if not agent_name:
+        return jsonify({"error": "Missing 'agent'"}), 400
+    try:
+        return jsonify(add_member(name, agent_name))
+    except FileNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
 
 
 # --- Tasks endpoints ---

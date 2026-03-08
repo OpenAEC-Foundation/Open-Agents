@@ -15,5 +15,6 @@
     "git",
     "commit",
     "conventional"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

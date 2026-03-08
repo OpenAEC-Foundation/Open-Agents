@@ -12,5 +12,6 @@
     "file",
     "list",
     "directory"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

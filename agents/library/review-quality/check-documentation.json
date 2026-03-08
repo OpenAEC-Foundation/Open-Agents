@@ -14,5 +14,6 @@
     "code",
     "documentation",
     "quality"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

@@ -10,5 +10,6 @@
     "text",
     "rewrite",
     "formal"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

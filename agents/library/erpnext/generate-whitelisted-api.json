@@ -16,5 +16,6 @@
     "erpnext",
     "api",
     "frappe"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

@@ -14,5 +14,6 @@
     "code",
     "testing",
     "coverage"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

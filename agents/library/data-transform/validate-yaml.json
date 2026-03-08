@@ -10,5 +10,6 @@
     "data",
     "yaml",
     "validation"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

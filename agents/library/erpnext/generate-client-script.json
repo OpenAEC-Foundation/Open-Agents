@@ -15,5 +15,6 @@
     "erpnext",
     "client-script",
     "javascript"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

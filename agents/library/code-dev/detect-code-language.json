@@ -10,5 +10,6 @@
     "code",
     "language",
     "detection"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

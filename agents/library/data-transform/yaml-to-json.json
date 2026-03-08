@@ -10,5 +10,6 @@
     "data",
     "yaml",
     "json"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

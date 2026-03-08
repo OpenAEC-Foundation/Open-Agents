@@ -10,5 +10,6 @@
     "text",
     "tasks",
     "extraction"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

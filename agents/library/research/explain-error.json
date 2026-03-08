@@ -15,5 +15,6 @@
     "error",
     "debug",
     "explanation"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

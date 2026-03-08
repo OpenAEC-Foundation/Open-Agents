@@ -10,5 +10,6 @@
     "table",
     "format",
     "data"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

@@ -14,5 +14,6 @@
     "code",
     "readability",
     "quality"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

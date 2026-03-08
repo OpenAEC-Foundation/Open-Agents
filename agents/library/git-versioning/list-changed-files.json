@@ -15,5 +15,6 @@
     "git",
     "files",
     "changes"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

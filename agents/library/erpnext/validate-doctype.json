@@ -14,5 +14,6 @@
     "erpnext",
     "doctype",
     "validation"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

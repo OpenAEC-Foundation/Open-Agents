@@ -10,5 +10,6 @@
     "git",
     "commit",
     "classification"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

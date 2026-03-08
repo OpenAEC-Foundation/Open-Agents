@@ -10,5 +10,6 @@
     "email",
     "draft",
     "communication"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

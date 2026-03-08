@@ -14,5 +14,6 @@
     "code",
     "performance",
     "optimization"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

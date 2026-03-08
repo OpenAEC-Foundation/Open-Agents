@@ -10,5 +10,6 @@
     "text",
     "nlp",
     "entities"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

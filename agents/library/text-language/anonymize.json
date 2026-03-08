@@ -10,5 +10,6 @@
     "text",
     "privacy",
     "anonymize"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

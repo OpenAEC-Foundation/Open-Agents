@@ -14,5 +14,6 @@
     "workflow",
     "suggestion",
     "planning"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

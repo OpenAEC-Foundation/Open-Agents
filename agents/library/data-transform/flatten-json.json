@@ -10,5 +10,6 @@
     "data",
     "json",
     "flatten"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

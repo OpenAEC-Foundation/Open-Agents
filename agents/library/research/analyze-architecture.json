@@ -14,5 +14,6 @@
     "architecture",
     "analysis",
     "codebase"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

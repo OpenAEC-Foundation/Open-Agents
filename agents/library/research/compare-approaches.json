@@ -10,5 +10,6 @@
     "analysis",
     "comparison",
     "decision"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

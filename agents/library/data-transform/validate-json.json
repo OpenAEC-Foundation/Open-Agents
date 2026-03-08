@@ -10,5 +10,6 @@
     "data",
     "json",
     "validation"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

@@ -14,5 +14,6 @@
     "status",
     "update",
     "project"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

@@ -14,5 +14,6 @@
     "code",
     "duplication",
     "dry"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

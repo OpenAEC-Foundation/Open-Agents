@@ -15,5 +15,6 @@
     "git",
     "changelog",
     "documentation"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

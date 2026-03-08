@@ -10,8 +10,8 @@
 
 | Fase | Status | Agents | Output | Geblokkeerd door |
 |------|--------|--------|--------|-----------------|
-| 0: Fundament | 🔄 running | skill-research-guidelines, skill-masterplan, skill-orchestration, skill-prompting, skill-state, skill-quality | docs/research/anthropic-skills-guidelines.md, docs/skills/raw-masterplan.md, .claude/skills/oa-*.md | — |
-| 1: Masterplan verfijnen | ⬜ todo | — | — | Fase 0 |
+| 0: Fundament | ✅ done | skill-research-guidelines, skill-masterplan, skill-orchestration, skill-prompting, skill-state, skill-quality | docs/research/anthropic-skills-guidelines.md, docs/skills/SKILL-PROTOCOL.md, 14 skills in .claude/skills/ | — |
+| 1: Masterplan verfijnen | ⬜ todo | — | — | ~~Fase 0~~ Gereed |
 | 2: Deep research | ⬜ todo | — | docs/research/oa-*/ | Fase 1 |
 | 3: Skill creation | ⬜ todo | — | .claude/skills/ | Fase 2 |
 | 4: Agent koppeling | ⬜ todo | — | agents/library/core/ | Fase 3 |
@@ -22,23 +22,26 @@
 
 ## 2. Fases met Subfases
 
-### Fase 0: Fundament 🔄
+### Fase 0: Fundament ✅ DONE (2026-03-08)
 
 **Doel**: Research, masterplan, en pilot skills bouwen.
 
 - 0.1 Anthropic guidelines research — agent: **skill-research-guidelines** → `docs/research/anthropic-skills-guidelines.md`
 - 0.2 Raw masterplan schrijven — agent: **skill-masterplan** → `docs/skills/raw-masterplan.md`
 - 0.3 Pilot skills bouwen — 4 categorieën:
-  - agent: **skill-orchestration** → `.claude/skills/oa-orchestration-*.md`
-  - agent: **skill-prompting** → `.claude/skills/oa-prompting-*.md`
-  - agent: **skill-state** → `.claude/skills/oa-state-*.md`
-  - agent: **skill-quality** → `.claude/skills/oa-quality-*.md`
+  - agent: **skill-orchestration** → `.claude/skills/oa-orchestration-*/SKILL.md`
+  - agent: **skill-prompting** → `.claude/skills/oa-prompting-*/SKILL.md`
+  - agent: **skill-state** → `.claude/skills/oa-state-*/SKILL.md`
+  - agent: **skill-quality** → `.claude/skills/oa-quality-*/SKILL.md`
 - 0.4 Pilot valideren tegen guidelines
+- 0.5 Competitor analysis (Cursor, Copilot, Windsurf) — SKILL-PROTOCOL.md
+- 0.6 SKILL-PROTOCOL.md synthesized door opus agent → `docs/skills/SKILL-PROTOCOL.md`
+- 0.7 14 skills gemigreerd naar officiële directory-structuur
 
 **Done criteria**:
-- [ ] `docs/research/anthropic-skills-guidelines.md` bestaat
-- [ ] `docs/skills/raw-masterplan.md` bestaat
-- [ ] 10+ pilot skills bestaan in `.claude/skills/`
+- [x] `docs/research/anthropic-skills-guidelines.md` bestaat
+- [x] `docs/skills/SKILL-PROTOCOL.md` bestaat
+- [x] 14 skills bestaan in `.claude/skills/` als directory-structuur
 
 ---
 
@@ -148,12 +151,14 @@
 
 | Agent | Output locatie | Status |
 |-------|----------------|--------|
-| skill-research-guidelines | `docs/research/anthropic-skills-guidelines.md` | 🔄 running |
-| skill-masterplan | `docs/skills/raw-masterplan.md` | 🔄 running |
-| skill-orchestration | `.claude/skills/oa-orchestration-*.md` | 🔄 running |
-| skill-prompting | `.claude/skills/oa-prompting-*.md` | 🔄 running |
-| skill-state | `.claude/skills/oa-state-*.md` | 🔄 running |
-| skill-quality | `.claude/skills/oa-quality-*.md` | 🔄 running |
+| skill-research-guidelines | `docs/research/anthropic-skills-guidelines.md` | ✅ done |
+| skill-masterplan | `docs/skills/raw-masterplan.md` | ✅ done |
+| skill-orchestration | `.claude/skills/oa-orchestration-*/SKILL.md` | ✅ done |
+| skill-prompting | `.claude/skills/oa-prompting-*/SKILL.md` | ✅ done |
+| skill-state | `.claude/skills/oa-state-*/SKILL.md` | ✅ done |
+| skill-quality | `.claude/skills/oa-quality-*/SKILL.md` | ✅ done |
+| skill-coordinator | `docs/skills/SKILL-PROTOCOL.md` | ✅ done |
+| guardian-skills-fase0 | `docs/LESSONS.md`, `TRACKER.md`, `ROADMAP.md` | ✅ done |
 
 ---
 
@@ -174,17 +179,16 @@ Na elke skill batch doorloopt de meta-orchestrator deze checklist:
 
 ## 5. Next Steps
 
-Wat de meta-orchestrator **als volgende** moet doen zodra Fase 0 agents klaar zijn:
+**Fase 0 is afgerond (2026-03-08)**. Wat de meta-orchestrator **als volgende** moet doen:
 
-1. **Check**: `oa status` → wacht tot alle 6 Fase 0 agents "done" zijn
-2. **Lees**: `docs/research/anthropic-skills-guidelines.md`
-3. **Lees**: `docs/skills/raw-masterplan.md`
-4. **Valideer**: `ls .claude/skills/` → verwacht 10+ bestanden
-5. **Quality gate**: doorloop checklist sectie 4
-6. **Start Fase 1**: spawn `skill-reviewer` agent met:
-   - Input: guidelines + raw-masterplan + pilot skills
-   - Output: verfijnd masterplan + definitieve skill-lijst
+1. **Fase 1: Masterplan verfijnen** — spawn `skill-reviewer` agent:
+   - Input: `docs/skills/SKILL-PROTOCOL.md` + 14 skills in `.claude/skills/`
+   - Output: verfijnd masterplan + definitieve skill-lijst (20-25 skills met namen)
    - Model: `claude/opus` (architectuur-niveau redenering)
+2. **Agent-koppeling ontwerpen** — welke agent template per skill?
+   - Output: schema in `docs/skills/agent-koppeling.md`
+   - Model: `claude/sonnet`
+3. **Fase 2 starten** — deep research per categorie (orchestratie, state, quality, library, web)
 
 ---
 

@@ -10,5 +10,6 @@
     "text",
     "questions",
     "generation"
-  ]
+  ],
+  "modelHint": "claude/sonnet"
 }

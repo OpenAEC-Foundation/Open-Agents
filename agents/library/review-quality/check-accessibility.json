@@ -14,5 +14,6 @@
     "code",
     "accessibility",
     "wcag"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }

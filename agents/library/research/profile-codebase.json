@@ -15,5 +15,6 @@
     "codebase",
     "profile",
     "overview"
-  ]
+  ],
+  "modelHint": "claude/haiku"
 }
