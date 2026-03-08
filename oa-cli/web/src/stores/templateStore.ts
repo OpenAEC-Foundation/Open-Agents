@@ -335,8 +335,12 @@ export const useTemplateStore = create<TemplateStore>((set, get) => ({
 
   getFiltered: () => {
     const { templates, searchQuery, selectedCategory } = get();
+    const q = searchQuery.toLowerCase().trim();
     return templates.filter((t) => {
-      const matchesSearch = !searchQuery || t.name.toLowerCase().includes(searchQuery.toLowerCase()) || t.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = !q
+        || t.name.toLowerCase().includes(q)
+        || (t.description ?? '').toLowerCase().includes(q)
+        || (t.systemPrompt ?? '').toLowerCase().includes(q);
       const matchesCategory = selectedCategory === 'all' || t.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
