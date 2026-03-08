@@ -632,3 +632,14 @@ def run_bridge(port: int = 5174) -> None:
     print(f"Web UI: http://localhost:{port}")
     print(f"Serving static files from: {WEB_DIR}")
     app.run(host="127.0.0.1", port=port, debug=False)
+
+
+def start_vscode_bridge(port: int = 5175) -> None:
+    """Start the lightweight VS Code bridge server on a separate port."""
+    from .vscode_bridge import vscode_app
+
+    _kill_port(port)
+    print(f"VS Code bridge running on http://localhost:{port}")
+    print(f"Endpoints: /health, /agents, /stream")
+    print("Press Ctrl-C to stop")
+    vscode_app.run(host="127.0.0.1", port=port, debug=False)
