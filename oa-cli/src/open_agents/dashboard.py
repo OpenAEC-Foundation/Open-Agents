@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
@@ -61,6 +63,19 @@ def _status_badge(status: str) -> str:
     if status in ("error", "timeout", "killed"):
         return "[bold red]✘ " + status + "[/bold red]"
     return "[#8888aa]" + status + "[/#8888aa]"
+
+
+def _workspace_label(rec) -> str:
+    """Return short workspace label: project folder name or tmp."""
+    project_root = getattr(rec, "project_root", None)
+    if project_root:
+        return Path(project_root).name[:20]
+    # Fallback: extract uuid suffix from /tmp/oa-agent-<uuid>/
+    ws = getattr(rec, "workspace", "") or ""
+    name = Path(ws).name  # e.g. "oa-agent-abc123"
+    if name.startswith("oa-agent-"):
+        return "[#666688]tmp[/#666688]"
+    return "[#666688]?[/#666688]"
 
 
 # ---------------------------------------------------------------------------
@@ -272,6 +287,7 @@ class OADashboard(App):
             "Agent",
             "Status",
             "Model",
+            "Workspace",
             "Task",
             "Time",
         )
@@ -318,10 +334,12 @@ class OADashboard(App):
             if len(model_short) > 16:
                 model_short = model_short[:15] + "..."
 
+            ws_label = _workspace_label(rec)
             table.add_row(
                 name_markup,
                 _status_badge(rec.status),
                 model_markup,
+                ws_label,
                 task_short,
                 "[yellow]" + format_duration(rec.created_at, rec.finished_at) + "[/yellow]",
                 key=rec.name,

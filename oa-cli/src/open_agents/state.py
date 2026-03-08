@@ -45,6 +45,9 @@ class AgentRecord:
     last_activity: float = 0.0      # timestamp van laatste activiteit
     auto_cleanup_minutes: int = 20  # na hoeveel minuten inactiviteit opruimen
 
+    # --- Workspace origin ---
+    project_root: Optional[str] = None  # project root (bij --direct mode)
+
     def __post_init__(self) -> None:
         """Bereken task_hash als nog niet ingesteld."""
         if not self.task_hash and self.task:
@@ -79,6 +82,7 @@ def load_agents() -> dict[str, AgentRecord]:
         data.setdefault("shared_results_dir", None)
         data.setdefault("last_activity", 0.0)
         data.setdefault("auto_cleanup_minutes", 20)
+        data.setdefault("project_root", None)
         result[name] = AgentRecord(**data)
     return result
 

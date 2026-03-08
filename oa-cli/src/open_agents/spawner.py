@@ -9,6 +9,7 @@ import tempfile
 import time
 from pathlib import Path
 
+from .checkpoint import save_checkpoint
 from .config import load_config
 from .state import (
     AgentRecord,
@@ -196,6 +197,15 @@ def spawn_agent(
         depth=child_depth,
         lineage=child_lineage,
         shared_results_dir=shared_results_dir,
+        project_root=str(project_root) if project_root else None,
     )
     add_agent(rec)
+
+    # Create checkpoint for crash-recovery (L-044)
+    save_checkpoint(name, {
+        "task": task,
+        "model": model,
+        "status": "running",
+    })
+
     return rec
