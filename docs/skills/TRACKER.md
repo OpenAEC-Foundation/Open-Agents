@@ -2,7 +2,7 @@
 
 > **Levend document** — Na elke fase bijgewerkt door een guardian agent.
 > **Laatste update**: 2026-03-08
-> **Bijgewerkt door**: skill-coordinator
+> **Bijgewerkt door**: guardian-fase1
 
 ---
 
@@ -11,7 +11,7 @@
 | Fase | Status | Agents | Output | Geblokkeerd door |
 |------|--------|--------|--------|-----------------|
 | 0: Fundament | ✅ done | skill-research-guidelines, skill-masterplan, skill-orchestration, skill-prompting, skill-state, skill-quality | docs/research/anthropic-skills-guidelines.md, docs/skills/SKILL-PROTOCOL.md, 14 skills in .claude/skills/ | — |
-| 1: Masterplan verfijnen | ⬜ todo | — | — | ~~Fase 0~~ Gereed |
+| 1: Masterplan verfijnen + Skill Creation + Agent Koppeling | ✅ done | skill-coordinator, skill-orchestration, skill-prompting, skill-state, skill-quality, skill-library, skill-web | 22 skills in .claude/skills/, 33 templates in agents/library/core/, SKILL-PROTOCOL.md definitief | — |
 | 2: Deep research | ⬜ todo | — | docs/research/oa-*/ | Fase 1 |
 | 3: Skill creation | ⬜ todo | — | .claude/skills/ | Fase 2 |
 | 4: Agent koppeling | ⬜ todo | — | agents/library/core/ | Fase 3 |
@@ -45,19 +45,21 @@
 
 ---
 
-### Fase 1: Masterplan verfijnen ⬜
+### Fase 1: Masterplan verfijnen + Skill Creation + Agent Koppeling ✅ DONE (2026-03-08)
 
-**Doel**: Pilot output reviewen, skill inventory finaliseren.
+**Doel**: Pilot output reviewen, alle skills bouwen, agent templates koppelen.
 
-- 1.1 Guidelines reviewen → format aanpassen
-- 1.2 Pilot skills reviewen → format bijstellen
-- 1.3 Skill inventory finaliseren (exact 20-25 skills met namen)
-- 1.4 Agent-koppeling ontwerpen (welke agent per skill?)
+- 1.1 Guidelines reviewen → SKILL-PROTOCOL.md verfijnd als definitieve standaard
+- 1.2 Skill inventory finaliseerd: 22 skills over 7 categorieën
+- 1.3 22 skills geschreven in .claude/skills/ (directory-structuur, SKILL.md)
+- 1.4 33 agent templates in agents/library/core/ (14 skill-gekoppeld + 19 algemeen)
+- 1.5 Python-schrijfmethode bewezen voor WSL/NTFS betrouwbaarheid
 
 **Done criteria**:
-- [ ] Verfijnd masterplan bestaat
-- [ ] Definitieve skill-lijst (20-25 skills) gedocumenteerd
-- [ ] Agent-koppeling schema gedocumenteerd
+- [x] 22 skills bestaan in `.claude/skills/` als directory-structuur
+- [x] 33 agent templates in `agents/library/core/`
+- [x] SKILL-PROTOCOL.md definitief vastgesteld
+- [x] Lessen gedocumenteerd: L-055 t/m L-059 in LESSONS.md
 
 ---
 
@@ -159,6 +161,7 @@
 | skill-quality | `.claude/skills/oa-quality-*/SKILL.md` | ✅ done |
 | skill-coordinator | `docs/skills/SKILL-PROTOCOL.md` | ✅ done |
 | guardian-skills-fase0 | `docs/LESSONS.md`, `TRACKER.md`, `ROADMAP.md` | ✅ done |
+| guardian-fase1 | `LESSONS.md`, `TRACKER.md`, `ROADMAP.md` | ✅ done |
 
 ---
 
@@ -179,16 +182,15 @@ Na elke skill batch doorloopt de meta-orchestrator deze checklist:
 
 ## 5. Next Steps
 
-**Fase 0 is afgerond (2026-03-08)**. Wat de meta-orchestrator **als volgende** moet doen:
+**Fase 0 en Fase 1 zijn afgerond (2026-03-08)**. Wat de meta-orchestrator **als volgende** moet doen:
 
-1. **Fase 1: Masterplan verfijnen** — spawn `skill-reviewer` agent:
-   - Input: `docs/skills/SKILL-PROTOCOL.md` + 14 skills in `.claude/skills/`
-   - Output: verfijnd masterplan + definitieve skill-lijst (20-25 skills met namen)
-   - Model: `claude/opus` (architectuur-niveau redenering)
-2. **Agent-koppeling ontwerpen** — welke agent template per skill?
-   - Output: schema in `docs/skills/agent-koppeling.md`
-   - Model: `claude/sonnet`
-3. **Fase 2 starten** — deep research per categorie (orchestratie, state, quality, library, web)
+1. **Fase 2: Validatie** — spawn skill-tester agents per categorie:
+   - Input: 22 skills in `.claude/skills/` + 33 templates in `agents/library/core/`
+   - Output: `docs/skills/validatie-rapport.md` per categorie (oa-orchestration, oa-prompting, oa-state, oa-quality, oa-library, oa-web, oa-teams)
+   - Model: `claude/sonnet` per tester agent
+   - Aanpak: structurele validatie (frontmatter, line count) + functionele test (skill triggert correct)
+2. **Fase 2 parallel spawnen** — 7 skill-tester agents (één per categorie)
+3. **Na validatie**: Fase 3 = Integratie & publicatie (INDEX.md, CLAUDE.md bijwerken, commit + push)
 
 ---
 

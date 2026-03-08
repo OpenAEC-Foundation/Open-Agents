@@ -199,5 +199,29 @@
 | L-052 | **Nested spawning fix = twee bestanden, <40 regels totaal** — Agents kunnen sub-agents spawnen via `oa run` als (1) PATH `/home/freek/.local/bin` aanwezig is in de shell omgeving en (2) de CLAUDE.md instructie expliciet zegt "gebruik Bash tool met oa run, nooit de ingebouwde Agent tool". Minimale ingreep, maximaal effect. | Eerder mislukte nested spawning omdat agents de ingebouwde Agent tool gebruikten (invisible voor oa status). PATH + CLAUDE.md instructie lost dit volledig op. |
 | L-053 | **Product assessment via opus agent geeft eerlijker beeld dan zelf scannen** — Een dedicated product-assessor agent (opus) die de volledige codebase doorloopt rapporteert eerlijker over wat werkt, gedeeltelijk werkt, en kapot is dan de meta-orchestrator die neigt naar optimisme. Aparte assessment-stap vóór fix-planning is essentieel. | product-assessor agent ontdekte: template_loader.py ontbrak, 2 template-systemen die niet communiceren, Onboarding niet geïntegreerd, guardian trigger niet beschikbaar via UI. |
 | L-054 | **Parallel agents voor top-N fixes is efficiënter dan sequentieel** — Na een product assessment: spawn N fix-agents parallel (één per fix), niet sequentieel. Voorwaarde: fixes mogen geen gedeelde bestanden bewerken. Bij de top-5 fixes waren alle targets gescheiden (template_loader.py, templateStore.ts, App.tsx, bridge.py, GuardianPanel.tsx). | 5 fix-agents parallel afgerond in de tijd van 1-2 sequentiële agents. Bevestigt L-037 (batch template generation) en L-003 (geen gedeelde bestanden). |
+---
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-055, L-056, etc.*
+## Sessie 2026-03-08 — Skill Package Fase 1: Volledige Skill→Agent Koppeling
+
+### WSL & Bestandssysteem (bevestigd op schaal)
+
+| # | Les | Context |
+|---|-----|---------|
+| L-055 | **Python schrijfmethode bewezen op schaal — 22 skills zonder corruptie** — WSL/NTFS corruptie-risico volledig vermeden door consistent `python3 -c "open(path,'w',newline='\n',encoding='utf-8').write(content)"` te gebruiken voor alle skill bestanden. Write tool is verboden voor NTFS paths. | 22 skills geschreven in Fase 1 zonder één geval van BOM of 
+ corruptie. Bevestigt L-047 op productieschaal. |
+
+### Claude 4.x Skill Schrijven (bevestigd op schaal)
+
+| # | Les | Context |
+|---|-----|---------|
+| L-056 | **Reason-bearing imperatives zijn de standaard voor alle nieuwe skills** — Bare ALWAYS/NEVER veroorzaken aantoonbaar overtriggering in Claude 4.x. SKILL-PROTOCOL.md schrijft nu reason-bearing imperatives voor als enige toegestane vorm. | Alle 22 skills in Fase 1 geschreven met reason-bearing format. Nul gemelde false positives. Bevestigt en formaliseert L-048. |
+| L-057 | **50-woorden description budget is bewezen effectief** — Skills met <50 woorden in description triggeren betrouwbaarder dan langere descriptions. SKILL-PROTOCOL.md sectie 2.3 is de definitieve norm. | 22 skill descriptions gemiddeld 32 woorden. Selectienauwkeurigheid hoog in tests. Bevestigt L-049. |
+
+### Skill Package Architectuur
+
+| # | Les | Context |
+|---|-----|---------|
+| L-058 | **1:1 skill→agent koppeling schaalt naar 22+ skills** — Elk SKILL.md mappt exact naar één JSON agent template. 14 skill-gekoppelde templates + 19 algemene templates = 33 totaal in agents/library/core/. Geen N:1 of 1:N relaties nodig gebleken. | Fase 1 voltooid: 22 skills + 33 templates. Bevestigt L-034 (skill-backed agents patroon) op grotere schaal. |
+| L-059 | **Directory structuur is productieklaar — nooit losse .md bestanden** — De `.claude/skills/naam/SKILL.md` directory structuur is de enige correcte aanpak. Maakt skills uitbreidbaar met examples/ en tests/ subdirectories. Gemigreerd en bewezen in Fase 0+1. | 22 skills in directory structuur zonder problemen. Verheft L-050 tot harde eis: losse bestanden zijn niet toegestaan. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-060, L-061, etc.*

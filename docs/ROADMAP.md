@@ -320,6 +320,21 @@
 
 ---
 
+## Skill Package — Fase 1 ✅ Complete (2026-03-08)
+
+**Doel**: 22 skills bouwen + 33 agent templates koppelen voor volledige skill→agent infrastructuur.
+
+- [x] 22 skills volledig klaar in `.claude/skills/` (directory structuur, SKILL.md) — 7 categorieën: oa-orchestration, oa-prompting, oa-state, oa-quality, oa-library, oa-web, oa-teams
+- [x] 33 agent templates in `agents/library/core/` (14 skill-gekoppeld + 19 algemeen)
+- [x] SKILL-PROTOCOL.md definitief vastgesteld als schrijfstandaard
+- [x] Python-schrijfmethode bewezen voor WSL/NTFS betrouwbaarheid (L-055)
+- [x] Reason-bearing imperatives als standaard voor alle skills (L-056, L-057)
+- [x] Lessen L-055 t/m L-059 gedocumenteerd in LESSONS.md
+
+**Volgende**: Fase 2 — Validatie (skill-tester agents per categorie, 7 parallel)
+
+---
+
 ## Guardian Agents Module — In Progress (2026-03-08)
 
 **Doel**: Automatische reflexen die triggeren op session_end en batch_complete
