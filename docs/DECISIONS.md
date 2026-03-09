@@ -10,6 +10,7 @@
 | # | Beslissing | Context | Opties | Status |
 |---|-----------|---------|--------|--------|
 | D-001 | Visibility: public of private repo? | Project is nu private, plan is open-source bij stabiel MVP | A) Nu public B) Private tot MVP | Open |
+| D-053 | Strategische positionering: intern productiviteitstool vs open-source product | Open-Agents is gebouwd als intern platform (Optie A) maar architectureel ontworpen om later open-source te gaan (Optie B). De keuze is nu Optie A. Overgang naar B vereist: API-key model, onboarding flow, publieke docs. | A) Intern productiviteitstool B) Open-source SaaS/product C) Dual: intern + community edition | Open — Optie A actief, pad naar B open |
 | D-004 | Lokaal model voor classificatie | Ollama op Hetzner vs alleen cloud API. Context verrijkt door D-017: Haiku via API als classificator in assembly pipeline. Ollama blijft optie voor offline/self-hosted. | A) Ollama B) Haiku C) Hybrid | Open (context verrijkt) |
 | D-052 | Agent Teams patronen adopteren in oa-cli | Claude Code Agent Teams (experimenteel) implementeert patterns die oa-cli mist: shared task list met file locking, inter-agent messaging (DM + broadcast), graceful shutdown protocol, task dependencies, quality hooks (TeammateIdle/TaskCompleted), team discovery via config. Zie L-022 t/m L-029. | A) Full adopt: alle 6 patterns implementeren B) Selective: alleen shared task list + messaging C) Bridge: oa-cli als wrapper rond CC Agent Teams (geen eigen implementatie) D) Wait: wachten tot Agent Teams uit experimental is | Open |
 
