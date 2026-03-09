@@ -16,11 +16,11 @@ from .monitor import print_status
 from .utils import format_model_rich, generate_agent_name
 from .lifecycle import attach_agent, check_agent, clean_finished, kill_agent
 from .orchestrator import spawn_with_orchestrator
-from .spawner import spawn_agent
+from .spawner import spawn_agent, spawn_remote_agent
 from .tmux import session_exists, start_session
 from .state import get_agent, list_agents
 from .messaging import broadcast_message, mark_read, read_inbox, send_message, shutdown_request, unread_count
-from .workspace import read_output
+from .workspace import read_output, remote_is_done, sync_output_from_remote
 from .guardians import list_guardians, log_event, register_guardian, trigger_guardian
 
 app = typer.Typer(
@@ -220,9 +220,10 @@ def run(
     template: str = typer.Option("", "--template", "-t", help="Agent template ID from agents/library/"),
     context_skills: str = typer.Option("", "--context-skills", "-cs", help="Comma-separated skill IDs to inject as context (e.g. 'sverchok-errors-common,sverchok-syntax-scripting')"),
     guardians: bool = typer.Option(False, "--guardians/--no-guardians", help="Trigger batch_complete guardians after spawning"),
+    remote: str = typer.Option("", "--remote", "-r", help="Remote SSH host voor remote execution (bijv. 'hetzner' of 'user@host')"),
 ):
     """Spawn an agent with a task in a new tmux window."""
-    if not session_exists():
+    if not remote and not session_exists():
         console.print("[red]No oa session. Run 'oa start' first.[/red]")
         raise typer.Exit(1)
 
@@ -253,14 +254,18 @@ def run(
     proj_root = str(Path.cwd()) if direct else None
 
     try:
-        rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None, project_root=proj_root)
+        if remote:
+            rec = spawn_remote_agent(name, task, host=remote, model=model, direct=direct)
+        else:
+            rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None, project_root=proj_root)
     except RuntimeError as e:
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1)
 
     model_label = format_model_rich(rec.model)
     parent_label = f"  (child of [bold]{rec.parent}[/bold])" if rec.parent else ""
-    console.print(f"[green]Agent '{rec.name}' spawned[/green]  ({model_label}){parent_label}")
+    remote_label = f"  [dim](remote: {remote})[/dim]" if remote else ""
+    console.print(f"[green]Agent '{rec.name}' spawned[/green]  ({model_label}){parent_label}{remote_label}")
     console.print(f"  Task: {rec.task}")
     console.print(f"  Workspace: {rec.workspace}")
     console.print(f"  Window: {rec.tmux_window}")
@@ -408,16 +413,29 @@ def kill(name: str = typer.Argument(..., help="Agent name to kill")):
 @app.command()
 def collect(name: str = typer.Argument(..., help="Agent name to collect output from")):
     """Show the output of a completed agent."""
+    from pathlib import Path as _Path
+
     rec = get_agent(name)
     if rec is None:
         console.print(f"[red]Agent '{name}' not found.[/red]")
         raise typer.Exit(1)
 
-    # Refresh status
-    current_status = check_agent(name)
-    if current_status == "running":
-        console.print(f"[yellow]Agent '{name}' is still running. Wait for completion.[/yellow]")
-        raise typer.Exit(1)
+    # Remote agent: check completion via SSH, then sync output
+    if getattr(rec, "remote_host", None) and getattr(rec, "remote_workspace", None):
+        if not remote_is_done(rec.remote_host, rec.remote_workspace):
+            console.print(f"[yellow]Remote agent '{name}' is still running. Wait for completion.[/yellow]")
+            raise typer.Exit(1)
+        try:
+            sync_output_from_remote(rec.remote_host, rec.remote_workspace, _Path(rec.workspace))
+        except Exception as e:
+            console.print(f"[red]Failed to sync output from remote: {e}[/red]")
+            raise typer.Exit(1)
+    else:
+        # Local agent: refresh status via check_agent
+        current_status = check_agent(name)
+        if current_status == "running":
+            console.print(f"[yellow]Agent '{name}' is still running. Wait for completion.[/yellow]")
+            raise typer.Exit(1)
 
     output = read_output(rec.workspace)
     if output:

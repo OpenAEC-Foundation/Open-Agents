@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -124,6 +125,30 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
         )
 
     return workspace
+
+
+def sync_workspace_to_remote(host: str, local_ws: Path, remote_ws: str) -> None:
+    """Upload CLAUDE.md naar remote workspace via SSH/SCP."""
+    subprocess.run(["ssh", "-o", "BatchMode=yes", host, f"mkdir -p {remote_ws}/output"], check=True)
+    subprocess.run(["scp", "-o", "BatchMode=yes", str(local_ws / "CLAUDE.md"), f"{host}:{remote_ws}/CLAUDE.md"], check=True)
+
+
+def sync_output_from_remote(host: str, remote_ws: str, local_ws: Path) -> None:
+    """Haal output/result.md op van remote en zet .done lokaal."""
+    result_path = local_ws / "output" / "result.md"
+    result_path.parent.mkdir(exist_ok=True)
+    subprocess.run(["scp", "-o", "BatchMode=yes", f"{host}:{remote_ws}/output/result.md", str(result_path)], check=True)
+    (local_ws / ".done").touch()
+
+
+def remote_is_done(host: str, remote_ws: str) -> bool:
+    """Check of remote agent klaar is."""
+    r = subprocess.run(
+        ["ssh", "-o", "BatchMode=yes", host, f"test -f {remote_ws}/.done && echo yes"],
+        capture_output=True,
+        text=True,
+    )
+    return r.stdout.strip() == "yes"
 
 
 def cleanup_workspace(workspace: str | Path) -> bool:

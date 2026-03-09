@@ -94,6 +94,10 @@ class AgentRecord:
     # --- Workspace origin ---
     project_root: Optional[str] = None  # project root (bij --direct mode)
 
+    # --- Remote execution ---
+    remote_host: Optional[str] = None       # SSH host voor remote agents (bijv. user@host)
+    remote_workspace: Optional[str] = None  # Pad naar workspace op remote host
+
     def __post_init__(self) -> None:
         """Bereken task_hash als nog niet ingesteld."""
         if not self.task_hash and self.task:
@@ -140,6 +144,8 @@ def load_agents() -> dict[str, AgentRecord]:
         data.setdefault("last_activity", 0.0)
         data.setdefault("auto_cleanup_minutes", 20)
         data.setdefault("project_root", None)
+        data.setdefault("remote_host", None)
+        data.setdefault("remote_workspace", None)
         result[name] = AgentRecord(**data)
     # PERF: Store in cache keyed by current mtime
     _cache = result

@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import shlex
 import shutil
+import subprocess
 import tempfile
 import time
 from pathlib import Path
@@ -18,7 +19,7 @@ from .state import (
     validate_spawn,
 )
 from .tmux import SESSION_NAME, _tmux, session_exists
-from .workspace import create_workspace
+from .workspace import create_workspace, sync_workspace_to_remote
 
 CLAUDE_CMD = "claude"
 
@@ -214,4 +215,79 @@ def spawn_agent(
         "status": "running",
     })
 
+    return rec
+
+
+def spawn_remote_agent(
+    name: str,
+    task: str,
+    host: str,
+    model: str = "claude/sonnet",
+    direct: bool = True,
+) -> AgentRecord:
+    """Spawn een agent op een remote host via SSH.
+
+    De agent draait op de remote machine als achtergrondproces (nohup).
+    Output wordt opgehaald via 'oa collect' zodra de remote .done-file aanwezig is.
+
+    Args:
+        name:   Unieke agent-naam.
+        task:   Taakomschrijving voor de agent.
+        host:   SSH-host string (bijv. 'user@host' of alias uit ~/.ssh/config).
+        model:  Model-string (bijv. 'claude/sonnet').
+        direct: Ongebruikt voor remote agents, gereserveerd voor toekomstige uitbreiding.
+    """
+    # Valideer agent naam consistent met spawn_agent
+    if not re.fullmatch(r'[a-z0-9][a-z0-9-]{0,61}', name):
+        raise RuntimeError(
+            f"Invalid agent name '{name}': must match [a-z0-9-], "
+            f"start with alphanumeric, max 62 characters."
+        )
+
+    existing = get_agent(name)
+    if existing and existing.status == "running":
+        raise RuntimeError(f"Agent '{name}' is already running.")
+
+    # 1. Maak lokale workspace aan voor state tracking
+    local_ws = create_workspace(name, task)
+    remote_ws = f"/tmp/oa-agent-{name}"
+
+    # 2. Upload workspace naar remote
+    sync_workspace_to_remote(host, local_ws, remote_ws)
+
+    # 3. Bouw remote commando — zelfde prompt als _build_claude_command
+    claude_model = CLAUDE_MODEL_MAP.get(model)
+    if claude_model is None and "/" in model:
+        claude_model = model.split("/", 1)[1]
+    model_flag = f" --model {claude_model}" if claude_model else ""
+    claude_prompt = shlex.quote(
+        "Lees CLAUDE.md en voer de taak uit. Schrijf al je output naar ./output/ en maak een .done file als je klaar bent."
+    )
+    remote_cmd = (
+        f"export PATH=\"$HOME/.local/bin:$PATH\" && "
+        f"cd {remote_ws} && "
+        f"unset CLAUDECODE && "
+        f"mkdir -p output && "
+        f"nohup {CLAUDE_CMD}{model_flag} --dangerously-skip-permissions -p {claude_prompt} "
+        f"> output/result.md 2>&1; "
+        f"touch .done &"
+    )
+
+    # 4. Voer uit op remote via SSH (BatchMode=yes voorkomt wachtwoord-prompts)
+    subprocess.run(["ssh", "-o", "BatchMode=yes", host, remote_cmd], check=True)
+
+    # 5. Registreer in lokale state met remote-velden
+    rec = AgentRecord(
+        name=name,
+        task=task,
+        workspace=str(local_ws),
+        tmux_window=f"remote:{host}",
+        model=model,
+        status="running",
+        created_at=time.time(),
+        project_root=None,
+        remote_host=host,
+        remote_workspace=remote_ws,
+    )
+    add_agent(rec)
     return rec
