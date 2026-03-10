@@ -49,14 +49,18 @@ export function GuardianPanel() {
   if (guardians.length === 0) return null;
 
   return (
-    <div className="border-t border-gray-200 bg-white">
+    <div
+      className="border-t"
+      style={{ borderColor: 'var(--color-oa-border)', background: 'var(--color-oa-surface)' }}
+    >
       {/* Collapsible header */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wide hover:text-gray-600 transition-colors"
+        className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors"
+        style={{ color: 'var(--color-oa-text-dim)' }}
       >
         <span>Guardians ({guardians.length})</span>
-        <span className="text-gray-300">{open ? '▲' : '▼'}</span>
+        <span style={{ color: 'var(--color-oa-text-dim)', opacity: 0.5 }}>{open ? '▲' : '▼'}</span>
       </button>
 
       {open && (
@@ -66,33 +70,44 @@ export function GuardianPanel() {
             return (
               <div
                 key={g.name}
-                className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm"
+                className="rounded-xl border p-3 shadow-sm"
+                style={{ borderColor: 'var(--color-oa-border)', background: 'var(--color-oa-surface)' }}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-mono font-semibold text-[#1e293b] truncate flex-1">
+                  <span
+                    className="text-xs font-mono font-semibold truncate flex-1"
+                    style={{ color: 'var(--color-oa-text)' }}
+                  >
                     {g.name}
                   </span>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-500 ml-2 shrink-0">
+                  <span
+                    className="text-[10px] font-semibold px-2 py-0.5 rounded ml-2 shrink-0"
+                    style={{ background: 'var(--color-oa-accent-bg)', color: 'var(--color-oa-text-muted)' }}
+                  >
                     {g.trigger}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-[10px] text-gray-400">
+                  <div
+                    className="flex items-center gap-3 text-[10px]"
+                    style={{ color: 'var(--color-oa-text-dim)' }}
+                  >
                     <span className="font-mono">{g.model.split('/')[1] ?? g.model}</span>
                     <span>last: {fmt(g.last_triggered)}</span>
                   </div>
                   <button
                     onClick={() => handleRun(g.name)}
                     disabled={state === 'loading'}
-                    className={`text-xs px-2 py-1 rounded font-semibold transition-colors shrink-0 ml-2 ${
+                    className="text-xs px-2 py-1 rounded font-semibold transition-colors shrink-0 ml-2"
+                    style={
                       state === 'success'
-                        ? 'bg-green-100 text-green-600'
+                        ? { background: 'var(--color-status-done-bg)', color: 'var(--color-status-done)' }
                         : state === 'error'
-                        ? 'bg-red-100 text-red-500'
+                        ? { background: 'var(--color-status-failed-bg)', color: 'var(--color-status-failed)' }
                         : state === 'loading'
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-[#ff6b35] text-white hover:bg-[#e55a2a]'
-                    }`}
+                        ? { background: 'var(--color-oa-accent-bg)', color: 'var(--color-oa-text-dim)', cursor: 'not-allowed' }
+                        : { background: 'var(--color-oa-accent)', color: '#ffffff' }
+                    }
                   >
                     {state === 'loading' ? '…' : state === 'success' ? '✓ ok' : state === 'error' ? '✗ err' : '▶ Run'}
                   </button>

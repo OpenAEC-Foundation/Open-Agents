@@ -38,11 +38,23 @@ export function SettingsTab() {
             <button
               key={section.id}
               onClick={() => setActiveSection(section.id)}
-              className={`w-full text-left px-3 py-2 rounded text-xs cursor-pointer transition-colors ${
-                activeSection === section.id
-                  ? 'bg-oa-accent-bg text-oa-accent font-semibold'
-                  : 'text-oa-text-muted hover:text-oa-text hover:bg-neutral-900'
-              }`}
+              className={`w-full text-left px-3 py-2 rounded text-xs cursor-pointer transition-colors font-semibold`}
+              style={{
+                background: activeSection === section.id ? 'var(--color-oa-accent-bg)' : 'transparent',
+                color: activeSection === section.id ? 'var(--color-oa-accent)' : 'var(--color-oa-text-muted)',
+              }}
+              onMouseEnter={(e) => {
+                if (activeSection !== section.id) {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-oa-surface)';
+                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-oa-text)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeSection !== section.id) {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-oa-text-muted)';
+                }
+              }}
             >
               {section.label}
             </button>
@@ -65,7 +77,8 @@ export function SettingsTab() {
                   <input
                     value={ollamaEndpoint}
                     onChange={(e) => updateSetting('ollamaEndpoint', e.target.value)}
-                    className="flex-1 max-w-md px-3 py-2 bg-oa-bg border border-neutral-700 rounded-md text-oa-text text-xs font-mono"
+                    className="flex-1 max-w-md px-3 py-2 bg-oa-bg border rounded-md text-oa-text text-xs font-mono"
+                    style={{ borderColor: 'var(--color-oa-border)' }}
                   />
                   <button
                     onClick={testOllamaConnection}
@@ -81,8 +94,11 @@ export function SettingsTab() {
                   className={`w-2.5 h-2.5 rounded-full ${
                     ollamaStatus === 'connected' ? 'bg-status-done' :
                     ollamaStatus === 'disconnected' ? 'bg-status-failed' :
-                    'bg-neutral-600'
+                    ''
                   }`}
+                  style={{
+                    background: (ollamaStatus !== 'connected' && ollamaStatus !== 'disconnected') ? 'var(--color-oa-border)' : undefined
+                  }}
                 />
                 <span className="text-xs text-oa-text-muted capitalize">{ollamaStatus}</span>
               </div>
@@ -118,7 +134,7 @@ export function SettingsTab() {
             <div className="space-y-4">
               <div>
                 <label className="text-xs text-oa-text-muted block mb-1.5">Theme</label>
-                <select className="px-3 py-2 bg-oa-bg border border-neutral-700 rounded-md text-oa-text text-xs">
+                <select className="px-3 py-2 bg-oa-bg border rounded-md text-oa-text text-xs" style={{ borderColor: 'var(--color-oa-border)' }}>
                   <option value="dark">Dark (Default)</option>
                 </select>
               </div>
@@ -129,7 +145,8 @@ export function SettingsTab() {
                   defaultValue={2000}
                   min={500}
                   max={10000}
-                  className="w-32 px-3 py-2 bg-oa-bg border border-neutral-700 rounded-md text-oa-text text-xs font-mono"
+                  className="w-32 px-3 py-2 bg-oa-bg border rounded-md text-oa-text text-xs font-mono"
+                  style={{ borderColor: 'var(--color-oa-border)' }}
                 />
               </div>
               <div>
@@ -139,7 +156,8 @@ export function SettingsTab() {
                   defaultValue={50}
                   min={10}
                   max={200}
-                  className="w-32 px-3 py-2 bg-oa-bg border border-neutral-700 rounded-md text-oa-text text-xs font-mono"
+                  className="w-32 px-3 py-2 bg-oa-bg border rounded-md text-oa-text text-xs font-mono"
+                  style={{ borderColor: 'var(--color-oa-border)' }}
                 />
               </div>
             </div>

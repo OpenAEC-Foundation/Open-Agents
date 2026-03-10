@@ -85,7 +85,8 @@ export function TeamsTab() {
             placeholder="New team name..."
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            className="px-3 py-1.5 bg-oa-bg border border-neutral-700 rounded-md text-oa-text text-xs w-48"
+            className="px-3 py-1.5 bg-oa-bg border rounded-md text-oa-text text-xs w-48"
+            style={{ borderColor: 'var(--color-oa-border)' }}
           />
           <button
             type="submit"
@@ -160,7 +161,8 @@ export function TeamsTab() {
                       value={memberInput}
                       onChange={(e) => setMemberInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleAddMember(team.name)}
-                      className="flex-1 px-2 py-1 bg-oa-bg border border-neutral-700 rounded text-xs text-oa-text"
+                      className="flex-1 px-2 py-1 bg-oa-bg border rounded text-xs text-oa-text"
+                      style={{ borderColor: 'var(--color-oa-border)' }}
                       autoFocus
                     />
                     <button

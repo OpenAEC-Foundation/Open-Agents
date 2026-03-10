@@ -25,16 +25,31 @@ export function ActivityFeed() {
   const recent = activityLog.slice(0, 20);
 
   return (
-    <div className="flex-1 overflow-y-auto min-h-0 bg-white border-r border-gray-200">
-      <div className="px-3 pt-3 pb-1.5 flex items-center justify-between sticky top-0 bg-white z-10 border-b border-gray-100">
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Activity</span>
+    <div
+      className="flex-1 overflow-y-auto min-h-0 border-r"
+      style={{ background: 'var(--color-oa-surface)', borderColor: 'var(--color-oa-border)' }}
+    >
+      <div
+        className="px-3 pt-3 pb-1.5 flex items-center justify-between sticky top-0 z-10 border-b"
+        style={{ background: 'var(--color-oa-surface)', borderColor: 'var(--color-oa-border-light)' }}
+      >
+        <span
+          className="text-xs font-semibold uppercase tracking-widest"
+          style={{ color: 'var(--color-oa-text-dim)' }}
+        >
+          Activity
+        </span>
         {recent.length > 0 && (
-          <span className="text-[10px] text-gray-400">{recent.length}</span>
+          <span className="text-[10px]" style={{ color: 'var(--color-oa-text-dim)' }}>
+            {recent.length}
+          </span>
         )}
       </div>
 
       {recent.length === 0 ? (
-        <div className="px-3 py-3 text-xs text-gray-400">No activity yet</div>
+        <div className="px-3 py-3 text-xs" style={{ color: 'var(--color-oa-text-dim)' }}>
+          No activity yet
+        </div>
       ) : (
         <div className="px-2 pb-2">
           {recent.map((event) => {
@@ -49,10 +64,16 @@ export function ActivityFeed() {
                 className="flex items-start gap-2 py-1.5 px-1.5 rounded hover:bg-gray-50 transition-colors group"
               >
                 <Icon size={13} className={`${iconClass} shrink-0 mt-0.5`} />
-                <span className="text-[11px] flex-1 leading-snug text-[#1e293b]">
+                <span
+                  className="text-[11px] flex-1 leading-snug"
+                  style={{ color: 'var(--color-oa-text)' }}
+                >
                   {event.text}
                 </span>
-                <span className="text-[10px] text-gray-400 font-mono shrink-0 mt-0.5">
+                <span
+                  className="text-[10px] font-mono shrink-0 mt-0.5"
+                  style={{ color: 'var(--color-oa-text-dim)' }}
+                >
                   {time}
                 </span>
               </div>

@@ -7,6 +7,7 @@ const FAILED_STATUSES = new Set(['error', 'failed', 'timeout', 'killed']);
 // --- Metric Tile ---
 function MetricTile({
   label,
+  icon,
   value,
   color,
   sub,
@@ -14,6 +15,7 @@ function MetricTile({
   border = true,
 }: {
   label: string;
+  icon: string;
   value: number | string;
   color: string;
   sub?: string;
@@ -22,23 +24,48 @@ function MetricTile({
 }) {
   return (
     <div
-      className="flex flex-col items-center justify-center py-5 gap-0.5 relative"
-      style={{ borderRight: border ? '1px solid var(--color-oa-border)' : undefined }}
+      className="flex flex-col items-center justify-center py-6 gap-1 relative"
+      style={{
+        borderRight: border ? '1px solid var(--color-oa-border)' : undefined,
+        background: pulse ? `color-mix(in srgb, ${color} 4%, var(--color-oa-surface))` : 'var(--color-oa-surface)',
+        transition: 'background 0.4s ease',
+      }}
     >
       {pulse && (
-        <span
-          className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full"
-          style={{ background: color, animation: 'ccPulse 1.4s infinite' }}
-        />
+        <>
+          {/* Outer glow ring */}
+          <span
+            className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full"
+            style={{ background: color, animation: 'ccPulse 1.4s infinite', boxShadow: `0 0 8px 2px ${color}66` }}
+          />
+          {/* Subtle radial glow behind number */}
+          <span
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `radial-gradient(ellipse 60% 50% at 50% 50%, ${color}14 0%, transparent 70%)`,
+            }}
+          />
+        </>
       )}
+      {/* Icon */}
+      <span className="text-base leading-none mb-0.5 opacity-60" style={{ color }}>
+        {icon}
+      </span>
+      {/* Big number */}
       <span
-        className="text-4xl font-black tabular-nums leading-none"
-        style={{ color, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em' }}
+        className="text-5xl font-black tabular-nums leading-none"
+        style={{
+          color,
+          fontVariantNumeric: 'tabular-nums',
+          letterSpacing: '-0.03em',
+          textShadow: pulse ? `0 0 24px ${color}55` : undefined,
+          transition: 'text-shadow 0.4s ease',
+        }}
       >
         {value}
       </span>
       <span
-        className="text-[9px] font-bold tracking-[0.18em] uppercase mt-1"
+        className="text-[9px] font-bold tracking-[0.2em] uppercase mt-1"
         style={{ color: 'var(--color-oa-text-dim)' }}
       >
         {label}
@@ -48,6 +75,36 @@ function MetricTile({
           {sub}
         </span>
       )}
+    </div>
+  );
+}
+
+// --- Table header ---
+function TableHeader() {
+  return (
+    <div
+      className="grid items-center px-4 py-2 sticky top-0 z-10"
+      style={{
+        gridTemplateColumns: '8px 1fr 80px 64px 260px 56px',
+        gap: '12px',
+        background: 'var(--color-oa-bg)',
+        borderBottom: '1px solid var(--color-oa-border)',
+      }}
+    >
+      <span />
+      <span className="text-[9px] font-bold tracking-[0.18em] uppercase" style={{ color: 'var(--color-oa-text-dim)' }}>
+        Name
+      </span>
+      <span className="text-[9px] font-bold tracking-[0.18em] uppercase" style={{ color: 'var(--color-oa-text-dim)' }}>
+        Model
+      </span>
+      <span className="text-[9px] font-bold tracking-[0.18em] uppercase" style={{ color: 'var(--color-oa-text-dim)' }}>
+        Duration
+      </span>
+      <span className="text-[9px] font-bold tracking-[0.18em] uppercase hidden sm:block" style={{ color: 'var(--color-oa-text-dim)' }}>
+        Task
+      </span>
+      <span />
     </div>
   );
 }
@@ -74,14 +131,14 @@ function AgentRow({
   const mColor = modelColor(agent.model);
   const duration = formatDuration(agent.created_at, agent.finished_at);
 
-  const statusDot =
+  const statusColor =
     agent.status === 'running'
-      ? '#f97316'
+      ? 'var(--color-status-running, #f97316)'
       : agent.status === 'done'
-      ? '#22c55e'
+      ? 'var(--color-status-done, #22c55e)'
       : FAILED_STATUSES.has(agent.status)
-      ? '#ef4444'
-      : '#6b7280';
+      ? 'var(--color-status-failed, #ef4444)'
+      : 'var(--color-oa-text-dim)';
 
   return (
     <div
@@ -89,12 +146,15 @@ function AgentRow({
       tabIndex={0}
       onClick={() => onSelect(agent.name)}
       onKeyDown={(e) => e.key === 'Enter' && onSelect(agent.name)}
-      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-all"
+      className="grid items-center px-4 py-2.5 cursor-pointer transition-all"
       style={{
-        background: selected ? 'rgba(249,115,22,0.08)' : 'transparent',
-        borderLeft: `3px solid ${selected ? '#f97316' : 'transparent'}`,
+        gridTemplateColumns: '8px 1fr 80px 64px 260px 56px',
+        gap: '12px',
+        background: selected ? 'color-mix(in srgb, var(--color-oa-accent) 8%, transparent)' : 'transparent',
+        borderLeft: `3px solid ${selected ? 'var(--color-oa-accent)' : 'transparent'}`,
         borderBottom: '1px solid var(--color-oa-border)',
         outline: 'none',
+        transition: 'background 0.15s ease, border-color 0.15s ease',
       }}
       onMouseEnter={(e) => {
         if (!selected) (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.03)';
@@ -107,53 +167,55 @@ function AgentRow({
       <span
         className="w-2 h-2 rounded-full shrink-0"
         style={{
-          background: statusDot,
+          background: statusColor,
           animation: isRunning ? 'ccPulse 1.4s infinite' : undefined,
-          boxShadow: isRunning ? `0 0 6px ${statusDot}88` : undefined,
+          boxShadow: isRunning ? `0 0 6px ${statusColor}` : undefined,
         }}
       />
 
-      {/* Depth indent */}
-      {agent.depth > 0 && (
-        <span className="text-[10px] shrink-0" style={{ color: 'var(--color-oa-text-dim)', marginLeft: (agent.depth - 1) * 8 }}>
-          ↳
-        </span>
-      )}
-
-      {/* Name */}
+      {/* Name + depth indent */}
       <span
-        className="font-semibold text-[13px] truncate flex-1 leading-tight"
-        style={{ color: selected ? '#f97316' : 'var(--color-oa-text)' }}
+        className="font-semibold text-[13px] truncate leading-tight flex items-center gap-1"
+        style={{ color: selected ? 'var(--color-oa-accent)' : 'var(--color-oa-text)', paddingLeft: agent.depth > 0 ? (agent.depth - 1) * 8 : 0 }}
       >
+        {agent.depth > 0 && (
+          <span className="text-[10px] shrink-0 opacity-50">↳</span>
+        )}
         {agent.name}
-      </span>
-
-      {/* Unread badge */}
-      {(agent.unread_messages ?? 0) > 0 && (
-        <span className="bg-yellow-500 text-black text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shrink-0">
-          {agent.unread_messages}
-        </span>
-      )}
-
-      {/* Task */}
-      <span
-        className="text-[11px] truncate hidden sm:block"
-        style={{ color: 'var(--color-oa-text-dim)', maxWidth: '260px' }}
-      >
-        {agent.task}
+        {(agent.unread_messages ?? 0) > 0 && (
+          <span className="bg-yellow-500 text-black text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center shrink-0">
+            {agent.unread_messages}
+          </span>
+        )}
       </span>
 
       {/* Model pill */}
       <span
-        className="text-[10px] px-1.5 py-0.5 rounded font-semibold shrink-0 leading-none"
-        style={{ background: `${mColor}18`, color: mColor }}
+        className="text-[10px] px-1.5 py-0.5 rounded font-semibold shrink-0 leading-none text-center"
+        style={{ background: `color-mix(in srgb, ${mColor} 12%, transparent)`, color: mColor }}
       >
         {modelLabel(agent.model)}
       </span>
 
       {/* Duration */}
-      <span className="text-[11px] font-mono shrink-0 w-14 text-right" style={{ color: 'var(--color-oa-text-dim)' }}>
+      <span className="text-[11px] font-mono shrink-0 text-right" style={{ color: 'var(--color-oa-text-dim)' }}>
         {duration}
+      </span>
+
+      {/* Task */}
+      <span
+        className="text-[11px] truncate hidden sm:block"
+        style={{ color: 'var(--color-oa-text-dim)' }}
+      >
+        {agent.task}
+      </span>
+
+      {/* Status label */}
+      <span
+        className="text-[9px] font-bold uppercase tracking-wide text-right shrink-0"
+        style={{ color: statusColor, opacity: 0.8 }}
+      >
+        {agent.status}
       </span>
     </div>
   );
@@ -163,7 +225,7 @@ function AgentRow({
 function SectionHeader({ label, count, color }: { label: string; count: number; color: string }) {
   return (
     <div
-      className="flex items-center gap-2 px-4 py-1.5 sticky top-0 z-10"
+      className="flex items-center gap-2 px-4 py-1.5 sticky top-[37px] z-10"
       style={{
         background: 'var(--color-oa-bg)',
         borderBottom: '1px solid var(--color-oa-border)',
@@ -221,14 +283,13 @@ export function MissionControl() {
         style={{
           gridTemplateColumns: 'repeat(5, 1fr)',
           borderBottom: '1px solid var(--color-oa-border)',
-          background: 'var(--color-oa-surface)',
         }}
       >
-        <MetricTile label="Running" value={running.length} color="#f97316" pulse={running.length > 0} />
-        <MetricTile label="Done" value={done.length} color="#22c55e" />
-        <MetricTile label="Failed" value={failed.length} color="#ef4444" />
-        <MetricTile label="Total" value={agents.length} color="var(--color-oa-text-muted)" />
-        <MetricTile label="Uptime" value={uptime} color="var(--color-oa-text-muted)" border={false} />
+        <MetricTile icon="◉" label="Running" value={running.length} color="var(--color-status-running, #f97316)" pulse={running.length > 0} />
+        <MetricTile icon="✓" label="Done" value={done.length} color="var(--color-status-done, #22c55e)" />
+        <MetricTile icon="✕" label="Failed" value={failed.length} color="var(--color-status-failed, #ef4444)" />
+        <MetricTile icon="◈" label="Total" value={agents.length} color="var(--color-oa-text-muted)" />
+        <MetricTile icon="⏱" label="Uptime" value={uptime} color="var(--color-oa-text-muted)" border={false} />
       </div>
 
       {/* ── Agent list ── */}
@@ -250,9 +311,10 @@ export function MissionControl() {
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto" style={{ background: 'var(--color-oa-bg)' }}>
+          <TableHeader />
           {running.length > 0 && (
             <>
-              <SectionHeader label="Active" count={running.length} color="#f97316" />
+              <SectionHeader label="Active" count={running.length} color="var(--color-status-running, #f97316)" />
               {running.map((a) => (
                 <AgentRow key={a.name} agent={a} selected={selectedAgent === a.name} onSelect={selectAgent} />
               ))}
@@ -260,7 +322,7 @@ export function MissionControl() {
           )}
           {done.length > 0 && (
             <>
-              <SectionHeader label="Completed" count={done.length} color="#22c55e" />
+              <SectionHeader label="Completed" count={done.length} color="var(--color-status-done, #22c55e)" />
               {done.map((a) => (
                 <AgentRow key={a.name} agent={a} selected={selectedAgent === a.name} onSelect={selectAgent} />
               ))}
@@ -268,7 +330,7 @@ export function MissionControl() {
           )}
           {failed.length > 0 && (
             <>
-              <SectionHeader label="Failed" count={failed.length} color="#ef4444" />
+              <SectionHeader label="Failed" count={failed.length} color="var(--color-status-failed, #ef4444)" />
               {failed.map((a) => (
                 <AgentRow key={a.name} agent={a} selected={selectedAgent === a.name} onSelect={selectAgent} />
               ))}

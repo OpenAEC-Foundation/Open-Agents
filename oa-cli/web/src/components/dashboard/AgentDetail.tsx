@@ -60,7 +60,7 @@ export function AgentDetail() {
             className={`px-4 py-2 text-xs font-semibold cursor-pointer transition-colors border-b-2 flex items-center gap-1 capitalize ${
               activeTab === tab
                 ? 'text-oa-accent border-oa-accent'
-                : 'text-oa-text-muted border-transparent hover:text-neutral-300'
+                : 'text-oa-text-muted border-transparent hover:text-oa-text'
             }`}
           >
             {tab}
@@ -98,13 +98,16 @@ export function AgentDetail() {
               ].map(([k, v]) => (
                 <div key={k} className="flex gap-2">
                   <span className="text-oa-text-muted font-semibold min-w-[80px]">{k}</span>
-                  <span className="font-mono text-neutral-300 break-all">{v}</span>
+                  <span className="font-mono break-all" style={{ color: 'var(--color-oa-text)' }}>{v}</span>
                 </div>
               ))}
             </div>
             <div className="mt-3">
               <div className="text-[10px] font-bold text-oa-text-muted uppercase tracking-widest mb-2">Task</div>
-              <div className="text-xs text-neutral-300 bg-oa-bg p-3 rounded border border-oa-border-light whitespace-pre-wrap">
+              <div
+                className="text-xs bg-oa-bg p-3 rounded border border-oa-border-light whitespace-pre-wrap"
+                style={{ color: 'var(--color-oa-text)' }}
+              >
                 {detail.task}
               </div>
             </div>

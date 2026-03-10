@@ -54,33 +54,34 @@ function AgentNodeComponent({ data }: NodeProps) {
 
   return (
     <div
-      className="relative rounded-lg min-w-[220px] max-w-[280px] transition-all duration-200 group bg-white"
+      className="relative rounded-lg min-w-[220px] max-w-[280px] transition-all duration-200 group"
       style={{
+        background: 'var(--color-oa-surface)',
+        border: `1px solid var(--color-oa-border)`,
         borderLeft: `4px solid ${borderColor}`,
-        border: `1px solid #e5e7eb`,
-        borderLeftWidth: '4px',
-        borderLeftColor: borderColor,
         boxShadow,
       }}
     >
       <Handle
         type="target"
         position={Position.Top}
-        className="!opacity-0 group-hover:!opacity-100 !transition-opacity !bg-gray-400 !w-2 !h-2 !border-0"
+        style={{ background: 'var(--color-oa-text-dim)', opacity: 0 }}
+        className="!w-2 !h-2 !border-0 group-hover:!opacity-100 !transition-opacity"
       />
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!opacity-0 group-hover:!opacity-100 !transition-opacity !bg-gray-400 !w-2 !h-2 !border-0"
+        style={{ background: 'var(--color-oa-text-dim)', opacity: 0 }}
+        className="!w-2 !h-2 !border-0 group-hover:!opacity-100 !transition-opacity"
       />
 
       <div className="px-3 py-2.5">
         {/* Header row: icon + name + model badge */}
         <div className="flex items-center gap-2 mb-1.5">
-          <Bot size={13} className="text-gray-400 shrink-0" />
+          <Bot size={13} style={{ color: 'var(--color-oa-text-dim)' }} className="shrink-0" />
           <div
             className="text-[13px] font-bold truncate flex-1 leading-tight"
-            style={{ color: '#1a2a3a' }}
+            style={{ color: 'var(--color-oa-text)' }}
           >
             {agent.name}
           </div>
@@ -94,11 +95,14 @@ function AgentNodeComponent({ data }: NodeProps) {
         </div>
 
         {/* Divider */}
-        <div className="border-t border-gray-100 mb-2" />
+        <div style={{ borderTop: '1px solid var(--color-oa-border-light)', marginBottom: '0.5rem' }} />
 
         {/* Task text */}
         {agent.task && (
-          <div className="text-[11px] text-gray-500 line-clamp-2 leading-tight mb-2">
+          <div
+            className="text-[11px] line-clamp-2 leading-tight mb-2"
+            style={{ color: 'var(--color-oa-text-muted)' }}
+          >
             {agent.task}
           </div>
         )}
@@ -128,12 +132,20 @@ function AgentNodeComponent({ data }: NodeProps) {
           )}
           {!isRunning && !isDone && !isFailed && (
             <>
-              <span className="block w-2 h-2 rounded-full bg-gray-400 shrink-0" />
-              <span className="text-[10px] text-gray-400 font-medium">{agent.status}</span>
+              <span
+                className="block w-2 h-2 rounded-full shrink-0"
+                style={{ background: 'var(--color-oa-text-dim)' }}
+              />
+              <span className="text-[10px] font-medium" style={{ color: 'var(--color-oa-text-dim)' }}>
+                {agent.status}
+              </span>
             </>
           )}
-          <span className="text-gray-300 mx-0.5">•</span>
-          <span className="text-[10px] text-gray-400 font-mono flex items-center gap-0.5">
+          <span style={{ color: 'var(--color-oa-text-dim)' }} className="mx-0.5 text-[10px]">•</span>
+          <span
+            className="text-[10px] font-mono flex items-center gap-0.5"
+            style={{ color: 'var(--color-oa-text-dim)' }}
+          >
             <Clock size={9} />
             {formatDuration(agent.created_at, agent.finished_at)}
           </span>
@@ -206,8 +218,8 @@ function layoutAgents(agents: Agent[]): { nodes: Node[]; edges: Edge[] } {
         source: agent.name,
         target: child.name,
         animated: child.status === 'running',
-        style: { stroke: '#d1d5db', strokeWidth: 1.5 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#d1d5db' },
+        style: { stroke: 'var(--color-oa-border)', strokeWidth: 1.5 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--color-oa-border)' },
       });
     }
 
@@ -275,7 +287,7 @@ export function LiveCanvas() {
               animated: true,
               label: snippet,
               labelStyle: { fill: '#ff6b35', fontSize: 10, fontWeight: 500 },
-              labelBgStyle: { fill: '#ffffff', fillOpacity: 0.95 },
+              labelBgStyle: { fill: 'var(--color-oa-surface)', fillOpacity: 0.95 },
               labelBgPadding: [4, 2] as [number, number],
               labelBgBorderRadius: 4,
               style: { stroke: '#ff6b35', strokeWidth: 1.5, strokeDasharray: '5 3' },
@@ -340,15 +352,15 @@ export function LiveCanvas() {
 
   if (agents.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center" style={{ background: '#f9fafb' }}>
+      <div className="flex-1 flex items-center justify-center" style={{ background: 'var(--color-oa-bg)' }}>
         <div className="text-center">
           <div className="text-4xl mb-4">&#x1f916;</div>
-          <div className="text-lg font-medium" style={{ color: '#1a2a3a' }}>No agents running</div>
-          <div className="text-sm mt-1 text-gray-500">
+          <div className="text-lg font-medium" style={{ color: 'var(--color-oa-text)' }}>No agents running</div>
+          <div className="text-sm mt-1" style={{ color: 'var(--color-oa-text-muted)' }}>
             Spawn agents with{' '}
             <code
-              className="px-1.5 py-0.5 rounded text-[#ff6b35]"
-              style={{ background: 'rgba(255,107,53,0.08)' }}
+              className="px-1.5 py-0.5 rounded"
+              style={{ color: 'var(--color-oa-accent)', background: 'var(--color-oa-accent-bg)' }}
             >
               oa run
             </code>
@@ -369,33 +381,42 @@ export function LiveCanvas() {
         nodeTypes={nodeTypes}
         fitView
         fitViewOptions={{ padding: 0.3 }}
-        style={{ background: '#f9fafb' }}
+        style={{ background: 'var(--color-oa-bg)' }}
         proOptions={{ hideAttribution: true }}
         nodesDraggable={true}
         nodesConnectable={false}
         defaultEdgeOptions={{
           animated: false,
-          style: { stroke: '#d1d5db', strokeWidth: 1.5 },
+          style: { stroke: 'var(--color-oa-border)', strokeWidth: 1.5 },
         }}
       >
         <Background
           variant={BackgroundVariant.Dots}
           gap={24}
           size={1}
-          color="#d1d5db"
-          style={{ background: '#f9fafb' }}
+          color="var(--color-oa-border)"
+          style={{ background: 'var(--color-oa-bg)' }}
         />
         <Controls
           showInteractive={false}
-          className="!bg-white !border-gray-200 !rounded-lg [&>button]:!bg-white [&>button]:!border-gray-200 [&>button]:!text-gray-500 [&>button:hover]:!bg-gray-50"
+          className="[&>button]:!border-[var(--color-oa-border)] [&>button]:!text-[color:var(--color-oa-text-muted)]"
+          style={{
+            background: 'var(--color-oa-surface)',
+            border: '1px solid var(--color-oa-border)',
+            borderRadius: '0.5rem',
+          }}
         />
         <MiniMap
           nodeColor={(n) => {
             const agent = (n.data as any)?.agent as Agent | undefined;
-            return agent ? statusBorderColor(agent.status) : '#d1d5db';
+            return agent ? statusBorderColor(agent.status) : 'var(--color-oa-border)';
           }}
-          className="!bg-white !border !border-gray-200 !rounded-lg"
-          maskColor="rgba(249,250,251,0.6)"
+          style={{
+            background: 'var(--color-oa-surface)',
+            border: '1px solid var(--color-oa-border)',
+            borderRadius: '0.5rem',
+          }}
+          maskColor="rgba(0,0,0,0.06)"
         />
       </ReactFlow>
     </div>

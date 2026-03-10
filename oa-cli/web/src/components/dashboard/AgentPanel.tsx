@@ -1,8 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { ClipboardCopy, ChevronRight } from 'lucide-react';
-import { useAgentStore, statusColor, modelColor, formatDuration, modelLabel } from '../../stores/agentStore';
+import { useAgentStore, modelColor, formatDuration, modelLabel } from '../../stores/agentStore';
 import type { Agent, Message } from '../../types';
 import * as api from '../../api/client';
+
+function statusBadgeStyle(status: string) {
+  const s = status === 'error' ? 'failed' : ['running', 'done', 'failed', 'timeout', 'killed'].includes(status) ? status : 'killed';
+  return {
+    color: `var(--color-status-${s})`,
+    background: `color-mix(in srgb, var(--color-status-${s}) 12%, transparent)`,
+    borderColor: `color-mix(in srgb, var(--color-status-${s}) 25%, transparent)`,
+  };
+}
 
 export function AgentPanel() {
   const selectedAgent = useAgentStore(s => s.selectedAgent);
@@ -61,13 +70,15 @@ export function AgentPanel() {
 
   if (!selectedAgent || !agent) {
     return (
-      <div className="w-[320px] min-w-[320px] border-l border-gray-200 bg-white flex items-center justify-center text-gray-400 text-sm">
+      <div
+        className="w-[320px] min-w-[320px] border-l flex items-center justify-center text-sm"
+        style={{ borderColor: 'var(--color-oa-border)', background: 'var(--color-oa-surface)', color: 'var(--color-oa-text-dim)' }}
+      >
         Select an agent on the canvas
       </div>
     );
   }
 
-  const sColor = statusColor(agent.status);
   const mColor = modelColor(agent.model);
   const outputText = (agent.status === 'running' && streamOutput) ? streamOutput : (detail?.live_output || detail?.result || '');
 
@@ -103,31 +114,34 @@ export function AgentPanel() {
   const outputLines = outputText ? outputText.split('\n') : [];
 
   return (
-    <div className="w-[320px] min-w-[320px] border-l border-gray-200 bg-white flex flex-col">
+    <div
+      className="w-[320px] min-w-[320px] border-l flex flex-col"
+      style={{ borderColor: 'var(--color-oa-border)', background: 'var(--color-oa-surface)' }}
+    >
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b" style={{ borderColor: 'var(--color-oa-border)' }}>
         {/* Breadcrumb */}
         {breadcrumb.length > 0 && (
           <div className="flex items-center gap-1 mb-2 flex-wrap">
             {breadcrumb.map((name, i) => (
               <span key={i} className="flex items-center gap-1">
-                <span className="text-[10px] text-[#6b7b8d] font-mono">{name}</span>
-                <ChevronRight size={9} className="text-gray-300" />
+                <span className="text-[10px] font-mono" style={{ color: 'var(--color-oa-text-muted)' }}>{name}</span>
+                <ChevronRight size={9} style={{ color: 'var(--color-oa-text-dim)' }} />
               </span>
             ))}
-            <span className="text-[10px] text-[#1a2a3a] font-mono font-semibold">{agent.name}</span>
+            <span className="text-[10px] font-mono font-semibold" style={{ color: 'var(--color-oa-text)' }}>{agent.name}</span>
           </div>
         )}
 
         {/* Agent name + badges */}
         <div className="flex items-center gap-2 flex-wrap">
           {breadcrumb.length === 0 && (
-            <span className="text-[#1a2a3a] font-bold text-sm">{agent.name}</span>
+            <span className="font-bold text-sm" style={{ color: 'var(--color-oa-text)' }}>{agent.name}</span>
           )}
           {/* Status badge */}
           <span
             className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold border"
-            style={{ background: `${sColor}18`, color: sColor, borderColor: `${sColor}35` }}
+            style={statusBadgeStyle(agent.status)}
           >
             {agent.status}
           </span>
@@ -139,31 +153,38 @@ export function AgentPanel() {
             {modelLabel(agent.model)}
           </span>
           {/* Duration */}
-          <span className="text-[10px] text-[#6b7b8d] font-mono ml-auto">
+          <span className="text-[10px] font-mono ml-auto" style={{ color: 'var(--color-oa-text-muted)' }}>
             {formatDuration(agent.created_at, agent.finished_at)}
           </span>
         </div>
 
         {/* Depth indicator */}
         {agent.depth > 0 && (
-          <div className="mt-1 text-[10px] text-[#6b7b8d]">
+          <div className="mt-1 text-[10px]" style={{ color: 'var(--color-oa-text-muted)' }}>
             depth {agent.depth}
-            {agent.parent && <> · child of <span className="text-[#1a2a3a]">{agent.parent}</span></>}
+            {agent.parent && <> · child of <span style={{ color: 'var(--color-oa-text)' }}>{agent.parent}</span></>}
           </div>
         )}
       </div>
 
       {/* Sub-tabs */}
-      <div className="flex border-b border-gray-200 bg-white">
+      <div className="flex border-b" style={{ borderColor: 'var(--color-oa-border)', background: 'var(--color-oa-surface)' }}>
         {(['info', 'messages', 'output'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 py-2 text-[11px] font-medium transition-colors cursor-pointer border-b-2 ${
+            className="flex-1 py-2 text-[11px] font-medium transition-colors cursor-pointer border-b-2"
+            style={
               tab === t
-                ? 'text-[#ff6b35] border-[#ff6b35] bg-orange-50'
-                : 'text-gray-500 border-transparent hover:text-gray-800 hover:bg-gray-50'
-            }`}
+                ? { color: 'var(--color-oa-accent)', borderColor: 'var(--color-oa-accent)', background: 'var(--color-oa-accent-bg)' }
+                : { color: 'var(--color-oa-text-muted)', borderColor: 'transparent' }
+            }
+            onMouseEnter={(e) => {
+              if (tab !== t) (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-oa-text)';
+            }}
+            onMouseLeave={(e) => {
+              if (tab !== t) (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-oa-text-muted)';
+            }}
           >
             {t === 'messages'
               ? `Messages${messages.length > 0 ? ` (${messages.length})` : ''}`
@@ -176,17 +197,17 @@ export function AgentPanel() {
       {tab === 'info' && (
         <div className="flex-1 overflow-auto p-4 space-y-4">
           <div>
-            <div className="text-xs uppercase text-gray-400 font-semibold tracking-wider mb-1">Task</div>
-            <div className="text-xs text-[#1a2a3a] leading-relaxed">{agent.task}</div>
+            <div className="text-xs uppercase font-semibold tracking-wider mb-1" style={{ color: 'var(--color-oa-text-dim)' }}>Task</div>
+            <div className="text-xs leading-relaxed" style={{ color: 'var(--color-oa-text)' }}>{agent.task}</div>
           </div>
           <div>
-            <div className="text-xs uppercase text-gray-400 font-semibold tracking-wider mb-1">Workspace</div>
-            <div className="text-[10px] text-[#6b7b8d] font-mono break-all">{agent.workspace}</div>
+            <div className="text-xs uppercase font-semibold tracking-wider mb-1" style={{ color: 'var(--color-oa-text-dim)' }}>Workspace</div>
+            <div className="text-[10px] font-mono break-all" style={{ color: 'var(--color-oa-text-muted)' }}>{agent.workspace}</div>
           </div>
           {agent.max_children > 0 && (
             <div>
-              <div className="text-xs uppercase text-gray-400 font-semibold tracking-wider mb-1">Children</div>
-              <div className="text-xs text-[#1a2a3a]">
+              <div className="text-xs uppercase font-semibold tracking-wider mb-1" style={{ color: 'var(--color-oa-text-dim)' }}>Children</div>
+              <div className="text-xs" style={{ color: 'var(--color-oa-text)' }}>
                 {agents.filter(a => a.parent === agent.name).length} / {agent.max_children} max
               </div>
             </div>
@@ -206,25 +227,36 @@ export function AgentPanel() {
       {tab === 'messages' && (
         <div className="flex-1 overflow-auto p-3 space-y-2">
           {messages.length === 0 && (
-            <div className="text-gray-400 text-xs text-center py-4">No messages yet</div>
+            <div className="text-xs text-center py-4" style={{ color: 'var(--color-oa-text-dim)' }}>No messages yet</div>
           )}
           {messages.map((msg, i) => (
             <div
               key={i}
-              className={`rounded-xl px-3 py-2 text-xs ${
+              className={`rounded-xl px-3 py-2 text-xs border ${msg.from === selectedAgent ? 'ml-6' : 'mr-6'}`}
+              style={
                 msg.from === selectedAgent
-                  ? 'bg-orange-50 border border-orange-100 ml-6'
-                  : 'bg-gray-100 border border-gray-200 mr-6'
-              }`}
+                  ? { background: 'var(--color-oa-accent-bg)', borderColor: 'color-mix(in srgb, var(--color-oa-accent) 20%, transparent)' }
+                  : { background: 'var(--color-oa-bg)', borderColor: 'var(--color-oa-border)' }
+              }
             >
               <div className="flex items-center gap-1.5 mb-1">
-                <span className="font-semibold text-[#1a2a3a]">{msg.from}</span>
-                <span className="text-gray-400 ml-auto text-[10px]">
+                <span className="font-semibold" style={{ color: 'var(--color-oa-text)' }}>{msg.from}</span>
+                <span className="ml-auto text-[10px]" style={{ color: 'var(--color-oa-text-dim)' }}>
                   {new Date(msg.timestamp * 1000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
-                {!msg.read && <span className="text-[9px] bg-[#ff6b35] text-white px-1 rounded font-bold">NEW</span>}
+                {!msg.read && (
+                  <span
+                    className="text-[9px] text-white px-1 rounded font-bold"
+                    style={{ background: 'var(--color-oa-accent)' }}
+                  >
+                    NEW
+                  </span>
+                )}
               </div>
-              <div className={`leading-relaxed whitespace-pre-wrap ${msg.from === selectedAgent ? 'text-[#ff6b35]' : 'text-[#6b7b8d]'}`}>
+              <div
+                className="leading-relaxed whitespace-pre-wrap"
+                style={{ color: msg.from === selectedAgent ? 'var(--color-oa-accent)' : 'var(--color-oa-text-muted)' }}
+              >
                 {msg.content}
               </div>
             </div>
@@ -234,18 +266,24 @@ export function AgentPanel() {
 
       {/* Output tab */}
       {tab === 'output' && (
-        <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
-          <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-white">
+        <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'var(--color-oa-bg)' }}>
+          <div
+            className="flex items-center justify-between px-3 py-2 border-b"
+            style={{ borderColor: 'var(--color-oa-border)', background: 'var(--color-oa-surface)' }}
+          >
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">output</span>
+              <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: 'var(--color-oa-text-dim)' }}>output</span>
               {outputLines.length > 0 && (
-                <span className="text-[10px] text-gray-400">{outputLines.length} lines</span>
+                <span className="text-[10px]" style={{ color: 'var(--color-oa-text-dim)' }}>{outputLines.length} lines</span>
               )}
             </div>
             <button
               onClick={handleCopyOutput}
               disabled={!outputText}
-              className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-[10px] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              style={{ color: 'var(--color-oa-text-dim)' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-oa-text-muted)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-oa-text-dim)'; }}
             >
               <ClipboardCopy size={11} />
               {copied ? 'Copied!' : 'Copy'}
@@ -253,12 +291,13 @@ export function AgentPanel() {
           </div>
           <div
             ref={outputRef}
-            className="flex-1 overflow-auto p-3 font-mono text-sm leading-relaxed bg-gray-50 rounded"
+            className="flex-1 overflow-auto p-3 font-mono text-sm leading-relaxed rounded"
+            style={{ background: 'var(--color-oa-bg)' }}
           >
             {outputLines.length === 0 ? (
-              <div className="text-gray-400 text-xs">No output yet...</div>
+              <div className="text-xs" style={{ color: 'var(--color-oa-text-dim)' }}>No output yet...</div>
             ) : (
-              <pre className="text-[#1a2a3a] whitespace-pre-wrap break-all text-[11px]">
+              <pre className="whitespace-pre-wrap break-all text-[11px]" style={{ color: 'var(--color-oa-text)' }}>
                 {outputText}
               </pre>
             )}
@@ -268,7 +307,7 @@ export function AgentPanel() {
 
       {/* Message input (messages tab) */}
       {tab === 'messages' && (
-        <div className="p-3 border-t border-gray-200">
+        <div className="p-3 border-t" style={{ borderColor: 'var(--color-oa-border)' }}>
           <div className="flex gap-2">
             <input
               type="text"
@@ -276,12 +315,22 @@ export function AgentPanel() {
               onChange={e => setMsgInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSend()}
               placeholder={`Message ${selectedAgent}...`}
-              className="flex-1 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-[#1a2a3a] placeholder-gray-400 focus:outline-none focus:border-[#ff6b35]"
+              className="flex-1 border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+              style={{
+                background: 'var(--color-oa-surface)',
+                borderColor: 'var(--color-oa-border)',
+                color: 'var(--color-oa-text)',
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-oa-accent)'; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--color-oa-border)'; }}
             />
             <button
               onClick={handleSend}
               disabled={!msgInput.trim()}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg text-white bg-[#ff6b35] hover:bg-[#e55a25] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              className="px-3 py-1.5 text-xs font-semibold rounded-lg text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              style={{ background: 'var(--color-oa-accent)' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.filter = 'brightness(1.1)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.filter = ''; }}
             >
               Send
             </button>
