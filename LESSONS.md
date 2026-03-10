@@ -234,4 +234,8 @@
 |---|-----|---------|
 | L-060 | **Parallel agent delegatie werkt optimaal in waves van 4-6 agents.** Wave 1 (commits + implementatie tegelijk) + Wave 2 (integratie) geeft maximale voortgang per sessie. | 5 parallel component-builders (ErrorBoundary, ToastProvider, PipelinePanel, TaskBoard, CSS tokens) + 4 parallel agent template builders (batches 13-16). Wave 1: 9 agents non-overlapping targets. Wave 2: integratietesten, API wiring. Bevestigt en schaalt L-037 (batch template generation) op grotere gemengde workloads. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-061, L-062, etc.*
+| L-061 | **5 haiku-agents tegelijk is te veel — max 4 parallel voor haiku.** Bij batch-29 (5 categorieën tegelijk) faalden 3 van 5 haiku-agents zonder output te schrijven. Oorzaak: te hoge concurrency voor haiku model. Fix: max 4 agents tegelijk voor haiku, 3 voor complexe taken. | Batch-29 (2026-03-10): autonomous-vehicles, logistics, ar-vr faalden. quantum-computing en smart-city (partial) slaagden. Bevestigt dat 4 het optimum is (L-037). |
+| L-062 | **Agent library templates worden NIET getest — dit is een risico.** 1177 templates aangemaakt, maar er is geen validator, geen CI pipeline, geen test runner. Problemen gevonden: 14 templates gebruiken `prompt` ipv `systemPrompt`, 156 missen `tags` veld. Template_loader.py laadt alles zonder validatie. | Review sessie 2026-03-10. Zie OPEN-QUESTIONS.md voor actiepunten. |
+| L-063 | **Schema inconsistentie tussen batches door verschillende agent-instructies.** Sommige batch-agents schreven `prompt` ipv `systemPrompt`, sommige misten `tags`. Fix: altijd een referentie-template meegeven in de prompt + expliciete veldnamen in de taakbeschrijving. | Gevonden bij review 2026-03-10. Nieuwere batches (14+) correct na aanpassing instructie. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-064, L-065, etc.*

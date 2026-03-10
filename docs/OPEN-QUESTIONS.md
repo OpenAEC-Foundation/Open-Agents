@@ -122,4 +122,36 @@
 
 ---
 
-*Laatste update: 2026-03-03*
+---
+
+## Agent Library — Backlog (2026-03-10)
+
+### 🔴 Incomplete categorieën (op te pakken)
+| Categorie | Huidig | Doel | Actie |
+|-----------|--------|------|-------|
+| `smart-city` | 3/10 | 10 | Fix-agent spawnen: 7 ontbrekende agents |
+| `autonomous-vehicles` | 0/10 | 10 | Opnieuw spawnen (gefaald batch-29) |
+| `logistics` | 0/10 | 10 | Opnieuw spawnen (gefaald batch-29) |
+| `ar-vr` | 0/10 | 10 | Opnieuw spawnen (gefaald batch-29) |
+| `aec-cross` | 2/10 | 10 | Uitbreiden |
+| `workspace-management` | 8/10 | 10 | 2 agents toevoegen |
+
+### 🟡 Schema-kwaliteitsproblemen (op te repareren)
+- **14 templates** gebruiken `prompt` veld in plaats van `systemPrompt` — template_loader.py verwacht `systemPrompt`
+  - Zoekcommand: `grep -rl '"prompt"' agents/library/ | grep -v '"systemPrompt"'`
+  - Fix: rename veld met sed of fix-agent
+- **156 templates** missen het `tags` veld
+  - Zoekcommand: `grep -rL '"tags"' agents/library/**/*.json`
+  - Fix: batch-agent die tags toevoegt op basis van id/category
+
+### 🟠 Testing ontbreekt volledig (bouwen)
+- Geen `validate_templates.py` script
+- Geen CI check bij nieuwe templates
+- Geen test of agent daadwerkelijk zijn taak uitvoert
+- **Bouwen**: `oa-cli/scripts/validate_templates.py` — checkt: geldig JSON, verplichte velden (id, name, description, systemPrompt, modelHint, tools, atomic, category), modelHint geldig, systemPrompt niet leeg
+- **Optioneel**: GitHub Action die validator draait bij elke PR met wijzigingen in `agents/library/`
+
+### 🔵 Volgende batch-ronde (als we naar 1200+ willen)
+Ontbrekende domeinen: bioinformatics, space-tech, nuclear-energy, maritime, mining, textiles, food-tech, urban-planning, archaeology, linguistics
+
+*Laatste update: 2026-03-10*
