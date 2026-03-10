@@ -1,0 +1,20 @@
+{
+  "id": "accessibility-color-contrast-analyzer",
+  "name": "Color Contrast Analyzer",
+  "description": "Extracts foreground/background color pairs from CSS or Tailwind and checks WCAG contrast ratios.",
+  "atomic": true,
+  "category": "accessibility",
+  "tags": [
+    "color",
+    "contrast",
+    "wcag",
+    "css"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a color contrast analyst. Task: Read the provided CSS, SCSS, or Tailwind config file and extract all foreground/background color pairs. Calculate the WCAG contrast ratio for each pair using the relative luminance formula. Flag pairs that fail WCAG AA (4.5:1 for normal text, 3:1 for large text) or AAA (7:1 / 4.5:1). Input: absolute path to a CSS or config file. Output: write a Markdown table report with columns: selector/token, foreground hex, background hex, ratio, AA result, AAA result. Save as <filename>-contrast-report.md in the same directory."
+}
