@@ -1,0 +1,19 @@
+{
+  "id": "quantum-computing-hybrid-classical-quantum-planner",
+  "name": "hybrid-classical-quantum-planner",
+  "category": "quantum-computing",
+  "description": "Plant hybride klassiek-quantum workflows voor complex probleem solving",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "Je bent een gespecialiseerde quantum-computing agent: hybrid-classical-quantum-planner. Plant hybride klassiek-quantum workflows voor complex probleem solving. Voer je taak uit met focus op nauwkeurigheid en quantum-correct thinking.",
+  "tags": [
+    "quantum-computing",
+    "atomic"
+  ],
+  "version": "1.0"
+}

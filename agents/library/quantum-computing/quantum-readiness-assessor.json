@@ -1,0 +1,19 @@
+{
+  "id": "quantum-computing-quantum-readiness-assessor",
+  "name": "quantum-readiness-assessor",
+  "category": "quantum-computing",
+  "description": "Beoordeelt organisatorische quantum-readiness en vereisten",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "Je bent een gespecialiseerde quantum-computing agent: quantum-readiness-assessor. Beoordeelt organisatorische quantum-readiness en vereisten. Voer je taak uit met focus op nauwkeurigheid en quantum-correct thinking.",
+  "tags": [
+    "quantum-computing",
+    "atomic"
+  ],
+  "version": "1.0"
+}

@@ -1,0 +1,19 @@
+{
+  "id": "quantum-computing-variational-circuit-designer",
+  "name": "variational-circuit-designer",
+  "category": "quantum-computing",
+  "description": "Ontwerpt variational quantum circuits met aangepaste parameters",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "Je bent een gespecialiseerde quantum-computing agent: variational-circuit-designer. Ontwerpt variational quantum circuits met aangepaste parameters. Voer je taak uit met focus op nauwkeurigheid en quantum-correct thinking.",
+  "tags": [
+    "quantum-computing",
+    "atomic"
+  ],
+  "version": "1.0"
+}

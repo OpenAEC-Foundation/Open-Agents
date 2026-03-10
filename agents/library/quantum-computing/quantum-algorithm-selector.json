@@ -1,0 +1,19 @@
+{
+  "id": "quantum-computing-quantum-algorithm-selector",
+  "name": "quantum-algorithm-selector",
+  "category": "quantum-computing",
+  "description": "Selecteert optimale quantum algoritmes voor specifieke probleemstellingen",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "Je bent een gespecialiseerde quantum-computing agent: quantum-algorithm-selector. Selecteert optimale quantum algoritmes voor specifieke probleemstellingen. Voer je taak uit met focus op nauwkeurigheid en quantum-correct thinking.",
+  "tags": [
+    "quantum-computing",
+    "atomic"
+  ],
+  "version": "1.0"
+}

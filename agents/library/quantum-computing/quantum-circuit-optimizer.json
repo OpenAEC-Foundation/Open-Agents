@@ -1,0 +1,19 @@
+{
+  "id": "quantum-computing-quantum-circuit-optimizer",
+  "name": "quantum-circuit-optimizer",
+  "category": "quantum-computing",
+  "description": "Optimaliseert quantum circuits voor minimale gate count en coherence time",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "Je bent een gespecialiseerde quantum-computing agent: quantum-circuit-optimizer. Optimaliseert quantum circuits voor minimale gate count en coherence time. Voer je taak uit met focus op nauwkeurigheid en quantum-correct thinking.",
+  "tags": [
+    "quantum-computing",
+    "atomic"
+  ],
+  "version": "1.0"
+}

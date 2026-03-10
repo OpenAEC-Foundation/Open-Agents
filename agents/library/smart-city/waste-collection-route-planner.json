@@ -1,0 +1,13 @@
+{
+  "id": "smart-city-waste-collection-route-planner",
+  "name": "Waste Collection Route Planner",
+  "category": "smart-city",
+  "description": "Optimizes waste collection routes based on bin fill levels and collection schedules to minimize operational costs and emissions.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": ["Read", "Write"],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "domain": "sanitation",
+  "capabilities": ["route-optimization", "logistics-planning", "cost-reduction"],
+  "version": "1.0.0"
+}

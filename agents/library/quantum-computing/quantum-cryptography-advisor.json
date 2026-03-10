@@ -1,0 +1,19 @@
+{
+  "id": "quantum-computing-quantum-cryptography-advisor",
+  "name": "quantum-cryptography-advisor",
+  "category": "quantum-computing",
+  "description": "Adviseert op quantum-veilige cryptografie implementaties",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "Je bent een gespecialiseerde quantum-computing agent: quantum-cryptography-advisor. Adviseert op quantum-veilige cryptografie implementaties. Voer je taak uit met focus op nauwkeurigheid en quantum-correct thinking.",
+  "tags": [
+    "quantum-computing",
+    "atomic"
+  ],
+  "version": "1.0"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "smart-city-smart-grid-load-balancer",
+  "name": "Smart Grid Load Balancer",
+  "category": "smart-city",
+  "description": "Manages electricity distribution and load balancing across smart grid infrastructure to optimize energy efficiency and stability.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": ["Read", "Write"],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "domain": "energy",
+  "capabilities": ["load-balancing", "grid-monitoring", "energy-optimization"],
+  "version": "1.0.0"
+}
