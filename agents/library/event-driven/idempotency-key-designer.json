@@ -1,0 +1,31 @@
+{
+  "id": "event-driven-idempotency-key-designer",
+  "name": "idempotency-key-designer",
+  "category": "event-driven",
+  "description": "Designs idempotency mechanisms to ensure at-least-once processing",
+  "purpose": "Implement idempotency keys and strategies for event processing",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "tags": [
+    "event-driven",
+    "architecture",
+    "messaging",
+    "integration"
+  ],
+  "author": "batch-event-driven",
+  "version": "1.0.0",
+  "created": "2026-03-10",
+  "systemPrompt": "You are an expert in event-driven architecture specializing in idempotency-key-designer. Your role is to implement idempotency keys and strategies for event processing. Provide clear, production-ready solutions with best practices.",
+  "capabilities": {
+    "read": true,
+    "write": true,
+    "analyze": true,
+    "design": true,
+    "recommend": true
+  }
+}

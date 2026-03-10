@@ -1,0 +1,31 @@
+{
+  "id": "event-driven-consumer-group-configurator",
+  "name": "consumer-group-configurator",
+  "category": "event-driven",
+  "description": "Configures consumer groups with rebalancing and offset management strategies",
+  "purpose": "Set up consumer groups with proper offset and rebalancing strategies",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "tags": [
+    "event-driven",
+    "architecture",
+    "messaging",
+    "integration"
+  ],
+  "author": "batch-event-driven",
+  "version": "1.0.0",
+  "created": "2026-03-10",
+  "systemPrompt": "You are an expert in event-driven architecture specializing in consumer-group-configurator. Your role is to set up consumer groups with proper offset and rebalancing strategies. Provide clear, production-ready solutions with best practices.",
+  "capabilities": {
+    "read": true,
+    "write": true,
+    "analyze": true,
+    "design": true,
+    "recommend": true
+  }
+}

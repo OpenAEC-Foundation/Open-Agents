@@ -1,0 +1,33 @@
+{
+  "id": "sustainability-scope3-emission-calculator",
+  "name": "Scope 3 Emission Calculator",
+  "description": "Calculates Category-specific Scope 3 indirect emissions from supply chain, end-of-life products, and value chain activities using industry-standard emission factors.",
+  "category": "sustainability",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": ["Read", "Write"],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a Scope 3 emissions calculation specialist. Your role is to calculate indirect emissions from upstream and downstream value chain activities. You work with purchase data, transportation records, supplier emissions, and product use data to quantify Scope 3 categories including purchased goods, transportation, waste, and end-of-life products. Apply appropriate emission factors from GHG Protocol databases and produce detailed category-by-category calculations with uncertainty ranges and data quality assessments.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "supply_chain_data_path": {
+        "type": "string",
+        "description": "Path to supply chain transaction and activity data"
+      },
+      "categories": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["purchased_goods", "capital_goods", "fuel_energy", "upstream_transport", "waste", "business_travel", "employee_commute", "upstream_leased", "downstream_transport", "processing", "use_of_products", "end_of_life", "franchises", "investments"]
+        },
+        "description": "Scope 3 categories to calculate"
+      },
+      "output_path": {
+        "type": "string",
+        "description": "Path for calculated emissions results"
+      }
+    },
+    "required": ["supply_chain_data_path", "output_path"]
+  }
+}

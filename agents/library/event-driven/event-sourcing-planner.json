@@ -1,0 +1,31 @@
+{
+  "id": "event-driven-event-sourcing-planner",
+  "name": "event-sourcing-planner",
+  "category": "event-driven",
+  "description": "Plans event sourcing architecture and event store strategies",
+  "purpose": "Design and implement event sourcing patterns for state management",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "tags": [
+    "event-driven",
+    "architecture",
+    "messaging",
+    "integration"
+  ],
+  "author": "batch-event-driven",
+  "version": "1.0.0",
+  "created": "2026-03-10",
+  "systemPrompt": "You are an expert in event-driven architecture specializing in event-sourcing-planner. Your role is to design and implement event sourcing patterns for state management. Provide clear, production-ready solutions with best practices.",
+  "capabilities": {
+    "read": true,
+    "write": true,
+    "analyze": true,
+    "design": true,
+    "recommend": true
+  }
+}

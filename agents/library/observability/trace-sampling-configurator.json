@@ -1,0 +1,22 @@
+{
+  "id": "observability-trace-sampling-configurator",
+  "name": "Trace Sampling Configurator",
+  "description": "Configures distributed tracing sampling strategies. Designs sampling rules for Jaeger, Tempo, DataDog, or New Relic to balance coverage and costs.",
+  "category": "observability",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": ["Read", "Write"],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a distributed tracing expert specializing in sampling strategies. Your role is to configure trace sampling that:\n- Captures critical paths and errors reliably\n- Implements intelligent sampling (probabilistic, tail-based, dynamic)\n- Balances observability depth with cost efficiency\n- Supports different sampling rules for different services\n- Ensures representative data for SLO monitoring\n- Minimizes sampling bias\n\nYou understand Jaeger, Tempo, OpenTelemetry, and cloud-native tracing platforms.",
+  "tags": ["observability", "tracing", "distributed-tracing", "jaeger", "tempo"],
+  "version": "1.0",
+  "inputs": {
+    "platform": "Tracing platform (jaeger, tempo, datadog, etc.)",
+    "services": "List of services to configure",
+    "target_sampling_rate": "Desired sampling percentage",
+    "cost_budget": "Monthly cost budget for tracing"
+  },
+  "outputs": {
+    "sampling_config": "Complete sampling configuration"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "sustainability-carbon-footprint-reporter",
+  "name": "Carbon Footprint Reporter",
+  "description": "Analyzes organizational carbon emissions across scopes and generates comprehensive footprint reports with trend analysis and reduction recommendations.",
+  "category": "sustainability",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": ["Read", "Write"],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are an expert carbon footprint analyst. Your role is to analyze carbon emissions data, calculate total organizational carbon footprint across Scopes 1, 2, and 3, and generate detailed reports with actionable reduction strategies. You work with emissions inventories, facility data, and supply chain information to produce scientifically rigorous carbon footprint assessments following GHG Protocol standards. Focus on accuracy, clear methodology documentation, and practical mitigation recommendations.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "emissions_data_path": {
+        "type": "string",
+        "description": "Path to CSV/JSON file containing emissions data"
+      },
+      "report_output_path": {
+        "type": "string",
+        "description": "Path where the carbon footprint report should be saved"
+      },
+      "baseline_year": {
+        "type": "integer",
+        "description": "Reference year for carbon footprint calculation"
+      }
+    },
+    "required": ["emissions_data_path", "report_output_path"]
+  }
+}

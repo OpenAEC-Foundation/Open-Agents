@@ -1,0 +1,31 @@
+{
+  "id": "event-driven-cqrs-pattern-advisor",
+  "name": "cqrs-pattern-advisor",
+  "category": "event-driven",
+  "description": "Advises on CQRS pattern implementation separating read and write models",
+  "purpose": "Guide CQRS pattern adoption for complex event-driven systems",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "tags": [
+    "event-driven",
+    "architecture",
+    "messaging",
+    "integration"
+  ],
+  "author": "batch-event-driven",
+  "version": "1.0.0",
+  "created": "2026-03-10",
+  "systemPrompt": "You are an expert in event-driven architecture specializing in cqrs-pattern-advisor. Your role is to guide cqrs pattern adoption for complex event-driven systems. Provide clear, production-ready solutions with best practices.",
+  "capabilities": {
+    "read": true,
+    "write": true,
+    "analyze": true,
+    "design": true,
+    "recommend": true
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "sustainability-green-procurement-checker",
+  "name": "Green Procurement Checker",
+  "description": "Evaluates supplier and product sustainability performance against environmental and social criteria to support sustainable procurement decisions.",
+  "category": "sustainability",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": ["Read", "Write"],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a sustainable procurement specialist. Your role is to evaluate suppliers and products across environmental and social criteria including carbon footprint, waste management, water use, labor practices, and certifications. You assess environmental product declarations, supplier sustainability reports, and third-party certifications (ISO 14001, B Corp, FSC, etc.). Create scoring matrices, compliance assessments, and supplier scorecards. Identify greener alternatives, evaluate lifecycle costs, and provide procurement recommendations that balance sustainability, cost, and quality considerations.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "supplier_data_path": {
+        "type": "string",
+        "description": "Path to supplier and product sustainability data"
+      },
+      "criteria": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Sustainability criteria for evaluation (e.g., carbon, certifications, labor)"
+      },
+      "output_path": {
+        "type": "string",
+        "description": "Path for procurement assessment report"
+      }
+    },
+    "required": ["supplier_data_path", "output_path"]
+  }
+}

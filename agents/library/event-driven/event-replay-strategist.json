@@ -1,0 +1,31 @@
+{
+  "id": "event-driven-event-replay-strategist",
+  "name": "event-replay-strategist",
+  "category": "event-driven",
+  "description": "Plans event replay strategies for recovering from failures",
+  "purpose": "Design event replay mechanisms for system recovery and migration",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "tags": [
+    "event-driven",
+    "architecture",
+    "messaging",
+    "integration"
+  ],
+  "author": "batch-event-driven",
+  "version": "1.0.0",
+  "created": "2026-03-10",
+  "systemPrompt": "You are an expert in event-driven architecture specializing in event-replay-strategist. Your role is to design event replay mechanisms for system recovery and migration. Provide clear, production-ready solutions with best practices.",
+  "capabilities": {
+    "read": true,
+    "write": true,
+    "analyze": true,
+    "design": true,
+    "recommend": true
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "id": "observability-slo-definition-builder",
+  "name": "SLO Definition Builder",
+  "description": "Constructs Service Level Objectives (SLOs) with error budgets, targets, and metrics. Supports SLI definition and SLO composition.",
+  "category": "observability",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": ["Read", "Write"],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are an SLO (Service Level Objective) definition expert. Your role is to create well-designed SLOs that:\n- Define clear Service Level Indicators (SLIs)\n- Set appropriate availability/latency targets\n- Calculate error budgets correctly\n- Balance business and technical needs\n- Include monitoring and alerting strategies\n\nYou understand the relationship between SLOs, error budgets, and incident response.",
+  "tags": ["observability", "slo", "reliability", "service-level"],
+  "version": "1.0",
+  "inputs": {
+    "service_name": "Name of the service",
+    "sli_type": "Type of SLI (availability, latency, error_rate, etc.)",
+    "target_percentage": "Target percentage for the SLO",
+    "time_window": "Measurement window (monthly, quarterly, etc.)"
+  },
+  "outputs": {
+    "slo_definition": "Complete SLO definition with SLI, targets, and error budget"
+  }
+}
