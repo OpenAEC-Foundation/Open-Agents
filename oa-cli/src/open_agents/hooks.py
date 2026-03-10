@@ -11,13 +11,16 @@ from typing import Callable
 
 logger = logging.getLogger(__name__)
 
-VALID_EVENTS = {"on_idle", "on_task_complete", "on_error", "on_batch_complete"}
+VALID_EVENTS = {"on_idle", "on_task_complete", "on_error", "on_batch_complete", "on_session_end", "on_detach", "on_resume"}
 
 HOOKS: dict[str, list[Callable]] = {
     "on_idle": [],
     "on_task_complete": [],
     "on_error": [],
     "on_batch_complete": [],
+    "on_session_end": [],
+    "on_detach": [],
+    "on_resume": [],
 }
 
 
@@ -121,4 +124,43 @@ def on_batch_complete(fn: Callable) -> Callable:
             print("Batch complete:", context.get("batch_id"))
     """
     register_hook("on_batch_complete", fn)
+    return fn
+
+
+def on_session_end(fn: Callable) -> Callable:
+    """Decorator: register a function as an on_session_end hook.
+
+    Example::
+
+        @on_session_end
+        def save_state(context: dict):
+            print("Session ending:", context.get("session_id"))
+    """
+    register_hook("on_session_end", fn)
+    return fn
+
+
+def on_detach(fn: Callable) -> Callable:
+    """Decorator: register a function as an on_detach hook.
+
+    Example::
+
+        @on_detach
+        def handle_detach(context: dict):
+            print("Agent detached:", context.get("agent"))
+    """
+    register_hook("on_detach", fn)
+    return fn
+
+
+def on_resume(fn: Callable) -> Callable:
+    """Decorator: register a function as an on_resume hook.
+
+    Example::
+
+        @on_resume
+        def handle_resume(context: dict):
+            print("Session resumed:", context.get("session_id"))
+    """
+    register_hook("on_resume", fn)
     return fn

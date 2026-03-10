@@ -63,8 +63,10 @@ def _build_claude_command(workspace: Path, name: str, claude_model: str | None =
     """
     claude_prompt = "Lees CLAUDE.md en voer de taak uit. Schrijf al je output naar ./output/ en maak een .done file als je klaar bent."
     model_flag = f" --model {claude_model}" if claude_model else ""
+    # Full PATH ensures oa-cli is available for nested agent spawning (Issue #9/#11)
+    from .workspace import _AGENT_PATH
     return (
-        f"export PATH=\"$HOME/.local/bin:$PATH\" && "
+        f"export PATH=\"{_AGENT_PATH}:$PATH\" && "
         f"cd {workspace} && "
         f"unset CLAUDECODE && "
         f"{CLAUDE_CMD}{model_flag} --dangerously-skip-permissions -p {shlex.quote(claude_prompt)}; "

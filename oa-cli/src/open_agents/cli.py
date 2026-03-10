@@ -22,6 +22,10 @@ from .state import get_agent, list_agents
 from .messaging import broadcast_message, mark_read, read_inbox, send_message, shutdown_request, unread_count
 from .workspace import read_output, remote_is_done, sync_output_from_remote
 from .guardians import list_guardians, log_event, register_guardian, trigger_guardian
+from .session import detect_previous_shutdown, ShutdownMode
+from .session_store import get_latest_session, list_sessions, cleanup_sessions
+from .session_cleanup import session_cleanup
+from .config import get_disconnect_config
 
 app = typer.Typer(
     name="oa",
@@ -193,10 +197,53 @@ def setup():
 @app.command()
 def start(
     chat: bool = typer.Option(True, "--chat/--no-chat", help="Enter interactive chat mode after starting the session (default: True)"),
+    fresh: bool = typer.Option(False, "--fresh", help="Discard previous session state and start clean"),
 ):
     """Start the oa tmux session with a dashboard window."""
     if not _run_preflight_gate():
         raise typer.Exit(1)
+
+    from .tmux import SESSION_NAME, _tmux
+    from datetime import datetime
+
+    if not fresh:
+        mode, info = detect_previous_shutdown()
+
+        if mode == ShutdownMode.DETACH:
+            # tmux session is still alive — resume by reattaching
+            latest = get_latest_session()
+            console.print(Panel(
+                _format_resume_banner(latest, info),
+                title="[bold cyan]Session Resumed[/bold cyan]",
+                border_style="cyan",
+            ))
+            _tmux(f"attach-session -t {SESSION_NAME}", check=False)
+            if chat:
+                from .chat import ChatSession
+                ChatSession().start()
+            return
+
+        if mode == ShutdownMode.CRASH:
+            # tmux is dead but lock file exists — crash recovery
+            latest = get_latest_session()
+            console.print(Panel(
+                _format_crash_banner(latest, info),
+                title="[bold red]Crash Recovery[/bold red]",
+                border_style="red",
+            ))
+            # Release stale lock, then start fresh
+            from .session import release_session_lock
+            release_session_lock()
+
+        if mode == ShutdownMode.CLEAN:
+            # Show one-liner about last session if available
+            latest = get_latest_session()
+            if latest:
+                summary = latest.agent_summary
+                total = summary.get("total", 0)
+                done = summary.get("done", 0)
+                ts = latest.session_id
+                console.print(f"[dim]Last session: {ts} — {done}/{total} agents completed  ·  `oa session` for details[/dim]")
 
     created = start_session()
     if created:
@@ -207,6 +254,59 @@ def start(
     if chat:
         from .chat import ChatSession
         ChatSession().start()
+
+
+def _format_resume_banner(latest, info: dict) -> str:
+    """Format the resume banner for DETACH mode."""
+    lines = []
+    if latest:
+        summary = latest.agent_summary
+        done = summary.get("done", 0)
+        running = summary.get("running", 0)
+        failed = summary.get("failed", 0)
+        parts = []
+        if done:
+            parts.append(f"{done} done")
+        if running:
+            parts.append(f"{running} still running")
+        if failed:
+            parts.append(f"{failed} failed")
+        lines.append(f"Agents: {' · '.join(parts)}" if parts else "Agents: none tracked")
+        git = latest.git_state
+        uncommitted = git.get("uncommitted_files", [])
+        if uncommitted:
+            lines.append(f"Git:    {len(uncommitted)} uncommitted file(s)")
+        branch = git.get("branch", "")
+        if branch:
+            lines.append(f"Branch: {branch}")
+    else:
+        lines.append("Previous session detected (tmux alive)")
+    lines.append("")
+    lines.append("[dim]Run `oa session` for details  ·  `oa start --fresh` to discard[/dim]")
+    return "\n".join(lines)
+
+
+def _format_crash_banner(latest, info: dict) -> str:
+    """Format the crash recovery banner."""
+    lines = ["Previous session did not shut down cleanly."]
+    heartbeat_age = info.get("heartbeat_age_seconds")
+    if heartbeat_age is not None:
+        minutes = int(heartbeat_age // 60)
+        lines.append(f"Last heartbeat: {minutes} min ago")
+    if latest:
+        summary = latest.agent_summary
+        done = summary.get("done", 0)
+        running = summary.get("running", 0)
+        failed = summary.get("failed", 0)
+        total = summary.get("total", 0)
+        lines.append(f"Last snapshot: {latest.session_id}  ({total} agents: {done} done, {running} running, {failed} failed)")
+        git = latest.git_state
+        uncommitted = git.get("uncommitted_files", [])
+        if uncommitted:
+            lines.append(f"Uncommitted files: {len(uncommitted)}")
+    lines.append("")
+    lines.append("Starting fresh session after cleanup...")
+    return "\n".join(lines)
 
 
 @app.command()
@@ -606,23 +706,86 @@ def shutdown_request_cmd(
 @app.command()
 def stop(
     no_guardians: bool = typer.Option(False, "--no-guardians", help="Skip session_end guardian triggers"),
+    force: bool = typer.Option(False, "--force", help="Kill all agents immediately without waiting"),
 ):
-    """Stop the oa tmux session and trigger session_end guardians."""
-    from .tmux import SESSION_NAME, _tmux, session_exists
+    """Stop the oa tmux session with session persistence.
+
+    5-phase shutdown: snapshot → wait for agents → release lock → notify → kill tmux.
+    """
+    from .tmux import SESSION_NAME, _tmux, session_exists as _session_exists
+    from .session import release_session_lock
 
     log_event("session_end", {"session": SESSION_NAME})
 
+    if not _session_exists():
+        console.print("[dim]No active oa session.[/dim]")
+        return
+
+    disconnect_cfg = get_disconnect_config()
+    timeout = disconnect_cfg.get("cleanup_timeout_seconds", 300)
+
+    # Phase 1: SNAPSHOT (instant)
+    console.print("[bold]Phase 1:[/bold] Saving session snapshot...")
+    cleanup_result = session_cleanup(mode="stop")
+    console.print(f"  [green]Snapshot saved[/green]: {cleanup_result.get('snapshot_path', 'unknown')}")
+
+    # Phase 2: FINISH — wait for running agents (unless --force)
+    if not force:
+        agents = list_agents()
+        running = [name for name, rec in agents.items() if rec.status == "running"]
+        if running:
+            console.print(f"[bold]Phase 2:[/bold] Waiting for {len(running)} running agent(s) (max {timeout}s)...")
+            console.print(f"  [dim]Running: {', '.join(running)}[/dim]")
+            deadline = time.time() + timeout
+            while time.time() < deadline:
+                agents = list_agents()
+                still_running = [n for n, r in agents.items() if r.status == "running"]
+                if not still_running:
+                    console.print("  [green]All agents finished.[/green]")
+                    break
+                remaining = int(deadline - time.time())
+                console.print(f"  [dim]{len(still_running)} agent(s) still running... ({remaining}s remaining)[/dim]")
+                time.sleep(min(5, remaining))
+            else:
+                still_running = [n for n, r in list_agents().items() if r.status == "running"]
+                if still_running:
+                    console.print(f"  [yellow]Timeout reached. {len(still_running)} agent(s) still running.[/yellow]")
+                    # Save updated snapshot after waiting
+                    session_cleanup(mode="stop")
+    else:
+        console.print("[bold]Phase 2:[/bold] [yellow]--force: skipping agent wait[/yellow]")
+
+    # Phase 3: RELEASE session lock
+    console.print("[bold]Phase 3:[/bold] Releasing session lock...")
+    release_session_lock()
+    console.print("  [green]Lock released.[/green]")
+
+    # Phase 4: NOTIFY (if enabled)
+    if disconnect_cfg.get("notify_desktop", True):
+        try:
+            from .notify import send_notification
+            agents = list_agents()
+            summary = f"{len(agents)} agents tracked"
+            done = sum(1 for a in agents.values() if a.status == "done")
+            if done:
+                summary = f"{done} done"
+            send_notification("oa-cli", f"Session ended — {summary}")
+            console.print("[bold]Phase 4:[/bold] Desktop notification sent.")
+        except Exception:
+            console.print("[bold]Phase 4:[/bold] [dim]Notification skipped (not available).[/dim]")
+    else:
+        console.print("[bold]Phase 4:[/bold] [dim]Notifications disabled.[/dim]")
+
+    # Trigger guardians (existing behavior)
     if not no_guardians:
         triggered = trigger_guardian("session_end")
         if triggered:
             console.print(f"[dim]Guardians triggered: {', '.join(triggered)}[/dim]")
-            console.print("[dim]Guardians are running in background — session will close now.[/dim]")
 
-    if session_exists():
-        _tmux(f"kill-session -t {SESSION_NAME}", check=False)
-        console.print("[yellow]Session 'oa' stopped.[/yellow]")
-    else:
-        console.print("[dim]No active oa session.[/dim]")
+    # Phase 5: CLOSE tmux session
+    console.print("[bold]Phase 5:[/bold] Closing tmux session...")
+    _tmux(f"kill-session -t {SESSION_NAME}", check=False)
+    console.print("[yellow]Session 'oa' stopped.[/yellow]")
 
 
 @app.command(name="guardians")
@@ -961,6 +1124,134 @@ def resume(name: str = typer.Argument(..., help="Agent name to resume from check
     console.print(f"[green]Resume agent '{rec.name}' spawned[/green]  (model: {model})")
     console.print(f"  Original agent: {name}")
     console.print(f"  Workspace: {rec.workspace}")
+
+
+# --- Session commands ---
+
+session_app = typer.Typer(name="session", help="View and manage session records.", invoke_without_command=True)
+app.add_typer(session_app)
+
+
+@session_app.callback(invoke_without_command=True)
+def session_default(ctx: typer.Context):
+    """Show current or latest session info."""
+    if ctx.invoked_subcommand is not None:
+        return
+
+    from rich.table import Table
+    from datetime import datetime, timezone
+
+    latest = get_latest_session()
+    if latest is None:
+        console.print("[dim]No session records found.[/dim]")
+        return
+
+    console.print(Panel(
+        _format_session_detail(latest),
+        title=f"[bold]Session: {latest.session_id}[/bold]",
+        border_style="blue",
+    ))
+
+
+def _format_session_detail(rec) -> str:
+    """Format a SessionRecord for display."""
+    lines = []
+    lines.append(f"Session ID:    {rec.session_id}")
+    lines.append(f"Shutdown mode: {rec.shutdown_mode}")
+    lines.append(f"Started at:    {datetime.fromtimestamp(rec.started_at, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
+    if rec.ended_at:
+        lines.append(f"Ended at:      {datetime.fromtimestamp(rec.ended_at, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
+    if rec.duration_seconds:
+        mins = int(rec.duration_seconds // 60)
+        lines.append(f"Duration:      {mins} min")
+
+    summary = rec.agent_summary
+    if summary:
+        total = summary.get("total", 0)
+        done = summary.get("done", 0)
+        running = summary.get("running", 0)
+        failed = summary.get("failed", 0)
+        lines.append(f"Agents:        {total} total · {done} done · {running} running · {failed} failed")
+
+    git = rec.git_state
+    if git:
+        branch = git.get("branch", "")
+        if branch:
+            lines.append(f"Branch:        {branch}")
+        uncommitted = git.get("uncommitted_files", [])
+        if uncommitted:
+            lines.append(f"Uncommitted:   {len(uncommitted)} file(s)")
+        last_commit = git.get("last_commit", "")
+        if last_commit:
+            lines.append(f"Last commit:   {last_commit[:80]}")
+
+    if rec.agents_snapshot:
+        lines.append("")
+        lines.append("[bold]Agents:[/bold]")
+        for name, info in rec.agents_snapshot.items():
+            status = info.get("status", "?")
+            task = info.get("task", "")
+            if len(task) > 60:
+                task = task[:57] + "..."
+            lines.append(f"  {name}: [{_status_color(status)}]{status}[/{_status_color(status)}]  {task}")
+
+    return "\n".join(lines)
+
+
+def _status_color(status: str) -> str:
+    return {"done": "green", "running": "cyan", "failed": "red", "error": "red"}.get(status, "yellow")
+
+
+from datetime import datetime, timezone
+
+
+@session_app.command("list")
+def session_list_cmd(
+    limit: int = typer.Option(10, "--limit", "-n", help="Number of sessions to show"),
+):
+    """List recent session records."""
+    from rich.table import Table
+
+    sessions = list_sessions(limit=limit)
+    if not sessions:
+        console.print("[dim]No session records found.[/dim]")
+        return
+
+    table = Table(title=f"Recent Sessions ({len(sessions)})")
+    table.add_column("Session ID", style="cyan")
+    table.add_column("Mode", style="yellow")
+    table.add_column("Agents", style="green")
+    table.add_column("Started", style="dim")
+
+    for rec in sessions:
+        summary = rec.agent_summary
+        total = summary.get("total", 0)
+        done = summary.get("done", 0)
+        running = summary.get("running", 0)
+        failed = summary.get("failed", 0)
+        agent_str = f"{total} total"
+        if done:
+            agent_str += f", {done} done"
+        if running:
+            agent_str += f", {running} running"
+        if failed:
+            agent_str += f", {failed} failed"
+        started = datetime.fromtimestamp(rec.started_at, tz=timezone.utc).strftime("%Y-%m-%d %H:%M")
+        table.add_row(rec.session_id, rec.shutdown_mode, agent_str, started)
+
+    console.print(table)
+
+
+@session_app.command("clean")
+def session_clean_cmd(
+    days: int = typer.Option(30, "--days", "-d", help="Delete sessions older than this many days"),
+):
+    """Delete old session records."""
+    deleted = cleanup_sessions(retention_days=days)
+    if deleted:
+        console.print(f"[green]Deleted {deleted} session record(s) older than {days} days.[/green]")
+    else:
+        console.print("[dim]No old session records to clean up.[/dim]")
 
 
 if __name__ == "__main__":

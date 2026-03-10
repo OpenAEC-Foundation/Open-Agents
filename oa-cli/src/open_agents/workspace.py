@@ -2,12 +2,46 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 import tempfile
 from pathlib import Path
 
 WORKSPACE_PREFIX = "oa-agent-"
+
+# Full PATH so agents (and their sub-agents) can find oa-cli (Issue #9/#11)
+_AGENT_PATH = (
+    "/home/freek/.local/bin:"
+    "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:"
+    "/usr/games:/usr/local/games:/usr/lib/wsl/lib"
+)
+
+# Hook script content that blocks the Agent tool with a redirect message
+_BLOCK_AGENT_HOOK = """\
+#!/bin/bash
+# Block Claude Code's built-in Agent tool — forces oa run for sub-agent spawning.
+# Exit code 2 = block the tool call and show the message to the model.
+echo "GEBLOKKEERD: Gebruik 'oa run' via de Bash tool in plaats van de Agent tool." >&2
+echo "Voorbeeld: oa run \\"<taak>\\" --name <naam> --model claude/sonnet --direct" >&2
+echo "De Agent tool maakt onzichtbare sub-agents. Alleen oa run registreert agents correct." >&2
+exit 2
+"""
+
+# Settings.json for agent workspaces — hooks into PreToolUse to block Agent tool
+_AGENT_SETTINGS = {
+    "permissions": {
+        "defaultMode": "bypassPermissions",
+    },
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Agent",
+                "hooks": ["bash .claude/hooks/block-agent-tool.sh"],
+            }
+        ],
+    },
+}
 
 
 def _messaging_instructions(agent_name: str) -> str:
@@ -36,25 +70,33 @@ def _spawning_instructions(agent_name: str, project_root: str | None = None) -> 
     direct_flag = " --direct" if project_root else ""
     return (
         f"\n"
-        f"## Sub-Agent Spawning\n"
-        f"Als je een sub-taak wilt delegeren aan een andere agent:\n"
-        f"\n"
-        f"**GEBRUIK ALTIJD de Bash tool met `oa run`:**\n"
+        f"## PATH Setup (vereist voor oa-cli)\n"
+        f"Voer dit uit VOORDAT je oa commando's gebruikt:\n"
         f"```bash\n"
+        f"export PATH=\"{_AGENT_PATH}:$PATH\"\n"
+        f"```\n"
+        f"\n"
+        f"## Sub-Agent Delegatie — KRITIEKE INSTRUCTIE\n"
+        f"\n"
+        f"### VERBODEN: Agent tool\n"
+        f"De ingebouwde Agent tool is GEBLOKKEERD via een hook.\n"
+        f"Gebruik de Agent tool NIET — deze maakt sub-agents die onzichtbaar zijn\n"
+        f"voor `oa status` en niet kunnen communiceren via `oa send`/`oa inbox`.\n"
+        f"\n"
+        f"### VERPLICHT: oa run via Bash tool\n"
+        f"Voor ELKE sub-taak die je wilt delegeren, gebruik de **Bash tool** met `oa run`:\n"
+        f"```bash\n"
+        f"export PATH=\"{_AGENT_PATH}:$PATH\"\n"
         f"oa run \"<taakomschrijving>\" --name <agent-naam> --model claude/sonnet "
         f"--parent {agent_name}{direct_flag} --direct\n"
         f"```\n"
         f"\n"
-        f"**GEBRUIK NOOIT de ingebouwde Agent tool voor het spawnen van sub-agents.**\n"
-        f"De Agent tool maakt in-process subagents die onzichtbaar zijn voor `oa status`.\n"
-        f"Alleen `oa run` via Bash registreert agents correct in het oa-systeem.\n"
-        f"\n"
-        f"**Monitoring:**\n"
+        f"### Monitoring\n"
         f"- `oa status` — bekijk alle lopende agents\n"
         f"- `oa collect <naam>` — haal output op van een voltooide agent\n"
         f"- `oa watch <naam>` — volg een agent live\n"
         f"\n"
-        f"**Regels:**\n"
+        f"### Regels\n"
         f"- Geef altijd `--parent {agent_name}` mee\n"
         f"- Gebruik `--model claude/sonnet` (of haiku/opus) — nooit bare `claude`\n"
         f"- Gebruik `--direct` als de sub-agent naar het project moet schrijven\n"
@@ -74,6 +116,17 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
 
     # Create output directory
     (workspace / "output").mkdir()
+
+    # Create .claude/hooks/ and install Agent tool blocker (Issue #9/#11)
+    hooks_dir = workspace / ".claude" / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    hook_script = hooks_dir / "block-agent-tool.sh"
+    hook_script.write_text(_BLOCK_AGENT_HOOK)
+    hook_script.chmod(0o755)
+
+    # Write .claude/settings.json with hook config + bypass permissions
+    settings_file = workspace / ".claude" / "settings.json"
+    settings_file.write_text(json.dumps(_AGENT_SETTINGS, indent=2) + "\n")
 
     claude_md = workspace / "CLAUDE.md"
     messaging = _messaging_instructions(agent_name)

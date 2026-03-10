@@ -44,4 +44,32 @@ def start_session() -> bool:
         f"send-keys -t {SESSION_NAME}:dashboard "
         f"'watch -t -n3 oa status' Enter"
     )
+
+    # Guardian window with self-healing wrapper
+    _tmux(f"new-window -t {SESSION_NAME} -n oa-guardian")
+    _tmux(
+        f"send-keys -t {SESSION_NAME}:oa-guardian "
+        f"'while true; do python3 -m open_agents.session_guardian; "
+        f"echo Guardian restarting in 5s...; sleep 5; done' Enter"
+    )
+
+    # Register detach hook → session cleanup
+    cmd = "python3 -m open_agents.session_cleanup --mode detach"
+    _tmux(f"set-hook -t {SESSION_NAME} client-detached 'run-shell \"{cmd}\"'")
+
+    # Acquire session lock
+    from .session import acquire_session_lock
+    acquire_session_lock()
+
     return True
+
+
+def guardian_is_alive() -> bool:
+    """Check if the oa-guardian tmux window exists."""
+    result = _tmux(
+        f"list-windows -t {SESSION_NAME} -F '#{{window_name}}'",
+        check=False,
+    )
+    if result.returncode != 0:
+        return False
+    return "oa-guardian" in result.stdout.strip().split("\n")
