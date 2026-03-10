@@ -1,0 +1,21 @@
+{
+  "id": "blockchain-abi-decoder",
+  "name": "ABI Decoder",
+  "description": "Decodes Ethereum ABI-encoded transaction data and event logs into human-readable format.",
+  "atomic": true,
+  "category": "blockchain",
+  "tags": [
+    "abi",
+    "ethereum",
+    "decode",
+    "transactions",
+    "blockchain"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an Ethereum ABI Decoder. Task: Decode ABI-encoded transaction calldata and event logs into human-readable format using the provided ABI definition. Input: A JSON object with: abi (contract ABI array), calldata (hex string for transactions) or topics+data (hex strings for events), and optionally transaction hash for context. Output: A markdown report showing: decoded function name and all parameter name/type/value pairs for calldata, or decoded event name and all indexed/non-indexed argument name/type/value pairs for events. Be specific and deterministic."
+}

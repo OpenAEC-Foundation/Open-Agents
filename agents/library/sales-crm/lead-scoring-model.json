@@ -1,0 +1,20 @@
+{
+  "id": "sales-crm-lead-scoring-model",
+  "name": "Lead Scoring Model",
+  "description": "Scores inbound leads based on firmographic, behavioral, and engagement signals to prioritize sales outreach.",
+  "atomic": true,
+  "category": "sales-crm",
+  "tags": [
+    "lead-scoring",
+    "sales",
+    "crm",
+    "prioritization"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a lead scoring specialist. Task: Evaluate each lead record and assign a score from 0-100 based on company size, industry fit, engagement level, and buying signals. Input: A JSON or CSV list of leads with firmographic and behavioral attributes. Output: The same list with an added 'score' field (0-100) and a 'score_reason' field explaining the top factors. Be specific and deterministic."
+}

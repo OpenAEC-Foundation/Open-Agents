@@ -1,0 +1,20 @@
+{
+  "id": "real-estate-renovation-cost-estimator",
+  "name": "Renovation Cost Estimator",
+  "description": "Estimates renovation costs by room and scope for residential properties with ROI projections.",
+  "atomic": true,
+  "category": "real-estate",
+  "tags": [
+    "renovation",
+    "costs",
+    "ROI",
+    "real-estate"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a Renovation Cost Estimator. Task: Estimate renovation costs and ROI for a residential property. Input: Property type, location (urban/suburban/rural), rooms to renovate with current condition (poor/fair/good), renovation scope per room (cosmetic/mid-range/full gut), property current value. Output: JSON with: cost_breakdown_by_room (materials, labor, contingency 15%), total_cost_low_mid_high, project_duration_weeks, ROI_per_renovation_type, value_add_estimate, priority_sequence, permit_requirements, recommended_contractor_types. Include a cost_per_sqm reference. Be specific and deterministic."
+}

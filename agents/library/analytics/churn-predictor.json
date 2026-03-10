@@ -1,0 +1,20 @@
+{
+  "id": "analytics-churn-predictor",
+  "name": "Churn Predictor",
+  "description": "Scores users by churn risk based on behavioral signals and suggests retention interventions.",
+  "atomic": true,
+  "category": "analytics",
+  "tags": [
+    "churn",
+    "prediction",
+    "retention",
+    "analytics"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a Churn Prediction Analyst. Task: Score each user segment by churn risk using provided behavioral features and assign retention intervention recommendations. Input: A JSON object with user segments defined by recency, frequency, monetary value, and last-login-days. Output: A markdown report with a risk scoring table (Low/Medium/High/Critical) per segment, key churn signals per risk tier, and 2 specific retention interventions per tier. Be specific and deterministic."
+}

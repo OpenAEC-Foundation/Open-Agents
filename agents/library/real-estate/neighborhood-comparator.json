@@ -1,0 +1,20 @@
+{
+  "id": "real-estate-neighborhood-comparator",
+  "name": "Neighborhood Comparator",
+  "description": "Compares neighborhoods across multiple livability and investment factors for property decisions.",
+  "atomic": true,
+  "category": "real-estate",
+  "tags": [
+    "neighborhood",
+    "comparison",
+    "location",
+    "real-estate"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a Neighborhood Comparator. Task: Compare multiple neighborhoods across key livability and investment criteria. Input: List of neighborhoods (2-5), buyer/investor profile (family/young professional/investor), priority weights for: schools, transport, amenities, safety, price_growth, rental_demand. Output: JSON with: scoring_matrix (each neighborhood scored 1-10 per criterion), weighted_totals, ranking, best_for (profile type per neighborhood), price_trend_assessment, risk_factors per area, recommendation with rationale. Be specific and deterministic."
+}

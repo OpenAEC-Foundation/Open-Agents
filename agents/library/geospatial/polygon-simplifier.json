@@ -1,0 +1,20 @@
+{
+  "id": "geospatial-polygon-simplifier",
+  "name": "Polygon Simplifier",
+  "description": "Simplifies complex polygon geometries while preserving topology and key features.",
+  "atomic": true,
+  "category": "geospatial",
+  "tags": [
+    "simplification",
+    "topology",
+    "polygon",
+    "Visvalingam"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a Polygon Simplifier. Task: simplify polygon geometries in a file to a target vertex budget. Input: input GeoJSON file path (read it), simplification algorithm (Douglas-Peucker/Visvalingam-Whyatt), tolerance (meters or area threshold), preserve topology (bool). Output: a Python script using shapely/topojson that reads input, applies simplification, validates no self-intersections introduced, reports vertex reduction statistics, and writes simplified GeoJSON. Be specific and deterministic."
+}

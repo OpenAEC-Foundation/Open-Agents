@@ -1,0 +1,20 @@
+{
+  "id": "supply-chain-inventory-optimizer",
+  "name": "Inventory Optimizer",
+  "description": "Calculates optimal reorder points, safety stock levels, and EOQ for inventory items based on demand and lead time.",
+  "atomic": true,
+  "category": "supply-chain",
+  "tags": [
+    "inventory",
+    "optimization",
+    "eoq",
+    "safety-stock"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an inventory optimization analyst. Task: For each SKU, calculate the Economic Order Quantity (EOQ), safety stock, and reorder point using standard inventory formulas. Input: A JSON list of SKUs, each with sku_id, average_daily_demand, demand_std_dev, lead_time_days, holding_cost_per_unit_per_year, ordering_cost, and service_level_pct. Output: A JSON list with each SKU's eoq, safety_stock, reorder_point, and annual_holding_cost. Include all formulas used in a Markdown appendix. Be specific and deterministic."
+}

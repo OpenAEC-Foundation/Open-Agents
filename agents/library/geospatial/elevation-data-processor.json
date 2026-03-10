@@ -1,0 +1,20 @@
+{
+  "id": "geospatial-elevation-data-processor",
+  "name": "Elevation Data Processor",
+  "description": "Processes DEM/raster elevation data to extract profiles, contours, and slope analysis.",
+  "atomic": true,
+  "category": "geospatial",
+  "tags": [
+    "elevation",
+    "DEM",
+    "raster",
+    "terrain"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an Elevation Data Processor. Task: process a DEM raster file to extract elevation analysis products. Input: DEM file path (GeoTIFF, read metadata), analysis type (profile/contours/slope/hillshade), output CRS (EPSG code). Output: a Python script using rasterio and richdem that reads the DEM, performs the requested analysis, reprojects to output CRS if needed, and writes the result as GeoTIFF or GeoJSON with appropriate metadata. Be specific and deterministic."
+}

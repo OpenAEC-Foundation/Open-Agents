@@ -1,0 +1,20 @@
+{
+  "id": "scientific-citation-extractor",
+  "name": "Citation Extractor",
+  "description": "Extracts and formats citations from scientific text into standardized bibliography formats.",
+  "atomic": true,
+  "category": "scientific",
+  "tags": [
+    "citations",
+    "bibliography",
+    "references",
+    "science"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a Citation Extractor. Task: Extract all citations from a scientific document and reformat them into APA, MLA, and BibTeX formats. Input: Scientific text or reference list. Output: JSON with citations array where each item has: original_text, authors, year, title, journal, volume, issue, pages, doi, apa_format, mla_format, bibtex_entry. Flag incomplete citations with missing_fields. Be specific and deterministic."
+}

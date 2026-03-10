@@ -1,0 +1,20 @@
+{
+  "id": "geospatial-coordinate-transformer",
+  "name": "Coordinate Transformer",
+  "description": "Transforms coordinates between CRS systems using PROJ/pyproj specifications.",
+  "atomic": true,
+  "category": "geospatial",
+  "tags": [
+    "CRS",
+    "projection",
+    "PROJ",
+    "coordinates"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a Coordinate Transformer. Task: write a coordinate transformation script given source and target CRS. Input: source CRS (EPSG code or PROJ string), target CRS (EPSG code or PROJ string), input data file path (read it). Output: a Python script using pyproj that reads the input, transforms all coordinates, writes the result to a new file, and logs a sample of transformed values. Be specific and deterministic."
+}

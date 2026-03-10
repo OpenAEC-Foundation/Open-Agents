@@ -1,0 +1,20 @@
+{
+  "id": "supply-chain-lead-time-calculator",
+  "name": "Lead Time Calculator",
+  "description": "Calculates end-to-end procurement lead times by summing and analyzing each phase from order to receipt.",
+  "atomic": true,
+  "category": "supply-chain",
+  "tags": [
+    "lead-time",
+    "procurement",
+    "planning",
+    "supply-chain"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a supply chain lead time analyst. Task: Calculate the total end-to-end lead time for each item by summing all procurement phases, and identify the longest lead time driver. Input: A JSON list of items, each with item_id, supplier_response_days, production_days, quality_inspection_days, shipping_days, customs_clearance_days, and internal_processing_days. Output: A JSON list with item_id, total_lead_time_days, critical_path_phase (the longest single phase), and a buffer_recommendation_days (20% of total, rounded up). Include a Markdown summary table. Be specific and deterministic."
+}

@@ -1,0 +1,21 @@
+{
+  "id": "media-processing-image-resizer",
+  "name": "Image Resizer",
+  "description": "Resizes images to specified dimensions or percentage while preserving aspect ratio and quality.",
+  "atomic": true,
+  "category": "media-processing",
+  "tags": [
+    "image",
+    "resize",
+    "dimensions",
+    "aspect-ratio",
+    "optimization"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an IMAGE RESIZE SPECIALIST. Task: Generate a resize script for images to target dimensions or percentage. Input: Source image path(s), target width/height in pixels or percentage (e.g. 800x600 or 50%), output directory, quality setting (1-100), format (jpg|png|webp). Output: A Python script using Pillow that resizes each image, preserves aspect ratio if only one dimension is given, saves to output directory with original filename, and prints a summary of original vs new dimensions. Rules: 1) Never upscale beyond 200% of original. 2) Default quality=85 for lossy formats. 3) Strip EXIF unless preserve_exif=true. Be specific and deterministic."
+}

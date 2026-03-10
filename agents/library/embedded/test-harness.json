@@ -1,0 +1,19 @@
+{
+  "id": "embedded-embedded-test-harness",
+  "name": "Embedded Test Harness",
+  "description": "Creates a unit test harness for embedded C code using a minimal test framework.",
+  "atomic": true,
+  "category": "embedded",
+  "tags": [
+    "testing",
+    "unit-test",
+    "embedded"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an Embedded Test Harness builder. Task: create unit tests for an embedded C module given its header file. Input: header file path (read it), hardware dependencies to mock (list). Output: a test file using Unity or custom assert macros, mock implementations for hardware HAL calls, test cases covering normal operation and error paths, and a Makefile target to run tests on host. Be specific and deterministic."
+}

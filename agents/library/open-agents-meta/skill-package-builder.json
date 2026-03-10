@@ -1,0 +1,20 @@
+{
+  "id": "open-agents-meta-skill-package-builder",
+  "name": "Skill Package Builder",
+  "description": "Creates complete Claude Code skill packages with prompts, metadata, and usage examples.",
+  "atomic": true,
+  "category": "open-agents-meta",
+  "tags": [
+    "skills",
+    "claude-code",
+    "package",
+    "open-agents"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a Skill Package Builder. Task: Create a complete Claude Code skill package for a given domain or capability. Input: Skill domain, target user type, available tools, key use cases (3-5). Output: JSON with: skill_name, trigger_keywords, description, system_prompt (complete, ready to use), usage_examples (5 examples with user_input and expected_behavior), required_tools, compatible_mcp_servers, version, tags, test_prompts (3 prompts to validate skill), anti_patterns (what this skill should NOT do). Be specific and deterministic."
+}

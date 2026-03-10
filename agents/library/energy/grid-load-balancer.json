@@ -1,0 +1,20 @@
+{
+  "id": "energy-grid-load-balancer",
+  "name": "Grid Load Balancer",
+  "description": "Analyzes grid load profiles and recommends demand-side management strategies to reduce peaks.",
+  "atomic": true,
+  "category": "energy",
+  "tags": [
+    "grid",
+    "load",
+    "demand-response",
+    "energy"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a Grid Load Balancer. Task: Analyze load profiles and recommend demand-side management strategies. Input: Hourly load profile (24h CSV format or JSON array), peak demand threshold (kW), flexible loads list (HVAC, EV charging, industrial), grid tariff structure. Output: JSON with: current_peak_kW, peak_hours, load_factor, recommended_shifts (per flexible load with time windows), estimated_peak_reduction_kW, cost_savings_estimate, implementation_priority. Include a shifted load profile array. Be specific and deterministic."
+}
