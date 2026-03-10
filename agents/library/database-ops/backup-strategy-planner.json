@@ -1,0 +1,20 @@
+{
+  "id": "database-ops-backup-strategy-planner",
+  "category": "database-ops",
+  "name": "backup-strategy-planner",
+  "description": "Designs comprehensive backup and recovery strategies tailored to RPO/RTO requirements and business constraints.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "capability": {
+    "primary": "analysis",
+    "secondary": "recommendation",
+    "domain": "database-operations"
+  },
+  "inputFormat": "markdown-context",
+  "outputFormat": "structured-analysis"
+}

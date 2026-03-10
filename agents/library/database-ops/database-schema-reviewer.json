@@ -1,0 +1,20 @@
+{
+  "id": "database-ops-database-schema-reviewer",
+  "category": "database-ops",
+  "name": "database-schema-reviewer",
+  "description": "Reviews database schemas for design best practices, normalization, performance issues, and security vulnerabilities.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "capability": {
+    "primary": "analysis",
+    "secondary": "recommendation",
+    "domain": "database-operations"
+  },
+  "inputFormat": "markdown-context",
+  "outputFormat": "structured-analysis"
+}

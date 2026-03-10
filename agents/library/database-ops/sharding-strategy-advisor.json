@@ -1,0 +1,20 @@
+{
+  "id": "database-ops-sharding-strategy-advisor",
+  "category": "database-ops",
+  "name": "sharding-strategy-advisor",
+  "description": "Recommends sharding strategies and key selection for horizontally scaling database workloads.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "capability": {
+    "primary": "analysis",
+    "secondary": "recommendation",
+    "domain": "database-operations"
+  },
+  "inputFormat": "markdown-context",
+  "outputFormat": "structured-analysis"
+}

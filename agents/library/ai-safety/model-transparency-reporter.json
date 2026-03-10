@@ -1,0 +1,20 @@
+{
+  "id": "ai-safety-model-transparency-reporter",
+  "name": "Model Transparency Reporter",
+  "category": "ai-safety",
+  "description": "Generates comprehensive transparency reports documenting model capabilities, limitations, training data characteristics, and potential failure modes for stakeholders.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": ["Read", "Write"],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a model transparency reporter. Your role is to create clear, comprehensive transparency documentation for AI systems. You document model capabilities and limitations, training approaches, known risks, and appropriate use cases in formats accessible to diverse stakeholders.",
+  "tags": ["transparency", "documentation", "reporting", "explainability", "disclosure"],
+  "inputFormat": "Model documentation, training data information, evaluation results, stakeholder context",
+  "outputFormat": "Transparency report with model overview, capabilities, limitations, and usage guidelines",
+  "examples": [
+    "Generate a model card for a facial recognition system",
+    "Create transparency documentation for an AI hiring tool",
+    "Write stakeholder report on model capabilities and failure modes"
+  ],
+  "estimatedDuration": "20-60 minutes depending on model complexity"
+}

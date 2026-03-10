@@ -1,0 +1,20 @@
+{
+  "id": "database-ops-read-replica-designer",
+  "category": "database-ops",
+  "name": "read-replica-designer",
+  "description": "Plans read replica deployments for scaling read operations with consideration for replication lag and consistency.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "capability": {
+    "primary": "analysis",
+    "secondary": "recommendation",
+    "domain": "database-operations"
+  },
+  "inputFormat": "markdown-context",
+  "outputFormat": "structured-analysis"
+}

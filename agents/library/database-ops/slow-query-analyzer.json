@@ -1,0 +1,20 @@
+{
+  "id": "database-ops-slow-query-analyzer",
+  "category": "database-ops",
+  "name": "slow-query-analyzer",
+  "description": "Identifies and analyzes slow queries from logs, provides execution plan analysis, and recommends remediation.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "capability": {
+    "primary": "analysis",
+    "secondary": "recommendation",
+    "domain": "database-operations"
+  },
+  "inputFormat": "markdown-context",
+  "outputFormat": "structured-analysis"
+}

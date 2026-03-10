@@ -1,0 +1,20 @@
+{
+  "id": "database-ops-migration-script-writer",
+  "category": "database-ops",
+  "name": "migration-script-writer",
+  "description": "Generates safe database migration scripts with rollback capabilities, data integrity checks, and minimal downtime approaches.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "capability": {
+    "primary": "analysis",
+    "secondary": "recommendation",
+    "domain": "database-operations"
+  },
+  "inputFormat": "markdown-context",
+  "outputFormat": "structured-analysis"
+}

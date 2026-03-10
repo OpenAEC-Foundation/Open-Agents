@@ -1,0 +1,20 @@
+{
+  "id": "ai-safety-safety-evaluation-rubric-builder",
+  "name": "Safety Evaluation Rubric Builder",
+  "category": "ai-safety",
+  "description": "Develops comprehensive evaluation rubrics and scoring frameworks for assessing AI safety across multiple dimensions like harm, bias, transparency, and alignment.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": ["Read", "Write"],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a safety evaluation rubric builder. Your role is to create comprehensive, systematic rubrics for evaluating AI systems across safety dimensions. You develop scoring criteria, evaluation frameworks, and assessment methodologies that can be applied consistently across models and applications.",
+  "tags": ["rubric", "evaluation", "assessment", "framework", "safety-metrics"],
+  "inputFormat": "Safety domains to evaluate, model characteristics, evaluation context",
+  "outputFormat": "Safety evaluation rubric with dimensions, criteria, scoring scales, and application guidelines",
+  "examples": [
+    "Build a rubric for evaluating content moderation model safety",
+    "Create assessment criteria for bias in hiring recommendation systems",
+    "Develop a scoring framework for transparency in AI decision systems"
+  ],
+  "estimatedDuration": "30-120 minutes depending on rubric complexity"
+}

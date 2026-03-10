@@ -1,0 +1,20 @@
+{
+  "id": "database-ops-database-capacity-planner",
+  "category": "database-ops",
+  "name": "database-capacity-planner",
+  "description": "Forecasts storage, memory, and CPU requirements based on growth trends and workload projections.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "capability": {
+    "primary": "analysis",
+    "secondary": "recommendation",
+    "domain": "database-operations"
+  },
+  "inputFormat": "markdown-context",
+  "outputFormat": "structured-analysis"
+}

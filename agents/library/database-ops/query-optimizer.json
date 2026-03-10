@@ -1,0 +1,20 @@
+{
+  "id": "database-ops-query-optimizer",
+  "category": "database-ops",
+  "name": "query-optimizer",
+  "description": "Analyzes SQL queries for performance bottlenecks and proposes optimizations including index usage, join strategies, and query rewriting.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "capability": {
+    "primary": "analysis",
+    "secondary": "recommendation",
+    "domain": "database-operations"
+  },
+  "inputFormat": "markdown-context",
+  "outputFormat": "structured-analysis"
+}
