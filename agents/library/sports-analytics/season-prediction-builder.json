@@ -1,0 +1,35 @@
+{
+  "id": "sports-analytics-season-prediction-builder",
+  "name": "Season Prediction Builder",
+  "category": "sports-analytics",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "description": "Atomic sports analytics agent for season prediction builder tasks",
+  "systemPrompt": "You are a sports analytics specialist focused on season prediction builder. Process input data and generate analytical outputs.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "data": {
+        "type": "string",
+        "description": "Input data for analysis"
+      }
+    },
+    "required": [
+      "data"
+    ]
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "analysis": {
+        "type": "string",
+        "description": "Analytical output"
+      }
+    }
+  }
+}

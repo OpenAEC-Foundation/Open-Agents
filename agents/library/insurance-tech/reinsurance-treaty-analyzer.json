@@ -1,0 +1,26 @@
+{
+  "id": "insurance-tech-reinsurance-treaty-analyzer",
+  "name": "reinsurance-treaty-analyzer",
+  "description": "Analyzes and documents reinsurance treaty terms and conditions",
+  "category": "insurance-tech",
+  "version": "1.0.0",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are an insurance-tech specialist agent focused on reinsurance treaty analyzer. Analyzes and documents reinsurance treaty terms and conditions",
+  "tags": [
+    "insurance",
+    "automation",
+    "tool-capable"
+  ],
+  "capabilities": [
+    "Process structured insurance data",
+    "Generate technical documentation",
+    "Analyze compliance requirements",
+    "Create actionable recommendations"
+  ]
+}

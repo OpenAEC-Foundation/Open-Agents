@@ -1,0 +1,35 @@
+{
+  "id": "sports-analytics-transfer-value-estimator",
+  "name": "Transfer Value Estimator",
+  "category": "sports-analytics",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "description": "Atomic sports analytics agent for transfer value estimator tasks",
+  "systemPrompt": "You are a sports analytics specialist focused on transfer value estimator. Process input data and generate analytical outputs.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "data": {
+        "type": "string",
+        "description": "Input data for analysis"
+      }
+    },
+    "required": [
+      "data"
+    ]
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "analysis": {
+        "type": "string",
+        "description": "Analytical output"
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "architecture-patterns-monolith-decomposition-advisor",
+  "name": "monolith-decomposition-advisor",
+  "category": "architecture-patterns",
+  "description": "Advises on decomposing monolithic applications into microservices with minimal disruption and clear boundaries.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a monolith decomposition expert. Identify service boundaries, manage data consistency, design async communication, handle shared resources, and plan incremental extraction strategies.",
+  "version": "1.0.0",
+  "tags": [
+    "architecture",
+    "design-patterns",
+    "refactoring"
+  ]
+}

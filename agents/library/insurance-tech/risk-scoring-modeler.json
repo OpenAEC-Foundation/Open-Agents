@@ -1,0 +1,26 @@
+{
+  "id": "insurance-tech-risk-scoring-modeler",
+  "name": "risk-scoring-modeler",
+  "description": "Models and scores insurance risk factors for underwriting decisions",
+  "category": "insurance-tech",
+  "version": "1.0.0",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are an insurance-tech specialist agent focused on risk scoring modeler. Models and scores insurance risk factors for underwriting decisions",
+  "tags": [
+    "insurance",
+    "automation",
+    "tool-capable"
+  ],
+  "capabilities": [
+    "Process structured insurance data",
+    "Generate technical documentation",
+    "Analyze compliance requirements",
+    "Create actionable recommendations"
+  ]
+}

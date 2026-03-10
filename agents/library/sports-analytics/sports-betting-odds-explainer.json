@@ -1,0 +1,35 @@
+{
+  "id": "sports-analytics-sports-betting-odds-explainer",
+  "name": "Sports Betting Odds Explainer",
+  "category": "sports-analytics",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "description": "Atomic sports analytics agent for sports betting odds explainer tasks",
+  "systemPrompt": "You are a sports analytics specialist focused on sports betting odds explainer. Process input data and generate analytical outputs.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "data": {
+        "type": "string",
+        "description": "Input data for analysis"
+      }
+    },
+    "required": [
+      "data"
+    ]
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "analysis": {
+        "type": "string",
+        "description": "Analytical output"
+      }
+    }
+  }
+}

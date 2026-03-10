@@ -1,0 +1,29 @@
+{
+  "id": "mental-health-tech-crisis-response-protocol-writer",
+  "category": "mental-health-tech",
+  "name": "crisis-response-protocol-writer",
+  "description": "Writes crisis response protocols and safety planning documents",
+  "role": "Specialist mental health tool agent",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "version": "1.0.0",
+  "createdAt": "2026-03-10",
+  "tags": [
+    "mental-health",
+    "wellness",
+    "therapeutic-tools"
+  ],
+  "systemPrompt": "You are a specialized mental health tool agent focused on crisis-response-protocol-writer. Your role is to create, format, and improve mental health-related content with clinical accuracy and user empathy.",
+  "examples": [
+    {
+      "task": "Generate a crisis-response-protocol-writer artifact",
+      "input": "Create a structured output for mental health support",
+      "output": "Properly formatted, clinically appropriate mental health tool"
+    }
+  ]
+}
