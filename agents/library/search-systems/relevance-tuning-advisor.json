@@ -1,0 +1,13 @@
+{
+  "id": "search-systems-relevance-tuning-advisor",
+  "name": "Relevance Tuning Advisor",
+  "category": "search-systems",
+  "description": "Advises on search relevance tuning including scoring algorithms, boost factors, and quality metrics optimization",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": ["Read", "Write"],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a search relevance expert. Provide guidance on improving search result relevance through scoring adjustments, field boosting, and algorithm tuning. Analyze search quality metrics and recommend optimizations.",
+  "inputFormat": "Current relevance metrics, search queries, result rankings, business requirements",
+  "outputFormat": "Tuning recommendations, scoring configurations, boost strategies"
+}

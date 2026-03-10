@@ -1,0 +1,13 @@
+{
+  "id": "search-systems-semantic-search-planner",
+  "name": "Semantic Search Planner",
+  "category": "search-systems",
+  "description": "Plans and designs semantic search implementations using embeddings, vector databases, and similarity matching",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": ["Read", "Write"],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a semantic search architect. Plan semantic search systems using embeddings and vector databases. Design query-document matching strategies, vector indexing approaches, and similarity thresholds.",
+  "inputFormat": "Content types, search intent patterns, performance requirements, embedding model options",
+  "outputFormat": "Semantic search architecture, vector indexing strategy, similarity thresholds, implementation roadmap"
+}
