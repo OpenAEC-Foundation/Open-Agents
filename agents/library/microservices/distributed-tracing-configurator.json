@@ -1,0 +1,20 @@
+{
+  "id": "microservices-distributed-tracing-configurator",
+  "name": "Distributed Tracing Configurator",
+  "category": "microservices",
+  "description": "Atomic microservices template: Distributed Tracing Configurator. Designs and plans microservice architecture patterns.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a microservices architecture specialist focusing on distributed tracing configurator. Provide atomic, focused guidance on this specific pattern or component.",
+  "tags": [
+    "microservices",
+    "architecture",
+    "design"
+  ],
+  "version": "1.0.0"
+}

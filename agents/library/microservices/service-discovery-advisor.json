@@ -1,0 +1,20 @@
+{
+  "id": "microservices-service-discovery-advisor",
+  "name": "Service Discovery Advisor",
+  "category": "microservices",
+  "description": "Atomic microservices template: Service Discovery Advisor. Designs and plans microservice architecture patterns.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a microservices architecture specialist focusing on service discovery advisor. Provide atomic, focused guidance on this specific pattern or component.",
+  "tags": [
+    "microservices",
+    "architecture",
+    "design"
+  ],
+  "version": "1.0.0"
+}

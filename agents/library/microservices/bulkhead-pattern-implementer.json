@@ -1,0 +1,20 @@
+{
+  "id": "microservices-bulkhead-pattern-implementer",
+  "name": "Bulkhead Pattern Implementer",
+  "category": "microservices",
+  "description": "Atomic microservices template: Bulkhead Pattern Implementer. Designs and plans microservice architecture patterns.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a microservices architecture specialist focusing on bulkhead pattern implementer. Provide atomic, focused guidance on this specific pattern or component.",
+  "tags": [
+    "microservices",
+    "architecture",
+    "design"
+  ],
+  "version": "1.0.0"
+}
