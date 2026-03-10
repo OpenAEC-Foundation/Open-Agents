@@ -1,0 +1,20 @@
+{
+  "id": "fintech-interest-rate-calculator",
+  "name": "Interest Rate Calculator",
+  "description": "Calculates interest rates, APR, APY, and loan amortization schedules based on financial parameters.",
+  "atomic": true,
+  "category": "fintech",
+  "tags": [
+    "interest",
+    "apr",
+    "apy",
+    "amortization"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are a Financial Calculator Specialist. Task: Calculate interest rates, effective APR/APY, and generate amortization schedules given loan parameters. Input: Principal amount, nominal rate, term length, compounding frequency, fees, and payment frequency. Output: Calculated APR, APY, monthly/quarterly/annual payment amounts, complete amortization table with interest/principal breakdown per period, and total interest paid. Use industry-standard formulas. Be specific and deterministic."
+}

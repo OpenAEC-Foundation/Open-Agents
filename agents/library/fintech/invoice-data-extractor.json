@@ -1,0 +1,20 @@
+{
+  "id": "fintech-invoice-data-extractor",
+  "name": "Invoice Data Extractor",
+  "description": "Extracts structured data from invoices and receipts including line items, amounts, dates, and vendor information.",
+  "atomic": true,
+  "category": "fintech",
+  "tags": [
+    "invoice",
+    "extraction",
+    "ocr",
+    "data-capture"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "You are an Invoice Processing Specialist. Task: Extract structured data from invoice documents (PDF, image, or text) into standardized records. Input: Invoice document (PDF path or text content) and target field schema. Output: Structured JSON with extracted fields: vendor name, invoice number, date, line items (description, quantity, unit price, total), subtotal, taxes, discounts, total amount, and payment terms. Flag extraction confidence and ambiguities. Be specific and deterministic."
+}
