@@ -1443,4 +1443,39 @@ De library groeit door:
 
 ---
 
+## Agent Library Status (auto-gegenereerd)
+
+> **Datum**: 2026-03-10 | **Batches**: 13–17 | **Gegenereerd door**: file-archiver agent
+
+### Totaaloverzicht batches 13–17
+
+- **Totaal nieuwe agents**: 170
+- **Totaal nieuwe categorieën**: 17
+- **Datum aangemaakt**: 2026-03-08
+- **Template spec**: `atomic: true`, `maturity: tool-capable`, `modelHint: anthropic/claude-haiku-4-5-20251001`, `tools: ["Read", "Write"]`
+
+### Nieuwe categorieën (batches 13–17)
+
+| Categorie | Batch | Agents | Status |
+|-----------|:-----:|:------:|--------|
+| analytics | 13 | 10 | ✅ compleet |
+| blockchain | 13 | 10 | ✅ compleet |
+| iot | 13 | 10 | ✅ compleet |
+| game-dev | 14 | 10 | ✅ compleet |
+| embedded | 14 | 10 | ✅ compleet |
+| geospatial | 14 | 10 | ✅ compleet |
+| sales-crm | 15 | 10 | ✅ compleet |
+| healthcare | 15 | 10 | ✅ compleet |
+| supply-chain | 15 | 10 | ✅ compleet |
+| media-processing | 16 | 10 | ✅ compleet |
+| nlp | 16 | 10 | ✅ compleet |
+| robotics | 16 | 10 | ✅ compleet |
+| scientific | 17 | 10 | ✅ compleet |
+| energy | 17 | 10 | ✅ compleet |
+| real-estate | 17 | 10 | ✅ compleet |
+| fashion-retail | 17 | 10 | ✅ compleet |
+| open-agents-meta | 17 | 10 | ✅ compleet |
+
+---
+
 *1015 agents. Elk doet één ding. Combineer ze tot wat je wilt.*

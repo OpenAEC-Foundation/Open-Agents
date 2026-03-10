@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- ErrorBoundary en ToastProvider componenten voor robuuste UI error handling
+- PipelinePanel: visuele pipeline trigger component met live status polling
+- TaskBoard: kanban bord per team met todo/in_progress/done kolommen
+- 170 agent templates in 17 nieuwe categorieën (analytics, blockchain, healthcare, iot, audio, video, image-processing, legal, marketing, product-management, security, devops, mobile, physics, education, finance, logistics)
+- Design documentation (webapp masterplan, sprint 18 plan, bridge API design)
+
+### Changed
+- Dashboard componenten (11 items): hardcoded kleuren vervangen door CSS design tokens
+- app.tsx: wrapped met ToastProvider en ErrorBoundary per tab
+
+### Technical Details
+- No external component libraries for ErrorBoundary/ToastProvider (custom implementation)
+- CSS design tokens: `--color-*`, `--spacing-*`, `--typography-*` variables
+- PipelinePanel API integration: `GET /api/pipelines`, live status via polling (2s interval)
+- TaskBoard API integration: `GET /api/tasks/<team>`, WebSocket ready for real-time updates
+
+---
+
 ## [0.2.0] - 2026-03-02
 
 ### Added

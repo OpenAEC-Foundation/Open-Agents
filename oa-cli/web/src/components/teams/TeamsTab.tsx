@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchTeams, createTeam, deleteTeam, addTeamMember } from '../../api/client';
+import TaskBoard from './TaskBoard';
 
 interface Team {
   name: string;
@@ -99,7 +100,7 @@ export function TeamsTab() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
         {error && (
           <div className="mb-4 px-3 py-2 bg-red-900/30 border border-red-700 rounded-md text-red-400 text-xs">
             {error}
@@ -195,6 +196,14 @@ export function TeamsTab() {
             ))}
           </div>
         )}
+
+        {/* Task Board */}
+        <div className="rounded-lg border border-oa-border bg-oa-surface overflow-hidden" style={{ minHeight: '400px' }}>
+          <div className="px-4 py-2 border-b border-oa-border">
+            <span className="text-xs font-semibold text-oa-text-muted uppercase tracking-wider">Task Board</span>
+          </div>
+          <TaskBoard />
+        </div>
       </div>
     </div>
   );

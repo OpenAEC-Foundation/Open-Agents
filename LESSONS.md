@@ -224,4 +224,14 @@
 | L-058 | **1:1 skill→agent koppeling schaalt naar 22+ skills** — Elk SKILL.md mappt exact naar één JSON agent template. 14 skill-gekoppelde templates + 19 algemene templates = 33 totaal in agents/library/core/. Geen N:1 of 1:N relaties nodig gebleken. | Fase 1 voltooid: 22 skills + 33 templates. Bevestigt L-034 (skill-backed agents patroon) op grotere schaal. |
 | L-059 | **Directory structuur is productieklaar — nooit losse .md bestanden** — De `.claude/skills/naam/SKILL.md` directory structuur is de enige correcte aanpak. Maakt skills uitbreidbaar met examples/ en tests/ subdirectories. Gemigreerd en bewezen in Fase 0+1. | 22 skills in directory structuur zonder problemen. Verheft L-050 tot harde eis: losse bestanden zijn niet toegestaan. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-060, L-061, etc.*
+---
+
+## Sessie 2026-03-10 — Dashboard Refactor & Agent Library Wave 1
+
+### Parallel Agent Delegation at Scale
+
+| # | Les | Context |
+|---|-----|---------|
+| L-060 | **Parallel agent delegatie werkt optimaal in waves van 4-6 agents.** Wave 1 (commits + implementatie tegelijk) + Wave 2 (integratie) geeft maximale voortgang per sessie. | 5 parallel component-builders (ErrorBoundary, ToastProvider, PipelinePanel, TaskBoard, CSS tokens) + 4 parallel agent template builders (batches 13-16). Wave 1: 9 agents non-overlapping targets. Wave 2: integratietesten, API wiring. Bevestigt en schaalt L-037 (batch template generation) op grotere gemengde workloads. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-061, L-062, etc.*

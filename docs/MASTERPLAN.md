@@ -1857,4 +1857,95 @@ Bron: https://code.claude.com/docs/en/agent-teams
 
 ---
 
+---
+
+## Web UI Sprint Plan (2026-03-10)
+
+> **Bron**: webapp-masterplan-raw.md, webapp-sprint-plan.md, bridge-api-design.md
+> **Gegenereerd door**: file-archiver agent | **Datum**: 2026-03-10
+
+### Samenvatting webapp sprint plan
+
+- **Doel**: Command Centre dat de volledige kracht van oa-cli visueel maakt — geen feature gaps meer
+- **Sprint 1 (MVP)**: Alle CLI-functionaliteit beschikbaar via UI (error handling, toasts, pause/resume, broadcast, xterm.js)
+- **Sprint 2 (Power)**: Features die UI superieur maken aan CLI (pipeline tab, taskboard, messages tab, command palette)
+- **Sprint 3 (Polish)**: Keyboard-first navigatie, persistente history, desktop-grade UX, visualisaties
+- **Tabstructuur**: Dashboard, Agent Detail (slide-over), Pipelines, Teams & Tasks, Templates, Messages, Settings, Builder
+- **Nieuwe packages**: `sonner`, `@xterm/xterm`, `cmdk`, `react-hotkeys-hook`, `react-resizable-panels`
+- **Nieuwe stores**: `messagingStore`, `pipelineStore`, `taskStore`, `checkpointStore`
+- **Technische schuld**: error boundaries, TypeScript types (`unknown` → proper types), SSE reconnect, Tailwind migratie
+- **Keyboard shortcuts**: Ctrl+K command palette, `?` overlay, `1-7` tab-switch, J/K navigatie, `/` zoekfocus
+- **UI-exclusieve features**: visuele hiërarchie (tree/graph), drag-and-drop pipeline builder, cost dashboard
+- **Totale scope**: ~35 nieuwe bestanden, 12 gewijzigde bestanden, 5 nieuwe npm packages
+
+### Fasering
+
+#### Fase 1 — Must-Have MVP (~8-10 dagen)
+
+| ID | Taak | Effort |
+|----|------|--------|
+| F1-01 | Error boundaries + error state in agentStore | S |
+| F1-02 | Toast notificaties (sonner) | S |
+| F1-03 | Type-safe API client (geen `unknown` meer) | M |
+| F1-04 | Pause/Resume knoppen in AgentPanel | S |
+| F1-05 | Broadcast UI (BroadcastButton + modal) | S |
+| F1-06 | Mark-read bij messages openen | S |
+| F1-07 | Terminal output (xterm.js) | M |
+| F1-08 | Hover action bar op KanbanBoard | M |
+| F1-09 | StatsHeader (running/done/failed tellers) | S |
+| F1-10 | Zoek/filter agents | M |
+| F1-11 | SpawnForm uitbreiden (max_children, guardians) | S |
+| F1-12 | messagingStore aanmaken (Zustand) | M |
+
+#### Fase 2 — Power Features (~12-14 dagen)
+
+| ID | Taak | Effort |
+|----|------|--------|
+| F2-01 | Command Palette (Ctrl+K, cmdk) | M |
+| F2-02 | Keyboard shortcuts + overlay | M |
+| F2-03 | Pipeline tab + trigger API | L |
+| F2-04 | TaskBoard in Teams tab (4 kolommen) | L |
+| F2-05 | Checkpoint panel + resume | M |
+| F2-06 | Messages tab (centraal berichtenoverzicht) | M |
+| F2-07 | Template create/edit modal | M |
+| F2-08 | Resizable panels (react-resizable-panels) | M |
+| F2-09 | Session status indicator in StatsHeader | S |
+| F2-10 | GuardianPanel polling + register UI | S |
+| F2-11 | Team member remove + team broadcast | M |
+| F2-12 | SSE reconnect logica met exponential backoff | S |
+
+#### Fase 3 — Polish & Advanced (~14-16 dagen)
+
+| ID | Taak | Effort |
+|----|------|--------|
+| F3-01 | View toggle: kanban / tree / list | L |
+| F3-02 | Cost dashboard (CostWidget + /api/session/cost) | M |
+| F3-03 | Run history / audit trail (HistoryTab) | L |
+| F3-04 | Tailwind migratie (inline styles vervangen) | L |
+| F3-05 | Pipeline DAG visualisatie (ReactFlow) | L |
+| F3-06 | Batch grid view voor pipeline subtasks | M |
+| F3-07 | Dode code cleanup (LiveCanvas beslissing) | M |
+| F3-08 | Activity Feed persistentie (localStorage) | S |
+| F3-09 | Delegate UI (F3-09) | M |
+| F3-10 | Retry agent actie (AgentActionBar) | S |
+| F3-11 | Onboarding flow verbeteren | S |
+
+### Ontbrekende bridge API endpoints
+
+| Endpoint | Methode | Blokkeert |
+|----------|:-------:|-----------|
+| `/api/pipeline` | POST | Pipeline tab (F2-03) |
+| `/api/pipeline/<id>/status` | GET | Pipeline monitoring |
+| `/api/session/stop` | POST | Sessie beheer in UI |
+| `/api/agents/<name>/retry` | POST | Retry actie (F3-10) |
+| `/api/tasks/<team>/<id>/claim` | POST | Task claiming (F2-04) |
+| `/api/tasks/<team>/<id>/complete` | POST | Task dependencies (F2-04) |
+| `/api/session/cost` | GET | Cost dashboard (F3-02) |
+| `/api/teams/<name>/members/<agent>` | DELETE | Team member management (F2-11) |
+| `/api/teams/<name>/broadcast` | POST | Team broadcast (F2-11) |
+| `/api/guardians/register` | POST | Guardian registratie (F2-10) |
+| `/api/delegate` | POST | Delegate UI (F3-09) |
+
+---
+
 *Impertio Studio B.V. — AI ecosystems, deployed right.*

@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-08
-> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 11 (VS Code Bridge) In Progress — Sprint 17 (Agent Teams) In Progress — Agent Library: 284 templates (15 categories) — 22 skills gebouwd
+> **Laatste update**: 2026-03-10
+> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 11 (VS Code Bridge) In Progress — Sprint 17 (Agent Teams) In Progress — Sprint 18 (Dashboard UI) In Progress — Agent Library: 454 templates (32 categories) — 22 skills gebouwd
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -27,7 +27,7 @@
 | Frappe App | 1 | 1 |
 | Library Ecosystem (10 types) | 0 | 10 |
 | LLM Asset Generation (Factory) | 1 | 1 |
-| Agent Library (doel: 1015+) | 284 | 1015 |
+| Agent Library (doel: 1015+) | 454 | 1015 |
 | CLI Agentic Layer (oa-cli) | 1 | 1 |
 | VS Code Bridge (Sprint 11) | 0 | 1 |
 | Agent Teams Patterns (Sprint 17) | 0 | 12 |
@@ -42,11 +42,12 @@
 **Fase 4c (Assistant)**: ████████████████████ **100%** - AI assembly assistant sidebar (Sprint 6c)
 **Fase 5 (Deployment)**: ████████████████████ **100%** - VS Code extension (Sprint 7) + Frappe app (Sprint 8)
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
-**Fase 7 (Agent Library)**: █████░░░░░░░░░░░░░░░ **28%** - 284/1015 agents geïmplementeerd (15 directory-categorieën: aec-blender/bonsai/cross/ifcopenshell/sverchok, code-dev, communication, core, data-transform, erpnext, file-system, git-versioning, research, review-quality, text-language)
+**Fase 7 (Agent Library)**: ███████████░░░░░░░░░ **45%** - 454/1015 agents geïmplementeerd (32 directory-categorieën: aec-blender/bonsai/cross/ifcopenshell/sverchok, code-dev, communication, core, data-transform, erpnext, file-system, git-versioning, research, review-quality, text-language, analytics, blockchain, healthcare, iot, audio, video, image-processing, legal, marketing, product-management, security, devops, mobile, physics, education, finance, logistics)
 **Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond), v0.2.0 released 2026-03-02
 **Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 21+ commando's, Textual TUI, pipeline orchestrator, React web UI; checkpoints en resume geïmplementeerd
 **Fase 10 (VS Code Bridge)**: ████████████████░░░░ **80%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator, package migratie, launch config werkend; shared types mergen, test-workspace, CLI tool integreren bij agent sprint11-finisher
 **Fase 11 (Agent Teams Patterns)**: ████████████░░░░░░░░ **58%** - Sprint 17 in progress: task_list.py, teams.py, messaging.py (send/inbox/broadcast werkend), CLI commando's volledig; hooks.py, graceful shutdown, tests, TUI/web views nog open
+**Fase 12 (Dashboard & UI Refactor)**: ████████████████░░░░ **80%** - Sprint 18 in progress: ErrorBoundary + ToastProvider componenten, PipelinePanel (visual trigger + live status), TaskBoard (kanban per team), 11 dashboard componenten refactored met CSS design tokens
 
 ---
 
@@ -344,6 +345,51 @@
 - [x] Integratie in oa stop command
 - [x] Templates: guardian-lessons, guardian-roadmap, guardian-handoff
 - [x] Session-start-orchestrator template
+
+---
+
+## Sprint 18: Dashboard UI & CSS Design Tokens — In Progress (2026-03-10)
+
+**Doel**: Refactor van React dashboard componenten met design tokens, ErrorBoundary/ToastProvider, en visuele pipeline-triggers.
+
+**Status**: Wave 1 compleet
+
+**Voltooide items**:
+- [x] ErrorBoundary.tsx component (error fallback, error logging, recovery) — geen externe libs
+- [x] ToastProvider.tsx component + useToast hook (context-based toast notifications)
+- [x] PipelinePanel.tsx component (visuele pipeline trigger UI + live status polling)
+- [x] TaskBoard.tsx component (kanban bord per team: todo/in_progress/done colums, connectie met /api/tasks)
+- [x] Dashboard refactor — 11 React componenten (ConnectionIndicator, ExecutionToolbar, OutputPanel, StatusColors, etc.)
+- [x] CSS design token refactoring (hardcoded kleuren → --token variabelen, TailwindCSS integration)
+- [x] Design docs gecommit (webapp masterplan, sprint plan, bridge API design)
+- [x] app.tsx gewrapped met ToastProvider en ErrorBoundary per tab
+
+**Agent Library Wave 1 (Batches 13-17)**:
+- [x] 170 agent templates toegevoegd in 17 nieuwe categorieën:
+  - Analytics (10 agents)
+  - Blockchain (10 agents)
+  - Healthcare (10 agents)
+  - IoT (10 agents)
+  - Audio (10 agents)
+  - Video (10 agents)
+  - Image Processing (10 agents)
+  - Legal (10 agents)
+  - Marketing (10 agents)
+  - Product Management (10 agents)
+  - Security (10 agents)
+  - DevOps (10 agents)
+  - Mobile (10 agents)
+  - Physics (10 agents)
+  - Education (10 agents)
+  - Finance (10 agents)
+  - Logistics (10 agents)
+
+**Pending**:
+- [ ] Integration tests voor ErrorBoundary + ToastProvider
+- [ ] PipelinePanel API integration + polling logic
+- [ ] TaskBoard API endpoints en dataflow
+- [ ] CSS token audit (zorgen dat alle 11 componenten consistent zijn)
+- [ ] Agent library Wave 2 (overige 300+ agents naar 1015)
 
 ---
 
