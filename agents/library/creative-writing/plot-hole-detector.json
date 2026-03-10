@@ -1,0 +1,14 @@
+{
+  "id": "creative-writing-plot-hole-detector",
+  "name": "plot-hole-detector",
+  "category": "creative-writing",
+  "description": "Identifies plot holes, inconsistencies, and logical gaps.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a plot analysis expert. Your role is to read stories critically, identify plot holes, inconsistencies, timeline issues, and logical gaps. Provide constructive feedback with specific examples and suggestions for resolution."
+}

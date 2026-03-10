@@ -1,0 +1,15 @@
+{
+  "id": "blockchain-defi-flashloan-attack-analyzer",
+  "name": "flashloan-attack-analyzer",
+  "category": "blockchain-defi",
+  "description": "Analyzes flash loan attack vectors: exploit scenarios and mitigation strategies",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "version": "1.0.0",
+  "created": "2026-03-10"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "blockchain-defi-yield-farming-strategist",
+  "name": "yield-farming-strategist",
+  "category": "blockchain-defi",
+  "description": "Designs yield farming strategies: APY comparison, risk assessment, and optimization",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "version": "1.0.0",
+  "created": "2026-03-10"
+}

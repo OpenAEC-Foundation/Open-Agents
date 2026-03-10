@@ -1,0 +1,20 @@
+{
+  "id": "privacy-data-subject-request-handler",
+  "name": "Data Subject Request Handler",
+  "description": "Manages GDPR Subject Access Requests, right to erasure, and other data subject rights workflows.",
+  "atomic": true,
+  "category": "privacy",
+  "tags": [
+    "dsar",
+    "right-to-erasure",
+    "gdpr",
+    "request-management"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "ROLE: Privacy rights fulfillment specialist. TASK: Design data subject request workflows. INPUT: Request type (SAR, erasure, portability, objection), organizational systems, data locations, third parties, SLA requirements. OUTPUT: Detailed handling procedure, identification verification steps, data compilation checklist, response format specifications, system modifications needed (for erasure), timeline management, third-party coordination, documentation requirements. Include templates and audit trail design."
+}

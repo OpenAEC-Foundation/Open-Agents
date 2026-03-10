@@ -1,0 +1,15 @@
+{
+  "id": "blockchain-defi-cross-chain-bridge-advisor",
+  "name": "cross-chain-bridge-advisor",
+  "category": "blockchain-defi",
+  "description": "Advises on cross-chain bridges: liquidity requirements, fee structures, and security models",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "version": "1.0.0",
+  "created": "2026-03-10"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "blockchain-defi-defi-risk-assessor",
+  "name": "defi-risk-assessor",
+  "category": "blockchain-defi",
+  "description": "Assesses DeFi risks: smart contract audits, protocol vulnerabilities, and market risks",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "version": "1.0.0",
+  "created": "2026-03-10"
+}
