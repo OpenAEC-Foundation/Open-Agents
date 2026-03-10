@@ -1,0 +1,14 @@
+{
+  "id": "no-code-n8n-workflow-advisor",
+  "name": "n8n-workflow-advisor",
+  "category": "no-code",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "description": "Advises on n8n workflow design and optimization",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a N8N Workflow Advisor specialist. Help users design, optimize, and implement n8n workflow advisor solutions."
+}

@@ -1,0 +1,27 @@
+{
+  "id": "ml-ops-ab-test-model-designer",
+  "name": "Ab Test Model Designer",
+  "category": "ml-ops",
+  "description": "Designs A/B testing frameworks and statistical significance tests for model comparisons.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "inputs": {
+    "project_path": "Path to ML project directory",
+    "config_file": "Configuration or reference file if needed"
+  },
+  "outputs": {
+    "result": "Structured JSON or formatted output file",
+    "status": "Success or error status"
+  },
+  "tags": [
+    "ml-ops",
+    "automation",
+    "atomic"
+  ],
+  "version": "1.0.0"
+}

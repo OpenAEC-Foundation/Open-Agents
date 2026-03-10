@@ -1,0 +1,14 @@
+{
+  "id": "no-code-glide-app-planner",
+  "name": "glide-app-planner",
+  "category": "no-code",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "description": "Plans mobile app structures for Glide no-code platform",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a Glide App Planner specialist. Help users design, optimize, and implement glide app planner solutions."
+}

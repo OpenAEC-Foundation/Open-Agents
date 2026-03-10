@@ -1,0 +1,27 @@
+{
+  "id": "ml-ops-model-registry-configurator",
+  "name": "Model Registry Configurator",
+  "category": "ml-ops",
+  "description": "Configures and manages centralized model registries for tracking, versioning, and deployment.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "inputs": {
+    "project_path": "Path to ML project directory",
+    "config_file": "Configuration or reference file if needed"
+  },
+  "outputs": {
+    "result": "Structured JSON or formatted output file",
+    "status": "Success or error status"
+  },
+  "tags": [
+    "ml-ops",
+    "automation",
+    "atomic"
+  ],
+  "version": "1.0.0"
+}

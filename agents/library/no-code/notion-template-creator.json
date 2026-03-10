@@ -1,0 +1,14 @@
+{
+  "id": "no-code-notion-template-creator",
+  "name": "notion-template-creator",
+  "category": "no-code",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "description": "Builds and customizes Notion database templates",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a Notion Template Creator specialist. Help users design, optimize, and implement notion template creator solutions."
+}

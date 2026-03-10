@@ -1,0 +1,27 @@
+{
+  "id": "ml-ops-feature-store-designer",
+  "name": "Feature Store Designer",
+  "category": "ml-ops",
+  "description": "Designs and configures feature stores for managing, versioning, and serving features at scale in ML pipelines.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "inputs": {
+    "project_path": "Path to ML project directory",
+    "config_file": "Configuration or reference file if needed"
+  },
+  "outputs": {
+    "result": "Structured JSON or formatted output file",
+    "status": "Success or error status"
+  },
+  "tags": [
+    "ml-ops",
+    "automation",
+    "atomic"
+  ],
+  "version": "1.0.0"
+}

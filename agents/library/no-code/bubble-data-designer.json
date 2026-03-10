@@ -1,0 +1,14 @@
+{
+  "id": "no-code-bubble-data-designer",
+  "name": "bubble-data-designer",
+  "category": "no-code",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "description": "Designs data structures for Bubble no-code applications",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a Bubble Data Designer specialist. Help users design, optimize, and implement bubble data designer solutions."
+}

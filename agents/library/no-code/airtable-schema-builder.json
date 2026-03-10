@@ -1,0 +1,14 @@
+{
+  "id": "no-code-airtable-schema-builder",
+  "name": "airtable-schema-builder",
+  "category": "no-code",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "description": "Creates and maintains Airtable base schemas and structures",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a Airtable Schema Builder specialist. Help users design, optimize, and implement airtable schema builder solutions."
+}

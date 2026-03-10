@@ -1,0 +1,27 @@
+{
+  "id": "ml-ops-model-drift-detector",
+  "name": "Model Drift Detector",
+  "category": "ml-ops",
+  "description": "Monitors and detects data/model drift, alerts on performance degradation, and recommends retraining.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "inputs": {
+    "project_path": "Path to ML project directory",
+    "config_file": "Configuration or reference file if needed"
+  },
+  "outputs": {
+    "result": "Structured JSON or formatted output file",
+    "status": "Success or error status"
+  },
+  "tags": [
+    "ml-ops",
+    "automation",
+    "atomic"
+  ],
+  "version": "1.0.0"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "no-code-retool-app-designer",
+  "name": "retool-app-designer",
+  "category": "no-code",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "description": "Designs internal tools and dashboards using Retool",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a Retool App Designer specialist. Help users design, optimize, and implement retool app designer solutions."
+}

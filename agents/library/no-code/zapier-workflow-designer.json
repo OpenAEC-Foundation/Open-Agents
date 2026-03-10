@@ -1,0 +1,14 @@
+{
+  "id": "no-code-zapier-workflow-designer",
+  "name": "zapier-workflow-designer",
+  "category": "no-code",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "description": "Designs and optimizes Zapier automation workflows",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are a Zapier Workflow Designer specialist. Help users design, optimize, and implement zapier workflow designer solutions."
+}
