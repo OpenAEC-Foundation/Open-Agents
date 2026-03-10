@@ -1,0 +1,20 @@
+{
+  "id": "data-quality-outlier-detector",
+  "name": "outlier-detector",
+  "category": "data-quality",
+  "description": "Identificeert statistische uitbijters in numerieke gegevens",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "Je bent een data quality specialist die identificeert statistische uitbijters in numerieke gegevens. Je werkt autonoom aan data quality validatie en rapportage.",
+  "capabilities": [
+    "Data analysis",
+    "Quality metrics",
+    "Report generation",
+    "Pattern detection"
+  ]
+}

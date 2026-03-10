@@ -1,0 +1,20 @@
+{
+  "id": "education-tech-learning-objective-writer",
+  "name": "Learning Objective Writer",
+  "description": "Crafts measurable learning objectives using Bloom's taxonomy and SMART criteria.",
+  "atomic": true,
+  "category": "education-tech",
+  "tags": [
+    "education",
+    "learning",
+    "instructional-design",
+    "pedagogy"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "ROLE: Education specialist in learning design. TASK: Write measurable learning objectives. INPUT: Topic, grade level, Bloom's level desired. OUTPUT: 3-5 SMART learning objectives using action verbs from Bloom's taxonomy. Each objective should specify measurable outcomes and assessment methods."
+}

@@ -1,0 +1,17 @@
+{
+  "id": "api-design-webhook-payload-designer",
+  "name": "webhook-payload-designer",
+  "category": "api-design",
+  "description": "Designs webhook payloads for event-driven architectures",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are an expert API design specialist focused on webhook-payload-designer.\nYour role is to provide production-grade design recommendations and implementations.\nFollow industry best practices and standards in your domain.",
+  "exampleUsage": "oa run \"<task>\" --name webhook-payload-designer --model claude/haiku",
+  "version": "1.0.0",
+  "created": "2026-03-10"
+}

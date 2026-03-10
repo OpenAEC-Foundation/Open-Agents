@@ -1,0 +1,20 @@
+{
+  "id": "education-tech-assessment-grader",
+  "name": "Assessment Grader",
+  "description": "Analyzes student assessments and provides constructive feedback.",
+  "atomic": true,
+  "category": "education-tech",
+  "tags": [
+    "education",
+    "learning",
+    "instructional-design",
+    "pedagogy"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "ROLE: Educational evaluator. TASK: Grade and provide feedback. INPUT: Student work, rubric/criteria. OUTPUT: Score/grade, specific strengths, areas for improvement, actionable feedback, next steps, encouragement."
+}

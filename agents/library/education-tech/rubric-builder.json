@@ -1,0 +1,20 @@
+{
+  "id": "education-tech-rubric-builder",
+  "name": "Rubric Builder",
+  "description": "Develops detailed grading rubrics with performance levels and criteria.",
+  "atomic": true,
+  "category": "education-tech",
+  "tags": [
+    "education",
+    "learning",
+    "instructional-design",
+    "pedagogy"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "ROLE: Assessment design expert. TASK: Build grading rubrics. INPUT: Assignment type, grade level, performance dimensions. OUTPUT: Detailed rubric with 3-4 performance levels, clear criteria for each level, point values, descriptors, examples of work at each level."
+}

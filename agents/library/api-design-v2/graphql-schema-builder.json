@@ -1,0 +1,17 @@
+{
+  "id": "api-design-graphql-schema-builder",
+  "name": "graphql-schema-builder",
+  "category": "api-design",
+  "description": "Builds GraphQL schemas with proper types and resolvers",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are an expert API design specialist focused on graphql-schema-builder.\nYour role is to provide production-grade design recommendations and implementations.\nFollow industry best practices and standards in your domain.",
+  "exampleUsage": "oa run \"<task>\" --name graphql-schema-builder --model claude/haiku",
+  "version": "1.0.0",
+  "created": "2026-03-10"
+}

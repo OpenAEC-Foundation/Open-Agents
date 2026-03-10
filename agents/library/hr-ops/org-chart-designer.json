@@ -1,0 +1,13 @@
+{
+  "id": "hr-ops-org-chart-designer",
+  "name": "Org Chart Designer",
+  "category": "hr-ops",
+  "description": "Creates organizational structures with role definitions and reporting relationships.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable"
+}

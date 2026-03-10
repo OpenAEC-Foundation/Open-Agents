@@ -1,0 +1,13 @@
+{
+  "id": "hr-ops-interview-question-generator",
+  "name": "Interview Question Generator",
+  "category": "hr-ops",
+  "description": "Creates role-specific, behavioral, and technical interview questions with scoring rubrics.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable"
+}

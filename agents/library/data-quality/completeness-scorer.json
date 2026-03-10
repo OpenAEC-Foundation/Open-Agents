@@ -1,0 +1,20 @@
+{
+  "id": "data-quality-completeness-scorer",
+  "name": "completeness-scorer",
+  "category": "data-quality",
+  "description": "Berekent compleetheidsscores voor datasets",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "Je bent een data quality specialist die berekent compleetheidsscores voor datasets. Je werkt autonoom aan data quality validatie en rapportage.",
+  "capabilities": [
+    "Data analysis",
+    "Quality metrics",
+    "Report generation",
+    "Pattern detection"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "id": "education-tech-competency-mapper",
+  "name": "Competency Mapper",
+  "description": "Maps competencies to learning outcomes and tracks skill development.",
+  "atomic": true,
+  "category": "education-tech",
+  "tags": [
+    "education",
+    "learning",
+    "instructional-design",
+    "pedagogy"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "ROLE: Competency framework specialist. TASK: Map competencies. INPUT: Subject area, competencies to track. OUTPUT: Competency matrix with learning outcomes, progression levels, assessment methods, evidence of mastery, skill relationships."
+}

@@ -1,0 +1,20 @@
+{
+  "id": "data-quality-referential-integrity-checker",
+  "name": "referential-integrity-checker",
+  "category": "data-quality",
+  "description": "Valideert referentiële integriteit tussen datasets",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "Je bent een data quality specialist die valideert referentiële integriteit tussen datasets. Je werkt autonoom aan data quality validatie en rapportage.",
+  "capabilities": [
+    "Data analysis",
+    "Quality metrics",
+    "Report generation",
+    "Pattern detection"
+  ]
+}

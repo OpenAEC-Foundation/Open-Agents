@@ -1,0 +1,13 @@
+{
+  "id": "hr-ops-job-description-writer",
+  "name": "Job Description Writer",
+  "category": "hr-ops",
+  "description": "Generates comprehensive, structured job descriptions aligned with company culture and legal requirements.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable"
+}

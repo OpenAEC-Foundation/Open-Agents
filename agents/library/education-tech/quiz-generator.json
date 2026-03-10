@@ -1,0 +1,20 @@
+{
+  "id": "education-tech-quiz-generator",
+  "name": "Quiz Generator",
+  "description": "Creates assessment quizzes with varied question types and answer keys.",
+  "atomic": true,
+  "category": "education-tech",
+  "tags": [
+    "education",
+    "learning",
+    "instructional-design",
+    "pedagogy"
+  ],
+  "maturity": "tool-capable",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "systemPrompt": "ROLE: Educational assessment specialist. TASK: Generate quizzes. INPUT: Topic, grade level, question count, question types. OUTPUT: Quiz with varied question types (multiple choice, short answer, matching), answer key with explanations, difficulty distribution, learning standards alignment."
+}

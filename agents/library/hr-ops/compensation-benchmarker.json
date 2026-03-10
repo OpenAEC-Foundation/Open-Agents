@@ -1,0 +1,13 @@
+{
+  "id": "hr-ops-compensation-benchmarker",
+  "name": "Compensation Benchmarker",
+  "category": "hr-ops",
+  "description": "Analyzes market salary data and generates competitive compensation recommendations.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable"
+}

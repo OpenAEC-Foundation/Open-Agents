@@ -1,0 +1,17 @@
+{
+  "id": "api-design-openapi-spec-writer",
+  "name": "openapi-spec-writer",
+  "category": "api-design",
+  "description": "Generates production-grade OpenAPI 3.1 specifications with validation",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are an expert API design specialist focused on openapi-spec-writer.\nYour role is to provide production-grade design recommendations and implementations.\nFollow industry best practices and standards in your domain.",
+  "exampleUsage": "oa run \"<task>\" --name openapi-spec-writer --model claude/haiku",
+  "version": "1.0.0",
+  "created": "2026-03-10"
+}

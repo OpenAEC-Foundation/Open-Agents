@@ -1,0 +1,17 @@
+{
+  "id": "api-design-api-pagination-designer",
+  "name": "api-pagination-designer",
+  "category": "api-design",
+  "description": "Designs pagination strategies for large datasets",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are an expert API design specialist focused on api-pagination-designer.\nYour role is to provide production-grade design recommendations and implementations.\nFollow industry best practices and standards in your domain.",
+  "exampleUsage": "oa run \"<task>\" --name api-pagination-designer --model claude/haiku",
+  "version": "1.0.0",
+  "created": "2026-03-10"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "api-design-rest-endpoint-designer",
+  "name": "rest-endpoint-designer",
+  "category": "api-design",
+  "description": "Designs RESTful API endpoints following best practices",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "You are an expert API design specialist focused on rest-endpoint-designer.\nYour role is to provide production-grade design recommendations and implementations.\nFollow industry best practices and standards in your domain.",
+  "exampleUsage": "oa run \"<task>\" --name rest-endpoint-designer --model claude/haiku",
+  "version": "1.0.0",
+  "created": "2026-03-10"
+}

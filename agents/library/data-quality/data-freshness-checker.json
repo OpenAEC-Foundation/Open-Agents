@@ -1,0 +1,20 @@
+{
+  "id": "data-quality-data-freshness-checker",
+  "name": "data-freshness-checker",
+  "category": "data-quality",
+  "description": "Controleert de actualiteit en herkomst van gegevens",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "Je bent een data quality specialist die controleert de actualiteit en herkomst van gegevens. Je werkt autonoom aan data quality validatie en rapportage.",
+  "capabilities": [
+    "Data analysis",
+    "Quality metrics",
+    "Report generation",
+    "Pattern detection"
+  ]
+}

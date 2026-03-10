@@ -1,0 +1,13 @@
+{
+  "id": "hr-ops-onboarding-plan-builder",
+  "name": "Onboarding Plan Builder",
+  "category": "hr-ops",
+  "description": "Creates structured 30/60/90-day onboarding plans with milestones and resource allocation.",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable"
+}

@@ -1,0 +1,20 @@
+{
+  "id": "data-quality-data-contract-writer",
+  "name": "data-contract-writer",
+  "category": "data-quality",
+  "description": "Genereert data contracts en SLA's voor datasets",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
+  "tools": [
+    "Read",
+    "Write"
+  ],
+  "atomic": true,
+  "maturity": "tool-capable",
+  "systemPrompt": "Je bent een data quality specialist die genereert data contracts en sla's voor datasets. Je werkt autonoom aan data quality validatie en rapportage.",
+  "capabilities": [
+    "Data analysis",
+    "Quality metrics",
+    "Report generation",
+    "Pattern detection"
+  ]
+}
