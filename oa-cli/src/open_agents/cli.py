@@ -559,6 +559,7 @@ def run(
     no_autocompact: bool = typer.Option(False, "--no-autocompact", help="Disable auto-compaction for this agent (overrides OA_COMPACT_THRESHOLD)"),
     prompt_file: str = typer.Option("", "--prompt-file", "-pf", help="Read task prompt from a file (avoids shell escaping issues with special characters)"),
     skills: str = typer.Option("", "--skills", help="Komma-gescheiden skill namen om te laden via skill_registry (bijv. 'api-design,oa-quality-gates')"),
+    no_context_inject: bool = typer.Option(False, "--no-context-inject", help="Skip automatic context injection"),
 ):
     """Spawn an agent with a task in a new tmux window."""
     # --prompt-file: read task from file to avoid shell escaping issues (#62)
@@ -596,6 +597,17 @@ def run(
         if skill_block:
             task = (task + "\n\n---\n\n" + skill_block).strip() if task else skill_block
             console.print(f"[dim]Skills injected: {context_skills}[/dim]")
+
+    # Auto-inject context based on task keywords (non-blocking, opt-out via --no-context-inject)
+    if not no_context_inject and task:
+        try:
+            from .context_injector import inject as _inject_context
+            enriched = _inject_context(task)
+            if enriched != task:
+                task = enriched
+                console.print("[dim]Context auto-injected based on task keywords.[/dim]")
+        except Exception:
+            pass
 
     if not task:
         console.print("[red]No task provided. Pass a task argument or use --template.[/red]")
@@ -3314,6 +3326,137 @@ def core_handoff():
     title = f"[bold]Laatste HANDOFF[/bold]" + (f" — [dim]{path.name}[/dim]" if path else "")
     summary = read_handoff_summary()
     console.print(Panel(summary, title=title, border_style="cyan", padding=(0, 1)))
+
+
+# ---------------------------------------------------------------------------
+# oa improve — self-improvement engine
+# ---------------------------------------------------------------------------
+
+improve_app = typer.Typer(
+    name="improve",
+    help="Self-improvement engine — system analyzes itself and proposes what to build next.",
+)
+app.add_typer(improve_app)
+
+
+@improve_app.command("analyze")
+def improve_analyze(
+    model: str = typer.Option("claude/sonnet", "--model", "-m", help="Claude model to use"),
+    execute: bool = typer.Option(False, "--execute", help="Spawn agents for top N proposals immediately"),
+    top: int = typer.Option(3, "--top", help="Number of proposals to show/execute"),
+):
+    """Analyze system signals and propose improvements. The system looks at itself."""
+    from .improvement_engine import collect_signals, analyze, save_proposals, run_proposal
+    from rich.table import Table
+
+    console.print("[bold cyan]Collecting system signals...[/bold cyan]")
+    signals = collect_signals()
+
+    # Brief signal summary
+    summary = Table.grid(padding=(0, 2))
+    summary.add_row("[dim]Agents[/dim]", f"{signals.get('agents_total', 0)} total, {signals.get('agents_fail_rate_pct', 0)}% fail rate")
+    summary.add_row("[dim]PO decisions[/dim]", f"{signals.get('po_total', 0)} total, {signals.get('po_blocks', 0)} blocks")
+    summary.add_row("[dim]Stale core files[/dim]", str(signals.get('stale_core_files_count', 0)))
+    summary.add_row("[dim]Lessons[/dim]", f"{signals.get('lessons_count', 0)} entries, {signals.get('lessons_days_old', '?')}d old")
+    summary.add_row("[dim]Agent templates[/dim]", str(signals.get('agent_templates_count', 0)))
+    console.print(summary)
+    console.print()
+
+    console.print(f"[bold cyan]Analyzing with {model}...[/bold cyan]")
+    proposals = analyze(signals, model=model)
+
+    if not proposals:
+        console.print("[red]No proposals generated. Check that the claude CLI is available.[/red]")
+        raise typer.Exit(1)
+
+    save_proposals(proposals)
+    console.print(f"[green]Generated {len(proposals)} proposals. Showing top {min(top, len(proposals))}:[/green]\n")
+
+    priority_colors = {1: "red", 2: "yellow", 3: "green"}
+    priority_labels = {1: "HIGH", 2: "MEDIUM", 3: "LOW"}
+
+    for i, p in enumerate(proposals[:top]):
+        color = priority_colors.get(p.priority, "white")
+        label = priority_labels.get(p.priority, "?")
+        panel_title = f"[{color}]#{i} · P{p.priority} {label}[/{color}] · [bold]{p.category.upper()}[/bold]"
+        body = (
+            f"[dim]Observation:[/dim] {p.observation}\n\n"
+            f"[bold]Proposal:[/bold] {p.proposal}\n\n"
+            f"[dim]Rationale:[/dim] {p.rationale}\n\n"
+            f"[cyan]$ {p.oa_run_cmd}[/cyan]"
+        )
+        console.print(Panel(body, title=panel_title, border_style=color, padding=(0, 1)))
+
+    if execute:
+        console.print(f"\n[bold yellow]Executing top {min(top, len(proposals))} proposals...[/bold yellow]")
+        for i, p in enumerate(proposals[:top]):
+            console.print(f"[dim]Spawning #{i}: {p.oa_run_cmd[:80]}...[/dim]")
+            ok = run_proposal(p)
+            status = "[green]✓ spawned[/green]" if ok else "[red]✗ failed[/red]"
+            console.print(f"  {status}")
+
+
+@improve_app.command("list")
+def improve_list():
+    """Show previously generated improvement proposals."""
+    from .improvement_engine import load_proposals
+    from rich.table import Table
+
+    proposals = load_proposals()
+    if not proposals:
+        console.print("[dim]No proposals found. Run 'oa improve analyze' first.[/dim]")
+        raise typer.Exit(0)
+
+    priority_colors = {1: "red", 2: "yellow", 3: "green"}
+    priority_labels = {1: "HIGH", 2: "MED", 3: "LOW"}
+
+    table = Table(title=f"Improvement Proposals ({len(proposals)} total)", show_lines=True)
+    table.add_column("#", style="dim", width=3)
+    table.add_column("P", width=5, justify="center")
+    table.add_column("Category", width=14)
+    table.add_column("Proposal", ratio=2)
+    table.add_column("Command", ratio=3, style="cyan")
+
+    for i, p in enumerate(proposals):
+        color = priority_colors.get(p.priority, "white")
+        label = priority_labels.get(p.priority, "?")
+        table.add_row(
+            str(i),
+            f"[{color}]{label}[/{color}]",
+            p.category,
+            p.proposal[:120] + ("..." if len(p.proposal) > 120 else ""),
+            p.oa_run_cmd[:100] + ("..." if len(p.oa_run_cmd) > 100 else ""),
+        )
+
+    console.print(table)
+
+
+@improve_app.command("run")
+def improve_run(
+    index: int = typer.Argument(..., help="Proposal index to execute (from 'oa improve list')"),
+):
+    """Execute a specific improvement proposal by index."""
+    from .improvement_engine import load_proposals, run_proposal
+
+    proposals = load_proposals()
+    if not proposals:
+        console.print("[red]No proposals found. Run 'oa improve analyze' first.[/red]")
+        raise typer.Exit(1)
+
+    if index < 0 or index >= len(proposals):
+        console.print(f"[red]Index {index} out of range (0–{len(proposals) - 1}).[/red]")
+        raise typer.Exit(1)
+
+    p = proposals[index]
+    console.print(f"[bold]Executing proposal #{index}:[/bold] {p.proposal}")
+    console.print(f"[cyan]$ {p.oa_run_cmd}[/cyan]")
+
+    ok = run_proposal(p)
+    if ok:
+        console.print("[green]✓ Agent spawned successfully.[/green]")
+    else:
+        console.print("[red]✗ Failed to spawn agent.[/red]")
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":

@@ -1,14 +1,22 @@
 /**
- * ChatPanel — local-first, provider-agnostic chat UI (issue #63).
+ * ChatPanel — local-first, provider-agnostic chat UI (issue #63 + #76).
  *
  * Connects to /api/chat/stream (SSE) and /api/chat/models.
- * Supports claude/* (Anthropic API) and ollama/* (local Ollama) models.
- * Conversation history is stored in localStorage.
+ * Supports:
+ *   claude/*   → Anthropic API (requires ANTHROPIC_API_KEY)
+ *   ollama/*   → Local Ollama (WSL, no cloud)
+ *   hetzner/*  → Remote GPU server via SSH (RTX 4000 Ada, no cloud, no API cost)
+ *
+ * OpenAI-compatible message format — not locked to any provider.
+ * Conversation history stored in localStorage.
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, Trash2, ChevronDown, Bot } from 'lucide-react';
+import { Send, Trash2, ChevronDown, Bot, Zap, ExternalLink } from 'lucide-react';
 import { API_BASE } from '../../api/client';
+
+// Open WebUI URL on Hetzner — full chat UI for direct GPU model access
+const OPEN_WEBUI_URL = 'http://144.76.60.210:3000';
 
 interface ChatMessage {
   id: string;
@@ -22,6 +30,7 @@ interface ModelOption {
   id: string;
   provider: string;
   name: string;
+  gpu?: boolean;
 }
 
 const STORAGE_KEY = 'oa_chat_history';
@@ -201,7 +210,7 @@ export function ChatPanel() {
             Chat
           </span>
           <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--color-oa-border)', color: 'var(--color-oa-text-muted)' }}>
-            local-first
+            local-first · no cloud
           </span>
         </div>
 
@@ -223,32 +232,69 @@ export function ChatPanel() {
 
             {showModelSelect && (
               <div
-                className="absolute right-0 top-full mt-1 z-50 min-w-[200px] rounded shadow-lg"
+                className="absolute right-0 top-full mt-1 z-50 min-w-[220px] rounded shadow-lg overflow-hidden"
                 style={{ background: 'var(--color-oa-surface)', border: '1px solid var(--color-oa-border)' }}
               >
                 {models.length === 0 ? (
                   <div className="px-3 py-2 text-xs" style={{ color: 'var(--color-oa-text-muted)' }}>
-                    No models found. Start Ollama or set ANTHROPIC_API_KEY.
+                    No models found. Start Ollama or connect to Hetzner.
                   </div>
                 ) : (
-                  models.map((m) => (
-                    <button
-                      key={m.id}
-                      onClick={() => { setModel(m.id); setShowModelSelect(false); }}
-                      className="w-full text-left px-3 py-2 text-xs hover:bg-oa-border/50"
-                      style={{
-                        color: m.id === model ? 'var(--color-oa-accent)' : 'var(--color-oa-text)',
-                        background: m.id === model ? 'rgba(249,115,22,0.08)' : 'transparent',
-                      }}
-                    >
-                      <span className="font-medium">{m.name}</span>
-                      <span className="ml-2 opacity-60">{m.provider}</span>
-                    </button>
-                  ))
+                  (['hetzner', 'ollama', 'claude'] as const).map((provider) => {
+                    const group = models.filter((m) => m.provider === provider);
+                    if (group.length === 0) return null;
+                    const labels: Record<string, string> = {
+                      hetzner: '⚡ GPU Server (Hetzner)',
+                      ollama: '🖥 Local (Ollama)',
+                      claude: '☁ Claude API',
+                    };
+                    return (
+                      <div key={provider}>
+                        <div
+                          className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
+                          style={{ color: 'var(--color-oa-text-muted)', borderBottom: '1px solid var(--color-oa-border)' }}
+                        >
+                          {labels[provider]}
+                        </div>
+                        {group.map((m) => (
+                          <button
+                            key={m.id}
+                            onClick={() => { setModel(m.id); setShowModelSelect(false); }}
+                            className="w-full text-left px-3 py-1.5 text-xs"
+                            style={{
+                              color: m.id === model ? 'var(--color-oa-accent)' : 'var(--color-oa-text)',
+                              background: m.id === model ? 'rgba(249,115,22,0.08)' : 'transparent',
+                            }}
+                          >
+                            {m.name}
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })
                 )}
               </div>
             )}
           </div>
+
+          {/* Open WebUI link — full GPU chat UI */}
+          <a
+            href={OPEN_WEBUI_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-xs px-2 py-1 rounded"
+            style={{
+              background: 'rgba(249,115,22,0.08)',
+              color: 'var(--color-oa-accent)',
+              border: '1px solid rgba(249,115,22,0.2)',
+              textDecoration: 'none',
+            }}
+            title="Open WebUI — full chat interface on GPU server"
+          >
+            <Zap size={11} />
+            Open WebUI
+            <ExternalLink size={10} />
+          </a>
 
           {/* Clear history */}
           {messages.length > 0 && (
@@ -267,11 +313,20 @@ export function ChatPanel() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40">
+          <div className="flex flex-col items-center justify-center h-full gap-3 opacity-50">
             <Bot size={32} style={{ color: 'var(--color-oa-text-muted)' }} />
-            <p className="text-sm" style={{ color: 'var(--color-oa-text-muted)' }}>
-              Start a conversation. Powered by {currentModelName}.
-            </p>
+            <div className="text-center">
+              <p className="text-sm" style={{ color: 'var(--color-oa-text-muted)' }}>
+                {model.startsWith('hetzner/') ? '⚡ GPU' : model.startsWith('ollama/') ? '🖥 Local' : '🤖'} {currentModelName}
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'var(--color-oa-text-muted)' }}>
+                {model.startsWith('hetzner/')
+                  ? 'RTX 4000 Ada · no cloud · no cost'
+                  : model.startsWith('ollama/')
+                  ? 'local Ollama · no cloud · no cost'
+                  : 'API required'}
+              </p>
+            </div>
           </div>
         )}
 
