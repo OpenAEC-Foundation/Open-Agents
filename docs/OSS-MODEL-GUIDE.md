@@ -1,166 +1,126 @@
-# Open-Source Modellen in Open-Agents
+# Open-Source Model Guide — Open-Agents
 
-> Praktische handleiding voor `hetzner/*` en `ollama/*` modellen.
-> Claude-agents en OSS-agents werken fundamenteel anders — lees dit vóór je een OSS-agent spawnt.
-
----
-
-## Beschikbare modellen (Hetzner GPU server)
-
-| Model | Prefix | VRAM | Responstijd | Geschikt voor |
-|-------|--------|------|-------------|---------------|
-| `mistral:7b` | `hetzner/mistral:7b` | 5 GB | ~10s | Analyse, samenvatten, extraheren |
-| `mistral-nemo` | `hetzner/mistral-nemo` | 8 GB | ~15s | Lange teksten (128k context) |
-| `mixtral:8x7b` | `hetzner/mixtral:8x7b` | 26 GB* | ~60-240s | Complexe analyse, hoge kwaliteit |
-| `olmo2:7b` | `hetzner/olmo2:7b` | 6 GB | ~12s | Privacy-kritisch, non-profit |
-| `mistral:7b` | `ollama/mistral:7b` | lokaal | ~10s | Offline, geen SSH |
-
-*mixtral overflowt naar RAM (64GB beschikbaar op server) — werkt maar trager
+> Praktische handleiding voor `hetzner/*` modellen op Ollama.
+> OSS-agents zijn textgenerators—geen tool use, geen multi-step. Gebruik voor tekstverwerking; Claude voor orchestratie.
 
 ---
 
-## Fundamentele verschillen met Claude
+## Beschikbare Modellen (Hetzner GPU)
 
-| | Claude | OSS (Mistral/OLMo) |
-|--|--------|-------------------|
-| **Tool use** | ✅ Bash, bestanden lezen/schrijven | ❌ Alleen tekst genereren |
+| Model | VRAM | Responstijd | Best For |
+|-------|------|-------------|----------|
+| **mistral:7b** | 5GB | ~10s | Snelle taken (start hier) |
+| **mistral-nemo** | 8GB | ~15s | Lange context (128k) |
+| **mixtral:8x7b** | 26GB* | ~60-240s | Complexe analyse |
+| **olmo2:7b** | 6GB | ~12s | Privacy-kritisch, non-profit |
+
+*mixtral overflows RAM (64GB server)—OK, maar trager
+
+---
+
+## Fundamentele Verschillen
+
+| | Claude | OSS Model |
+|--|--------|-----------|
+| **Tool use** | ✅ Ja | ❌ Nee—alleen tekst |
 | **Multi-step** | ✅ Betrouwbaar | ❌ Onbetrouwbaar |
-| **Context** | 200k tokens | 8k–32k tokens |
-| **Instructie volgen** | Zeer precies | Simpele instructies werken het best |
-| **Sub-agents spawnen** | ✅ Via oa run | ❌ Kan niet |
-| **Kosten** | Claude subscription | Gratis (lokale GPU) |
-| **Privacy** | Naar Anthropic cloud | Volledig lokaal |
+| **Context** | 200k | 8k–32k |
+| **Responstijd** | 2–5s | 10s–4m |
+| **Sub-agents** | ✅ Ja | ❌ Nee |
+| **Kosten** | Subscription | Gratis (lokaal) |
 
-**Kernregel**: OSS-agents genereren tekst en schrijven die naar stdout. Ze voeren geen acties uit.
-
----
-
-## Taak-geschiktheid
-
-### ✅ Geschikt voor OSS
-
-```bash
-# Samenvatten
-oa run "Vat dit rapport samen in 5 punten: [tekst]" --model hetzner/mistral:7b --direct
-
-# Extraheren
-oa run "Extraheer alle URL's uit deze tekst: [tekst]" --model hetzner/mistral:7b --direct
-
-# Classificeren
-oa run "Classificeer deze bug als: critical/high/medium/low. Bug: [beschrijving]" --model hetzner/mistral:7b --direct
-
-# Vertalen
-oa run "Vertaal naar Engels: [Nederlandse tekst]" --model hetzner/mistral:7b --direct
-
-# Simpele analyse
-oa run "Wat zijn de 3 risico's in deze aanpak: [tekst]" --model hetzner/mistral:7b --direct
-
-# Tekst genereren
-oa run "Schrijf een release note voor deze changelog: [diff]" --model hetzner/mixtral:8x7b --direct
-```
-
-### ❌ Niet geschikt voor OSS
-
-```bash
-# ❌ Multi-step workflows
-oa run "Lees het bestand, analyseer het, schrijf tests, en fix de bugs" --model hetzner/mistral:7b
-
-# ❌ Code schrijven en uitvoeren
-oa run "Implementeer OAuth2 en test het" --model hetzner/mistral:7b
-
-# ❌ Sub-agents spawnen
-oa run "Coördineer 3 worker-agents om dit te verwerken" --model hetzner/mistral:7b
-
-# ❌ Bestanden lezen via tools
-oa run "Lees src/main.py en refactor het" --model hetzner/mistral:7b
-```
-
-Gebruik Claude (`claude/sonnet`) voor alles wat tool use, multi-step, of code-uitvoering vereist.
+**Regel:** OSS = tekstgeneratie. Claude = orchestratie + tools.
 
 ---
 
-## Prompt-regels voor OSS
+## Taak-Geschiktheid
 
-### DO ✅
-- **Kort en direct** — max 3-4 zinnen instructie
-- **Één taak** — geen meerdere stappen in één prompt
-- **Expliciete output** — "schrijf je antwoord naar `/pad/naar/output.md`"
-- **Concrete context inline** — plak de tekst direct in de prompt (OSS heeft geen bestandstoegang)
-- **Plain language** — geen complexe markdown-structuren
+| Taak | ✅/❌ | Voorbeeld |
+|------|--------|----------|
+| Samenvatten | ✅ | `oa run "Vat dit rapport samen in 5 punten: [tekst]" --model hetzner/mistral:7b` |
+| Extraheren | ✅ | `oa run "Alle URL's hieruit: [tekst]" --model hetzner/mistral:7b` |
+| Classificeren | ✅ | `oa run "Severiteit bug: critical/high/medium? [beschr]" --model hetzner/mistral:7b` |
+| Vertalen | ✅ | `oa run "Engels: [NL-tekst]" --model hetzner/mistral:7b` |
+| **Multi-step** | ❌ | ❌ Fout: "Lees, analyseer, test, fix" |
+| **Code + Tools** | ❌ | ❌ Fout: "Lees src/ en refactor" |
+| **Orchestratie** | ❌ | ❌ Fout: "Spawn sub-agents" |
 
-### DON'T ❌
-- Geen CLAUDE.md-achtige instructies (kerngedrag, lessen, beslissingen)
-- Geen orchestratie-instructies ("spawn een sub-agent als...")
-- Geen tool-use-instructies ("gebruik de Bash tool om...")
-- Geen grote context-blokken (>500 tokens aan instructies)
+---
 
-### Goede prompt template
+## Prompt-Regels
 
-```
-[Korte rolbeschrijving]. [Eén duidelijke taak].
+| ✅ DO | ❌ DON'T |
+|--------|----------|
+| Kort: max 500 tokens prompt | Geen CLAUDE.md context-injectie |
+| Één taak per spawn | Geen orchestratie ("spawn agents...") |
+| Tekst inline (geen bestandstoegang) | Geen tool use-instructies |
+| Directe output: "YAML:" of "JSON:" | Geen komplexe context-blokken |
+| Plain language | Geen multi-step workflows |
 
-Input: [de tekst/data direct inline]
-
-Schrijf je antwoord naar: /absoluut/pad/output.md
-Wees beknopt. Geen uitleg, alleen het resultaat.
+**Template:**
+```bash
+oa run "Korte taak. Input: [tekst direct]. Antwoord YAML." \
+  --model hetzner/mistral:7b --direct
 ```
 
 ---
 
-## Spawn-regels
+## Spawn-Regels (L-088, L-089)
 
-### Sequentieel, niet parallel (L-088)
+### Sequentieel, Niet Parallel
 
 ```bash
-# ✅ CORRECT — één tegelijk
+# ✅ CORRECT
 oa run "taak 1" --model hetzner/mistral:7b --direct
-# wacht tot klaar
+oa collect agent-1  # wacht op output
 oa run "taak 2" --model hetzner/mistral:7b --direct
 
-# ❌ FOUT — VRAM contention, tweede agent faalt stil
+# ❌ FOUT — VRAM contention, agent 2 faalt stil
 oa run "taak 1" --model hetzner/mistral:7b --direct &
 oa run "taak 2" --model hetzner/mistral:7b --direct &
+wait
 ```
 
-### VRAM-bewustzijn
+### VRAM-Bewustzijn (RTX 4000 Ada = 20GB)
 
-| Situatie | Actie |
-|----------|-------|
-| mistral:7b + mistral:7b parallel | ❌ VRAM contention (tweede faalt) |
-| mistral:7b → wacht klaar → mistral:7b | ✅ OK |
-| mixtral:8x7b alleen | ✅ OK (RAM offload) |
-| mixtral:8x7b + mistral:7b parallel | ❌ Geen VRAM voor tweede |
+| Scenario | VRAM nodig | Status |
+|----------|-----------|--------|
+| mistral:7b (single) | 5GB | ✅ OK |
+| mistral:7b parallel | 10GB+ | ❌ Contention |
+| mixtral:8x7b alone | 26GB (→RAM) | ✅ OK |
 
-Check VRAM vóór spawn als je twijfelt:
+Check VRAM:
 ```bash
 ssh hetzner "nvidia-smi --query-gpu=memory.free --format=csv,noheader"
-# > 6000 MiB = veilig voor mistral:7b
-# > 26000 MiB = veilig voor mixtral:8x7b (bijna nooit)
 ```
 
 ---
 
-## Responstijden in de praktijk
+## Responstijden
 
-| Model | Koud (eerste load) | Warm (model al in VRAM) |
-|-------|-------------------|------------------------|
-| `mistral:7b` | ~30s | ~10s |
-| `mistral-nemo` | ~45s | ~15s |
-| `mixtral:8x7b` | ~240s (RAM offload) | ~60s |
-| `olmo2:7b` | ~35s | ~12s |
+| Model | Cold Load | Warm |
+|-------|-----------|------|
+| mistral:7b | ~30s | ~10s |
+| mistral-nemo | ~45s | ~15s |
+| mixtral:8x7b | ~240s | ~60s |
+| olmo2:7b | ~35s | ~12s |
+
+*Plan 5-min timeout voor grote modellen.*
 
 ---
 
 ## Troubleshooting
 
-| Symptoom | Oorzaak | Oplossing |
-|----------|---------|-----------|
-| Output leeg, status `error` | VRAM vol door andere agent | Wacht, controleer `oa status` |
-| Agent draait >5 min zonder output | mixtral RAM-offload bezig | Normaal — wacht of gebruik mistral:7b |
-| Output gaat over de prompt zelf | Context-injectie te groot (L-089) | Gebruik kortere prompt, geen CLAUDE.md context |
-| `ssh: connect to host hetzner` error | SSH config / server down | Check `ssh hetzner uptime` |
-| Antwoord in het Engels ipv NL | OSS models defaulten naar EN | Voeg "Antwoord in het Nederlands." toe aan prompt |
+| Issue | Cause | Fix |
+|-------|-------|-----|
+| Output leeg | VRAM vol (parallel spawn) | Wacht, spawn sequentieel |
+| Draait >5 min | RAM offload (mixtral) | Normaal, wacht; of mistral:7b |
+| Output leeg, geen error | Context-injectie te groot (L-089) | Korte prompt, geen CLAUDE.md |
+| SSH error | Server down | Check `ssh hetzner uptime` |
+| Output Engels | OSS default taal | "Antwoord Nederlands." in prompt |
 
 ---
 
-*Zie ook: `docs/MODEL-BENCHMARK.md` voor risicoprofielen | `DECISIONS.md` D-028 voor modelpool beleid*
+**Golden Rule:** Claude = orchestratie. OSS = tekstverwerking.
+
+*Zie ook: D-077 (open-source LLM beleid), L-088/089 (VRAM contention, context overflow)*
