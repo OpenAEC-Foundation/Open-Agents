@@ -181,6 +181,79 @@ def _build_ollama_command(workspace: Path, name: str, ollama_model: str) -> str:
     )
 
 
+# VRAM estimates per model in GB (Q4_K_M quantization) — used by GpuQueue (L-088, issue #79)
+_VRAM_ESTIMATES: dict[str, float] = {
+    "mistral:7b": 4.5,
+    "mistral:latest": 4.5,
+    "mistral-nemo:latest": 7.1,
+    "codestral:22b": 13.0,
+    "olmo2:7b": 4.5,
+    "olmo2:latest": 4.5,
+    "nomic-embed-text:latest": 0.3,
+    "bge-m3:latest": 1.2,
+}
+_GPU_TOTAL_VRAM = 20.0  # RTX 4000 Ada — update if hardware changes
+
+
+def _parse_ollama_ps(output: str) -> float:
+    """Parse 'ollama ps' stdout and return total VRAM in use (GB).
+
+    ollama ps format:
+      NAME              ID    SIZE     PROCESSOR          CONTEXT  UNTIL
+      mistral:7b        ...   4.4 GB   100% GPU           ...      ...
+    """
+    total = 0.0
+    for line in output.splitlines()[1:]:  # skip header
+        parts = line.split()
+        # SIZE is always 'X.X GB' — find the GB token and take the number before it
+        for i, part in enumerate(parts):
+            if part == "GB" and i > 0:
+                try:
+                    total += float(parts[i - 1])
+                except ValueError:
+                    pass
+    return total
+
+
+class GpuQueue:
+    """Prevents VRAM contention when spawning multiple Ollama agents on one GPU.
+
+    Before spawning, call wait_for_vram(host, model). It polls 'ollama ps' via
+    SSH until enough VRAM is free, then returns. Raises RuntimeError on timeout.
+    """
+
+    def wait_for_vram(self, host: str, model: str, timeout: int = 600) -> None:
+        """Block until the GPU has enough free VRAM for *model*.
+
+        Args:
+            host:    SSH host alias (e.g. 'hetzner-agent').
+            model:   Ollama model name (e.g. 'codestral:22b').
+            timeout: Max seconds to wait before raising RuntimeError.
+        """
+        required = _VRAM_ESTIMATES.get(model, 10.0)  # conservative default
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            try:
+                result = subprocess.run(
+                    ["ssh", "-o", "BatchMode=yes", host, "ollama ps"],
+                    capture_output=True, text=True, timeout=10,
+                )
+                used = _parse_ollama_ps(result.stdout)
+                if used + required <= _GPU_TOTAL_VRAM:
+                    return  # enough VRAM available
+            except Exception:
+                return  # SSH failed → assume available, let ollama handle it
+            time.sleep(30)
+        raise RuntimeError(
+            f"GpuQueue timeout after {timeout}s: not enough VRAM for '{model}' on '{host}'. "
+            f"Required: {required}GB, GPU total: {_GPU_TOTAL_VRAM}GB. "
+            f"Run 'ssh {host} ollama ps' to inspect running models."
+        )
+
+
+_gpu_queue = GpuQueue()
+
+
 def _build_remote_ollama_command(workspace_path: str, name: str, ollama_model: str) -> str:
     """Build shell command for an Ollama text agent running on a remote host.
 
@@ -475,6 +548,8 @@ def spawn_remote_agent(
 
     # 4. Build remote command based on model type
     if is_hetzner_ollama:
+        # Wait for VRAM before spawning (L-088, issue #79)
+        _gpu_queue.wait_for_vram(host, ollama_model_name)
         # Ollama text-only agent on GPU server
         inner_cmd = _build_remote_ollama_command(remote_ws, name, ollama_model_name)
         # Wrap in subshell to properly background and detach from SSH session
