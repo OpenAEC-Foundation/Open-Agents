@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle, Trash2, XCircle, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAgentStore } from '../../stores/agentStore';
 import { useUIStore } from '../../stores/uiStore';
+import { authHeaders } from '../../api/client';
 
 const TEMPLATES: { label: string; prompt: string }[] = [
   { label: 'Custom task', prompt: '' },
@@ -37,7 +38,7 @@ const OLLAMA_MODELS = [
   { value: 'ollama/llama3.2:3b', label: 'llama3.2:3b' },
 ];
 
-export function SpawnForm() {
+export function SpawnForm({ onSpawned }: { onSpawned?: () => void } = {}) {
   const [task, setTask] = useState('');
   const [model, setModel] = useState('claude/sonnet');
   const [name, setName] = useState('');
@@ -69,10 +70,12 @@ export function SpawnForm() {
   }, [prefilledTask, prefilledModel, clearPrefilled]);
 
   useEffect(() => {
-    fetch('/api/machines', { headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('oa_token') || '') } })
-      .then(r => r.json())
-      .then(data => setMachines(Array.isArray(data) ? data : []))
-      .catch(() => {});
+    authHeaders().then(headers =>
+      fetch('/api/machines', { headers })
+        .then(r => r.json())
+        .then(data => setMachines(Array.isArray(data) ? data : []))
+        .catch(() => {})
+    );
   }, []);
 
   const handleTemplateChange = (label: string) => {
@@ -99,6 +102,7 @@ export function SpawnForm() {
       setParent('');
       setTemplate('Custom task');
       setFeedback({ ok: true, msg: 'Agent spawned!' });
+      setTimeout(() => onSpawned?.(), 800);
     } catch (e) {
       setFeedback({ ok: false, msg: e instanceof Error ? e.message : 'Spawn failed' });
     } finally {

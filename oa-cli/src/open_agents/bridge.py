@@ -845,6 +845,12 @@ def api_trigger_compaction():
 
 def run_bridge(port: int = 5174) -> None:
     """Start the bridge server."""
+    import os as _os
+    # Ensure tmux and common tools are findable regardless of how the bridge was started
+    _env_path = _os.environ.get("PATH", "")
+    for _p in ["/usr/bin", "/usr/local/bin", "/bin"]:
+        if _p not in _env_path:
+            _os.environ["PATH"] = _p + ":" + _os.environ.get("PATH", "")
     _kill_port(port)
     print(f"Open Agents bridge running on http://localhost:{port}")
     print(f"Web UI: http://localhost:{port}")

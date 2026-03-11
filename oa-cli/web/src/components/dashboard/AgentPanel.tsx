@@ -21,7 +21,7 @@ export function AgentPanel() {
   const [detail, setDetail] = useState<Agent | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [msgInput, setMsgInput] = useState('');
-  const [tab, setTab] = useState<'info' | 'messages' | 'output'>('info');
+  const [tab, setTab] = useState<'info' | 'messages' | 'output'>('output');
   const [copied, setCopied] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
 
@@ -72,7 +72,7 @@ export function AgentPanel() {
   if (!selectedAgent || !agent) {
     return (
       <div
-        className="w-[320px] min-w-[320px] border-l flex items-center justify-center text-sm"
+        className="w-full border-l flex items-center justify-center text-sm"
         style={{ borderColor: 'var(--color-oa-border)', background: 'var(--color-oa-surface)', color: 'var(--color-oa-text-dim)' }}
       >
         Select an agent on the canvas
@@ -116,7 +116,7 @@ export function AgentPanel() {
 
   return (
     <div
-      className="w-[320px] min-w-[320px] border-l flex flex-col"
+      className="w-full border-l flex flex-col"
       style={{ borderColor: 'var(--color-oa-border)', background: 'var(--color-oa-surface)' }}
     >
       {/* Header */}
