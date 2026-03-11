@@ -1,0 +1,157 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "oa-canvas-export-v1",
+  "title": "Open Agents Canvas Export",
+  "description": "Uitwisselingsformaat tussen de Canvas UI en de oa-cli. Beschrijft een pipeline als een gerichte graaf van agent-nodes.",
+  "type": "object",
+  "required": ["version", "name", "nodes", "edges"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema-versie, bijv. '1.0'.",
+      "pattern": "^\\d+\\.\\d+$",
+      "example": "1.0"
+    },
+    "name": {
+      "type": "string",
+      "description": "Naam van de pipeline of het canvas-project.",
+      "maxLength": 128
+    },
+    "description": {
+      "type": "string",
+      "description": "Optionele beschrijving van het canvas.",
+      "maxLength": 512
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 aanmaaktijdstip."
+    },
+    "nodes": {
+      "type": "array",
+      "description": "Lijst van nodes in de canvas. Elke node stelt één agent voor.",
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unieke node-identifier (alphanumeriek, koppeltekens toegestaan).",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,61}$"
+          },
+          "type": {
+            "type": "string",
+            "description": "Node-type. Alleen 'agent' wordt door oa import verwerkt.",
+            "enum": ["agent", "note", "trigger", "output"]
+          },
+          "position": {
+            "type": "object",
+            "description": "Canvas-positie voor visualisatie (niet gebruikt door CLI).",
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" }
+            }
+          },
+          "config": {
+            "type": "object",
+            "description": "Agent-configuratie (alleen relevant als type='agent').",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "oa agent-naam (moet voldoen aan [a-z0-9-]).",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,61}$"
+              },
+              "task": {
+                "type": "string",
+                "description": "Volledige taakomschrijving voor de agent.",
+                "maxLength": 8192
+              },
+              "model": {
+                "type": "string",
+                "description": "Model-string, bijv. 'claude/sonnet', 'claude/opus', 'ollama/llama3'.",
+                "default": "claude/sonnet"
+              },
+              "agent_type": {
+                "type": "string",
+                "description": "Optioneel agent-type label (bijv. 'researcher', 'coder')."
+              }
+            }
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "description": "Gerichte verbindingen tussen nodes (afhankelijkheden).",
+      "items": {
+        "type": "object",
+        "required": ["id", "source", "target"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unieke edge-identifier."
+          },
+          "source": {
+            "type": "string",
+            "description": "ID van de bronnode (producent)."
+          },
+          "target": {
+            "type": "string",
+            "description": "ID van de doelnode (consument, wacht op source)."
+          },
+          "label": {
+            "type": "string",
+            "description": "Optioneel label voor de verbinding."
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "version": "1.0",
+      "name": "research-pipeline",
+      "description": "Twee onderzoekers gevolgd door een combiner.",
+      "created_at": "2026-03-11T10:00:00Z",
+      "nodes": [
+        {
+          "id": "researcher-a",
+          "type": "agent",
+          "position": { "x": 100, "y": 100 },
+          "config": {
+            "name": "researcher-a",
+            "task": "Onderzoek Python async patterns en schrijf samenvatting naar /tmp/out/async.md",
+            "model": "claude/sonnet"
+          }
+        },
+        {
+          "id": "researcher-b",
+          "type": "agent",
+          "position": { "x": 100, "y": 300 },
+          "config": {
+            "name": "researcher-b",
+            "task": "Onderzoek Rust async patterns en schrijf samenvatting naar /tmp/out/rust.md",
+            "model": "claude/sonnet"
+          }
+        },
+        {
+          "id": "combiner",
+          "type": "agent",
+          "position": { "x": 400, "y": 200 },
+          "config": {
+            "name": "combiner",
+            "task": "Combineer /tmp/out/async.md en /tmp/out/rust.md tot /tmp/out/comparison.md",
+            "model": "claude/opus"
+          }
+        }
+      ],
+      "edges": [
+        { "id": "e1", "source": "researcher-a", "target": "combiner" },
+        { "id": "e2", "source": "researcher-b", "target": "combiner" }
+      ]
+    }
+  ]
+}

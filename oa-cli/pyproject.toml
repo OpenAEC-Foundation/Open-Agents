@@ -9,6 +9,7 @@ description = "CLI orchestrator for multi-agent Claude Code sessions via tmux"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
+keywords = ["ai", "agents", "orchestration", "claude", "tmux"]
 dependencies = [
     "typer>=0.12",
     "rich>=13.0",
@@ -16,6 +17,7 @@ dependencies = [
     "flask>=3.0",
     "flask-cors>=5.0",
     "prompt_toolkit>=3.0",
+    "mcp>=1.0",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -33,9 +35,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/FreekHeijting/Open-Agents"
-Repository = "https://github.com/FreekHeijting/Open-Agents"
-"Bug Tracker" = "https://github.com/FreekHeijting/Open-Agents/issues"
+Homepage = "https://github.com/OpenAEC-Foundation/Open-Agents"
+Repository = "https://github.com/OpenAEC-Foundation/Open-Agents"
+Issues = "https://github.com/OpenAEC-Foundation/Open-Agents/issues"
 
 [project.scripts]
 oa = "open_agents.cli:app"
