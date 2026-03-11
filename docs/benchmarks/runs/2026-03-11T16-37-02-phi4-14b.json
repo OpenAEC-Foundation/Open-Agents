@@ -1,0 +1,77 @@
+{
+  "run_id": "2026-03-11T16-37-02-phi4-14b",
+  "timestamp": "2026-03-11T16:37:02.631335+00:00",
+  "model": "hetzner/phi4:14b",
+  "model_short": "phi4:14b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "Wanneer je een proces start met `nohup` op een remote server, is het bedoeld om het proces voort te zetten te draaien, zelfs als je SSH-sessie wordt verbroken. Hier is hoe het werkt en wat er gebeurt:\n\n### Werking van `nohup`\n\n- **Standaarduitvoer omleiden**: `nohup` staat voor \"no hang up\". Het wordt gebruikt om een commando uit te voeren dat ongevoelig is voor een hangup-signal (SIGHUP). Dit is een typische signal die wordt verzonden wanneer een gebruiker zijn sessie verlaat.\n\n- **Omleiding naar een andere uitvoer**: Wanneer je een commando met `nohup` voordat het eigenlijke commando uitvoert, wordt de standaarduitvoer van het commando standaard omgeleid naar een bestand genaamd `nohup.out` in het huidige werkingsdirectory, tenzij anders gespecificeerd. Dit betekent dat elke output die het commando zou normaal naar de terminal sturen, in plaats daarvan naar `nohup.out` wordt geschreven.\n\n- **Ongevoelig voor hangup**: Door de SIGHUP signal om te leiden, zal het proces niet automatisch worden gestopt als de SSH-verbinding wordt onderbroken. In plaats daarvan blijft het doorgaan om zijn taak uit te voeren.\n\n### Wat er gebeurt bij een verbroken SSH-sessie\n\n1. **Verbinding verbroken**: Wanneer je SSH-sessie met de server wordt verbroken, probeert SSH standaard de hangup-signal (SIGHUP) naar alle processen te sturen die de sessie hebben gestart. Voor processen die zonder `nohup` zijn gestart, zou dit meestal betekenen dat ze worden gestopt.\n\n2. **`nohup` omleiding**: Omdat het proces dat je met `nohup` hebt gestart is opgezet om ongevoelig te zijn voor de hangup-signal, blijft het doorgaan, zelfs als de verbinding verbroken wordt. Het gaat door met het uitvoeren van zijn taak zonder onderbreking.\n\n3. **Uitvoer omleiding**: De uitvoer van het proces, inclusief fouten en standaarduitvoer, wordt doorgestuurd naar het `nohup.out` bestand. Als je bijvoorbeeld een script uitvoert met `nohup`, kun je `nohup.out` later bekijken om de output van het script na de SSH-sessie te bekijken.\n\n### Samenvatting\n\n`nohup` is een nuttig hulpmiddel voor het uitvoeren van achtergrondprocessen op een remote server, omdat het ervoor zorgt dat ze voortduren ongeacht de status van de initiële SSH-verbinding. Het omleidt de standaarduitvoer naar een bestand en verleent het proces immuniteit tegen hangup-signals, waardoor het proces blijft draaien zonder dat het de initiële SSH-verbinding nodig heeft.",
+      "score": 3,
+      "max_score": 5,
+      "score_rationale": "Het antwoord verklaart correct dat nohup SIGHUP onderschept, output naar nohup.out gaat, en het proces blijft draaien na SSH disconnect, maar het antwoord is incomplete (afgebroken middenzin) en mist uitleg van process groups en shell job control.",
+      "latency_ms": 28273,
+      "tokens_estimated": 471
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "Om een functie te schrijven die een lijst ontdubbelt terwijl de originele volgorde behouden blijft, kunnen we een benadering gebruiken die de volgorde bijhoudt met behulp van een aanvullende structuur, zoals een lijst, om items te monitoren die al zijn gezien. Dit benadrukt het behouden van de volgorde zonder gebruik te maken van sets voor het eindresultaat. Hier is hoe je zo'n functie zou kunnen implementeren:\n\n```python\nfrom typing import List, Any\n\ndef deduplicate(items: List[Any]) -> List[Any]:\n    \"\"\"\n    Ontdubbelt een lijst terwijl de originele volgorde behouden blijft.\n\n    Deze functie neemt een lijst van items en retourneert een nieuwe lijst\n    waarin elke waarde exact één keer voorkomt, in de volgorde waarin deze\n    oorspronkelijk verschenen, zonder gebruik te maken van sets voor het eindresultaat.\n\n    Parameters:\n    items (List[Any]): De lijst van items waarvan dubbele waarden moeten worden verwijderd.\n\n    Returns:\n    List[Any]: Een nieuwe lijst met unieke items in hun oorspronkelijke volgorde.\n    \"\"\"\n    seen = []\n    result = []\n    for item in items:\n        if item not in seen:\n            seen.append(item)\n            result.append(item)\n    return result\n\n# Voorbeeldgebruik:\noriginal_list = [1, 2, 2, 3, 4, 3, 5]\ndeduplicated_list = deduplicate(original_list)\nprint(deduplicated_list)  # Uitvoer: [1, 2, 3, 4, 5]\n```\n\n### Uitleg:\n- **`seen` Lijst**: Deze lijst houdt bij welke items al zijn gezien terwijl de functie door de originele lijst `items` loopt. Het biedt een manier om snel te controleren of een item eerder is gezien, wat belangrijk is om de complexiteit van het zoeken van dubbele items te optimaliseren.\n- **`result` Lijst**: Dit is de uiteindelijke lijst waarin de unieke items in hun oorspronkelijke volgorde worden opgeslagen.\n- **Iteratie**: Voor elke `item` in de invoerlijst `items`, controleert de functie of het item al in `seen` is. Als het niet in `seen` staat, wordt het toegevoegd aan zowel `seen` als `result`, waarbij `result` de unieke items in hun volgorde behoudt.\n\nDeze aanpak zorgt ervoor dat we de efficiëntie ten opzichte van de lengte van de input behouden met een eenvoudige lijstcontrole, terwijl we de volgorde van de eerste optredens in de oorspronkelijke lijst behouden.",
+      "score": 3,
+      "max_score": 5,
+      "score_rationale": "Functie werkt correct met type hints en docstring, behoudt volgorde, maar de O(n²) implementatie met lijsten voor seen-tracking is inefficiënt—zou set moeten gebruiken voor O(n) performance.",
+      "latency_ms": 99951,
+      "tokens_estimated": 435
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Een AI-agent en een AI-workflow zijn twee verschillende concepten binnen de wereld van kunstmatige intelligentie, en ze hebben elk een unieke rol te spelen.\n\nEen AI-agent is een geavanceerd systeem dat kan beslissen en handelen binnen een bepaalde omgeving. Het kan informatie verwerken, plannen maken en acties uitvoeren zonder menselijke tussenkomst. Denk aan een AI-agent als een slimme assistent die zelfstandig taken uitvoert, zoals een robot die zich in een fabriek beweegt om producties te monitoren en problemen op te lossen. AI-agents zijn vaak zelfstandig en kunnen leren en zich aanpassen aan nieuwe situaties.\n\nAan de andere kant is een AI-workflow een gestructureerd proces dat verschillende AI-taken en -opdrachten in een logische volgorde verbindt. Het is vergelijkbaar met een recept dat stap voor stap uitlegt hoe je een complexe taak kunt uitvoeren. Bijvoorbeeld, een AI-workflow kan omvatten dat gegevens worden verzameld, geanalyseerd en vervolgens gebruikt om een rapport te genereren. Het helpt bij het automatiseren van taken en maakt het gemakkelijker om grote hoeveelheden gegevens efficiënt te verwerken.\n\nSamenvattend, een AI-agent is een zelfstandig systeem dat acties kan uitvoeren, terwijl een AI-workflow een gecoördineerd proces is dat meerdere AI-taken organiseert. Beiden zijn cruciaal voor het maximaliseren van efficiëntie en intelligentie in verschillende toepassingen.",
+      "score": 3,
+      "max_score": 5,
+      "score_rationale": "Correct onderscheid tussen agent (autonoom, zelfstandig) en workflow (gestructureerde stappen), Nederlands, begrijpelijk voor leken - maar het antwoord bevat 11 zinnen in plaats van de vereiste precies 3 zinnen.",
+      "latency_ms": 93661,
+      "tokens_estimated": 263
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Exact correct antwoord",
+      "latency_ms": 29898,
+      "tokens_estimated": 15
+    }
+  ],
+  "summary": {
+    "total_score": 14,
+    "max_score": 20,
+    "pct_score": 70.0,
+    "avg_score": 3.5,
+    "by_category": {
+      "reasoning": 3,
+      "code": 3,
+      "language": 3,
+      "instruction": 5
+    },
+    "total_latency_ms": 251783
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}

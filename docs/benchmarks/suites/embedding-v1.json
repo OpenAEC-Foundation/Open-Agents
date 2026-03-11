@@ -1,0 +1,94 @@
+{
+  "suite_id": "embedding-v1",
+  "name": "Embedding Model Benchmark Suite v1",
+  "version": "1.0",
+  "description": "Benchmark suite voor embedding modellen. Test semantische gelijkenis, retrieval kwaliteit, meertaligheid en snelheid.",
+  "created": "2026-03-11",
+  "max_score_per_test": 5,
+  "categories": ["similarity", "retrieval", "multilingual", "speed"],
+  "tests": [
+    {
+      "test_id": "similarity-001",
+      "category": "similarity",
+      "name": "Semantische Gelijkenis — Synoniemen",
+      "description": "Cosine similarity tussen semantisch gelijkwaardige zinnen moet > 0.85 zijn",
+      "pairs": [
+        {"a": "The cat sat on the mat.", "b": "A feline rested on a rug.", "expected_min": 0.80},
+        {"a": "Machine learning is a subset of AI.", "b": "ML is part of artificial intelligence.", "expected_min": 0.85},
+        {"a": "Open source software is free to use.", "b": "Free software can be used without cost.", "expected_min": 0.82}
+      ],
+      "negative_pairs": [
+        {"a": "The cat sat on the mat.", "b": "Quantum computing uses qubits.", "expected_max": 0.50}
+      ],
+      "max_score": 5,
+      "eval_criteria": {
+        "5": "Alle positieve paren >= expected_min en negatief paar <= expected_max",
+        "4": "2/3 positieve paren correct, negatief paar correct",
+        "3": "2/3 positieve paren correct, negatief paar incorrect",
+        "2": "1/3 positieve paren correct",
+        "1": "Geen paren correct",
+        "0": "Model geeft geen embeddings"
+      }
+    },
+    {
+      "test_id": "retrieval-001",
+      "category": "retrieval",
+      "name": "Top-1 Document Retrieval",
+      "description": "Gegeven een query, moet het meest relevante document als eerste gerankt worden",
+      "query": "How do I deploy a Python web application?",
+      "documents": [
+        {"id": "d1", "text": "Flask is a micro web framework for Python. Deploy it with gunicorn.", "relevant": true},
+        {"id": "d2", "text": "Python is a high-level programming language.", "relevant": false},
+        {"id": "d3", "text": "Docker containers can run any application.", "relevant": false},
+        {"id": "d4", "text": "SQL databases store relational data.", "relevant": false},
+        {"id": "d5", "text": "Nginx is a web server that can proxy requests to your WSGI app.", "relevant": false}
+      ],
+      "max_score": 5,
+      "eval_criteria": {
+        "5": "Relevant document (d1) op positie 1",
+        "4": "Relevant document op positie 2",
+        "3": "Relevant document in top-3",
+        "2": "Relevant document in top-4",
+        "1": "Relevant document op positie 5 (laatste)",
+        "0": "Fout bij ophalen embeddings"
+      }
+    },
+    {
+      "test_id": "multilingual-001",
+      "category": "multilingual",
+      "name": "NL-EN Vertaling Gelijkenis",
+      "description": "Embeddings van Nederlandse en Engelse vertalingen van dezelfde tekst moeten hoog correleren",
+      "pairs": [
+        {"nl": "De kat zat op de mat.", "en": "The cat sat on the mat.", "expected_min": 0.70},
+        {"nl": "Machine learning is een onderdeel van kunstmatige intelligentie.", "en": "Machine learning is a subset of artificial intelligence.", "expected_min": 0.75},
+        {"nl": "Open source software is vrij te gebruiken.", "en": "Open source software is free to use.", "expected_min": 0.75}
+      ],
+      "max_score": 5,
+      "eval_criteria": {
+        "5": "Alle 3 NL-EN paren >= expected_min (meertalig begrip aangetoond)",
+        "4": "2/3 paren correct (redelijk meertalig)",
+        "3": "1/3 paren correct (beperkt meertalig)",
+        "2": "Alle scores < expected_min maar > 0.50 (geen echte cross-lingual transfer)",
+        "1": "Alle scores < 0.50",
+        "0": "Model geeft geen embeddings"
+      }
+    },
+    {
+      "test_id": "speed-001",
+      "category": "speed",
+      "name": "Embedding Snelheid",
+      "description": "Latency voor 10 embeddings van 100-woord teksten",
+      "text_length_words": 100,
+      "count": 10,
+      "max_score": 5,
+      "eval_criteria": {
+        "5": "Totale tijd < 5s (< 500ms per embedding)",
+        "4": "Totale tijd 5-10s",
+        "3": "Totale tijd 10-20s",
+        "2": "Totale tijd 20-60s",
+        "1": "Totale tijd > 60s",
+        "0": "Fout of timeout"
+      }
+    }
+  ]
+}

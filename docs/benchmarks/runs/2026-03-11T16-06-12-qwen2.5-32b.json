@@ -19,7 +19,7 @@
       "response": "[TIMEOUT na 120s]",
       "score": 0,
       "max_score": 5,
-      "score_rationale": "Geen antwoord gegeven — timeout na 120 seconden, geen verklaring van nohup-functionaliteit.",
+      "score_rationale": "Model gaf geen antwoord vanwege timeout; geen informatie over nohup, SIGHUP, process groups, of output-redirection gegeven.",
       "latency_ms": 120330,
       "tokens_estimated": 3
     },

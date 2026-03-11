@@ -19,7 +19,7 @@
       "response": "[TIMEOUT na 120s]",
       "score": 0,
       "max_score": 5,
-      "score_rationale": "Timeout na 120s resulteert in geen antwoord.",
+      "score_rationale": "Geen antwoord vanwege timeout na 120s; het model kon de vraag niet beantwoorden.",
       "latency_ms": 120330,
       "tokens_estimated": 3
     },
@@ -30,7 +30,7 @@
       "response": "[TIMEOUT na 120s]",
       "score": 0,
       "max_score": 5,
-      "score_rationale": "Geen antwoord geleverd; timeout na 120s.",
+      "score_rationale": "Geen antwoord door timeout — model gaf geen code terug binnen de tijdslimiet.",
       "latency_ms": 120361,
       "tokens_estimated": 3
     },

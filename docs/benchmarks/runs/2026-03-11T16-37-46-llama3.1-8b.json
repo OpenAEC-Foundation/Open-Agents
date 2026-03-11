@@ -1,0 +1,78 @@
+{
+  "run_id": "2026-03-11T16-37-46-llama3.1-8b",
+  "timestamp": "2026-03-11T16:37:46.552859+00:00",
+  "model": "hetzner/llama3.1:8b",
+  "model_short": "llama3.1:8b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "Een nohup proces is een proces dat kan worden gestart vanaf de opdrachtregel, maar dat niet wordt beëindigd wanneer de sessie wordt verbroken. Als je een nohup proces start via SSH en de SSH sessie wordt verbroken, dan zal het nohup proces wel worden beëindigd. Dit gebeurt omdat het nohup proces is gestart vanaf de sessie die werd verbroken. Het proces is niet in staat om autonoom te functioneren en zal worden beëindigd wanneer de sessie die het werd gestart met wordt verbroken.",
+      "score": 1,
+      "max_score": 5,
+      "score_rationale": "Het antwoord is fundamenteel onjuist: het stelt dat het nohup proces WEL beëindigd wordt bij SSH disconnect, wat het tegenovergestelde is van nohup's functie; bovendien ontbreekt elke uitleg van SIGHUP onderschepping, output redirection naar nohup.out, en process groups.",
+      "latency_ms": 83518,
+      "tokens_estimated": 107
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "[TIMEOUT na 120s]",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "TIMEOUT na 120s betekent geen antwoord ontvangen — volledig fout volgens scorecriteria.",
+      "latency_ms": 120291,
+      "tokens_estimated": 3
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Een AI-agent is een kunstmatige intelligentie die op zichzelf staat en specifieke taken kan uitvoeren. \n\nEen AI-workflow is een samenstelling van verschillende AI-agents en systemen om een complexe taak uit te voeren.\n\nDoor deze componenten samen te voegen, kan een AI-workflow meestal een veel grotere capaciteit en complexiteit bereiken dan een enkele AI-agent.",
+      "score": 4,
+      "max_score": 5,
+      "score_rationale": "Exact 3 zinnen in Nederlands, goed onderscheid en begrijpelijk voor leken, maar benadrukt niet voldoende dat agent autonoom beslist en workflow vaste stappen volgt.",
+      "latency_ms": 52468,
+      "tokens_estimated": 68
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "0,1,1,2,3,5,8,13,21,34,55,89",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Exact correct antwoord",
+      "latency_ms": 30199,
+      "tokens_estimated": 1
+    }
+  ],
+  "summary": {
+    "total_score": 10,
+    "max_score": 20,
+    "pct_score": 50.0,
+    "avg_score": 2.5,
+    "by_category": {
+      "reasoning": 1,
+      "code": 0,
+      "language": 4,
+      "instruction": 5
+    },
+    "total_latency_ms": 286476,
+    "scorer": "claude/haiku"
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}

@@ -89,8 +89,9 @@ def aggregate_by_model(runs: list[dict]) -> dict:
                 cat_totals[cat].append(score)
         cat_avgs = {cat: round(sum(v) / len(v), 1) for cat, v in cat_totals.items()}
 
-        # Gemiddelde latency
-        avg_latency = int(sum(r["summary"]["total_latency_ms"] for r in model_runs) / len(model_runs))
+        # Gemiddelde latency (support both total_latency_ms and total_elapsed_ms)
+        latencies = [r["summary"].get("total_latency_ms", r.get("total_elapsed_ms", 0)) for r in model_runs]
+        avg_latency = int(sum(latencies) / len(latencies)) if latencies else 0
 
         aggregated[model] = {
             "model": model,

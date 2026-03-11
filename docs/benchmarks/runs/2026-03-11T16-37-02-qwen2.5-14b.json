@@ -1,0 +1,77 @@
+{
+  "run_id": "2026-03-11T16-37-02-qwen2.5-14b",
+  "timestamp": "2026-03-11T16:37:02.647235+00:00",
+  "model": "hetzner/qwen2.5:14b",
+  "model_short": "qwen2.5:14b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "Als je een proces met `nohup` start op een remote server via SSH en je SSH sessie wordt verbroken, blijft het `nohup` proces actief op de server draaien. Dit komt omdat `nohup` (no hang up) is ontworpen om te voorkomen dat een proces wordt afgebroken wanneer de sessie wordt afgesloten of 'hup' (hang up) wordt gegeven.\n\nHier zijn de belangrijkste punten om te begrijpen:\n\n1. **Afsluiten van het hulpverlenings-sessie (Hangup signal)**: Wanneer een SSH sessie afsluit, wordt het hulpverlenings-sessie-signal (SIGHUP) aan de processen in de achtergrond gestuurd. Dit is een teken om de processen te sluiten. `nohup` wordt gebruikt om dit signaal af te leiden van een proces, zodat het niet wordt afgesloten.\n\n2. **Uitvoer naar een bestand**: `nohup` stuurde het uitvoer van een proces naar een bestand genaamd `nohup.out`, tenzij anders is opgegeven met de `-o` optie. Dit is nuttig voor het opslaan van eventuele fouten of informatie die het proces produceert.\n\n3. **Tussenvoegsel: & en bg**: Om een proces te draaien in de achtergrond tijdens een SSH sessie, gebruikt je normaal gesproken een `&` aan het einde van de commando-inschrijving. Voor het geval dat het proces al in de voorgrond draait en je het naar de achtergrond wilt verplaatsen, kun je `bg` gebruiken.\n\nOm te zorgen dat een proces blijft draaien als je SSH sessie wordt verbroken, moet je het commando met `nohup` en `&` uitvoeren:\n\n```bash\nnohup command &\n```\n\nAls je een bestand wilt gebruiken voor de uitvoer in plaats van het standaard `nohup.out`, kun je de volgende optie gebruiken:\n\n```bash\nnohup command > output.log 2>&1 &\n```\n\nHierin:\n- `command` is het commando dat je wilt uitvoeren.\n- `> output.log` stuurde het standaard uitvoer naar `output.log`.\n- `2>&1` stuurde het fouten-uitvoer naar dezelfde plaats als het standaard uitvoer (in dit geval `output.log`).\n\nDit zorgt ervoor dat het proces volledig zelfstandig van je SSH sessie blijft draaien, zelfs als je verbinding met de server verbroken wordt.",
+      "score": 3,
+      "max_score": 5,
+      "score_rationale": "Grotendeels correct dat nohup SIGHUP onderschept en proces blijft draaien, output naar nohup.out uitgelegd, maar antwoord is onvolledig/afgebroken, process groups ontbreken, en technische imprecisies in SIGHUP uitleg.",
+      "latency_ms": 105165,
+      "tokens_estimated": 416
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "Hier is een Python-functie `deduplicate` die een lijst ontdubbelt zonder de originele volgorde te veranderen en geen sets gebruikt. De functie houdt de documentatie en type hints in overweging.\n\n```python\ndef deduplicate(items: list) -> list:\n    \"\"\"\n    Verwijdert duplicaten uit de lijst terwijl de originele volgorde behouden blijft.\n    \n    Argumenten:\n    items (list): De lijst waarvan de duplicaten moeten worden verwijderd.\n    \n    Retourneer:\n    list: Een lijst zonder duplicaten, waarbij de originele volgorde is behouden.\n    \"\"\"\n    seen = {}  # Dictionary om bij te houden welke items al zijn gezien.\n    result = []  # De lijst waar de unieke items in worden opgeslagen.\n    \n    for item in items:\n        if item not in seen:\n            seen[item] = True\n            result.append(item)\n            \n    return result\n```\n\nDit is een efficiënte en leesbare manier om een lijst van duplicaten te ontdubbelen. Het gebruik van een dictionary (`seen`) als een snelle lookup structuur zorgt ervoor dat het algemene geval van deze functie in O(n) is, waarbij n de lengte van de input-lijst is. Het behoudt de originele volgorde van de items, wat nodig is volgens de opdracht.",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Functie werkt correct, heeft type hints en docstring, behoudt volgorde, efficiënte O(n) implementatie met dictionary tracking.",
+      "latency_ms": 79592,
+      "tokens_estimated": 224
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Een AI-agent is een slimme computer die zelfstandig taken kan uitvoeren, zoals berichten versturen of voorspellingen maken, zonder continu met een mens te communiceren. Een AI-werkstroom is een reeks stappen of taken die door een AI worden uitgevoerd, maar deze is vaak geconfigureerd door een mens om specifieke doelen te bereiken. Bijvoorbeeld, als je een AI-agent gebruikt om je verjaardag te onthouden en daarop een feest te organiseren, dan zijn de acties om het feest te plannen de werkstroom.",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Precies 3 zinnen Nederlands, correct onderscheid agent (autonomie, zelfstandig) versus workflow (voorgeprogrammeerde stappen), helder en begrijpelijk voor niet-technisch publiek met relevant voorbeeld.",
+      "latency_ms": 64556,
+      "tokens_estimated": 102
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89",
+      "score": 3,
+      "max_score": 5,
+      "score_rationale": "Bijna correct: 11/12 getallen aanwezig",
+      "latency_ms": 41745,
+      "tokens_estimated": 14
+    }
+  ],
+  "summary": {
+    "total_score": 16,
+    "max_score": 20,
+    "pct_score": 80.0,
+    "avg_score": 4.0,
+    "by_category": {
+      "reasoning": 3,
+      "code": 5,
+      "language": 5,
+      "instruction": 3
+    },
+    "total_latency_ms": 291058
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}

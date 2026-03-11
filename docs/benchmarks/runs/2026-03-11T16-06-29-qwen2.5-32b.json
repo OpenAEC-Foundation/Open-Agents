@@ -19,7 +19,7 @@
       "response": "[TIMEOUT na 120s]",
       "score": 0,
       "max_score": 5,
-      "score_rationale": "Geen antwoord gegeven; evaluatie timed out na 120 seconden.",
+      "score_rationale": "Model timeout — geen antwoord gegeven binnen 120s limiet.",
       "latency_ms": 120331,
       "tokens_estimated": 3
     },

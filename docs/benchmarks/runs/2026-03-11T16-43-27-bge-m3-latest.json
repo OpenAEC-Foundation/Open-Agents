@@ -1,0 +1,60 @@
+{
+  "run_id": "2026-03-11T16-43-27-bge-m3-latest",
+  "model": "bge-m3:latest",
+  "model_short": "bge-m3",
+  "suite": "embedding-v1",
+  "host": "hetzner-agent",
+  "timestamp": "2026-03-11T16:43:27.101101+00:00",
+  "total_elapsed_ms": 33378,
+  "results": [
+    {
+      "test_id": "similarity-001",
+      "category": "similarity",
+      "score": 2,
+      "max_score": 5,
+      "latency_ms": 28860,
+      "response": "pos_sims=[0.6191, 0.7865, 0.9058] neg_sim=0.3815",
+      "score_rationale": "pos_ok=1/3 neg_ok=True sims=[0.6191, 0.7865, 0.9058] neg=0.3815"
+    },
+    {
+      "test_id": "retrieval-001",
+      "category": "retrieval",
+      "score": 5,
+      "max_score": 5,
+      "latency_ms": 3062,
+      "response": "[[\"d1\", 0.6393], [\"d2\", 0.5496], [\"d5\", 0.4797], [\"d3\", 0.4688], [\"d4\", 0.3821]]",
+      "score_rationale": "Relevant doc d1 at rank 1. Top: d1 sim=0.639"
+    },
+    {
+      "test_id": "multilingual-001",
+      "category": "multilingual",
+      "score": 5,
+      "max_score": 5,
+      "latency_ms": 371,
+      "response": "nl_en_sims=[0.9268, 0.8889, 0.9794]",
+      "score_rationale": "Cross-lingual ok=3/3 sims=[0.9268, 0.8889, 0.9794]"
+    },
+    {
+      "test_id": "speed-001",
+      "category": "speed",
+      "score": 5,
+      "max_score": 5,
+      "latency_ms": 674,
+      "response": "10 embeddings in 674ms (67ms avg)",
+      "score_rationale": "10x embed: 674ms total, 67ms avg"
+    }
+  ],
+  "summary": {
+    "total_score": 17,
+    "max_score": 20,
+    "pct_score": 85.0,
+    "avg_score": 4.25,
+    "by_category": {
+      "similarity": 2,
+      "retrieval": 5,
+      "multilingual": 5,
+      "speed": 5
+    },
+    "scorer": "automatic"
+  }
+}

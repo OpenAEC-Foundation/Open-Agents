@@ -1,0 +1,77 @@
+{
+  "run_id": "2026-03-11T16-37-02-deepseek-r1-14b",
+  "timestamp": "2026-03-11T16:37:02.631367+00:00",
+  "model": "hetzner/deepseek-r1:14b",
+  "model_short": "deepseek-r1:14b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "Thinking...\nAlright, so I'm trying to figure out what happens when I start a nohup process on a remote server via SSH, and then my SSH session gets broken. I remember that nohup stands for \"no hang up,\" but I'm not entirely sure how it works. Let me think this through step by step.\n\nFirst, I know that when I SSH into a server, I'm connecting to a shell, usually bash. Any commands I run while connected are executed in that shell session. But if my connection drops, like if my internet goes out or I close the terminal, the shell session ends, and any processes running in that session would typically terminate too. That's the default behavior without any special handling.\n\nNow, nohup is a command that's supposed to prevent this. I think it does this by detaching the process from the terminal. So, when I run a command with nohup, like `nohup myscript.sh &`, it should keep running even after the SSH session is closed.\n\nBut why does this happen? Well, I recall that when a terminal is closed, it sends a SIGHUP (hang up) signal to all processes associated with it. Processes that don't handle this signal will terminate. Nohup must somehow prevent the process from receiving this signal.\n\nI believe nohup redirects the standard output and standard error of the command to a file called `nohup.out` by default. This way, even if the terminal is gone, the output is still captured. Also, it probably changes the process's ownership so that it's no longer tied to the terminal session.\n\nWhen the SSH session is broken, the shell that was running the nohup command might terminate, but the nohup process itself should continue because it's no longer attached to the terminal. It's now a background process that's independent of the shell session.\n\nI also remember that you can use `&` to background a process, which might be related. But nohup seems to do more than just backgrounding because it handles the SIGHUP signal as well.\n\nLet me check an example. Suppose I run `nohup ./myprogram > output.log 2>&1 &`. This should run myprogram without being affected by the terminal closure. The output is redirected, and the process is backgrounded. Even if I close the SSH connection, myprogram should keep running on the server.\n\nIn summary, nohup works by creating a new session for the process, making it immune to the SIGHUP signal, redirecting its output to a file, and detaching it from the terminal. So, when the SSH session is broken, the nohup process continues running unaffected.\n...done thinking.\n\nWhen you start a nohup process on a remote server via SSH and your SSH session is broken, the nohup process continues running unaffected. Here's a step-by-step explanation of why this happens and how nohup works:\n\n1. **SSH Session and Terminal**: When you SSH into a server, you connect to a shell (like bash) which runs in a terminal session. Any processes started in this shell are linked to the terminal.\n\n2. **Nohup Command**: The `nohup` command is designed to run processes in a way that they are immune to the SIGHUP (hang up) signal, which is sent when the terminal session ends.\n\n3. **Detaching from Terminal**: Nohup creates a new session for the process, detaching it from the terminal. This means the process doesn't receive the SIGHUP signal when the SSH session is closed.\n\n4. **Output Redirection**: By default, nohup redirects the process's output to a file named `nohup.out`. This ensures that output is captured even if the terminal is closed.\n\n5. **Backgrounding**: The `&` symbol at the end of the command backgrounds the process, allowing you to close the SSH session without terminating it.\n\n**Example**:\n```bash\nnohup ./myprogram > output.log 2>&1 &\n```\n- `nohup` ensures the process isn't affected by terminal closure.\n- `> output.log` redirects standard output to `output.log`.\n- `2>&1` redirects standard error to the same log file.\n- `&` backgrounds the process, allowing the SSH session to close without stopping it.\n\nIn summary, nohup works by detaching the process from the terminal, handling the SIGHUP signal, and redirecting output. This allows the process to continue running even after the SSH session is broken.",
+      "score": 4,
+      "max_score": 5,
+      "score_rationale": "Grotendeels correct: nohup blijft draaien, SIGHUP-afvangstmechanisme uitgelegd, output naar nohup.out genoemd, maar process groups niet behandeld en antwoord truncated.",
+      "latency_ms": 72530,
+      "tokens_estimated": 910
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "Thinking...\nOkay, I need to write a Python function called deduplicate that takes a list and removes duplicates while keeping the original order. And I can't use sets as the end result. Hmm, how to approach this.\n\nSo, the function should iterate through the list and for each item, add it to a new list only if it hasn't been added before. That makes sense. So I need a way to track which items have already been seen.\n\nMaybe I can use a helper data structure to keep track of the items we've already encountered. A set would be perfect for that because checking membership in a set is O(1). But wait, the final result shouldn't be a set, but a list. So I'll create a new list, let's call it result, and a set called seen.\n\nLet me outline the steps:\n1. Initialize an empty set called seen.\n2. Initialize an empty list called result.\n3. Loop over each item in the input list items:\n   a. If the item is not in seen:\n      i. Add it to seen.\n      ii. Append it to result.\n4. Return result.\n\nWait, but what if the items are not hashable? Well, the problem statement doesn't specify, so I'll assume all items are hashable.\n\nNow, considering the function's parameters and return type. The function should take a list of items, so I'll add a type hint like List[Any]. The return type is also a list, so List[Any].\n\nI should also write a docstring explaining what the function does. Something like: \"Remove duplicate items from the list while preserving the original order. The function returns a new list with only unique elements, maintaining the order of their first occurrence.\"\n\nPutting it all together, the code would look like this:\n\ndef deduplicate(items: List[Any]) -> List[Any]:\n    \"\"\"Remove duplicate items from the list while preserving the original order.\n    The function returns a new list with only unique elements, maintaining the order of their first occurrence.\"\"\"\n    seen = set()\n    result = []\n    for item in items:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n    return result\n\nWait, but in Python, I need to import List and Any from typing. Oh right, so I should include that at the top.\n\nSo the final code would have the import statements, but since the user didn't specify, I'll just make sure to include it in the function.\n\nTesting it: Let's say items = [1, 2, 2, 3, 1]. The function should return [1,2,3]. Let's see:\n\nLoop:\n1 is not in seen, add to seen and result.\n2 is not in seen, add to both.\nNext 2 is in seen, skip.\n3 is new, added.\n1 is already in seen, skip.\nResult is [1,2,3], correct.\n\nI think that's solid. So that's the function.\n...done thinking.\n\nHier is de Python functie `deduplicate` die een lijst ontdubbelt terwijl de originele volgorde behouden blijft:\n\n```python\nfrom typing import List, Any\n\ndef deduplicate(items: List[Any]) -> List[Any]:\n    \"\"\"Remove duplicate items from the list while preserving the original order.\n    The function returns a new list with only unique elements, maintaining the order of their first occurrence.\"\"\"\n    seen = set()\n    result = []\n    for item in items:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n    return result\n```\n\n**Uitleg:**\n\n- **Docstring:** De functie is gedокументeerd met een docstring die beschrijft wat de functie doet. Dit helpt anderen om de functie te begrijpen en gebruikt.\n- **Type hints:** De parameters en return type hebben type hints, waardoor de code duidelijker en betrouwbaarder wordt.\n- **Algoritme:**\n  - Een lege set `seen` wordt gebruikt om bij te houden welke elementen reeds zijn verwerkt.\n  - Een lege lijst `result` wordt gebruikt om het unieke resultaat op te bouwen.\n  - De functie loopt over elk item in de invoerlijst:\n    - Als het item nog niet in `seen` zit, wordt het toegevoegd aan beide `seen` en `result`.\n- **Efficiency:** Het gebruik van een set voor `seen` zorgt voor een efficiënt checkproces, waardoor het algoritme bij benadering O(n) is, waarbij n de lengte van de invoerlijst is.\n\nDeze functie zorgt voor het behouden van de originele volgorde van elementen terwijl ze het duplicates verweert.",
+      "score": 1,
+      "max_score": 5,
+      "score_rationale": "Alleen denk-proces zonder daadwerkelijke werkende code; antwoord eindigt mid-zin zonder volledige functie, type hints of docstring.",
+      "latency_ms": 93296,
+      "tokens_estimated": 889
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Thinking...\nAlright, I need to explain the difference between an AI agent and an AI workflow to a non-technical audience in just three Dutch sentences. Let me think about how to make this clear and easy to understand.\n\nFirst, I should define both terms in simple terms. An AI agent is like a helper that can act on its own, like Siri or Alexa. It can understand what you say and do things without needing step-by-step instructions each time.\n\nOn the other hand, an AI workflow is more of a set process. It's like a recipe where each step is automated by AI. For example, a system that approves expenses automatically by checking receipts and budgets step by step.\n\nI should highlight that the key difference is autonomy versus step-by-step process. That way, the audience can grasp the distinction without getting bogged down by technical jargon.\n\nPutting it all together, I'll make sure each sentence is clear and concise, avoiding any complex terms.\n...done thinking.\n\nEen AI-agent is een systeem dat op eigen initiatief acties uitvoert, zoals een spraakassistent die antwoorden geeft op een vraag. Een AI-werkstroom is een gedefiniëerd proces waarbij AI stappen automatisert, zoals automatisch on goedkope reizen detecteren.",
+      "score": 3,
+      "max_score": 5,
+      "score_rationale": "Correct onderscheid agent (autonoom) vs workflow (vaste stappen), begrijpelijk voor leken, maar slechts 2 zinnen in plaats van 3, en typfout ('on goedkope reizen').",
+      "latency_ms": 74216,
+      "tokens_estimated": 261
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "Thinking...\nOkay, I need to figure out how to generate the Fibonacci sequence up to 100. I remember that the Fibonacci sequence starts with 0 and 1, and each subsequent number is the sum of the previous two. Let me try to recall the exact order.\n\nSo, it begins with 0 and 1. The next number would be 0 + 1 = 1. Now the sequence is 0, 1, 1. Then, 1 + 1 = 2. Adding that, we get 0, 1, 1, 2. Next, 1 + 2 = 3. So, 0, 1, 1, 2, 3. Continuing, 2 + 3 = 5. Now the sequence is 0, 1, 1, 2, 3, 5.\n\nNext, 3 + 5 = 8. So, adding that, we have 0, 1, 1, 2, 3, 5, 8. Then, 5 + 8 = 13. Now it's 0, 1, 1, 2, 3, 5, 8, 13. Continuing, 8 + 13 = 21. So, 0, 1, 1, 2, 3, 5, 8, 13, 21.\n\nNext, 13 + 21 = 34. Adding that, the sequence is 0, 1, 1, 2, 3, 5, 8, 13, 21, 34. Then, 21 + 34 = 55. So, we now have 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55.\n\nNext, 34 + 55 = 89. Adding that, the sequence becomes 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89. Now, if I add 55 and 89, that would be 144. But wait, 144 is greater than 100, so I should stop before that.\n\nSo, the last number I add is 89, which is less than 100. Therefore, the complete Fibonacci sequence up to 100 is all the numbers from 0 up to 89 in this order.\n\nLet me double-check to make sure I didn't miss any numbers or include any extra ones. Starting from 0, then 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89. Yep, that looks correct. Each number is the sum of the two before it, and none exceed 100 except for the last addition which would be 144, but we stop at 89.\n\nI think that's all. I don't see any errors in the sequence I've generated.\n...done thinking.\n\n0,1,1,2,3,5,8,13,21,34,55,89",
+      "score": 4,
+      "max_score": 5,
+      "score_rationale": "Correct getallen maar formaat afwijkend",
+      "latency_ms": 45188,
+      "tokens_estimated": 473
+    }
+  ],
+  "summary": {
+    "total_score": 12,
+    "max_score": 20,
+    "pct_score": 60.0,
+    "avg_score": 3.0,
+    "by_category": {
+      "reasoning": 4,
+      "code": 1,
+      "language": 3,
+      "instruction": 4
+    },
+    "total_latency_ms": 285230
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}

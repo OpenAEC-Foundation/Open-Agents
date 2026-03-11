@@ -1,0 +1,78 @@
+{
+  "run_id": "2026-03-11T16-43-32-llama3.1-8b",
+  "timestamp": "2026-03-11T16:43:32.440710+00:00",
+  "model": "hetzner/llama3.1:8b",
+  "model_short": "llama3.1:8b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "Wanneer je een nohup proces start op een remote server via SSH, maar de SSH sessie wordt verbroken, wordt het nohup proces niet geannuleerd. Dit is vanwege de manier waarop nohup werkt.\n\nNohup is een commando in Unix-achtige besturingssystemen, zoals Linux en macOS, dat een proces in de background start. Het commando \"nohup\" is afgeleid van \"no hangup\", wat \"geen sluiting\" betekent.\n\nWanneer je een commando start met nohup, zoals `nohup command &`, voert het commando de opgegeven commando uit en sluit de SSH sessie daarna aan. Het proces dat is gestart door het commando, wordt dan in de achtergrond gestart en loopt onafhankelijk door, ongeacht of de SSH sessie nog open is of niet. Het gebruik van `&` geeft aan dat het proces in de achtergrond moet worden gestart.\n\nWanneer de SSH sessie wordt verbroken, wordt de connectie met de remote server verbroken en kan de gebruiker niet meer interactief met de server communiceren. Dit heeft echter geen invloed op het nog lopende proces dat met nohup is gestart. Het proces blijft doorlopen en kan onafhankelijk van de SSH sessie worden gecontroleerd en afgestopt door andere middelen, zoals door het proces te stoppen via de terminal van de server of door het te controleren via een overzicht zoals `ps` en daarna te stoppen of te verwijderen.\n\nDit is precies de bedoeling van het gebruik van nohup: het starten van een proces dat onafhankelijk is van de SSH sessie en kan doorlopen, zelfs als de gebruiker de sessie verlaat.",
+      "score": 3,
+      "max_score": 5,
+      "score_rationale": "Correct dat het proces blijft draaien, maar oppervlakkig: mist SIGHUP-onderschepping, nohup.out-redirection en process group-handling.",
+      "latency_ms": 9042,
+      "tokens_estimated": 323
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "Hieronder vind je de Python-functie `deduplicate` die een lijst ontdubbelt zonder sets te gebruiken en met behoud van de originele volgorde:\n\n```python\ndef deduplicate(items: list) -> list:\n    \"\"\"\n    Retourneert een lijst met unieke items die zijn gesorteerd op hun index in de oorspronkelijke lijst.\n\n    :param items: De ingevoerde lijst die gedupliceerd moet worden.\n    :return: Een lijst met unieke items.\n    \"\"\"\n    seen = set()\n    deduplicated_items = []\n    for item in items:\n        if item not in seen:\n            seen.add(item)\n            deduplicated_items.append(item)\n    return deduplicated_items\n```\n\nIn deze functie maken we een set `seen` om te controleren of een item al aanwezig is in de lijst met unieke items. We lussen dan door de ingevoerde lijst heen en voegen elk item toe aan de lijst met unieke items als het nog niet in de set `seen` zit.",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Werkende functie met type hints, docstring, correct volgordebehoud, efficiënte implementatie met set voor seen-tracking.",
+      "latency_ms": 5423,
+      "tokens_estimated": 170
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "[TIMEOUT na 120s]",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Model heeft geen antwoord gegeven (timeout na 120s).",
+      "latency_ms": 120276,
+      "tokens_estimated": 3
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144",
+      "score": 4,
+      "max_score": 5,
+      "score_rationale": "Correct getallen maar formaat afwijkend",
+      "latency_ms": 91109,
+      "tokens_estimated": 16
+    }
+  ],
+  "summary": {
+    "total_score": 12,
+    "max_score": 20,
+    "pct_score": 60.0,
+    "avg_score": 3.0,
+    "by_category": {
+      "reasoning": 3,
+      "code": 5,
+      "language": 0,
+      "instruction": 4
+    },
+    "total_latency_ms": 225850,
+    "scorer": "claude/haiku"
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}

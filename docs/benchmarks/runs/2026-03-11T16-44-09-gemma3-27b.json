@@ -1,0 +1,78 @@
+{
+  "run_id": "2026-03-11T16-44-09-gemma3-27b",
+  "timestamp": "2026-03-11T16:44:09.494840+00:00",
+  "model": "hetzner/gemma3:27b",
+  "model_short": "gemma3:27b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "## Wat gebeurt er met het nohup proces en waarom?\n\nWanneer je een `nohup` proces start via SSH en je SSH sessie wordt verbroken, blijft het proces **draaien op de remote server**. Dit is de hele bedoeling van `nohup`.  Het proces wordt niet gestopt door het verbreken van de SSH verbinding.\n\n**Waarom gebeurt dit?**\n\nDe reden is dat `nohup` een signaal (SIGHUP) negeert dat normaal gesproken naar alle processen wordt gestuurd wanneer de terminal die ze heeft gestart wordt gesloten (zoals bij het verbreken van een SSH sessie).  \n\n**Hoe werkt `nohup`?**\n\nLaten we `nohup` en de werking ervan in detail bekijken:\n\n1. **SIGHUP Signaal:** Wanneer je een terminal sluit (bijvoorbeeld door een SSH sessie te verbreken), wordt een \"Hang Up\" (SIGHUP) signaal naar alle processen die door die terminal zijn gestart gestuurd.  Dit signaal vertelt het proces dat de besturingsterminal niet meer beschikbaar is. Standaard zal een proces dit signaal interpreteren als een instructie om te stoppen.\n\n2. **`nohup`'s Rol:** `nohup` (staat voor \"no hang up\") is een commando dat specifiek ontworpen is om dit SIGHUP signaal te negeren voor het proces dat erachter staat.  Het doet dit door:\n\n   * **Het proces los te koppelen van de besturingsterminal:**  `nohup` verandert de manier waarop het proces \"gekoppeld\" is aan je terminal.  Het proces wordt niet meer direct gekoppeld aan je SSH sessie.\n   * **Omleiding van output:** Standaard stuurt `nohup` de standaard output (stdout) en standaard error (stderr) naar een bestand genaamd `nohup.out` in de huidige directory. Als het schrijven naar `nohup.out` niet lukt (bijvoorbeeld door permissieproblemen), zal de output naar `$HOME/nohup.out` worden omgeleid.  Dit is belangrijk omdat als de output naar de gesloten terminal zou worden gestuurd, zou er een fout optreden.\n\n3. **Het proces blijft draaien:** Doordat het SIGHUP signaal wordt genegeerd en de output wordt omgeleid, kan het proces onafhankelijk van de SSH sessie blijven draaien, zelfs nadat de verbinding is verbroken.\n\n**Syntax en Voorbeeld:**\n\nDe basis syntax is:\n\n```bash\nnohup command &\n```\n\n* `command`:  Het commando dat je wilt uitvoeren.\n* `&`:  Dit plaatst het proces op de achtergrond, zodat je direct terug naar de terminal kunt gaan.  Zonder de `&` zal `nohup` het commando uitvoeren, maar je terminal blijft geblokkeerd totdat het commando is voltooid.\n\n**Voorbeeld:**\n\nStel je wilt een Python script genaamd `long_running_script.py` op een remote server uitvoeren en het laten draaien, zelfs als je SSH sessie wordt verbroken:\n\n```bash\nnohup python long_running_script.py &\n```\n\nJe zult waarschijnlijk een uitvoer zien als:\n\n```\nnohup: ignoring input and appending output to 'nohup.out'\n[1] 12345  # (Dit is het proces ID (PID))\n```\n\nDit betekent dat het script is gestart en de output wordt weggeschreven naar `nohup.out`.  Je kunt nu veilig je SSH sessie verbreken.  Het script blijft draaien.\n\n**Hoe het proces stoppen?**\n\nOm het proces te stoppen, moet je eerst het **proces ID (PID)** vinden.  Je kunt dit op verschillende manieren doen:\n\n* **`ps aux | grep long_running_script.py`**:  Dit geeft je een lijst van processen die overeenkomen met de zoekterm.\n* **`top` of `htop`**:  Deze tools geven een live overzicht van alle processen die op de server draaien.\n\nZodra je het PID hebt gevonden, kun je het proces stoppen met het `kill` commando:\n\n```bash\nkill 12345  # Vervang 12345 door het daadwerkelijke PID.\n```\n\nJe kunt ook `kill -9 12345` gebruiken, maar dit is een \"force kill\" en moet alleen worden gebruikt als het normale `kill` commando niet werkt.\n\n**Samenvatting:**\n\n`nohup` is een essentieel hulpmiddel voor het uitvoeren van langlopende processen op remote servers via SSH. Door het SIGHUP signaal te negeren en de output om te leiden, zorgt het ervoor dat het proces blijft draaien, zelfs nadat je SSH sessie is verbroken.  Dit maakt het ideaal voor taken zoals serveronderhoud, dataverwerking of het uitvoeren van applicaties op de achtergrond.",
+      "score": 4,
+      "max_score": 5,
+      "score_rationale": "Correct kernbegrip: nohup ignoreert SIGHUP, proces blijft draaien na SSH disconnect, mechanisme goed uitgelegd. Mist volledige uitwerking van output redirection (antwoord afgebroken) en behandeling van process groups.",
+      "latency_ms": 224902,
+      "tokens_estimated": 811
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "```python\nfrom typing import List, Any\n\ndef deduplicate(items: List[Any]) -> List[Any]:\n  \"\"\"\n  Ontdubbelt een lijst en behoudt de originele volgorde.\n\n  Args:\n    items: De lijst die ontdubbeld moet worden.\n\n  Returns:\n    Een nieuwe lijst met dezelfde elementen als de input lijst,\n    maar zonder dubbele waarden, waarbij de originele volgorde behouden blijft.\n  \"\"\"\n  seen: List[Any] = []\n  result: List[Any] = []\n  for item in items:\n    if item not in seen:\n      seen.append(item)\n      result.append(item)\n  return result\n```\n\n**Uitleg:**\n\n1. **Type Hints:** De functie gebruikt type hints om de verwachte input en output te specificeren.  `List[Any]` geeft aan dat de functie een lijst van willekeurige datatypes accepteert en retourneert.\n\n2. **Docstring:** De docstring legt uit wat de functie doet, de argumenten die het accepteert en de waarde die het retourneert.\n\n3. **`seen` List:**  De `seen` lijst houdt bij welke items al zijn tegengekomen in de input lijst.\n\n4. **`result` List:** De `result` lijst bevat de ontdubbelde items in de originele volgorde.\n\n5. **Iteratie:** De code itereert over de input `items` lijst.\n\n6. **Dubbele Controle:** Voor elk `item` controleert de code of het al in de `seen` lijst voorkomt.\n\n7. **Toevoegen aan `seen` en `result`:** Als het `item` nog niet in `seen` voorkomt, wordt het toegevoegd aan zowel de `seen` lijst (zodat het niet opnieuw wordt toegevoegd) als de `result` lijst (om het in de ontdubbelde output te behouden).\n\n8. **Return Value:** Ten slotte retourneert de functie de `result` lijst, die de ontdubbelde items in de originele volgorde bevat.\n\n**Voorbeeld Gebruik:**\n\n```python\nitems = [1, 2, 2, 3, 4, 4, 5]\ndeduplicated_items = deduplicate(items)\nprint(deduplicated_items)  # Output: [1, 2, 3, 4, 5]\n\nitems = [\"a\", \"b\", \"a\", \"c\", \"c\", \"d\"]\ndeduplicated_items = deduplicate(items)\nprint(deduplicated_items)  # Output: ['a', 'b', 'c', 'd']\n```",
+      "score": 4,
+      "max_score": 5,
+      "score_rationale": "Werkende functie met correcte type hints, docstring en volgordebehoud, maar gebruikt inefficiënte O(n²) lijstzoekingen voor seen tracking in plaats van O(1) set/dict.",
+      "latency_ms": 95888,
+      "tokens_estimated": 369
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Een AI workflow is een vastgestelde reeks stappen die een AI-systeem uitvoert om een specifieke taak te voltooien, vergelijkbaar met een recept. Een AI agent daarentegen is veel zelfstandiger; het kan zelf beslissingen nemen en acties ondernemen om een doel te bereiken, zonder dat er een strikte reeks vooraf geprogrammeerde stappen is. Denk aan een workflow als een trein die een vaste route aflegt, terwijl een agent meer een chauffeur is die zelf de beste weg kiest om een bestemming te bereiken.",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Exact 3 zinnen Nederlands, correct onderscheid (workflow = vaste stappen, agent = autonoom beslist), zeer helder en begrijpelijk voor leken met intuïtieve analogieën (recept, trein vs. chauffeur).",
+      "latency_ms": 17732,
+      "tokens_estimated": 106
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Exact correct antwoord",
+      "latency_ms": 10060,
+      "tokens_estimated": 15
+    }
+  ],
+  "summary": {
+    "total_score": 18,
+    "max_score": 20,
+    "pct_score": 90.0,
+    "avg_score": 4.5,
+    "by_category": {
+      "reasoning": 4,
+      "code": 4,
+      "language": 5,
+      "instruction": 5
+    },
+    "total_latency_ms": 348582,
+    "scorer": "claude/haiku"
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}
