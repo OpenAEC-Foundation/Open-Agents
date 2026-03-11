@@ -34,9 +34,9 @@ def isolated_state(tmp_path, monkeypatch):
 def _make_record(name: str = "test-agent", **kwargs) -> AgentRecord:
     return AgentRecord(
         name=name,
-        task="do something",
-        workspace="/tmp/ws",
-        tmux_window=f"agent-{name}",
+        task=kwargs.pop("task", "do something"),
+        workspace=kwargs.pop("workspace", "/tmp/ws"),
+        tmux_window=kwargs.pop("tmux_window", f"agent-{name}"),
         **kwargs,
     )
 

@@ -21,6 +21,15 @@ KNOWLEDGE_DIR = Path.home() / ".oa" / "knowledge"
 LESSONS_FILE = KNOWLEDGE_DIR / "lessons.yaml"
 SIMILARITY_THRESHOLD = 0.75  # Deduplicate if similarity > this
 
+CANDIDATES_PATH = Path.home() / ".oa" / "lesson-candidates.md"
+
+LESSON_PATTERNS = [
+    r"(?i)(error|fout|bug|probleem|issue).*?:\s*(.{20,200})",
+    r"(?i)(oplossing|workaround|fix|opgelost).*?:\s*(.{20,200})",
+    r"(?i)(let op|belangrijk|waarschuwing|note).*?:\s*(.{20,200})",
+    r"(?i)(lesson learned|les|lering).*?:\s*(.{20,200})",
+]
+
 
 def _ensure_dirs() -> None:
     KNOWLEDGE_DIR.mkdir(parents=True, exist_ok=True)
@@ -171,6 +180,54 @@ def install_auto_lessons_hook() -> Path:
     )
     hook_path.chmod(hook_path.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
     return hook_path
+
+
+def extract_lessons_from_run(workspace: "str | Path", task: str, run_id: "str | None" = None) -> int:
+    """Scan output/result.md van agent op les-kandidaten.
+
+    Schrijft naar ~/.oa/lesson-candidates.md (NOOIT naar LESSONS.md).
+    Stuurt oa send meta notificatie als kandidaten gevonden.
+    Return: aantal gevonden kandidaten.
+    """
+    import re as _re
+
+    workspace = Path(workspace)
+    result_file = workspace / "output" / "result.md"
+    if not result_file.exists():
+        return 0
+
+    content = result_file.read_text(encoding="utf-8", errors="ignore")
+
+    candidates = []
+    seen: set[str] = set()
+    for pattern in LESSON_PATTERNS:
+        for match in _re.finditer(pattern, content):
+            text = match.group(0).strip()
+            key = text[:80].lower()
+            if key not in seen:
+                seen.add(key)
+                candidates.append(text[:200])
+
+    if not candidates:
+        return 0
+
+    CANDIDATES_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(CANDIDATES_PATH, "a", encoding="utf-8") as f:
+        f.write(f"\n## Kandidaten uit run: {run_id or 'unknown'} ({task[:60]})\n")
+        for c in candidates:
+            f.write(f"- {c}\n")
+
+    try:
+        from .messaging import send_message
+        send_message(
+            to="meta",
+            message=f"\U0001f4a1 {len(candidates)} les-kandidaat(en) gevonden. Check ~/.oa/lesson-candidates.md",
+            from_agent="lessons-extractor",
+        )
+    except Exception:
+        pass
+
+    return len(candidates)
 
 
 if __name__ == "__main__":

@@ -22,6 +22,36 @@ from .state import get_agent, list_agents
 from .utils import generate_agent_name
 from .workspace import read_output
 
+# Slash commands available in interactive chat mode
+SLASH_COMMANDS: dict[str, str] = {
+    "/status": "Show all running agents",
+    "/help": "Show this help message",
+    "/quit": "Exit the chat session",
+    "/kill": "Kill a running agent (/kill <name>)",
+    "/collect": "Collect output of a completed agent (/collect <name>)",
+    "/list": "List all agents",
+}
+
+
+def parse_slash_command(text: str) -> str | None:
+    """Parse a slash command from user input.
+
+    Returns the command string if input is a known slash command, else None.
+    """
+    text = text.strip()
+    if not text.startswith("/"):
+        return None
+    parts = text.split(None, 1)
+    command = parts[0].lower()
+    if command not in SLASH_COMMANDS:
+        return None
+    return command
+
+
+def generate_name(task: str) -> str:
+    """Generate a short agent name from a task description."""
+    return generate_agent_name(task)
+
 
 class ChatSession:
     """Interactive REPL session for spawning and monitoring agents."""

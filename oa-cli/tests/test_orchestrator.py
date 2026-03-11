@@ -182,7 +182,7 @@ class TestSpawnAgentMocked:
     @pytest.fixture()
     def mock_subprocess(self):
         """Mock subprocess.run to avoid real tmux calls."""
-        with patch("open_agents.orchestrator.subprocess.run") as mock_run:
+        with patch("open_agents.tmux.subprocess.run") as mock_run:
             mock_run.return_value = self._mock_run()
             yield mock_run
 
@@ -262,13 +262,13 @@ class TestSessionMocked:
         return m
 
     def test_session_exists_true_when_returncode_zero(self):
-        with patch("open_agents.orchestrator.subprocess.run") as mock_run:
+        with patch("open_agents.tmux.subprocess.run") as mock_run:
             mock_run.return_value = self._mock_run(returncode=0)
             from open_agents.orchestrator import session_exists
             assert session_exists() is True
 
     def test_session_exists_false_when_returncode_nonzero(self):
-        with patch("open_agents.orchestrator.subprocess.run") as mock_run:
+        with patch("open_agents.tmux.subprocess.run") as mock_run:
             mock_run.return_value = self._mock_run(returncode=1)
             from open_agents.orchestrator import session_exists
             assert session_exists() is False

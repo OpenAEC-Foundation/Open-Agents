@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Optional
 
 SKILL_DIRS = [
     Path.home() / ".claude" / "skills",  # global skills
@@ -57,3 +58,46 @@ def list_available_skills() -> list[str]:
                     names.append(entry.name)
                     seen.add(entry.name)
     return names
+
+
+def resolve_skills_for_agent(
+    skills: list[str],
+    agent_type: str = "",
+    project_root: Optional[Path] = None,
+) -> str:
+    """Combineer agent_type skills + expliciete skills lijst → markdown string.
+
+    Volgorde:
+    1. Skills van agent_type (via AGENT_TYPE_SKILLS dict — bestaand)
+    2. Expliciete skills (via skill_registry.resolve_skills)
+    Duplicaten worden verwijderd (eerste wint).
+    Return: gecombineerde markdown string voor in CLAUDE.md
+    """
+    from .skill_registry import resolve_skills, load_skill_content
+
+    parts: list[str] = []
+    seen_names: set[str] = set()
+
+    # 1. Agent type skills (bestaand mechanisme)
+    type_skill_names = AGENT_TYPE_SKILLS.get(agent_type, [])
+    for skill_name in type_skill_names:
+        if skill_name in seen_names:
+            continue
+        skill_path = _find_skill(skill_name)
+        if skill_path:
+            content = skill_path.read_text().strip()
+            if content:
+                parts.append(f"## Skill: {skill_name}\n\n{content}")
+                seen_names.add(skill_name)
+
+    # 2. Expliciete skills via registry
+    matches = resolve_skills(skills, project_root=project_root)
+    for match in matches:
+        if match.name in seen_names:
+            continue
+        content = load_skill_content(match)
+        if content:
+            parts.append(f"## Skill: {match.name}\n\n{content}")
+            seen_names.add(match.name)
+
+    return "\n\n---\n\n".join(parts)

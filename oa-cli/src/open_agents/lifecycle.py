@@ -95,6 +95,13 @@ def check_agent(name: str) -> str | None:
             except Exception:
                 pass
 
+        # Auto-extract lesson candidates (non-blocking)
+        try:
+            from .lessons import extract_lessons_from_run
+            extract_lessons_from_run(rec.workspace, rec.task, rec.run_id)
+        except Exception:
+            pass
+
         # Schrijf result naar shared_results_dir als beschikbaar
         if rec.shared_results_dir:
             _write_shared_result(rec)

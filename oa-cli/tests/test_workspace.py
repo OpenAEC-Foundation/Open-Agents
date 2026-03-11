@@ -64,7 +64,9 @@ class TestCreateWorkspace:
         ws = create_workspace("heading-test", task)
         try:
             content = (ws / "CLAUDE.md").read_text()
-            assert f"# Taak: {task}" in content
+            # New format: task is in the ## Task section, agent name in title
+            assert task in content
+            assert "## Task" in content
         finally:
             cleanup_workspace(ws)
 
@@ -72,7 +74,8 @@ class TestCreateWorkspace:
         ws = create_workspace("instr-test", "any task")
         try:
             content = (ws / "CLAUDE.md").read_text()
-            assert "## Instructies" in content
+            # New format uses ## Task and ## Output Location instead of ## Instructies
+            assert "## Task" in content
         finally:
             cleanup_workspace(ws)
 
@@ -80,36 +83,39 @@ class TestCreateWorkspace:
         ws = create_workspace("out-test", "any task")
         try:
             content = (ws / "CLAUDE.md").read_text()
-            assert "## Output" in content
-            assert "./output/" in content
-            assert "./output/result.md" in content
+            assert "## Output Location" in content
+            assert "output/" in content
+            assert "result.md" in content
             assert ".done" in content
         finally:
             cleanup_workspace(ws)
 
-    def test_claude_md_has_proposal_mode_section(self):
+    def test_claude_md_has_no_proposal_mode(self):
+        """Proposal mode was removed (L-018) — agents write directly."""
         ws = create_workspace("prop-test", "any task")
         try:
             content = (ws / "CLAUDE.md").read_text()
-            assert "## PROPOSAL MODE" in content
+            # Proposal mode is REMOVED — agents write directly (L-018)
+            assert "## PROPOSAL MODE" not in content
+            assert "Do NOT create a proposals/" in content or "no proposals" in content
         finally:
             cleanup_workspace(ws)
 
-    def test_claude_md_proposal_mode_no_external_files(self):
-        ws = create_workspace("prop-constraint-test", "any task")
+    def test_claude_md_has_quality_rules(self):
+        """New format has ## Quality Rules instead of proposal mode."""
+        ws = create_workspace("quality-test", "any task")
         try:
             content = (ws / "CLAUDE.md").read_text()
-            assert "Wijzig NOOIT bestanden buiten" in content
+            assert "## Quality Rules" in content
         finally:
             cleanup_workspace(ws)
 
-    def test_claude_md_proposal_dir_instructions(self):
-        ws = create_workspace("prop-dir-test", "any task")
+    def test_claude_md_has_anti_patterns(self):
+        """New format has ## Anti-patterns section."""
+        ws = create_workspace("anti-test", "any task")
         try:
             content = (ws / "CLAUDE.md").read_text()
-            assert "./output/proposals/" in content
-            assert ".proposal.md" in content
-            assert "SUMMARY.md" in content
+            assert "## Anti-patterns" in content
         finally:
             cleanup_workspace(ws)
 

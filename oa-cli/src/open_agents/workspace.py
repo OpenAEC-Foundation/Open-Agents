@@ -195,7 +195,7 @@ def _team_context_section(agent_name: str, team: str) -> str:
     )
 
 
-def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None, agent_type: str = "", can_spawn: bool = False, honesty: bool = False, team: str = "", model: str = "", parent_name: str = "meta") -> Path:
+def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None, agent_type: str = "", can_spawn: bool = False, honesty: bool = False, team: str = "", model: str = "", parent_name: str = "meta", skills: list[str] | None = None, skill_refs: list[str] | None = None) -> Path:
     """Create a temporary workspace directory with a CLAUDE.md file.
 
     If project_root is provided, agents are instructed to write directly
@@ -277,9 +277,25 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"- On failure: write to ./output/error.md and create .done anyway\n"
         )
 
-    if agent_type:
-        from .skill_loader import load_skills_for_type
-        skill_content = load_skills_for_type(agent_type)
+    # Resolve skills: agent_type skills + expliciete skills + skill_refs
+    combined_skill_names: list[str] = []
+    if skills:
+        combined_skill_names.extend(skills)
+    if skill_refs:
+        combined_skill_names.extend(skill_refs)
+
+    if agent_type or combined_skill_names:
+        from .skill_loader import resolve_skills_for_agent, load_skills_for_type
+        if combined_skill_names:
+            # Use new combined resolver
+            skill_content = resolve_skills_for_agent(
+                combined_skill_names,
+                agent_type=agent_type,
+                project_root=Path(project_root) if project_root else None,
+            )
+        else:
+            # Backward compatible: only agent_type, use existing loader
+            skill_content = load_skills_for_type(agent_type)
         if skill_content:
             existing = claude_md.read_text()
             claude_md.write_text(existing + "\n\n---\n\n# Skills\n\n" + skill_content)
@@ -364,3 +380,11 @@ def read_output(workspace: str | Path) -> str | None:
     return None
 
 
+
+
+def list_proposals(workspace: Path) -> list[Path]:
+    """List all .proposal.md files in workspace/output/proposals/, sorted."""
+    proposals_dir = Path(workspace) / "output" / "proposals"
+    if not proposals_dir.exists():
+        return []
+    return sorted(proposals_dir.glob("*.proposal.md"))

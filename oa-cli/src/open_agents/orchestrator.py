@@ -18,8 +18,16 @@ from .lifecycle import (  # noqa: F401  — re-exports
     kill_agent,
     touch_agent,
 )
-from .spawner import MAX_DEPTH, spawn_agent  # noqa: F401  — re-exports
-from .tmux import session_exists, start_session  # noqa: F401  — re-exports
+from .spawner import (  # noqa: F401  — re-exports
+    MAX_DEPTH,
+    CLAUDE_CMD,
+    CLAUDE_MODEL_MAP,
+    OLLAMA_CMD,
+    spawn_agent,
+    _build_claude_command,
+    _build_ollama_command,
+)
+from .tmux import SESSION_NAME, session_exists, start_session  # noqa: F401  — re-exports
 from .state import get_agent
 
 
