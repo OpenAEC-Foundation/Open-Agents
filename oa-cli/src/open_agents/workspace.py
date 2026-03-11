@@ -249,6 +249,11 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
     messaging = _messaging_instructions(agent_name)
     spawning = _spawning_instructions(agent_name, str(project_root) if project_root else None)
 
+    # Write task.txt — clean task-only prompt for Ollama agents (L-089)
+    # Ollama models receive this instead of the full CLAUDE.md to avoid context confusion.
+    task_txt = workspace / "task.txt"
+    task_txt.write_text(task + "\n")
+
     if project_root:
         # Direct write mode — agents write to the real project
         claude_md.write_text(
@@ -383,6 +388,10 @@ def sync_workspace_to_remote(host: str, local_ws: Path, remote_ws: str) -> None:
     """Upload workspace (CLAUDE.md + .claude/) naar remote via SSH/SCP."""
     subprocess.run(["ssh", "-o", "BatchMode=yes", host, f"mkdir -p {remote_ws}/output {remote_ws}/.claude/hooks"], check=True)
     subprocess.run(["scp", "-o", "BatchMode=yes", str(local_ws / "CLAUDE.md"), f"{host}:{remote_ws}/CLAUDE.md"], check=True)
+    # Also sync task.txt — clean task-only prompt used by Ollama agents (L-089)
+    task_txt = local_ws / "task.txt"
+    if task_txt.exists():
+        subprocess.run(["scp", "-o", "BatchMode=yes", str(task_txt), f"{host}:{remote_ws}/task.txt"], check=True)
     # Sync delegation hooks and settings so remote agents also block the Agent tool
     claude_dir = local_ws / ".claude"
     if claude_dir.exists():
