@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAgentStore, statusColor, modelColor, formatDuration, modelLabel } from '../../stores/agentStore';
 import * as api from '../../api/client';
 import type { Agent } from '../../types';
+import { XtermTerminal } from './XtermTerminal';
 
 const MAX_TABS = 8;
 
@@ -13,8 +14,6 @@ export function TerminalPanel() {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [outputs, setOutputs] = useState<Record<string, string>>({});
   const [details, setDetails] = useState<Record<string, Agent>>({});
-
-  const outputRef = useRef<HTMLDivElement>(null);
 
   // Auto-open tab when agent is selected in canvas
   useEffect(() => {
@@ -32,10 +31,10 @@ export function TerminalPanel() {
   const activeAgent = agents.find(a => a.name === activeTab);
   useEffect(() => {
     if (!activeTab || activeAgent?.status !== 'running') return;
-    const cleanup = api.streamAgentOutput(activeTab, (output) => {
+    const handle = api.streamAgentOutput(activeTab, (output) => {
       setOutputs(prev => ({ ...prev, [activeTab]: output }));
     });
-    return cleanup;
+    return () => handle.close();
   }, [activeTab, activeAgent?.status]);
 
   // Poll detail for active tab
@@ -59,13 +58,6 @@ export function TerminalPanel() {
     const interval = setInterval(load, 2000);
     return () => clearInterval(interval);
   }, [activeTab]);
-
-  // Auto-scroll to bottom
-  useEffect(() => {
-    if (outputRef.current) {
-      outputRef.current.scrollTop = outputRef.current.scrollHeight;
-    }
-  }, [outputs[activeTab ?? '']]);
 
   function closeTab(name: string, e: React.MouseEvent) {
     e.stopPropagation();
@@ -167,17 +159,17 @@ export function TerminalPanel() {
       )}
 
       {/* Terminal output */}
-      <div
-        ref={outputRef}
-        className="flex-1 overflow-auto p-3 font-mono text-[11px] leading-relaxed"
-        style={{ background: '#0d0d0d' }}
-      >
-        {outputText ? (
-          <pre className="whitespace-pre-wrap break-words" style={{ color: '#c9d1d9' }}>
-            {outputText}
-          </pre>
+      <div className="flex-1 overflow-hidden" style={{ background: '#0a0a0a' }}>
+        {outputText || activeTab ? (
+          <XtermTerminal
+            output={outputText}
+            agentName={activeTab ?? ''}
+            isRunning={activeAgent?.status === 'running'}
+          />
         ) : (
-          <span style={{ color: '#2d3748' }}>waiting for output...</span>
+          <div className="flex items-center justify-center h-full">
+            <span className="font-mono text-[11px]" style={{ color: '#2d3748' }}>waiting for output...</span>
+          </div>
         )}
       </div>
 

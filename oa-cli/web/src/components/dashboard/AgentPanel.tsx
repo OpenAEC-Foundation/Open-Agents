@@ -33,10 +33,10 @@ export function AgentPanel() {
       setStreamOutput('');
       return;
     }
-    const cleanup = api.streamAgentOutput(selectedAgent, (output) => {
+    const handle = api.streamAgentOutput(selectedAgent, (output) => {
       setStreamOutput(output);
     });
-    return cleanup;
+    return () => handle.close();
   }, [selectedAgent, agent?.status]);
 
   // Fetch detail and messages
