@@ -8,6 +8,9 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+# Path to the honesty-enforcer template (relative to this file's package root)
+_HONESTY_ENFORCER_TEMPLATE = Path(__file__).parent.parent.parent / "templates" / "honesty-enforcer.md"
+
 WORKSPACE_PREFIX = "oa-agent-"
 
 # Full PATH so agents (and their sub-agents) can find oa-cli (Issue #9/#11)
@@ -118,7 +121,7 @@ def _spawning_instructions(agent_name: str, project_root: str | None = None) -> 
     )
 
 
-def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None, agent_type: str = "", can_spawn: bool = False) -> Path:
+def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None, agent_type: str = "", can_spawn: bool = False, honesty: bool = False) -> Path:
     """Create a temporary workspace directory with a CLAUDE.md file.
 
     If project_root is provided, agents are instructed to write directly
@@ -198,7 +201,28 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             existing = claude_md.read_text()
             claude_md.write_text(existing + "\n\n---\n\n# Skills\n\n" + skill_content)
 
+    if honesty:
+        inject_honesty_enforcer(workspace)
+
     return workspace
+
+
+def inject_honesty_enforcer(workspace_path: str | Path) -> None:
+    """Append the honesty-enforcer template to the workspace's CLAUDE.md.
+
+    Reads the template from templates/honesty-enforcer.md and appends it
+    to the CLAUDE.md in the given workspace directory.
+    Silently skips if the template file does not exist.
+    """
+    claude_md = Path(workspace_path) / "CLAUDE.md"
+    if not claude_md.exists():
+        return
+    if not _HONESTY_ENFORCER_TEMPLATE.exists():
+        return
+    enforcer_content = _HONESTY_ENFORCER_TEMPLATE.read_text()
+    existing = claude_md.read_text()
+    if "Honesty Enforcer" not in existing:
+        claude_md.write_text(existing + "\n\n---\n\n" + enforcer_content)
 
 
 def sync_workspace_to_remote(host: str, local_ws: Path, remote_ws: str) -> None:

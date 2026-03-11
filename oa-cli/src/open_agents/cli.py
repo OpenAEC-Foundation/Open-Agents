@@ -22,6 +22,9 @@ from .state import get_agent, list_agents
 from .messaging import broadcast_message, mark_read, poll_shutdown_response, read_inbox, send_message, shutdown_request, unread_count
 from .workspace import read_output, remote_is_done, sync_output_from_remote
 from .prompt_templates import L010_TEMPLATE_NAMES, apply_template, validate_prompt
+from .context_gap_detector import detect_gaps, write_audit
+from .invocation_validator import InvocationValidator
+from .budget_tracker import start_budget
 from .guardians import list_guardians, log_event, register_guardian, trigger_guardian
 from .hooks import HOOK_DIRS, ensure_hook_dirs, install_default_hooks, run_hooks
 from .session import detect_previous_shutdown, ShutdownMode
@@ -333,6 +336,8 @@ def run(
     strict: bool = typer.Option(False, "--strict", help="Fail if prompt is missing L-010 elements (absolute paths, scope, output)"),
     can_spawn: bool = typer.Option(False, "--can-spawn", help="Configure agent as orchestrator that can spawn child agents via oa run"),
     docker: bool = typer.Option(False, "--docker", help="Run agent in Docker container (requires Docker)"),
+    skip_context_check: bool = typer.Option(False, "--skip-context-check", help="Skip context gap pre-flight check"),
+    budget: int = typer.Option(None, "--budget", help="Token budget for this run (optional, no limit if omitted)"),
 ):
     """Spawn an agent with a task in a new tmux window."""
     if not remote and not session_exists():
@@ -374,8 +379,35 @@ def run(
             console.print("[red]--strict: prompt faalt L-010 validatie. Voeg ontbrekende elementen toe of gebruik --template.[/red]")
             raise typer.Exit(1)
 
+    # Invocation Quality Gate (#33): score prompt on 5 dimensions
+    _quality = InvocationValidator().score(task)
+    _total = _quality["total_score"]
+    if _total < 3:  # threshold: < 0.6 of max 5
+        console.print(f"[yellow]Invocation quality score: {_total}/5[/yellow]")
+        for w in _quality["warnings"]:
+            console.print(f"[yellow]  • {w}[/yellow]")
+        if strict:
+            console.print("[red]--strict: invocation quality score too low (< 3/5). Improve your prompt.[/red]")
+            raise typer.Exit(1)
+    else:
+        console.print(f"[dim]Invocation quality: {_total}/5[/dim]")
+
     if not name:
         name = generate_agent_name(task)
+
+    # Token Budget Allocator (#45): persist budget if provided
+    if budget is not None:
+        start_budget(name, budget)
+        console.print(f"[dim]Token budget set: {budget} tokens for '{name}'[/dim]")
+
+    # Context gap pre-flight check
+    _context_gaps: list[str] = []
+    if not skip_context_check:
+        _context_gaps = detect_gaps(task)
+        if _context_gaps:
+            console.print("[yellow]Context Gap Detector warnings:[/yellow]")
+            for gap in _context_gaps:
+                console.print(f"[yellow]  • {gap}[/yellow]")
 
     ws = Path(workspace) if workspace else None
     if tmp:
@@ -462,6 +494,9 @@ def run(
     console.print(f"  Task: {rec.task}")
     console.print(f"  Workspace: {rec.workspace}")
     console.print(f"  Window: {rec.tmux_window}")
+
+    if _context_gaps and rec.workspace:
+        write_audit(Path(rec.workspace), _context_gaps)
 
     log_event("agent_spawned", {"agent": rec.name, "model": rec.model, "task": rec.task[:120]})
 
@@ -1504,6 +1539,142 @@ def logs(
         )
 
     console.print(table)
+
+
+# --- Backlog commands (#30) ---
+
+backlog_app = typer.Typer(name="backlog", help="Manage persistent work backlog.", no_args_is_help=True)
+app.add_typer(backlog_app)
+
+
+@backlog_app.command("list")
+def backlog_list(
+    priority: str = typer.Option(None, "--priority", "-p", help="Filter by priority: high|medium|low"),
+):
+    """List all open backlog items, sorted by priority."""
+    from .backlog import BacklogStore
+    from rich.table import Table
+
+    store = BacklogStore()
+    items = store.list(priority=priority)
+    if not items:
+        console.print("[dim]No open backlog items.[/dim]")
+        return
+
+    table = Table(title="Backlog")
+    table.add_column("ID", style="dim")
+    table.add_column("Priority", style="bold")
+    table.add_column("Title")
+    table.add_column("Description", max_width=50)
+
+    priority_colors = {"high": "red", "medium": "yellow", "low": "green"}
+    for item in items:
+        prio = item.get("priority", "medium")
+        color = priority_colors.get(prio, "white")
+        table.add_row(
+            item["id"],
+            f"[{color}]{prio}[/{color}]",
+            item["title"],
+            item.get("description", "") or "[dim]-[/dim]",
+        )
+    console.print(table)
+
+
+@backlog_app.command("add")
+def backlog_add(
+    title: str = typer.Argument(..., help="Backlog item title"),
+    priority: str = typer.Option("medium", "--priority", "-p", help="Priority: high|medium|low"),
+    description: str = typer.Option("", "--desc", "-d", help="Optional description"),
+):
+    """Add a new item to the backlog."""
+    from .backlog import BacklogStore
+
+    store = BacklogStore()
+    item_id = store.add(title, description=description, priority=priority)
+    console.print(f"[green]Added backlog item[/green]  id={item_id}  priority={priority}")
+    console.print(f"  Title: {title}")
+
+
+@backlog_app.command("done")
+def backlog_done(
+    item_id: str = typer.Argument(..., help="Backlog item ID to mark as done"),
+):
+    """Mark a backlog item as done."""
+    from .backlog import BacklogStore
+
+    store = BacklogStore()
+    try:
+        store.done(item_id)
+        console.print(f"[green]Backlog item '{item_id}' marked as done.[/green]")
+    except KeyError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+
+
+# --- Review command (#28) ---
+
+_REVIEWER_PROMPT_TEMPLATE = """You are an adversarial reviewer for Open Agents output.
+
+Read the agent output file at: {result_path}
+
+Write a structured review to: {review_path}
+
+Your review MUST include these sections:
+## What Works
+- List what is correct, complete, and well-done.
+
+## What's Missing
+- List gaps, missing requirements, or incomplete parts.
+
+## Quality Score
+Score: X/10 -- one-line justification.
+
+## Recommendations
+- Concrete, actionable improvements (max 5 bullet points).
+
+Be direct and critical. Do not praise for its own sake.
+Write the review to {review_path} and make a .done file when finished.
+"""
+
+
+@app.command()
+def review(
+    agent_name: str = typer.Argument(..., help="Agent name whose output to review"),
+    model: str = typer.Option("claude/sonnet", "--model", "-m", help="Reviewer model"),
+):
+    """Spawn an adversarial reviewer agent on the output of another agent."""
+    if not session_exists():
+        console.print("[red]No oa session. Run 'oa start' first.[/red]")
+        raise typer.Exit(1)
+
+    rec = get_agent(agent_name)
+    if rec is None:
+        console.print(f"[red]Agent '{agent_name}' not found.[/red]")
+        raise typer.Exit(1)
+
+    workspace = Path(rec.workspace)
+    result_path = workspace / "output" / "result.md"
+    review_path = workspace / "output" / "review.md"
+
+    if not result_path.exists():
+        console.print(f"[red]No result.md found at {result_path}[/red]")
+        raise typer.Exit(1)
+
+    reviewer_name = f"reviewer-{agent_name}"
+    task = _REVIEWER_PROMPT_TEMPLATE.format(
+        result_path=str(result_path),
+        review_path=str(review_path),
+    )
+
+    try:
+        reviewer_rec = spawn_agent(reviewer_name, task, model=model)
+    except RuntimeError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+
+    console.print(f"[green]Reviewer agent '{reviewer_rec.name}' spawned[/green]  (model: {model})")
+    console.print(f"  Reviewing: {result_path}")
+    console.print(f"  Output:    {review_path}")
 
 
 if __name__ == "__main__":
