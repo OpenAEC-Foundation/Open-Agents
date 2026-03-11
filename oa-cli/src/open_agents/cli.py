@@ -203,6 +203,57 @@ def setup():
     install_default_hooks()
     console.print(f"[green]Hook directories created in ~/.oa/hooks/[/green]")
 
+    failed = [r for r in results if not r.ok]
+    if failed:
+        console.print("\n[yellow]Setup complete with warnings. Fix the issues above before running 'oa start'.[/yellow]")
+    else:
+        console.print(Panel(
+            "Setup complete!\n\nNext steps:\n  1. Run [bold]oa start[/bold] to launch the tmux session\n  2. Run [bold]oa run \"<task>\"[/bold] to spawn your first agent\n  3. Run [bold]oa doctor[/bold] anytime to verify your environment",
+            title="[green bold]Open Agents Ready[/green bold]",
+            border_style="green",
+        ))
+
+
+@app.command()
+def doctor():
+    """Check environment health: tmux, claude CLI, Python version, ~/.oa/ dir, and active session."""
+    import shutil
+    import sys
+
+    checks = []
+
+    # tmux
+    tmux_path = shutil.which("tmux")
+    checks.append(("tmux", bool(tmux_path), tmux_path or "not found in PATH"))
+
+    # claude CLI
+    claude_path = shutil.which("claude")
+    checks.append(("claude CLI", bool(claude_path), claude_path or "not found — install: npm install -g @anthropic-ai/claude-code"))
+
+    # Python >= 3.10
+    info = sys.version_info
+    py_ok = (info.major, info.minor) >= (3, 10)
+    checks.append(("Python >= 3.10", py_ok, f"{info.major}.{info.minor}.{info.micro}"))
+
+    # ~/.oa/ directory
+    oa_ok = OA_DIR.exists()
+    checks.append(("~/.oa/ directory", oa_ok, str(OA_DIR) if oa_ok else f"missing — run 'oa setup'"))
+
+    # Active oa session
+    session_ok = session_exists()
+    checks.append(("oa session active", session_ok, "running" if session_ok else "not running — run 'oa start'"))
+
+    all_ok = all(ok for _, ok, _ in checks)
+    for name, ok, detail in checks:
+        icon = "[green]✓[/green]" if ok else "[red]✗[/red]"
+        console.print(f"  {icon}  {name:<22} {detail}")
+
+    if all_ok:
+        console.print("\n[green bold]All checks passed.[/green bold]")
+    else:
+        failed_count = sum(1 for _, ok, _ in checks if not ok)
+        console.print(f"\n[red bold]{failed_count} check(s) failed.[/red bold] Run 'oa setup' to fix.")
+
 
 @app.command()
 def start(
@@ -1730,6 +1781,125 @@ def handoff(
 
     path = generate_handoff(session_summary=summary)
     console.print(f"[green]Handoff document geschreven naar:[/green] {path}")
+
+
+@app.command()
+def mcp(
+    host: str = typer.Option("127.0.0.1", "--host", help="Host to bind the MCP server to"),
+    port: int = typer.Option(0, "--port", help="Port (0 = stdio transport, default for MCP)"),
+):
+    """Start the Open Agents MCP server (stdio transport for Claude Code integration)."""
+    try:
+        from .mcp_server import main as mcp_main
+    except ImportError:
+        console.print("[red]MCP package not installed. Run: pip install mcp>=1.0[/red]")
+        raise typer.Exit(1)
+    console.print("[green]Starting Open Agents MCP server...[/green]")
+    mcp_main()
+
+
+@app.command()
+def compact(
+    name: str = typer.Argument(None, help="Agent name to compact (omit for all running agents)"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be compacted without triggering"),
+    all_agents: bool = typer.Option(False, "--all", help="Compact all running agents above threshold"),
+):
+    """Trigger context compaction for one or all running agents (Issue #20).
+
+    Sends /compact to the agent's tmux pane when context usage exceeds threshold.
+    Default threshold: 75% (override with OA_COMPACT_THRESHOLD env var).
+    """
+    from .context_tracker import get_context_status, should_compact, trigger_compaction, HEALTH_ICONS
+    from .state import list_agents, get_agent
+
+    targets: list[str] = []
+    if name:
+        targets = [name]
+    else:
+        targets = [r.name for r in list_agents() if r.status == "running"]
+
+    if not targets:
+        console.print("[yellow]No running agents found.[/yellow]")
+        raise typer.Exit(0)
+
+    for agent_name in targets:
+        rec = get_agent(agent_name)
+        if rec is None:
+            console.print(f"[red]Agent '{agent_name}' not found.[/red]")
+            continue
+        if rec.status != "running":
+            console.print(f"[dim]{agent_name}: not running (status={rec.status})[/dim]")
+            continue
+
+        ctx = get_context_status(agent_name, rec.tmux_window)
+        icon = HEALTH_ICONS.get(ctx["health"], "○")
+        pct = ctx["pct"]
+        tokens = ctx["tokens"]
+
+        if dry_run:
+            would = "WOULD compact" if should_compact(agent_name, pct) else "would NOT compact"
+            console.print(f"  {icon} [cyan]{agent_name}[/cyan]  {pct:.1f}% ({tokens:,} tokens)  → {would}")
+            continue
+
+        if all_agents or name:
+            # Force compact regardless of threshold when explicitly requested
+            if name:
+                trigger_compaction(agent_name, rec.tmux_window)
+                console.print(f"  {icon} [green]✓[/green] [cyan]{agent_name}[/cyan]  /compact sent ({pct:.1f}%)")
+            elif should_compact(agent_name, pct):
+                trigger_compaction(agent_name, rec.tmux_window)
+                console.print(f"  {icon} [green]✓[/green] [cyan]{agent_name}[/cyan]  /compact sent ({pct:.1f}%)")
+            else:
+                console.print(f"  {icon} [dim]{agent_name}[/dim]  {pct:.1f}% — below threshold, skipped")
+
+
+@app.command(name="import")
+def canvas_import(
+    file: str = typer.Argument(..., help="Pad naar het canvas export JSON-bestand"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Toon pipeline stappen zonder agents te spawnen"),
+    model: str = typer.Option("", "--model", "-m", help="Overschrijf model voor alle agents (bijv. claude/opus)"),
+):
+    """Importeer een Canvas export en spawn de pipeline als oa agents.
+
+    Leest een canvas-export.json (zie docs/schemas/canvas-export.json),
+    sorteert nodes topologisch op basis van edges, en spawnt elke agent-node.
+    """
+    from .canvas_import import parse_canvas_export, convert_to_pipeline
+
+    if not session_exists() and not dry_run:
+        console.print("[red]No oa session. Run 'oa start' first.[/red]")
+        raise typer.Exit(1)
+
+    try:
+        canvas_data = parse_canvas_export(file)
+    except (FileNotFoundError, ValueError) as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+
+    steps = convert_to_pipeline(canvas_data)
+    if not steps:
+        console.print("[yellow]Geen agent-nodes gevonden in canvas export.[/yellow]")
+        raise typer.Exit(0)
+
+    pipeline_name = canvas_data.get("name", "canvas-pipeline")
+    console.print(f"[bold cyan]Canvas import:[/bold cyan] '{pipeline_name}' — {len(steps)} stap(pen)")
+
+    for step in steps:
+        effective_model = model or step["model"]
+        deps_str = f"  ← {', '.join(step['depends_on'])}" if step["depends_on"] else ""
+        console.print(f"  [cyan]{step['name']}[/cyan]  model={effective_model}{deps_str}")
+
+    if dry_run:
+        console.print("[dim]--dry-run: geen agents gespawnt.[/dim]")
+        return
+
+    for step in steps:
+        effective_model = model or step["model"]
+        try:
+            rec = spawn_agent(name=step["name"], task=step["task"], model=effective_model)
+            console.print(f"  [green]✓[/green] {rec.name}  (workspace: {rec.workspace})")
+        except RuntimeError as e:
+            console.print(f"  [red]✗[/red] {step['name']}: {e}")
 
 
 if __name__ == "__main__":
