@@ -15,7 +15,7 @@ _REPO_ROOT = Path(os.environ.get("OA_REPO_ROOT", str(Path(__file__).parents[3]))
 
 CORE_FILES = {
     "LESSONS":      {"path": "LESSONS.md",           "role": "Geleerde lessen",            "stale_days": 7,    "triggers": ["session_end", "batch_complete"], "is_glob": False},
-    "ROADMAP":      {"path": "docs/ROADMAP.md",       "role": "Status en voortgang",         "stale_days": 3,    "triggers": ["task_complete"],                 "is_glob": False},
+    "ROADMAP":      {"path": "ROADMAP.md",             "role": "Status en voortgang",         "stale_days": 3,    "triggers": ["task_complete"],                 "is_glob": False},
     "DECISIONS":    {"path": "DECISIONS.md",          "role": "Architectuurbeslissingen",    "stale_days": None, "triggers": ["architecture_change"],           "is_glob": False},
     "HANDOFF":      {"path": "docs/HANDOFF-*.md",     "role": "Sessie-overdracht",           "stale_days": 1,    "triggers": ["session_end"],                   "is_glob": True},
     "CHANGELOG":    {"path": "CHANGELOG.md",          "role": "Wijzigingslog",               "stale_days": None, "triggers": ["release"],                       "is_glob": False},
