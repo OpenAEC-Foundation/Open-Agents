@@ -284,4 +284,12 @@
 | L-074 | **`oa skill list` moet altijd alle 4 niveaus scannen, ook zonder --level filter.** | Default variant scande alleen ~/.claude/skills/ — package-skills onzichtbaar. Fix: altijd list_skills() uit skill_registry. Resultaat: 142 skills zichtbaar i.p.v. 43. |
 | L-075 | **`oa init` werkt voor alle 4 types; minimal template was te dun (124 bytes).** | Alle typen maken CLAUDE.md, ROADMAP.md, LESSONS.md, DECISIONS.md, INDEX.md aan. minimal-template uitgebreid met kernbestanden tabel en conventies. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-076, L-077, etc.*
+## Sessie 2026-03-11 — Code als deterministisch fundament, AI als intelligentielaag
+
+### Architectuurprincipe
+
+| # | Les | Context |
+|---|-----|---------|
+| L-076 | **"Code is reproduceerbaar, AI is de onvoorspelbare schakel" — bak gedrag in code in waar het altijd hetzelfde moet werken, gebruik AI alleen voor oordeel en begrip** — Elke architectuurkeuze in oa-cli toetst: kan dit deterministisch? Dan in code. Niet deterministisch? Dan AI. Voorbeelden: PO gate installeert ALTIJD via hook (code), inhoudelijke beoordeling doet een agent (AI). Staleness check draait ALTIJD (code), guardian agent schrijft de inhoud (AI). Session bootstrap protocol is ALTIJD reproduceerbaar (code), agents analyseren de sessie-context (AI). Dit principe voorkomt twee structurele fouten: (1) AI inzetten voor iets deterministisch — traag, foutgevoelig, onnodige kosten. (2) Code schrijven voor iets dat oordeel vereist — rigide, onderhoudsgevoelig, breekt bij randgevallen. oa-cli is het deterministisch fundament; agents zijn de intelligentielaag die daarbovenop opereert. | Bewust architectuurinzicht na meerdere sessies bouwen aan oa-cli + agent library. Vastgelegd als D-105 en P-17. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-077, L-078, etc.*

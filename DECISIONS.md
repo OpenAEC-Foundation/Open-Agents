@@ -81,6 +81,7 @@
 | D-057 | Desktop + Web App Architectuur | Approach C: Web-first PWA + Desktop Wrapper | Eén React codebase (95% gedeeld) voor zowel hosted web app als desktop app (Tauri). Backend: Fastify + node-pty voor echte terminal (xterm.js). WebSocket (web) en IPC (desktop) delen dezelfde TerminalService interface. Bestaande stack (React 19, Fastify, pnpm monorepo) wordt hergebruikt. Approach A (Tauri-only) en B (Electron-only) afgewezen: geen web support. Approach D (Textual Web) afgewezen: incompatibele stacks. Approach E (ttyd) afgewezen: geen desktop. Tauri gekozen boven Electron: kleiner (10-50MB vs 150-250MB), minder RAM, Rust backend. | 2026-03-11 |
 | D-058 | Terminal Emulator Stack | xterm.js + node-pty via Fastify WebSocket | xterm.js is de standaard (VS Code, Hyper, GitHub Codespaces). node-pty (Microsoft) spawnt echte shell processen. Combinatie bewezen in productie. Ondersteunt tmux, Claude Code, oa-cli, streaming AI output. | 2026-03-11 |
 | D-059 | Desktop Wrapper Keuze | Tauri v2 (boven Electron) | Bundle size 10-50MB (vs Electron 150-250MB). RAM ~30MB (vs ~150MB+). Rust backend voor security en performance. Kan dezelfde React frontend laden als de web versie. | 2026-03-11 |
+| D-105 | Code als deterministisch fundament, AI als intelligentielaag | Bak reproduceerbaar gedrag in code in; gebruik AI alleen voor oordeel en begrip | Code is reproduceerbaar, AI is de onvoorspelbare schakel. oa-cli bevat het altijd-werkend deterministisch fundament; agents leveren intelligentie op de juiste momenten. Elke architectuurkeuze in oa-cli toetst: kan dit deterministisch? Dan in code. Niet deterministisch? Dan AI. Zie D-105 Details. | 2026-03-11 |
 
 ---
 
@@ -648,3 +649,52 @@ Rationale boven Optie A (full copy):
 - Breaking change: `_scan_skill_dir()` gedragswijziging — test op bestaande skill packages voor release
 
 **Gerelateerd**: D-052 (skill-backed agent template), D-071 (context engineering strategie / progressive disclosure), L-010 (agent prompt best practices)
+
+---
+
+## D-105 Details: Code als deterministisch fundament, AI als intelligentielaag
+
+> **Datum**: 2026-03-11
+> **Status**: Genomen
+> **Kernprincipe**: "Code is reproduceerbaar. AI is de onvoorspelbare schakel."
+
+### Het inzicht
+
+oa-cli en de agents die het orkestreert werken samen, maar ze zijn fundamenteel anders van aard. Code (oa-cli) is deterministisch: hetzelfde commando geeft altijd hetzelfde resultaat, ongeacht welke AI er draait, welk model actief is, of hoe de dag begint. AI (agents) is niet-deterministisch: twee runs met identieke input leveren verschillende output, afhankelijk van context, model-toestand en formulering.
+
+Dit verschil stuurt ELKE architectuurkeuze in oa-cli.
+
+### De toetsvraag
+
+Voor elke feature geldt de expliciete vraag: **kan dit deterministisch?**
+
+- **Ja → code.** Installeer het als gedrag dat altijd werkt. Geen agent nodig.
+- **Nee → AI.** Gebruik een agent voor het oordeel, het begrip, de creativiteit.
+
+### Concrete toepassingen
+
+| Functie | Deterministisch (code) | Niet-deterministisch (AI) |
+|---------|----------------------|--------------------------|
+| PO gate | Hook installeert ALTIJD bij `oa start` | AI evalueert inhoudelijk of output voldoet |
+| Core files enforcement | Staleness check draait ALTIJD | Guardian agent schrijft en verbetert inhoud |
+| Session bootstrap | Protocol wordt ALTIJD uitgevoerd bij `oa start` | Agents analyseren de sessie-context |
+| Agent spawning | tmux window aanmaken is ALTIJD reproduceerbaar | Agent beslist welke subtaak prioriteit heeft |
+| Quality check | `.done` file aanmaken is ALTIJD deterministisch | Reviewer agent beoordeelt of output voldoet |
+
+### Architecturele impact
+
+Dit principe voorkomt twee architectuurfouten die zonder expliciete toetsvraag sluipen:
+
+1. **AI waar code volstaat**: een agent spawnen voor iets wat altijd hetzelfde moet werken — traag, kostbaar, foutgevoelig.
+2. **Code waar AI nodig is**: hard-coded regels voor iets wat oordeel vereist — rigide, onderhoudsgevoelig, breekt bij randgevallen.
+
+oa-cli is bewust gebouwd als deterministisch fundament. Alle orkestratie-logica (tmux sessions, state management, agent registry, messaging bus, skill registry) zit in Python code — reproduceerbaar, testbaar, versioneerbaar. De AI-laag zit in de agents die oa-cli aanstuurt: oordeel, begrip, creativiteit op de momenten dat code tekortschiet.
+
+### Gevolgen voor nieuwe features
+
+- NEVER een agent spawnen voor iets dat deterministisch kan.
+- ALWAYS oa-cli uitbreiden met code voor infrastructureel gedrag.
+- NEVER AI-afhankelijkheid introduceren in de bootstrapping-flow van oa-cli zelf.
+- ALWAYS AI inzetten voor evaluatie, validatie en inhoudelijke beoordeling.
+
+**Gerelateerd**: D-022 (self-assembly architectuur), D-040 (autonomous-first), P-16 (Code enforceert, AI evalueert), L-076

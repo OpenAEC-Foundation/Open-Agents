@@ -1,9 +1,9 @@
 # Principles - Open-Agents
 
-> **Versie**: 0.4
+> **Versie**: 0.5
 > **Laatste update**: 2026-03-11
 > **Doel**: Design uitgangspunten die elke beslissing sturen
-> **Aantal**: 16 principes
+> **Aantal**: 17 principes
 
 ---
 
@@ -94,7 +94,11 @@ De applicatie wordt primair als web app gebouwd en secondair als desktop app ver
 
 **Relatie**: Versterkt P-01 (Visuele Orchestratie) door terminal + canvas in één app. Versterkt P-03 (Privacy-First) door optie voor self-hosted deployment.
 
-## ~~17. Proposal-based workflow~~ (VERWIJDERD)
+## 17. Code enforceert, AI evalueert
+
+Code is reproduceerbaar. AI is de onvoorspelbare schakel. Bak reproduceerbaar gedrag in de tool in; gebruik AI alleen voor oordeel, begrip en creativiteit. Voor elke architectuurkeuze in oa-cli geldt de expliciete toetsvraag: kan dit deterministisch? Dan hoort het in code. Niet deterministisch? Dan pas is een agent op zijn plaats. Dit principe voorkomt twee structurele fouten: AI inzetten voor iets wat altijd hetzelfde moet werken (traag, foutgevoelig), en code schrijven voor iets wat oordeel vereist (rigide, breekt bij randgevallen). oa-cli is het deterministisch fundament; agents zijn de intelligentielaag die daarbovenop opereert. (Zie D-105)
+
+## ~~18. Proposal-based workflow~~ (VERWIJDERD)
 
 > **Verwijderd op 2026-03-03.** Proposal mode is afgeschaft (L-018, L-031). Agents schrijven direct naar bestanden. Geen `oa review` / `oa apply` meer. Veiligheid wordt geborgd door container isolation (D-040) en workspace isolatie (temp directories per agent), niet door proposal workflows.
 
@@ -102,7 +106,7 @@ De applicatie wordt primair als web app gebouwd en secondair als desktop app ver
 
 ## Samenvatting
 
-> **Open-Agents is een hyper session workspace builder met agentic orchestratie. Je bouwt visueel de ideale workspace per agent en orkestreert ze samen op een canvas — zelf of door AI. De complexiteit van drie engineering-lagen zit achter de schermen. De gebruiker ziet alleen de eenvoud.** *(16 actieve principes)*
+> **Open-Agents is een hyper session workspace builder met agentic orchestratie. Je bouwt visueel de ideale workspace per agent en orkestreert ze samen op een canvas — zelf of door AI. De complexiteit van drie engineering-lagen zit achter de schermen. De gebruiker ziet alleen de eenvoud.** *(17 actieve principes)*
 
 ---
 
