@@ -285,20 +285,49 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
         combined_skill_names.extend(skill_refs)
 
     if agent_type or combined_skill_names:
-        from .skill_loader import resolve_skills_for_agent, load_skills_for_type
+        from .skill_loader import load_skills_for_type
+        skill_sections: list[str] = []
+
+        # Agent-type skills: inline injection (no folder copy, backward-compat)
+        if agent_type:
+            type_content = load_skills_for_type(agent_type)
+            if type_content:
+                skill_sections.append(type_content)
+
+        # Explicit skills: copy full folder to workspace, then reference or inline
         if combined_skill_names:
-            # Use new combined resolver
-            skill_content = resolve_skills_for_agent(
+            from .skill_registry import resolve_skills, load_skill_content
+            skills_dest_base = workspace / ".claude" / "skills"
+            skills_dest_base.mkdir(parents=True, exist_ok=True)
+            matches = resolve_skills(
                 combined_skill_names,
-                agent_type=agent_type,
                 project_root=Path(project_root) if project_root else None,
             )
-        else:
-            # Backward compatible: only agent_type, use existing loader
-            skill_content = load_skills_for_type(agent_type)
-        if skill_content:
+            seen: set[str] = set()
+            for match in matches:
+                if match.name in seen:
+                    continue
+                seen.add(match.name)
+                skill_dest = skills_dest_base / match.name
+                if hasattr(match, "folder") and match.folder != Path() and match.folder.exists():
+                    shutil.copytree(match.folder, skill_dest, dirs_exist_ok=True)
+                    skill_md_content = (skill_dest / "SKILL.md").read_text()
+                    body_lines = [l for l in skill_md_content.split("\n") if not l.startswith("---")]
+                    if len(body_lines) > 100:
+                        skill_section = f"## Skill: {match.name}\nSee .claude/skills/{match.name}/SKILL.md\n"
+                    else:
+                        body_content = load_skill_content(match)
+                        skill_section = f"## Skill: {match.name}\n{body_content}\n"
+                else:
+                    # Fallback: inline content (old SkillMatch without folder)
+                    content = load_skill_content(match)
+                    skill_section = f"## Skill: {match.name}\n{content}\n"
+                if skill_section.strip():
+                    skill_sections.append(skill_section)
+
+        if skill_sections:
             existing = claude_md.read_text()
-            claude_md.write_text(existing + "\n\n---\n\n# Skills\n\n" + skill_content)
+            claude_md.write_text(existing + "\n\n---\n\n# Skills\n\n" + "\n\n---\n\n".join(skill_sections))
 
     if honesty:
         inject_honesty_enforcer(workspace)

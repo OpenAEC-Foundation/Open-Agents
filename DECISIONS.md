@@ -13,6 +13,7 @@
 | D-053 | Strategische positionering: intern productiviteitstool vs open-source product | Open-Agents is gebouwd als intern platform (Optie A) maar architectureel ontworpen om later open-source te gaan (Optie B). De keuze is nu Optie A. Overgang naar B vereist: API-key model, onboarding flow, publieke docs. | A) Intern productiviteitstool B) Open-source SaaS/product C) Dual: intern + community edition | Open — Optie A actief, pad naar B open |
 | D-004 | Lokaal model voor classificatie | Ollama op Hetzner vs alleen cloud API. Context verrijkt door D-017: Haiku via API als classificator in assembly pipeline. Ollama blijft optie voor offline/self-hosted. | A) Ollama B) Haiku C) Hybrid | Open (context verrijkt) |
 | D-052 | Agent Teams patronen adopteren in oa-cli | Claude Code Agent Teams (experimenteel) implementeert patterns die oa-cli mist: shared task list met file locking, inter-agent messaging (DM + broadcast), graceful shutdown protocol, task dependencies, quality hooks (TeammateIdle/TaskCompleted), team discovery via config. Zie L-022 t/m L-029. | A) Full adopt: alle 6 patterns implementeren B) Selective: alleen shared task list + messaging C) Bridge: oa-cli als wrapper rond CC Agent Teams (geen eigen implementatie) D) Wait: wachten tot Agent Teams uit experimental is | Open |
+| D-072 | Skill System: Multi-File Folder Architectuur als atomaire eenheid | Anthropic specificeert een skill als een FOLDER (niet slechts een SKILL.md bestand). Onze huidige `skill_registry.py` injecteert alleen SKILL.md content; supporting files (scripts/, references/, assets/) worden niet gerepliceerd naar agents. Blender-Bonsai skill package gebruikt 4 nesting levels, maar `_scan_skill_dir()` scant slechts 1 level diep. | A) Full folder-aware registry: kopieer hele skill-folder naar agent workspace bij resolution B) Path-reference: injecteer SKILL.md + absolute paden naar supporting files (agent laadt zelf) C) Selective copy: kopieer alleen bestanden die SKILL.md expliciet refereert | PROPOSED |
 
 ---
 
@@ -590,3 +591,60 @@ Bij het nemen van een beslissing, verplaats naar "Genomen" met rationale en datu
 oa run "Schrijf SNLite node" --context-skills "sverchok-errors-common,sverchok-syntax-scripting" --model claude/sonnet --direct
 oa run "" --template aec-sverchok/sv-builder --direct  # auto-injectie via skillRef
 ```
+
+---
+
+## D-072 — Skill System: Multi-File Folder Architectuur (2026-03-11)
+
+**Status**: PROPOSED
+
+**Context**
+
+Anthropic's officiële skill specificatie definieert een skill als een **FOLDER** — niet slechts een enkel SKILL.md bestand. Een skill folder bevat:
+
+```
+skill-name/           ← atomaire eenheid (de folder)
+├── SKILL.md          ← verplicht, case-sensitive
+├── scripts/          ← optioneel: Python/Bash executables
+├── references/       ← optioneel: extra documentatie
+└── assets/           ← optioneel: templates, icons, fonts
+```
+
+Supporting files worden gerefereerd **vanuit** SKILL.md via progressive disclosure: de hoofdinstructies staan in SKILL.md, details staan in aparte bestanden die alleen geladen worden wanneer nodig (token-efficiënt).
+
+**Probleem met huidige implementatie**:
+1. `skill_registry.py` injecteert alleen SKILL.md content — supporting files bereiken agents niet
+2. `_scan_skill_dir()` scant slechts 1 level diep — Blender-Bonsai skill package gebruikt 4 nesting levels
+3. Bij skill resolution weet een agent niet dat er scripts/ of references/ bestaan
+4. Skill packages (externe repos) moeten eenmalig gelinkt worden, daarna recursief gescand
+
+**Beslissing**
+
+Optie B: **Path-reference approach** — injecteer SKILL.md content + absolute paden naar supporting files in agent prompt. Agent laadt supporting files zelf via Read tool wanneer nodig.
+
+Rationale boven Optie A (full copy):
+- Geen workspace-bloat: grote asset-mappen worden niet blind gekopieerd
+- Token-efficiënt: agent laadt alleen wat hij nodig heeft (progressive disclosure behoud)
+- Consistentie: paden in SKILL.md blijven geldig (geen path-rewriting nodig)
+- Simpeler implementatie: geen file-copy logica, alleen path-listing
+
+**Implementatieplan**:
+
+1. **`_scan_skill_dir()` uitbreiden** — recursief scannen tot 5 levels diep (dekt Blender-Bonsai + marge)
+2. **Skill folder manifest genereren** — bij resolution: lijst van alle bestanden in de skill folder als context-sectie in agent prompt
+3. **`--context-skills` uitbreiden** — naast SKILL.md content ook bestandslijst injecteren met absolute paden
+4. **Skill packages recursief indexeren** — `~/.oa/config.json skill_packages` paden worden recursief gescand, index gecached in `~/.oa/skill_index.json`
+5. **Twee skill types expliciteren** in template JSON:
+   - `"invocationType": "reference"` → `user-invocable: false` (auto-loads als achtergrondkennis)
+   - `"invocationType": "task"` → `disable-model-invocation: true` (user-invokes expliciet)
+
+**Gevolgen**
+
+- `skill_registry.py` krijgt nieuwe `scan_skill_folder()` functie die volledige folder structuur retourneert
+- Agent prompts krijgen een `## Skill Supporting Files` sectie met absolute paden
+- `~/.oa/skill_index.json` als gecachede index (invalidatie op mtime-wijziging)
+- Blender-Bonsai en andere deep-nested skill packages werken correct zonder handmatige configuratie
+- Bestaande `--context-skills` API blijft backward-compatible
+- Breaking change: `_scan_skill_dir()` gedragswijziging — test op bestaande skill packages voor release
+
+**Gerelateerd**: D-052 (skill-backed agent template), D-071 (context engineering strategie / progressive disclosure), L-010 (agent prompt best practices)

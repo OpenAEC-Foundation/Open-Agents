@@ -2388,21 +2388,19 @@ def skill_list(
         console.print(table)
         return
 
-    # Default: discover skills from ~/.claude/skills/ (original behaviour + registry fallback)
-    skill_dirs = []
-    for base in [Path.home() / ".claude" / "skills", Path.cwd() / ".claude" / "skills"]:
-        if base.exists():
-            for d in sorted(base.iterdir()):
-                if d.is_dir() and (d / "SKILL.md").exists():
-                    skill_dirs.append(d)
+    # Default: full multi-level scan via skill_registry
+    from .skill_registry import list_skills as _list_skills
+    pr = Path(project_root) if project_root else Path.cwd()
+    found = _list_skills(project_root=pr)
 
-    if not skill_dirs:
-        console.print("[dim]No skills found in ~/.claude/skills/ or ./.claude/skills/[/dim]")
+    if not found:
+        console.print("[dim]No skills found in any skill directory.[/dim]")
         return
 
-    table = Table(title=f"Skills ({len(skill_dirs)})")
+    table = Table(title=f"Skills ({len(found)})")
     table.add_column("Name", style="cyan")
-    table.add_column("Path", style="dim", max_width=50)
+    table.add_column("Level", style="yellow", max_width=10)
+    table.add_column("Path", style="dim", max_width=45)
 
     if metrics:
         from .skill_evolver import get_skill_stats
@@ -2410,9 +2408,12 @@ def skill_list(
         table.add_column("Avg Score", justify="right")
         table.add_column("Trend", justify="right")
 
-    for d in skill_dirs:
-        name = d.name
-        row = [name, str(d)]
+    skill_dirs = []  # kept for metrics compat below
+    for s in sorted(found, key=lambda x: (x.level, x.name)):
+        d = s.path.parent
+        skill_dirs.append(d)
+        name = s.name
+        row = [name, s.level, str(d)]
         if metrics:
             stats = get_skill_stats(name)
             uses = str(stats["usage_count"])
