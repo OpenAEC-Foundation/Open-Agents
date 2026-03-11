@@ -278,76 +278,78 @@ export function SpawnForm({ onSpawned }: { onSpawned?: () => void } = {}) {
         )}
       </div>
 
-      {/* Machine */}
-      <div>
-        <label className='block text-xs font-semibold uppercase tracking-wide mb-1.5' style={{ color: 'var(--color-oa-text-muted)' }}>
-          Machine
-        </label>
-        <div className='flex items-center gap-1.5 flex-wrap'>
-          <button
-            onClick={() => setMachine('')}
-            style={{
-              padding: '3px 12px',
-              borderRadius: '999px',
-              fontSize: '11px',
-              fontWeight: 600,
-              border: `1px solid ${!machine ? 'var(--color-oa-accent)' : 'var(--color-oa-border)'}`,
-              background: !machine ? 'var(--color-oa-accent)' : 'var(--color-oa-surface)',
-              color: !machine ? '#fff' : 'var(--color-oa-text-muted)',
-              cursor: 'pointer',
-              transition: 'all 120ms',
-            }}
-          >
-            Local
-          </button>
-          {machines.filter(m => m.id !== 'local').map(m => {
-            const active = machine === m.id;
-            return (
-              <button
-                key={m.id}
-                onClick={() => setMachine(m.id)}
-                style={{
-                  padding: '3px 12px',
-                  borderRadius: '999px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  border: `1px solid ${active ? '#f59e0b' : 'var(--color-oa-border)'}`,
-                  background: active ? '#f59e0b' : 'var(--color-oa-surface)',
-                  color: active ? '#fff' : 'var(--color-oa-text-muted)',
-                  cursor: 'pointer',
-                  transition: 'all 120ms',
-                }}
-              >
-                {m.description || m.id}
-              </button>
-            );
-          })}
-          <button
-            onClick={() => setMachine(machine === 'custom' ? '' : 'custom')}
-            style={{
-              padding: '3px 12px',
-              borderRadius: '999px',
-              fontSize: '11px',
-              fontWeight: 600,
-              border: `1px solid ${machine === 'custom' ? '#f59e0b' : 'var(--color-oa-border)'}`,
-              background: machine === 'custom' ? '#f59e0b' : 'var(--color-oa-surface)',
-              color: machine === 'custom' ? '#fff' : 'var(--color-oa-text-muted)',
-              cursor: 'pointer',
-              transition: 'all 120ms',
-            }}
-          >
-            Custom SSH
-          </button>
+      {/* Machine — only show when remote machines are configured or custom SSH is active */}
+      {(machines.filter(m => m.id !== 'local').length > 0 || machine === 'custom') && (
+        <div>
+          <label className='block text-xs font-semibold uppercase tracking-wide mb-1.5' style={{ color: 'var(--color-oa-text-muted)' }}>
+            Machine
+          </label>
+          <div className='flex items-center gap-1.5 flex-wrap'>
+            <button
+              onClick={() => setMachine('')}
+              style={{
+                padding: '3px 12px',
+                borderRadius: '999px',
+                fontSize: '11px',
+                fontWeight: 600,
+                border: `1px solid ${!machine ? 'var(--color-oa-accent)' : 'var(--color-oa-border)'}`,
+                background: !machine ? 'var(--color-oa-accent)' : 'var(--color-oa-surface)',
+                color: !machine ? '#fff' : 'var(--color-oa-text-muted)',
+                cursor: 'pointer',
+                transition: 'all 120ms',
+              }}
+            >
+              Local
+            </button>
+            {machines.filter(m => m.id !== 'local').map(m => {
+              const active = machine === m.id;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setMachine(m.id)}
+                  style={{
+                    padding: '3px 12px',
+                    borderRadius: '999px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    border: `1px solid ${active ? '#f59e0b' : 'var(--color-oa-border)'}`,
+                    background: active ? '#f59e0b' : 'var(--color-oa-surface)',
+                    color: active ? '#fff' : 'var(--color-oa-text-muted)',
+                    cursor: 'pointer',
+                    transition: 'all 120ms',
+                  }}
+                >
+                  {m.description || m.id}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setMachine(machine === 'custom' ? '' : 'custom')}
+              style={{
+                padding: '3px 12px',
+                borderRadius: '999px',
+                fontSize: '11px',
+                fontWeight: 600,
+                border: `1px solid ${machine === 'custom' ? '#f59e0b' : 'var(--color-oa-border)'}`,
+                background: machine === 'custom' ? '#f59e0b' : 'var(--color-oa-surface)',
+                color: machine === 'custom' ? '#fff' : 'var(--color-oa-text-muted)',
+                cursor: 'pointer',
+                transition: 'all 120ms',
+              }}
+            >
+              Custom SSH
+            </button>
+          </div>
+          {machine === 'custom' && (
+            <input
+              value={customHost}
+              onChange={(e) => setCustomHost(e.target.value)}
+              placeholder='user@host or SSH alias'
+              style={{ ...inputStyle, marginTop: '8px' }}
+            />
+          )}
         </div>
-        {machine === 'custom' && (
-          <input
-            value={customHost}
-            onChange={(e) => setCustomHost(e.target.value)}
-            placeholder='user@host or SSH alias'
-            style={{ ...inputStyle, marginTop: '8px' }}
-          />
-        )}
-      </div>
+      )}
 
       {/* Advanced: name + parent */}
       <div>
