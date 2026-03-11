@@ -9,6 +9,7 @@
 
 | # | Beslissing | Context | Opties | Status |
 |---|-----------|---------|--------|--------|
+| D-077 | Open-source LLM provider beleid | Open-Agents gebruikt alleen modellen van Europese initiatieven of écht open-source/non-profit projecten. Modellen van Google (Gemma), Meta (Llama), Microsoft (Phi), Alibaba (Qwen) en DeepSeek worden **niet** gebruikt — ook niet lokaal via Ollama. Rationale: data-soevereiniteit, ethische alignment, onafhankelijkheid van US Big Tech en Chinese tech. | **Gekozen**: Mistral AI (FR) als primaire open-source LLM + OLMo (Allen Institute, non-profit) als principieel alternatief. Claude (Anthropic PBC) voor agentic werk via subscription. | Genomen — 2026-03-11 |
 | D-001 | Visibility: public of private repo? | Project is nu private, plan is open-source bij stabiel MVP | A) Nu public B) Private tot MVP | Open |
 | D-053 | Strategische positionering: intern productiviteitstool vs open-source product | Open-Agents is gebouwd als intern platform (Optie A) maar architectureel ontworpen om later open-source te gaan (Optie B). De keuze is nu Optie A. Overgang naar B vereist: API-key model, onboarding flow, publieke docs. | A) Intern productiviteitstool B) Open-source SaaS/product C) Dual: intern + community edition | Open — Optie A actief, pad naar B open |
 | D-004 | Lokaal model voor classificatie | Ollama op Hetzner vs alleen cloud API. Context verrijkt door D-017: Haiku via API als classificator in assembly pipeline. Ollama blijft optie voor offline/self-hosted. | A) Ollama B) Haiku C) Hybrid | Open (context verrijkt) |

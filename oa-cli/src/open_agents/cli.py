@@ -939,9 +939,24 @@ def collect(name: str = typer.Argument(..., help="Agent name to collect output f
     output = read_output(rec.workspace)
     if output:
         console.print(f"\n[bold]Output from agent '{name}':[/bold]\n")
-        console.print(output)
+        try:
+            console.print(output)
+        except Exception:
+            # Fallback: print without Rich markup parsing (output may contain [ ] chars)
+            print(output)
     else:
         console.print(f"[yellow]No output.md found in workspace: {rec.workspace}[/yellow]")
+
+    # Optional PO sample on collected output (opt-in via OA_PO_SAMPLE=1)
+    if os.environ.get("OA_PO_SAMPLE") == "1" and output:
+        try:
+            from .po_agent import sample_agent_output
+            result = sample_agent_output(name, output[:2000])
+            verdict = result["verdict"]
+            color = {"APPROVE": "green", "WARN": "yellow", "BLOCK": "red"}.get(verdict, "white")
+            console.print(f"\n[{color}]PO sample: {verdict}[/{color}]")
+        except Exception:
+            pass
 
 
 @app.command()

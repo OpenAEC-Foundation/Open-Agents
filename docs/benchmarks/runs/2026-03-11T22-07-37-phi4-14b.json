@@ -1,0 +1,77 @@
+{
+  "run_id": "2026-03-11T22-07-37-phi4-14b",
+  "timestamp": "2026-03-11T22:07:37.741373+00:00",
+  "model": "hetzner/phi4:14b",
+  "model_short": "phi4:14b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "Wanneer je een `nohup` proces start op een remote server via SSH en je SSH-sessie wordt verbroken, blijft het `nohup` proces doorgaan. Dit gedrag is precies waar `nohup` (afkorting voor \"no hang up\") voor is bedoeld: het zorgt ervoor dat het proces niet wordt beëindigd, zelfs als de invoerleidende SSH-sessie (waarvan het afhankelijk was) wordt verbroken.\n\n### Hoe `nohup` werkt:\n\n1. **Ontkoppeling van de Terminal:**\n   - `nohup` zorgt ervoor dat het uitgevoerde commando niet wordt beïnvloed door het hang up-signaal (SIGHUP). Normaal gesproken, als een shell een proces start en vervolgens wordt afgesloten of gescheiden, wordt een SIGHUP-signaal naar het proces gestuurd om aan te geven dat de invoerleidende terminal niet langer beschikbaar is. Dit zou typisch het proces stopzetten.\n\n2. **Omvormen naar een Onafhankelijk Proces:**\n   - `nohup` stuurt standaard de uitvoer van het proces naar een bestand genaamd `nohup.out` in het huidige werkdirectory, tenzij anders gespecificeerd. Dit betekent dat de uitvoer niet verloren gaat zelfs als de invoerleidende terminal niet langer beschikbaar is.\n\n3. **Continue Uitvoering:**\n   - Omdat het proces niet wordt beïnvloed door SIGHUP, zal het blijven draaien ongeacht het verbreken van de SSH-sessie. Het wordt een achtergrondproces, wat betekent dat het losgekoppeld wordt van de terminal en kan blijven werken zelfstandig.\n\n4. **Achtergrondproces:**\n   - `nohup` heeft vaak als standaardgedrag om het proces in de achtergrond te zetten door `&` aan het einde van de commando-opdracht toe te voegen. Dit zorgt ervoor dat het proces zonder afhankelijkheid van de invoerleidende terminal of SSH-sessie kan blijven draaien.\n\n### Scenario wanneer je SSH-sessie wordt verbroken:\n\n- **Proces Blijft Doorgaan:**\n  - Omdat het proces niet van de terminal afhankelijk is en niet reageert op SIGHUP, zal het doorwerken ongeacht de status van de SSH-verbinding.\n\n- **Geen Verlies van Uitvoer:**\n  - De uitvoer die normaal gesproken naar de terminal zou worden gestuurd, wordt gerouteerd naar `nohup.out`, zodat je later de output kunt bekijken wanneer je opnieuw toegang hebt tot de server.\n\nKortom, `nohup` maakt het mogelijk voor je om processen op afstand te starten die verder gaan, zelfs als je SSH-sessie wordt verbroken. Dit is zeer nuttig voor taken die lang duren of niet constant toezicht vereisen, zoals back-ups maken, downloads uitvoeren of langlopende analyses.",
+      "score": 4,
+      "max_score": 5,
+      "score_rationale": "Antwoord verklaart correct hoe nohup SIGHUP onderschept, dat het proces blijft draaien, en dat output naar nohup.out gaat, maar mist technische detail over process groups en session leaders, en heeft een imprecisie over het &-standaardgedrag.",
+      "latency_ms": 30278,
+      "tokens_estimated": 471
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "Om een lijst te ontdubbelen terwijl de originele volgorde behouden blijft, kunnen we een functie schrijven die iteratief door de lijst loopt en een nieuwe lijst samenstelt waarin elk item slechts één keer voorkomt. We zullen een aanvullende lijst gebruiken om al onthouden items bij te houden, aangezien sets geen volgorde bewaren en direct niet als eindresultaat gebruikt mogen worden.\n\nHier is hoe je de `deduplicate(items)` functie kunt implementeren:\n\n```python\nfrom typing import List, Any\n\ndef deduplicate(items: List[Any]) -> List[Any]:\n    \"\"\"\n    Ontdubbelt een lijst terwijl de originele volgorde behouden blijft.\n\n    Parameters:\n    items (List[Any]): De lijst die moet worden ontdubbeld. Kan bestaan uit\n                       items van elk type.\n\n    Returns:\n    List[Any]: Een nieuwe lijst met unieke items, waarbij de eerste\n               voorkomen van elk item in de oorspronkelijke lijst behouden blijft.\n\n    Voorbeeld:\n    >>> deduplicate([1, 2, 2, 3, 4, 3])\n    [1, 2, 3, 4]\n    >>> deduplicate(['a', 'b', 'a', 'c', 'b'])\n    ['a', 'b', 'c']\n    \"\"\"\n    seen = []\n    result = []\n    \n    for item in items:\n        if item not in seen:\n            seen.append(item)\n            result.append(item)\n    \n    return result\n\n# Voorbeeldgebruik:\n# print(deduplicate([1, 2, 2, 3, 4, 3]))\n```\n\n### Uitleg:\n- **Typen en Docstring:** We gebruiken `List[Any]` voor type hints om aan te geven dat de functie een lijst van items van elk type kan accepteren en retourneert. De docstring beschrijft de functie, parameters, het retourtype en geeft voorbeeldgebruik.\n- **Behouden van Volgorde:** We gebruiken een lijst `seen` om items bij te houden die we al hebben gezien. Deze lijst helpt ons te controleren of een item al in het resultaat is opgenomen.\n- **Iteratie en Controle:** Voor elk item in de oorspronkelijke lijst controleren we of het al in de `seen` lijst zit. Als niet, voegen we het zowel aan `seen` als aan `result` toe. Dit zorgt ervoor dat elk item slechts één keer aan `result` wordt toegevoegd, in de volgorde van zijn eerste verschijning.\n\nDeze aanpak behoudt de oorspronkelijke volgorde van items en zorgt ervoor dat elk item slechts eenmaal aanwezig is in het resultaat.",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Auto-score mislukt (Claude niet beschikbaar)",
+      "latency_ms": 24238,
+      "tokens_estimated": 425
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Een AI-agent is een programma of systeem dat zelfstandig beslissingen kan nemen en taken kan uitvoeren op basis van gegevens en patronen die het leerde. Het gedraagt zich in veel opzichten als een intelligent wezen, dat actie kan ondernemen zonder directe instructies van een mens te krijgen. AI-agents kunnen bijvoorbeeld chatbots zijn die communiceren met gebruikers of zelfrijdende auto's die beslissingen maken op basis van de weg en het verkeer.\n\nAan de andere kant is een AI-workflow een gestructureerd proces waarbij verschillende AI-technologieën en -tools worden gecombineerd om een specifiek doel te bereiken. Het is meer een reeks van stappen die samenwerken om taken uit te voeren, waarbij elke stap een andere functie kan hebben, zoals het verwerken van gegevens, het toepassen van machine learning-algoritmen of het communiceren met andere systemen. AI-workflows worden vaak gebruikt in bedrijven om complexe processen te automatiseren, zoals het sorteren van klantvragen of het analyseren van verkoopgegevens.\n\nSamenvattend, terwijl een AI-agent een zelfstandig actief element is dat oplossingen kan bieden, is een AI-workflow een samenhangend netwerk van processen en technologieën die samenwerken om een doel te bereiken.",
+      "score": 3,
+      "max_score": 5,
+      "score_rationale": "Correct onderscheid (agent = autonoom, workflow = stappen) en begrijpelijk voor leken, maar 7 zinnen in plaats van precies 3.",
+      "latency_ms": 12404,
+      "tokens_estimated": 236
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Exact correct antwoord",
+      "latency_ms": 1983,
+      "tokens_estimated": 15
+    }
+  ],
+  "summary": {
+    "total_score": 12,
+    "max_score": 20,
+    "pct_score": 60.0,
+    "avg_score": 3.0,
+    "by_category": {
+      "reasoning": 4,
+      "code": 0,
+      "language": 3,
+      "instruction": 5
+    },
+    "total_latency_ms": 68903
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}

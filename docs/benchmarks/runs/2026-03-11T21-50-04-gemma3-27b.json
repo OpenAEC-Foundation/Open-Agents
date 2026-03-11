@@ -1,0 +1,77 @@
+{
+  "run_id": "2026-03-11T21-50-04-gemma3-27b",
+  "timestamp": "2026-03-11T21:50:04.674417+00:00",
+  "model": "hetzner/gemma3:27b",
+  "model_short": "gemma3:27b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "[TIMEOUT na 360s]",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Geen antwoord gegeven - timeout na 360 seconden betekent het model kon niet reageren.",
+      "latency_ms": 361537,
+      "tokens_estimated": 3
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "```python\nfrom typing import List, Any\n\ndef deduplicate(items: List[Any]) -> List[Any]:\n  \"\"\"\n  Ontdubbelt een lijst met behoud van de originele volgorde.\n\n  Args:\n    items: De lijst die ontdubbeld moet worden.\n\n  Returns:\n    Een nieuwe lijst met alleen de unieke elementen, in de originele volgorde.\n  \"\"\"\n  seen: List[Any] = []\n  result: List[Any] = []\n  for item in items:\n    if item not in seen:\n      seen.append(item)\n      result.append(item)\n  return result\n```",
+      "score": 4,
+      "max_score": 5,
+      "score_rationale": "Correct werkende functie met type hints en docstring die de volgorde behoudt, maar mist de efficiënte implementatie met set/dict voor seen-tracking (O(n²) in plaats van O(n)).",
+      "latency_ms": 57903,
+      "tokens_estimated": 84
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Een AI workflow is een vooraf bepaald stappenplan waarin AI-tools worden ingezet om een specifieke taak te automatiseren, zoals het sorteren van e-mails of het genereren van een rapport. Een AI agent is daarentegen veel autonomer: het kan zelfstandig doelen stellen, beslissingen nemen en acties uitvoeren om die doelen te bereiken, zonder dat er een vastomlijnd script is. Denk aan een workflow als een recept en een agent als een chef-kok die zelf kan improviseren om het lekkerste gerecht te maken.",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Precies 3 zinnen Nederlands, correct onderscheid (workflow = vaste stappen, agent = autonoom), uitstekende metafoor (recept vs chef-kok) voor leken.",
+      "latency_ms": 182009,
+      "tokens_estimated": 105
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Exact correct antwoord",
+      "latency_ms": 83416,
+      "tokens_estimated": 15
+    }
+  ],
+  "summary": {
+    "total_score": 14,
+    "max_score": 20,
+    "pct_score": 70.0,
+    "avg_score": 3.5,
+    "by_category": {
+      "reasoning": 0,
+      "code": 4,
+      "language": 5,
+      "instruction": 5
+    },
+    "total_latency_ms": 684865
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}

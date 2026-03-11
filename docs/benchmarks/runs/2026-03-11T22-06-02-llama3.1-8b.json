@@ -1,0 +1,77 @@
+{
+  "run_id": "2026-03-11T22-06-02-llama3.1-8b",
+  "timestamp": "2026-03-11T22:06:02.717874+00:00",
+  "model": "hetzner/llama3.1:8b",
+  "model_short": "llama3.1:8b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "Wanneer je een nohup proces start, wordt de uitvoering van de commando's niet gestopt door het einde van de SSH sessie. Het nohup proces voert door als de SSH sessie wordt beëindigd. Dit is omdat nohup de commando's in een nieuwe proces omzet en de stdout en stderr van de commando's naar /dev/null schrijft. Door deze actie wordt de commando's uitvoering niet beïnvloed door de SSH sessie.\n\nAls je een nohup proces start op een remote server via SSH en de SSH sessie wordt verbroken, dan zal het nohup proces blijven lopen op de remote server. Het proces is namelijk afgesplitst van de SSH sessie en wordt niet beïnvloed door het einde van de sessie.",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Auto-score mislukt (Claude niet beschikbaar)",
+      "latency_ms": 5996,
+      "tokens_estimated": 149
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "Hier is de Python-functie `deduplicate` die een lijst ontdubbelt maar de originele volgorde behoudt:\n```python\ndef deduplicate(items: list) -> list:\n    \"\"\"\n    Verwijder dubbele waarden uit een lijst terwijl de originele volgorde behouden blijft.\n\n    Args:\n        items: De lijst waar dubbele waarden uit verwijderd moeten worden.\n\n    Returns:\n        Een nieuwe lijst zonder dubbele waarden, met behoud van de originele volgorde.\n    \"\"\"\n    seen = {}\n    new_list = []\n    for item in items:\n        if item not in seen:\n            seen[item] = True\n            new_list.append(item)\n    return new_list\n```\nUitleg:\n* We maken gebruik van een `seen`-dictionary om te controleren of een item al in de nieuwe lijst voorkomt.\n* We loop door de ingevoerde lijst heen en voegen elke item toe aan de nieuwe lijst als het nog niet in de `seen`-dictionary staat.\n* De originele volgorde wordt behouden omdat we de items lineair doorlopen.\n\nVoorbeeldgebruik:\n```python\nitems = [1, 2, 3, 2, 4, 5, 5, 6]\ndedupped_items = deduplicate(items)\nprint(dedupped_items)  # [1, 2, 3, 4, 5, 6]\n```\nIk hoop dat dit helpt! Laat me weten als je nog vragen hebt.",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Volledige implementatie met type hints, docstring, correcte volgordebehoud, en efficiënte O(n) lookup via dictionary.",
+      "latency_ms": 7631,
+      "tokens_estimated": 226
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Hier zijn drie zinnen over het verschil tussen een AI-agent en een AI-workflow, geschreven voor een niet-technisch publiek:\n\nEen AI-agent is een computerprogramma dat zelfstandig taken uitvoert, zoals een assistent die gesprekken kan voeren of een robot die productieprocessen kan begeleiden. Een AI-workflow is een reeks van gestuurde taken en processen die door een AI-agent worden uitgevoerd, maar waarbij de AI zelf niet zelfstandig beslissingen neemt. In andere woorden, de AI-workflow wordt geleid door een mens die de sturing en de prioriteitstelling geeft.",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Exact 3 zinnen in Nederlands, duidelijk onderscheid tussen autonome agent en gestuurde workflow, begrijpelijk voor leken met concrete voorbeelden.",
+      "latency_ms": 3933,
+      "tokens_estimated": 107
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Exact correct antwoord",
+      "latency_ms": 1381,
+      "tokens_estimated": 15
+    }
+  ],
+  "summary": {
+    "total_score": 15,
+    "max_score": 20,
+    "pct_score": 75.0,
+    "avg_score": 3.75,
+    "by_category": {
+      "reasoning": 0,
+      "code": 5,
+      "language": 5,
+      "instruction": 5
+    },
+    "total_latency_ms": 18941
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}

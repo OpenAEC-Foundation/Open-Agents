@@ -60,6 +60,68 @@ def _detect_ollama_cmd() -> str:
 OLLAMA_CMD = _detect_ollama_cmd()
 
 
+# Known valid model prefixes and patterns
+_VALID_CLAUDE_MODELS = {"claude", "claude/opus", "claude/sonnet", "claude/haiku"}
+_VALID_OLLAMA_PREFIX = "ollama/"
+_VALID_OPENAI_MODELS = {"openai/o3", "openai/gpt-4o", "openai/gpt-4"}
+_WARN_UNKNOWN_MODELS = True  # warn but don't block unknown models
+
+# ANSI color codes for terminal output
+_YELLOW = "\033[33m"
+_DIM = "\033[2m"
+_RESET = "\033[0m"
+
+
+def validate_model(model: str) -> tuple[bool, str]:
+    """Validate model string. Returns (is_valid, warning_message).
+
+    Valid patterns:
+    - "claude" / "claude/opus" / "claude/sonnet" / "claude/haiku"
+    - "claude/<full-model-id>" — direct Claude model IDs
+    - "ollama/<any>" — Ollama local models
+    - "openai/<any>" — OpenAI models
+    - "hetzner/claude/<any>" — Claude on Hetzner remote
+    - "hetzner/<ollama-model>" — Ollama on Hetzner GPU
+
+    Invalid patterns (from observed bad data):
+    - "hetzner/<any>" used as a bare model (not via routing) — these are SSH hosts
+    - Models with spaces or special chars (except / and : and -)
+    - Empty string
+
+    Returns (True, "") if valid.
+    Returns (False, reason) if clearly invalid (e.g. bare "hetzner/" used as model).
+    Returns (True, warning) if unknown but plausible.
+    """
+    if not model:
+        return (True, "")  # empty → use default, no warning needed
+
+    # Check for invalid characters (spaces, etc.)
+    if re.search(r'\s', model):
+        return (False, f"Model name contains whitespace: {model!r}. Use 'claude/sonnet', 'ollama/<model>', etc.")
+
+    # Known valid prefixes
+    if model in _VALID_CLAUDE_MODELS:
+        return (True, "")
+    if model.startswith("claude/"):
+        return (True, "")
+    if model.startswith(_VALID_OLLAMA_PREFIX):
+        ollama_part = model[len(_VALID_OLLAMA_PREFIX):]
+        if not ollama_part:
+            return (False, "ollama/ prefix requires a model name, e.g. 'ollama/llama3.1:8b'")
+        return (True, "")
+    if model.startswith("openai/"):
+        return (True, "")
+    if model.startswith("hetzner/"):
+        # hetzner/* is valid as a routing prefix — routed to spawn_remote_agent
+        return (True, "")
+
+    # Unknown prefix — warn but allow (backwards compatible)
+    if _WARN_UNKNOWN_MODELS:
+        return (True, f"Unknown model prefix in {model!r}. Expected: claude/*, ollama/*, openai/*, hetzner/*. Proceeding anyway.")
+
+    return (True, "")
+
+
 def _validate_claude_model(claude_model: str | None) -> str | None:
     """Validate and sanitize a Claude model name.
 
@@ -186,6 +248,15 @@ def spawn_agent(
     existing = get_agent(name)
     if existing and existing.status == "running":
         raise RuntimeError(f"Agent '{name}' is already running.")
+
+    # --- Model validatie ---
+    if not model:
+        model = DEFAULT_MODEL
+    _model_valid, _model_warn = validate_model(model)
+    if not _model_valid:
+        print(f"{_YELLOW}⚠ Model warning: {_model_warn}{_RESET}")
+    elif _model_warn:
+        print(f"{_DIM}ℹ {_model_warn}{_RESET}")
 
     # --- Hiërarchie validatie ---
     child_depth = 0

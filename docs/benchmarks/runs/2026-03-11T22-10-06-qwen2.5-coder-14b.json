@@ -1,0 +1,77 @@
+{
+  "run_id": "2026-03-11T22-10-06-qwen2.5-coder-14b",
+  "timestamp": "2026-03-11T22:10:06.606518+00:00",
+  "model": "hetzner/qwen2.5-coder:14b",
+  "model_short": "qwen2.5-coder:14b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "Wanneer je een nohup proces op een remote server via SSH start, blijft het proces actief draaien, zelfs nadat je SSH sessie wordt verbroken. Dit is omdat nohup, dat staat voor \"no hangup\", het proces beschermt tegen het afsluiten van de terminal waarmee het is gestart.\n\nHier is hoe nohup werkt:\n\n1. Als je een proces start met nohup, wordt de uitvoer van het proces standaard naar een bestand genaamd nohup.out geschreven, tenzij je expliciet een ander bestand opgeeft. Als je bijvoorbeeld een shellscript nohup.sh wilt uitvoeren en de uitvoer wilt omleiden naar nohup.log, zou je het commando gebruiken:\n   ```\n   nohup ./nohup.sh > nohup.log 2>&1 &\n   ```\n   Dit commando stelt ook in dat het proces in de achtergrond draait (`&`), zodat je niet hoeft te wachten tot het proces is voltooid voordat je je terminal kunt gebruiken.\n\n2. Nohup voorkomt dat het proces gestopt wordt wanneer de terminal waarin het draait gesloten wordt. Op een UNIX of Linux-systeem wordt er een \"hangup\" signaal (SIGHUP) gestuurd naar een proces wanneer de terminal waarmee het is verbonden wordt gesloten. Nohup blokkeert dit signaal voor het proces, zodat het niet gestopt wordt.\n\n3. Omdat het proces niet afhankelijk is van de SSH sessie, blijft het draaien tot het proces zelf wordt gestopt (bijvoorbeeld met het `kill` commando), of tot het systeem opnieuw opstart.\n\nDus, als je een nohup proces hebt gestart en je SSH sessie wordt verbroken, blijft het proces draaien, continuert met zijn werk en de uitvoer wordt geschreven naar het opgegeven bestand (of nohup.out als er geen bestandsnaam is opgegeven).",
+      "score": 4,
+      "max_score": 5,
+      "score_rationale": "Grotendeels correct: nohup-werking en SIGHUP-blokkering goed uitgelegd met praktisch voorbeeld, maar antwoord breekt af en mist details over process groups en terminal sessie management.",
+      "latency_ms": 20408,
+      "tokens_estimated": 336
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "Hier is een Python functie `deduplicate` die een lijst ontdubbelt terwijl de originele volgorde wordt behouden. De functie maakt geen gebruik van sets als eindresultaat en bevat een docstring en type hints.\n\n```python\nfrom typing import List, Any\n\ndef deduplicate(items: List[Any]) -> List[Any]:\n    \"\"\"\n    Verwijderd duplicaten uit een lijst terwijl de originele volgorde wordt behouden.\n    \n    Parameters:\n    items (List[Any]): De lijst waaruit duplicaten moeten worden verwijderd.\n    \n    Returns:\n    List[Any]: Een nieuwe lijst zonder duplicaten, met de originele volgorde behouden.\n    \"\"\"\n    seen = set()\n    result = []\n    for item in items:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n    return result\n\n# Voorbeeld van gebruik:\nitems = [1, 2, 3, 2, 1, 4, 5, 3]\nunique_items = deduplicate(items)\nprint(unique_items)  # Output: [1, 2, 3, 4, 5]\n```\n\n### Uitleg:\n- **Type Hints**: De functie verwacht een lijst (`List[Any]`) als input en retourneert een lijst (`List[Any]`) zonder duplicaten.\n- **Docstring**: De docstring beschrijft de functionaliteit van de functie, de parameters die worden verwacht, en de waarde die wordt geretourneerd.\n- **Implementatie**: \n  - Een set `seen` wordt gebruikt om bij te houden welke items al zijn toegevoegd aan de resultaatlijst.\n  - Er wordt door de inputlijst `items` gegaan, en voor elk item dat nog niet in de `seen` set staat, wordt het toegevoegd aan zowel de `seen` set als de `result` lijst.\n  - Deze benadering zorgt ervoor dat elk item slechts één keer wordt toegevoegd aan de resultaatlijst, terwijl de originele volgorde wordt behouden.",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Werkende functie met type hints, docstring, behoudt volgorde correct, efficiënte O(n) implementatie met set voor tracking, en retourneert list als eindresultaat.",
+      "latency_ms": 17623,
+      "tokens_estimated": 309
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Een AI agent is net zo als een persoon die taken uitvoert op basis van instructies en informatie die hij ontvangt. Hij kan communiceren en taken uitvoeren die specifiek zijn voor zijn functie. Een AI workflow is een reeks georganiseerde stappen die automatisch worden uitgevoerd om een specifiek doel te bereiken, zoals het verwerken van een bestand of het analyseren van gegevens. Het verschil is dat een agent zichzelf kan laten beïnvloeden door omstandigheden en taken kan uitvoeren op basis van zijn eigen beslissingen, terwijl een workflow altijd op dezelfde manier voortgaat, ongeacht de omstandigheden.",
+      "score": 3,
+      "max_score": 5,
+      "score_rationale": "Correct onderscheid en begrijpelijk voor leken, maar het antwoord bevat vier zinnen in plaats van precies drie.",
+      "latency_ms": 7093,
+      "tokens_estimated": 123
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "0,1,1,2,3,5,8,13,21,34,55,89",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Exact correct antwoord",
+      "latency_ms": 1699,
+      "tokens_estimated": 1
+    }
+  ],
+  "summary": {
+    "total_score": 17,
+    "max_score": 20,
+    "pct_score": 85.0,
+    "avg_score": 4.25,
+    "by_category": {
+      "reasoning": 4,
+      "code": 5,
+      "language": 3,
+      "instruction": 5
+    },
+    "total_latency_ms": 46823
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}

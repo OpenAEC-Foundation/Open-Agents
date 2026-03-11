@@ -242,6 +242,81 @@ def _log_decision(record: dict) -> None:
     PO_LOG_PATH.write_text(json.dumps(log, indent=2))
 
 
+_SAMPLE_PROMPT = """\
+Je bent de Product Owner van het Open-Agents project. Beoordeel de kwaliteit van de \
+output van een agent op basis van de projectdoelen.
+
+## Project context (CLAUDE.md — fragment)
+{claude_md}
+
+## Agent output (eerste 2000 tekens)
+{output}
+
+## Jouw taak
+
+Beoordeel de output op:
+1. Is de taak uitgevoerd zoals bedoeld?
+2. Zijn er rode vlaggen (fouten, hallucinaties, incomplete output)?
+3. Past de output bij de werkwijze en kwaliteitsnormen van het project?
+
+## Antwoordformaat
+
+Begin je antwoord met exact één van deze drie woorden op een eigen regel:
+  APPROVE
+  WARN
+  BLOCK
+
+Gevolgd door 1-3 zinnen concrete uitleg. Wees direct en beknopt.
+"""
+
+
+def sample_agent_output(agent_name: str, output: str, model: str = "claude/haiku") -> dict:
+    """Quick PO sample-check on agent output (not a git diff but content review).
+
+    Uses haiku for speed/cost. Returns same verdict format as evaluate().
+    Checks: does the output align with project goals? Any red flags?
+    """
+    prompt = _SAMPLE_PROMPT.format(
+        claude_md=_read_fragment(_CONTEXT_FILES["CLAUDE_MD"], max_lines=60),
+        output=output[:2000] if output else "[geen output]",
+    )
+
+    model_args = _build_model_args(model)
+    cmd = ["claude"] + model_args + ["-p", prompt]
+
+    run_env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, env=run_env)
+        raw = result.stdout.strip()
+        if not raw and result.stderr:
+            raw = f"WARN\nPO sample fout: {result.stderr.strip()[:200]}"
+    except subprocess.TimeoutExpired:
+        raw = "WARN\nPO sample time-out."
+    except FileNotFoundError:
+        raw = "WARN\n`claude` CLI niet gevonden."
+    except Exception as e:
+        raw = f"WARN\nPO sample mislukt: {e}"
+
+    verdict = "WARN"
+    first_line = raw.split("\n")[0].strip().upper() if raw else ""
+    for word in ("APPROVE", "WARN", "BLOCK"):
+        if first_line.startswith(word):
+            verdict = word
+            break
+
+    record = {
+        "verdict": verdict,
+        "explanation": raw,
+        "timestamp": time.time(),
+        "model": model,
+        "diff_preview": f"[sample] agent={agent_name} output_len={len(output)}",
+    }
+
+    _log_decision(record)
+    return record
+
+
 def recent_decisions(n: int = 10) -> list[dict]:
     """Return the n most recent PO decisions."""
     if not PO_LOG_PATH.exists():
