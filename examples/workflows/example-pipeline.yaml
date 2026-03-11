@@ -1,0 +1,123 @@
+# OA Pipeline Workflow — Example: Research Pipeline
+# Format: OA Workflow v1
+# Invocation: oa pipeline --file examples/workflows/example-pipeline.yaml
+#
+# This example demonstrates a typical planner → workers → combiner pipeline.
+# The topic: competitive analysis of agent orchestration tools.
+
+version: "1"
+name: research-competitive-analysis
+description: >
+  Multi-agent research pipeline that investigates a topic from multiple angles
+  and produces a synthesized report. Demonstrates the planner → workers → combiner pattern.
+
+vars:
+  SONNET: claude/sonnet
+  OPUS: claude/opus
+  HAIKU: claude/haiku
+  OUTPUT_DIR: /tmp/oa-pipeline-output
+  TOPIC: "Competitive landscape of agent orchestration tools in 2026"
+
+stages:
+  # Stage 1: Planning
+  # The planner agent breaks the topic into focused research sub-questions.
+  - name: planning
+    parallel: false
+    agents:
+      - name: planner
+        role: planner
+        model: ${OPUS}
+        task: >
+          You are a research planner. Analyze this topic and break it into
+          4-6 focused research sub-questions, each suitable for a dedicated
+          research agent.
+
+          Topic: ${TOPIC}
+
+          Write your plan to ./output/plan.json with this structure:
+          {
+            "task": "original topic",
+            "subtasks": [
+              {"name": "slug-name", "task": "full research question", "depends_on": []}
+            ]
+          }
+
+          Keep subtask names short and slug-style (lowercase, hyphens only).
+        timeout: 300
+
+  # Stage 2: Parallel Research
+  # Multiple worker agents tackle different aspects simultaneously.
+  - name: research
+    parallel: true
+    agents:
+      - name: researcher-tools
+        role: worker
+        model: ${SONNET}
+        task: >
+          Research the current landscape of agent orchestration tools.
+          Focus on: LangGraph, AutoGen, CrewAI, Semantic Kernel, Open-Agents.
+          Compare: architecture, API design, deployment model, community size.
+          Write a detailed markdown report to ./output/result.md.
+        depends_on: [planner]
+        timeout: 1200
+
+      - name: researcher-market
+        role: worker
+        model: ${SONNET}
+        task: >
+          Research the market adoption and enterprise use of agent orchestration
+          frameworks. Focus on: funding, enterprise customers, GitHub stars trends,
+          job postings, and analyst coverage (2025-2026).
+          Write a detailed markdown report to ./output/result.md.
+        depends_on: [planner]
+        timeout: 1200
+
+      - name: researcher-technical
+        role: worker
+        model: ${SONNET}
+        task: >
+          Do a technical deep-dive on agent orchestration patterns:
+          multi-agent communication protocols, state management, tool calling,
+          human-in-the-loop patterns, and streaming support.
+          Write a detailed markdown report to ./output/result.md.
+        depends_on: [planner]
+        timeout: 1200
+
+      - name: researcher-ux
+        role: worker
+        model: ${HAIKU}
+        task: >
+          Research developer experience (DX) and UX patterns in agent frameworks.
+          Focus on: CLI design, debugging tooling, observability, documentation quality,
+          and onboarding friction. Write a concise markdown report to ./output/result.md.
+        depends_on: [planner]
+        timeout: 900
+
+  # Stage 3: Synthesis
+  # The combiner reads all research outputs and produces a final report.
+  - name: synthesis
+    parallel: false
+    agents:
+      - name: combiner
+        role: combiner
+        model: ${OPUS}
+        task: >
+          You are a research synthesizer. Read all subtask outputs from ./inputs/
+          and produce a comprehensive, well-structured competitive analysis report.
+
+          Requirements:
+          - Executive summary (200 words max)
+          - Comparison table of tools (at least 5 criteria)
+          - Key findings per research area
+          - Strategic recommendations for Open-Agents positioning
+          - Total length: 600-900 lines
+
+          Write the final report to ./output/result.md.
+          Also write to: ${OUTPUT_DIR}/competitive-analysis.md
+        depends_on:
+          - researcher-tools
+          - researcher-market
+          - researcher-technical
+          - researcher-ux
+        output_path: ${OUTPUT_DIR}/competitive-analysis.md
+        timeout: 900
