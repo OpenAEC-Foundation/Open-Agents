@@ -15,10 +15,12 @@
     "@anthropic-ai/sdk": "^0.78.0",
     "@dagrejs/dagre": "^2.0.4",
     "@fastify/cors": "^11.0.0",
+    "@fastify/websocket": "^11.0.0",
     "@open-agents/knowledge": "workspace:*",
     "@open-agents/shared": "workspace:*",
     "fastify": "^5.2.0",
-    "nanoid": "^5.1.0"
+    "nanoid": "^5.1.0",
+    "node-pty": "^1.0.0"
   },
   "devDependencies": {
     "@types/dagre": "^0.7.54",

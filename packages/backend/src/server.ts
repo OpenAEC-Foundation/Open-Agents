@@ -10,6 +10,7 @@ for (const key of Object.keys(process.env)) {
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import fastifyWebsocket from "@fastify/websocket";
 import { healthRoutes } from "./routes/health.js";
 import { configRoutes } from "./routes/configs.js";
 import { executeRoutes } from "./routes/execute.js";
@@ -25,6 +26,7 @@ import { knowledgeRoutes } from "./routes/knowledge.js";
 import { instructionRoutes } from "./routes/instructions.js";
 import { assistantRoutes } from "./routes/assistant.js";
 import { assemblyRoutes } from "./routes/assembly.js";
+import { terminalRoutes } from "./routes/terminal.js";
 import { registerRuntime } from "./execution-engine.js";
 import { ClaudeSDKRuntime } from "./runtimes/claude-sdk.js";
 import { OpenAIRuntime } from "./runtimes/openai.js";
@@ -79,6 +81,7 @@ oaCLIRuntime.isAvailable().then((ok) => {
 });
 
 await app.register(cors, { origin: true });
+await app.register(fastifyWebsocket);
 
 // Register routes
 app.register(healthRoutes, { prefix: "/api" });
@@ -96,6 +99,8 @@ app.register(knowledgeRoutes, { prefix: "/api" });
 app.register(instructionRoutes, { prefix: "/api" });
 app.register(assistantRoutes, { prefix: "/api" });
 app.register(assemblyRoutes, { prefix: "/api" });
+// Terminal WebSocket route — ws://host/ws/terminal (no /api prefix, WebSocket upgrade)
+app.register(terminalRoutes, { prefix: "/ws" });
 
 try {
   await app.listen({ port: PORT, host: "0.0.0.0" });
