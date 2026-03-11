@@ -1,52 +1,56 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 
 @theme {
-  /* Default theme tokens — overridden at runtime via JS (applyTheme) */
-  --color-oa-bg: #f4f6f8;
-  --color-oa-surface: #ffffff;
-  --color-oa-surface-hover: #fff4f0;
-  --color-oa-sidebar: #edf0f3;
-  --color-oa-border: #e2e8f0;
-  --color-oa-border-light: #eff2f5;
-  --color-oa-text: #1e293b;
-  --color-oa-text-muted: #64748b;
-  --color-oa-text-dim: #94a3b8;
-  --color-oa-accent: #ff6b35;
-  --color-oa-accent-bg: #fff4f0;
-  --color-oa-accent-hover: #e55a2a;
+  /* Default theme tokens — Impertio brand (overridden at runtime via JS) */
+  --color-oa-bg: #0a0a0a;
+  --color-oa-surface: #141414;
+  --color-oa-surface-hover: #1a1209;
+  --color-oa-sidebar: #111111;
+  --color-oa-border: #252525;
+  --color-oa-border-light: #1e1e1e;
+  --color-oa-text: #f0f0f0;
+  --color-oa-text-muted: #888888;
+  --color-oa-text-dim: #555555;
+  --color-oa-accent: #ff6b00;
+  --color-oa-accent-bg: #1f1200;
+  --color-oa-accent-hover: #e05e00;
+  --color-oa-terminal: #00ff88;
+  --color-oa-terminal-dim: #00cc6a;
 
-  /* Status kleuren — niet themeable */
-  --color-status-running: #3b82f6;
-  --color-status-done: #22c55e;
-  --color-status-failed: #ef4444;
-  --color-status-timeout: #f59e0b;
+  /* Status kleuren */
+  --color-status-running: #00ff88;
+  --color-status-done: #28a745;
+  --color-status-failed: #dc3545;
+  --color-status-timeout: #ffc107;
   --color-status-killed: #6b7280;
 
-  /* Model kleuren */
-  --color-model-opus: #7c3aed;
-  --color-model-sonnet: #2563eb;
-  --color-model-haiku: #0891b2;
-  --color-model-ollama: #ff6b35;
+  /* Model kleuren — Impertio brand */
+  --color-model-opus: #ff6b00;
+  --color-model-sonnet: #ff8c00;
+  --color-model-haiku: #ffaa00;
+  --color-model-ollama: #00ff88;
 
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans: "Montserrat", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 }
 
 /* Base — theme vars live on :root so JS can override them */
 :root {
-  --color-oa-bg: #f4f6f8;
-  --color-oa-surface: #ffffff;
-  --color-oa-surface-hover: #fff4f0;
-  --color-oa-sidebar: #edf0f3;
-  --color-oa-border: #e2e8f0;
-  --color-oa-border-light: #eff2f5;
-  --color-oa-text: #1e293b;
-  --color-oa-text-muted: #64748b;
-  --color-oa-text-dim: #94a3b8;
-  --color-oa-accent: #ff6b35;
-  --color-oa-accent-bg: #fff4f0;
-  --color-oa-accent-hover: #e55a2a;
+  --color-oa-bg: #0a0a0a;
+  --color-oa-surface: #141414;
+  --color-oa-surface-hover: #1a1209;
+  --color-oa-sidebar: #111111;
+  --color-oa-border: #252525;
+  --color-oa-border-light: #1e1e1e;
+  --color-oa-text: #f0f0f0;
+  --color-oa-text-muted: #888888;
+  --color-oa-text-dim: #555555;
+  --color-oa-accent: #ff6b00;
+  --color-oa-accent-bg: #1f1200;
+  --color-oa-accent-hover: #e05e00;
+  --color-oa-terminal: #00ff88;
+  --color-oa-terminal-dim: #00cc6a;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

@@ -61,6 +61,13 @@ export const THEMES: Theme[] = [
       '--color-oa-accent': '#ff6b00',
       '--color-oa-accent-bg': '#1f1200',
       '--color-oa-accent-hover': '#e05e00',
+      '--color-oa-terminal': '#00ff88',
+      '--color-oa-terminal-dim': '#00cc6a',
+      '--color-status-running': '#00ff88',
+      '--color-model-opus': '#ff6b00',
+      '--color-model-sonnet': '#ff8c00',
+      '--color-model-haiku': '#ffaa00',
+      '--color-model-ollama': '#00ff88',
     },
   },
   {
@@ -122,7 +129,7 @@ export const THEMES: Theme[] = [
   },
 ];
 
-export const DEFAULT_THEME_ID = 'light';
+export const DEFAULT_THEME_ID = 'impertio';
 
 export function applyTheme(theme: Theme) {
   const root = document.documentElement;

@@ -6,7 +6,7 @@ import * as api from '../api/client';
 
 export function statusColor(status: string): string {
   switch (status) {
-    case 'running': return '#22d3ee';
+    case 'running': return '#00ff88';
     case 'done': return '#4ade80';
     case 'error':
     case 'failed': return '#f87171';
