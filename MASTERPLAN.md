@@ -2512,12 +2512,21 @@ Zonder telemetrie is het systeem een black box. Sprint 22 bouwt de 'boekhouding'
 
 **Research — Informeert Architectuur**
 
-| Issue | Titel | Beïnvloedt Sprint |
+| Issue | Titel | Antwoord / Status |
 |-------|-------|-------------------|
-| [#50](https://github.com/OpenAEC-Foundation/Open-Agents/issues/50) | Agent Registry & Discovery | Sprint 17 |
-| [#55](https://github.com/OpenAEC-Foundation/Open-Agents/issues/55) | Emergent Agent Gedrag & Dispatcher | Sprint 17 |
-| [#57](https://github.com/OpenAEC-Foundation/Open-Agents/issues/57) | A2A Protocol Compatibiliteit | Sprint 16 |
-| [#59](https://github.com/OpenAEC-Foundation/Open-Agents/issues/59) | Security Model Autonome Agent Communicatie | Sprint 17 |
+| [#47](https://github.com/OpenAEC-Foundation/Open-Agents/issues/47) | CLI Toolchain voor Agentic Orchestration | Beantwoord door implementatie: tmux (runtime), Python+typer (CLI), ripgrep/gh/fzf (tools). Zie D-045. |
+| [#48](https://github.com/OpenAEC-Foundation/Open-Agents/issues/48) | Inter-Agent Communication Protocol Design | Beantwoord: filesystem JSON mailbox gekozen. Geïmplementeerd in messaging.py. Zie D-062. |
+| [#49](https://github.com/OpenAEC-Foundation/Open-Agents/issues/49) | CLI-based Message Bus Evaluatie | Beantwoord: geen message bus nodig. Filesystem mailbox volstaat voor lokale agents. Zie D-062. |
+| [#50](https://github.com/OpenAEC-Foundation/Open-Agents/issues/50) | Agent Registry & Discovery | Beantwoord: agents.json (registry) + teams config.json (discovery). Zie D-045, D-052. |
+| [#51](https://github.com/OpenAEC-Foundation/Open-Agents/issues/51) | Tmux als Agent Container Runtime | Beantwoord: tmux gekozen als runtime. Geïmplementeerd in tmux.py. Zie D-045. |
+| [#52](https://github.com/OpenAEC-Foundation/Open-Agents/issues/52) | Agent Workspace Templating & Isolation | Beantwoord: custom Python workspace builder. CLAUDE.md-per-agent als isolatie. Zie D-045. |
+| [#53](https://github.com/OpenAEC-Foundation/Open-Agents/issues/53) | Agent Pool Management & Scaling | Beantwoord: teams.py + task_list.py voor pool beheer. Zie D-052. |
+| [#54](https://github.com/OpenAEC-Foundation/Open-Agents/issues/54) | Orchestration Task Runner Evaluatie | Beantwoord: custom Python pipeline (task_list.py) boven Just/Task/Make. Zie D-047. |
+| [#55](https://github.com/OpenAEC-Foundation/Open-Agents/issues/55) | Emergent Agent Gedrag & Dispatcher Architectuur | Gedeeltelijk beantwoord: LLM dispatcher in packages/ (DispatcherNode). Guardrails: D-040, D-051. oa-cli dispatcher: Sprint 21+. |
+| [#56](https://github.com/OpenAEC-Foundation/Open-Agents/issues/56) | Observability & Logging Multi-Agent | Gedeeltelijk beantwoord: TUI dashboard (D-046), tmux capture-pane (D-049), LESSONS.md als trace. Zie Sprint 21+. |
+| [#57](https://github.com/OpenAEC-Foundation/Open-Agents/issues/57) | A2A Protocol Compatibiliteit | Open onderzoek → Sprint 16. |
+| [#58](https://github.com/OpenAEC-Foundation/Open-Agents/issues/58) | Context Engineering Agent Workspaces | Open onderzoek → Sprint 22. |
+| [#59](https://github.com/OpenAEC-Foundation/Open-Agents/issues/59) | Security Model Autonome Agent Communicatie | Open onderzoek → Sprint 16/22. |
 
 ---
 
