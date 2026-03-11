@@ -1,15 +1,27 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/OpenAEC-Foundation/Open-Agents/main/oa-cli/web/public/assets/logos/openaec/openaec-logo-amber-on-dark.svg" alt="OpenAEC Foundation" width="280"/>
 
-  # Open-Agents
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:D97706,100:EA580C&height=220&section=header&text=Open-Agents&fontSize=80&fontColor=ffffff&animation=fadeIn&desc=Spawn%20AI%20agents.%20Orchestrate%20anything.%20Build%20free.&descAlignY=62&descSize=20&descFontColor=FDE68A" width="100%"/>
 
-  **Spawn AI agents. Orchestrate anything. Build free.**
+<img src="https://raw.githubusercontent.com/OpenAEC-Foundation/Open-Agents/main/oa-cli/web/public/assets/logos/openaec/openaec-logo-amber-on-dark.svg" alt="OpenAEC Foundation" width="200"/>
 
-  [![version](https://img.shields.io/badge/version-v0.3.1-D97706?style=flat-square)](https://github.com/OpenAEC-Foundation/Open-Agents/releases)
-  [![agents](https://img.shields.io/badge/agents-1612-16A34A?style=flat-square)](https://github.com/OpenAEC-Foundation/Open-Agents/tree/main/agents/library)
-  [![python](https://img.shields.io/badge/python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-  [![license](https://img.shields.io/badge/license-MIT-D97706?style=flat-square)](LICENSE)
-  [![OpenAEC](https://img.shields.io/badge/OpenAEC-Foundation-EA580C?style=flat-square)](https://github.com/OpenAEC-Foundation)
+<br/>
+
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=18&pause=1500&color=D97706&center=true&vCenter=true&width=640&height=50&lines=Spawn+hundreds+of+AI+agents+in+parallel.;No+API+key.+Use+your+Claude+subscription.;1612%2B+agent+templates.+112+categories.;Orchestrate+anything.+Build+free.;Multi-model%3A+Opus+%C2%B7+Sonnet+%C2%B7+Haiku+%C2%B7+Ollama" alt="Typing animation"/>
+
+<br/><br/>
+
+[![version](https://img.shields.io/badge/version-v0.3.1-D97706?style=for-the-badge)](https://github.com/OpenAEC-Foundation/Open-Agents/releases)
+[![agents](https://img.shields.io/badge/agents-1612%2B-16A34A?style=for-the-badge)](https://github.com/OpenAEC-Foundation/Open-Agents/tree/main/agents/library)
+[![python](https://img.shields.io/badge/python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![license](https://img.shields.io/badge/license-MIT-D97706?style=for-the-badge)](LICENSE)
+[![OpenAEC](https://img.shields.io/badge/OpenAEC-Foundation-EA580C?style=for-the-badge)](https://github.com/OpenAEC-Foundation)
+
+<br/><br/>
+
+<img src="https://img.shields.io/badge/1612%2B-Agent%20Templates-D97706?style=for-the-badge" alt="1612+ Agent Templates"/>
+<img src="https://img.shields.io/badge/112-Categories-EA580C?style=for-the-badge" alt="112 Categories"/>
+<img src="https://img.shields.io/badge/21%2B-CLI%20Commands-D97706?style=for-the-badge" alt="21+ CLI Commands"/>
+<img src="https://img.shields.io/badge/Zero-API%20Costs-16A34A?style=for-the-badge" alt="Zero API Costs"/>
 
 </div>
 
