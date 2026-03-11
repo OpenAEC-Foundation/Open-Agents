@@ -275,3 +275,63 @@ class TestSessionMocked:
             mock_run.return_value = self._mock_run(returncode=1)
             from open_agents.orchestrator import session_exists
             assert session_exists() is False
+
+
+class TestParseOllamaPs:
+    """Tests for spawner._parse_ollama_ps() (issue #79 / L-088)."""
+
+    def _ps(self, *rows: str) -> str:
+        header = "NAME              ID              SIZE      PROCESSOR          CONTEXT  UNTIL\n"
+        return header + "\n".join(rows)
+
+    def test_empty_output_returns_zero(self):
+        from open_agents.spawner import _parse_ollama_ps
+        assert _parse_ollama_ps("") == 0.0
+
+    def test_header_only_returns_zero(self):
+        from open_agents.spawner import _parse_ollama_ps
+        assert _parse_ollama_ps("NAME  ID  SIZE  PROCESSOR  CONTEXT  UNTIL") == 0.0
+
+    def test_single_model(self):
+        from open_agents.spawner import _parse_ollama_ps
+        output = self._ps("mistral:7b  abc123  4.4 GB  100% GPU  2048  4 minutes from now")
+        assert _parse_ollama_ps(output) == pytest.approx(4.4)
+
+    def test_multiple_models_summed(self):
+        from open_agents.spawner import _parse_ollama_ps
+        output = self._ps(
+            "mistral:7b    abc123  4.4 GB  100% GPU  2048  4 minutes from now",
+            "codestral:22b def456  13.0 GB  100% GPU  4096  2 minutes from now",
+        )
+        assert _parse_ollama_ps(output) == pytest.approx(17.4)
+
+    def test_large_model_qwen32b(self):
+        from open_agents.spawner import _parse_ollama_ps
+        output = self._ps("qwen2.5:32b  xyz789  19.0 GB  100% GPU  8192  1 minutes from now")
+        assert _parse_ollama_ps(output) == pytest.approx(19.0)
+
+    def test_malformed_line_ignored(self):
+        from open_agents.spawner import _parse_ollama_ps
+        output = self._ps(
+            "mistral:7b  abc123  4.4 GB  100% GPU  2048  4 minutes from now",
+            "corrupted line without size token",
+        )
+        assert _parse_ollama_ps(output) == pytest.approx(4.4)
+
+
+class TestVramEstimates:
+    """Verify _VRAM_ESTIMATES contains required models (issue #79)."""
+
+    def test_large_models_present(self):
+        from open_agents.spawner import _VRAM_ESTIMATES
+        required = ["mixtral:8x7b", "qwen2.5:14b", "qwen2.5:32b", "gemma3:27b", "llama3.1:8b"]
+        for model in required:
+            assert model in _VRAM_ESTIMATES, f"Missing VRAM estimate for {model}"
+
+    def test_mixtral_exceeds_gpu_capacity(self):
+        from open_agents.spawner import _VRAM_ESTIMATES, _GPU_TOTAL_VRAM
+        assert _VRAM_ESTIMATES["mixtral:8x7b"] > _GPU_TOTAL_VRAM
+
+    def test_qwen32b_fits_just_under_capacity(self):
+        from open_agents.spawner import _VRAM_ESTIMATES, _GPU_TOTAL_VRAM
+        assert _VRAM_ESTIMATES["qwen2.5:32b"] < _GPU_TOTAL_VRAM

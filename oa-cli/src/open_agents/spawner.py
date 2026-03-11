@@ -235,6 +235,12 @@ _VRAM_ESTIMATES: dict[str, float] = {
     "olmo2:latest": 4.5,
     "nomic-embed-text:latest": 0.3,
     "bge-m3:latest": 1.2,
+    # Large models (Q4_K_M estimates) — mixtral:8x7b exceeds 20GB GPU capacity
+    "mixtral:8x7b": 26.0,
+    "qwen2.5:14b": 9.0,
+    "qwen2.5:32b": 19.0,
+    "gemma3:27b": 17.0,
+    "llama3.1:8b": 5.0,
 }
 _GPU_TOTAL_VRAM = 20.0  # RTX 4000 Ada — update if hardware changes
 
