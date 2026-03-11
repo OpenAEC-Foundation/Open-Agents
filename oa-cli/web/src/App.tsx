@@ -16,12 +16,14 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './components/ToastProvider';
 import { KeyboardHelpOverlay } from './components/KeyboardHelpOverlay';
 import { CommandPalette } from './components/CommandPalette';
+import { AgentSpawnDialog } from './components/AgentSpawnDialog';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 export default function App() {
   const [onboarded, setOnboarded] = useState(() => !!localStorage.getItem('oa_onboarded'));
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showSpawnDialog, setShowSpawnDialog] = useState(false);
   const activeMainTab = useUIStore((s) => s.activeMainTab);
   const themeId = useUIStore((s) => s.themeId);
   const fetchAgents = useAgentStore((s) => s.fetchAgents);
@@ -29,6 +31,7 @@ export default function App() {
   useKeyboardShortcuts({
     onToggleHelp: () => setShowKeyboardHelp((v) => !v),
     onToggleCommandPalette: () => setShowCommandPalette((v) => !v),
+    onToggleSpawnDialog: () => setShowSpawnDialog((v) => !v),
   });
 
   // Apply theme whenever it changes
@@ -128,6 +131,9 @@ export default function App() {
       )}
       {showCommandPalette && (
         <CommandPalette onClose={() => setShowCommandPalette(false)} />
+      )}
+      {showSpawnDialog && (
+        <AgentSpawnDialog onClose={() => setShowSpawnDialog(false)} />
       )}
     </ToastProvider>
   );

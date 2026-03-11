@@ -211,6 +211,29 @@ def get_canvas_state() -> dict:
     }
 
 
+@mcp.tool()
+def compact_agents(dry_run: bool = False) -> dict:
+    """Check and trigger context compaction for running agents above threshold.
+
+    Args:
+        dry_run: If True, only report what would be compacted without triggering.
+
+    Returns:
+        dict with 'results' list per agent and count of compacted agents.
+    """
+    try:
+        from .compaction import check_and_compact_all
+        results = check_and_compact_all(dry_run=dry_run)
+        compacted = [r for r in results if r["action"] == "compacted"]
+        return {
+            "success": True,
+            "compacted": len(compacted),
+            "results": results,
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 def main() -> None:
     """Entry point for running the MCP server."""
     mcp.run()

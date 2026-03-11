@@ -16,9 +16,10 @@ const TAB_ORDER: MainTab[] = [
 interface KeyboardShortcutsOptions {
   onToggleHelp: () => void;
   onToggleCommandPalette: () => void;
+  onToggleSpawnDialog: () => void;
 }
 
-export function useKeyboardShortcuts({ onToggleHelp, onToggleCommandPalette }: KeyboardShortcutsOptions) {
+export function useKeyboardShortcuts({ onToggleHelp, onToggleCommandPalette, onToggleSpawnDialog }: KeyboardShortcutsOptions) {
   const setMainTab = useUIStore((s) => s.setMainTab);
   const selectAgent = useAgentStore((s) => s.selectAgent);
   const agents = useAgentStore((s) => s.agents);
@@ -37,7 +38,21 @@ export function useKeyboardShortcuts({ onToggleHelp, onToggleCommandPalette }: K
         return;
       }
 
-      // Ctrl+K: command palette
+      // F1: command palette
+      if (e.key === 'F1') {
+        e.preventDefault();
+        onToggleCommandPalette();
+        return;
+      }
+
+      // F2: agent spawn dialog
+      if (e.key === 'F2') {
+        e.preventDefault();
+        onToggleSpawnDialog();
+        return;
+      }
+
+      // Ctrl+K: command palette (alternative)
       if (e.ctrlKey && e.key === 'k') {
         e.preventDefault();
         onToggleCommandPalette();
@@ -81,7 +96,7 @@ export function useKeyboardShortcuts({ onToggleHelp, onToggleCommandPalette }: K
         return;
       }
     },
-    [setMainTab, selectAgent, agents, selectedAgent, hierarchy, onToggleHelp, onToggleCommandPalette]
+    [setMainTab, selectAgent, agents, selectedAgent, hierarchy, onToggleHelp, onToggleCommandPalette, onToggleSpawnDialog]
   );
 
   useEffect(() => {

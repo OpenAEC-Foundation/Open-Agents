@@ -778,6 +778,24 @@ def _kill_port(port: int) -> None:
         pass
 
 
+@app.route("/api/compaction/status")
+def api_compaction_status():
+    """Get compaction status for all running agents."""
+    from .compaction import check_and_compact_all, get_compaction_history
+    results = check_and_compact_all(dry_run=True)
+    history = get_compaction_history(limit=20)
+    return jsonify({"agents": results, "history": history})
+
+
+@app.route("/api/compaction/trigger", methods=["POST"])
+def api_trigger_compaction():
+    """Trigger compaction for all agents above threshold."""
+    from .compaction import check_and_compact_all
+    results = check_and_compact_all(dry_run=False)
+    compacted = [r for r in results if r["action"] == "compacted"]
+    return jsonify({"compacted": len(compacted), "results": results})
+
+
 def run_bridge(port: int = 5174) -> None:
     """Start the bridge server."""
     _kill_port(port)

@@ -35,9 +35,16 @@ const SHORTCUTS: ShortcutGroup[] = [
     ],
   },
   {
+    group: 'Command Centre',
+    entries: [
+      { keys: ['F1'], description: 'Command palette' },
+      { keys: ['F2'], description: 'Spawn agent dialog' },
+      { keys: ['Ctrl', 'K'], description: 'Command palette (alt)' },
+    ],
+  },
+  {
     group: 'General',
     entries: [
-      { keys: ['Ctrl', 'K'], description: 'Command palette' },
       { keys: ['?'], description: 'Toggle this help overlay' },
       { keys: ['Esc'], description: 'Close overlay / cancel' },
     ],

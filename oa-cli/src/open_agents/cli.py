@@ -312,6 +312,14 @@ def start(
     else:
         console.print("[yellow]Session 'oa' already exists.[/yellow]")
 
+    # Start auto-compaction daemon
+    try:
+        from .compaction import start_daemon
+        start_daemon()
+        console.print("[dim]Auto-compaction daemon started (30s interval)[/dim]")
+    except Exception:
+        pass  # Non-critical — don't block session start
+
     if chat:
         from .chat import ChatSession
         ChatSession().start()
@@ -1883,12 +1891,34 @@ def compact(
     name: str = typer.Argument(None, help="Agent name to compact (omit for all running agents)"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be compacted without triggering"),
     all_agents: bool = typer.Option(False, "--all", help="Compact all running agents above threshold"),
+    daemon: bool = typer.Option(False, "--daemon", help="Start background auto-compaction daemon"),
+    interval: int = typer.Option(30, "--interval", help="Daemon polling interval in seconds"),
+    history: bool = typer.Option(False, "--history", help="Show recent compaction events"),
 ):
     """Trigger context compaction for one or all running agents (Issue #20).
 
     Sends /compact to the agent's tmux pane when context usage exceeds threshold.
     Default threshold: 75% (override with OA_COMPACT_THRESHOLD env var).
+    Use --daemon to start a background monitor that auto-compacts agents.
     """
+    if daemon:
+        from .compaction import start_daemon
+        d = start_daemon(interval=interval)
+        console.print(f"[green]Auto-compaction daemon started (interval={interval}s)[/green]")
+        console.print("[dim]Daemon runs in background — monitoring all running agents.[/dim]")
+        return
+
+    if history:
+        from .compaction import get_compaction_history
+        events = get_compaction_history(limit=30)
+        if not events:
+            console.print("[dim]No compaction events recorded yet.[/dim]")
+            return
+        for evt in events:
+            ts = time.strftime("%H:%M:%S", time.localtime(evt["timestamp"]))
+            console.print(f"  [{ts}] {evt.get('agent', '?')}  {evt.get('action', '?')}  {evt.get('pct', 0):.1f}%")
+        return
+
     from .context_tracker import get_context_status, should_compact, trigger_compaction, HEALTH_ICONS
     from .state import list_agents, get_agent
 
