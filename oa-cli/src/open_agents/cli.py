@@ -613,6 +613,17 @@ def run(
         console.print("[red]No task provided. Pass a task argument or use --template.[/red]")
         raise typer.Exit(1)
 
+    # Auto-suggest agent template if none specified and task is long enough
+    if not template and len(task.strip()) > 30:
+        try:
+            from .agent_selector import find_agents as _find_agents
+            _suggestions = _find_agents(task, library_dir=AGENTS_LIBRARY_DIR, top_n=1, use_ai=False)
+            if _suggestions and _suggestions[0].score > 0.3:
+                _best = _suggestions[0]
+                console.print(f"[dim]💡 Suggestie: --template {_best.agent_id} ({_best.name})[/dim]")
+        except Exception:
+            pass
+
     # Warn if task looks suspiciously short (possible shell truncation due to special chars)
     if len(task.strip()) < 10 and not template:
         console.print(f"[yellow]⚠ Prompt is very short ({len(task.strip())} chars). If it was truncated by shell escaping, use --prompt-file instead.[/yellow]")
@@ -3648,6 +3659,62 @@ def improve_run(
     else:
         console.print("[red]✗ Failed to spawn agent.[/red]")
         raise typer.Exit(1)
+
+
+@app.command()
+def suggest(
+    task: str = typer.Argument(..., help="Task description to find agents for"),
+    top: int = typer.Option(5, "--top", "-n", help="Number of suggestions to show"),
+    no_ai: bool = typer.Option(False, "--no-ai", help="Only keyword matching, no AI ranking"),
+    model: str = typer.Option("claude/sonnet", "--model", "-m", help="Model for AI ranking"),
+):
+    """Suggest the best agents and skills for a task — before spawning."""
+    from rich.table import Table
+    from .agent_selector import find_agents, find_skills
+
+    console.print(f"\n[bold]Analysing task:[/bold] {task[:100]}{'...' if len(task) > 100 else ''}\n")
+
+    # Find matching agents
+    with console.status("[dim]Searching agents...[/dim]"):
+        agents = find_agents(task, library_dir=AGENTS_LIBRARY_DIR, top_n=top, use_ai=not no_ai, model=model)
+
+    if agents:
+        console.print("[bold]Agent Suggestions:[/bold]")
+        for match in agents:
+            rank_label = f"[bold green]#{match.ai_rank}[/bold green] " if match.ai_rank else ""
+            style = "green" if match.ai_rank == 1 else "dim" if match.ai_rank and match.ai_rank > 2 else ""
+            model_hint = f" [dim]({match.model_hint.split('/')[-1]})[/dim]" if match.model_hint else ""
+            rationale = f"\n    [italic dim]{match.rationale}[/italic dim]" if match.rationale else ""
+            score_label = f" [dim]score={match.score:.2f}[/dim]" if not match.ai_rank else ""
+            console.print(
+                f"  {rank_label}[{style}]{match.name}[/{style}]  [cyan]{match.agent_id}[/cyan]"
+                f"{model_hint}{score_label}{rationale}"
+            )
+        console.print()
+    else:
+        console.print("[yellow]No matching agents found.[/yellow]\n")
+
+    # Find matching skills
+    skills = find_skills(task, top_n=3)
+    if skills:
+        console.print("[bold]Skill Suggestions:[/bold]")
+        for sk in skills:
+            console.print(
+                f"  [magenta]{sk.name}[/magenta]  [dim]score={sk.score:.2f}[/dim]"
+                + (f"\n    [italic dim]{sk.description}[/italic dim]" if sk.description else "")
+            )
+        console.print()
+
+    # Show ready-to-use oa run command
+    if agents:
+        best = agents[0]
+        skills_flag = f" --skills {','.join(s.skill_id for s in skills)}" if skills else ""
+        model_flag = f" --model {best.model_hint}" if best.model_hint else ""
+        console.print("[bold]Ready-to-run command:[/bold]")
+        console.print(
+            f"  [cyan]oa run \"<task>\" --template {best.agent_id}{model_flag}{skills_flag} --direct[/cyan]"
+        )
+        console.print()
 
 
 if __name__ == "__main__":
