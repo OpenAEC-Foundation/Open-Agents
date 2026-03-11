@@ -1,0 +1,78 @@
+{
+  "run_id": "2026-03-11T16-28-42-gemma3-27b",
+  "timestamp": "2026-03-11T16:28:42.064972+00:00",
+  "model": "hetzner/gemma3:27b",
+  "model_short": "gemma3:27b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "Oké, laten we eens kijken wat er gebeurt met een `nohup` proces op een remote server nadat je SSH-sessie verbroken is, en hoe `nohup` precies werkt.\n\n**Wat gebeurt er met het nohup proces?**\n\nHet `nohup` proces blijft draaien, zelfs nadat je SSH-sessie verbroken is.  Dit is het hele punt van `nohup`. Het proces wordt niet gestopt of beëindigd.\n\n**Waarom blijft het draaien?**\n\nDit heeft te maken met hoe `nohup` en signalen werken in Unix/Linux:\n\n1. **Hangup Signaal (SIGHUP):** Wanneer je SSH-sessie verbroken wordt, stuurt de server een \"hangup\" signaal (SIGHUP) naar alle processen die met die sessie geassocieerd zijn.  Dit signaal is traditioneel bedoeld om processen te laten stoppen, omdat het aangeeft dat de besturingsterminal (de verbinding via SSH) niet meer beschikbaar is.\n\n2. **`nohup`'s bescherming tegen SIGHUP:**  `nohup` doet twee belangrijke dingen:\n   * **Signaal Handler:** `nohup` runt het commando dat je wilt uitvoeren met een aangepaste signaal handler voor het SIGHUP signaal.  Deze handler zorgt ervoor dat het SIGHUP signaal *genegeerd* wordt.  In plaats van te stoppen, negeert het proces het signaal en blijft het draaien.\n   * **Omleiden van Output:**  Standaard stuurt een proces zijn output (zowel standaard uitvoer - `stdout` - als standaard foutmeldingen - `stderr`) naar de terminal die ermee verbonden is.  Wanneer je SSH-sessie verbroken wordt, is die terminal er niet meer.  Dit zou normaal gesproken leiden tot foutmeldingen of het stoppen van het proces. `nohup` leidt de standaard uitvoer en standaard fouten om naar een bestand genaamd `nohup.out` in de huidige directory (tenzij je expliciet een andere bestandsnaam opgeeft met redirectie, zie verderop).  Als het proces geen schrijfrechten heeft in de huidige directory, zal het proberen te schrijven naar `$HOME/nohup.out`.\n\n**Hoe werkt `nohup` in detail?**\n\nSamengevat, de werking van `nohup` kan je als volgt beschrijven:\n\n```bash\nnohup command [arguments] &\n```\n\n* **`nohup`:**  Het commando dat het proces beschermt tegen het SIGHUP signaal.\n* **`command [arguments]`:** Het commando dat je wilt uitvoeren (bijvoorbeeld een script, een Python programma, etc.) en eventuele argumenten.\n* **`&`:**  De ampersand (&) op het einde van de regel plaatst het proces op de achtergrond.  Dit betekent dat het proces onafhankelijk van je SSH-sessie draait, en je direct de controle terugkrijgt in de terminal.\n\n**Voorbeeld:**\n\nStel dat je een langlopend Python script genaamd `my_script.py` wilt uitvoeren op een remote server:\n\n```bash\nnohup python my_script.py > my_script.log 2>&1 &\n```\n\n*   `nohup python my_script.py`:  Start het Python script met `nohup`, waardoor het beschermd wordt tegen SIGHUP.\n*   `> my_script.log`: Leidt de standaard uitvoer (`stdout`) van het script om naar het bestand `my_script.log`.\n*   `2>&1`: Leidt de standaard foutmeldingen (`stderr`) om naar dezelfde locatie als de standaard uitvoer (dus ook naar `my_script.log`).  Dit is handig omdat je dan alle output op één plek hebt.\n*   `&`: Plaats het proces op de achtergrond.\n\n**Hoe controleer je het draaiende proces?**\n\n1.  **`ps` commando:** Gebruik het `ps` commando om te kijken of het proces nog draait:\n\n    ```bash\n    ps aux | grep my_script.py\n    ```\n\n    Dit zal je informatie geven over het proces, inclusief de proces-ID (PID).\n\n2.  **`top` of `htop`:**  Gebruik `top` of `htop` om een overzicht van alle draaiende processen te zien, inclusief CPU en geheugengebruik.\n\n3.  **`jobs` (in sommige gevallen):**  Als je het proces niet helemaal op de achtergrond hebt gezet (bijvoorbeeld als je geen `&` hebt gebruikt), kan het `jobs` commando je een lijst geven van achtergrondprocessen in je huidige sessie (hoewel dit niet van toepassing is als je SSH-sessie verbroken is).\n\n4.  **Bekijk de logbestanden:** Controleer de inhoud van `nohup.out` of het bestand dat je hebt opgegeven met redirectie (`my_script.log` in het voorbeeld) om de output van het proces te zien.\n\n**Belangrijk om te onthouden:**\n\n*   `nohup` beschermt alleen tegen het SIGHUP signaal.  Het beschermt niet tegen andere signalen (zoals SIGKILL, SIGTERM) die gebruikt kunnen worden om het proces te stoppen.\n*   Zorg ervoor dat je proces correct omgaat met fouten en uitzonderingen.  Als het proces crasht, zal `nohup` het niet automatisch opnieuw starten.  Je kunt process managers zoals `systemd` of `supervisor` gebruiken om ervoor te zorgen dat je processen automatisch opnieuw worden gestart bij een crash.\n*   Houd rekening met het resourcegebruik van je proces.  Een proces dat op de achtergrond draait, verbruikt nog steeds CPU en geheugen.\n\nIk hoop dat dit een duidelijk overzicht geeft van hoe `nohup` werkt! Laat het me weten als je nog vragen hebt.",
+      "score": 4,
+      "max_score": 5,
+      "score_rationale": "Kernpunten correct (SIGHUP negatie, proces blijft draaien), maar output redirection incompleet behandeld, nohup.out niet expliciet genoemd, process groups ontbreken, en antwoord is afgebroken.",
+      "latency_ms": 130001,
+      "tokens_estimated": 932
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "```python\nfrom typing import List, Any\n\ndef deduplicate(items: List[Any]) -> List[Any]:\n  \"\"\"\n  Ontdubbelt een lijst terwijl de originele volgorde behouden blijft.\n\n  Args:\n    items: De lijst die ontdubbeld moet worden.\n\n  Returns:\n    Een nieuwe lijst met alleen de unieke elementen uit de originele lijst,\n    in dezelfde volgorde als ze voor het eerst voorkomen.\n  \"\"\"\n  seen: List[Any] = []\n  result: List[Any] = []\n  for item in items:\n    if item not in seen:\n      seen.append(item)\n      result.append(item)\n  return result\n```\n\n**Uitleg:**\n\n1. **Type Hints:**  `items: List[Any]` en `-> List[Any]` geven aan dat de functie een lijst van willekeurige typen als input accepteert en een lijst van willekeurige typen retourneert. Dit verbetert de leesbaarheid en helpt bij het statisch type controleren.\n\n2. **Docstring:** De docstring beschrijft duidelijk wat de functie doet, de argumenten die hij accepteert en de waarde die hij retourneert.\n\n3. **`seen` lijst:** Dit is een lege lijst die wordt gebruikt om bij te houden welke elementen al zijn gezien.\n\n4. **`result` lijst:**  Dit is de lijst die de ontdubbelde elementen zal bevatten.\n\n5. **Iteratie:** De code itereert door de invoerlijst `items`.\n\n6. **Controle op dubbele waarden:** Voor elk `item` controleert de code of het al in de `seen` lijst staat.\n\n7. **Toevoegen aan `seen` en `result`:** Als het `item` nog niet in `seen` staat (dus het is een nieuw, uniek item), wordt het toegevoegd aan zowel de `seen` lijst (zodat we weten dat we het hebben gezien) als aan de `result` lijst (zodat het in de uitvoerlijst staat).\n\n8. **Return:** Ten slotte retourneert de functie de `result` lijst, die de ontdubbelde elementen in de originele volgorde bevat.\n\n**Voorbeeldgebruik:**\n\n```python\nmy_list = [1, 2, 2, 3, 4, 4, 5, 1]\ndeduplicated_list = deduplicate(my_list)\nprint(deduplicated_list)  # Output: [1, 2, 3, 4, 5]\n\nmy_list2 = [\"apple\", \"banana\", \"apple\", \"orange\", \"banana\"]\ndeduplicated_list2 = deduplicate(my_list2)\nprint(deduplicated_list2) # Output: ['apple', 'banana', 'orange']\n```",
+      "score": 4,
+      "max_score": 5,
+      "score_rationale": "Werkende functie met type hints, maar O(n²) complexity (list i.p.v. set voor seen)",
+      "latency_ms": 61048,
+      "tokens_estimated": 393
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Een AI workflow is een vooraf gedefinieerde reeks stappen die AI gebruikt om een specifieke taak uit te voeren, zoals het automatisch sorteren van e-mails of het genereren van een rapport. Een AI agent daarentegen is flexibeler en kan zelfstandig beslissingen nemen en acties uitvoeren om een doel te bereiken, vergelijkbaar met een virtuele assistent. Het belangrijkste verschil is dus dat een workflow een vaststaand script is, terwijl een agent proactief kan reageren op veranderingen en leert van ervaringen.",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Precies 3 zinnen Nederlands, duidelijk onderscheid workflow (vaste stappen) versus agent (autonoom, beslist zelf), begrijpelijk voor leken met concrete voorbeelden.",
+      "latency_ms": 12343,
+      "tokens_estimated": 102
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Exact correct antwoord",
+      "latency_ms": 4939,
+      "tokens_estimated": 15
+    }
+  ],
+  "summary": {
+    "total_score": 18,
+    "max_score": 20,
+    "pct_score": 90.0,
+    "avg_score": 4.5,
+    "by_category": {
+      "reasoning": 4,
+      "code": 4,
+      "language": 5,
+      "instruction": 5
+    },
+    "total_latency_ms": 208331,
+    "scorer": "manual+claude"
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}
