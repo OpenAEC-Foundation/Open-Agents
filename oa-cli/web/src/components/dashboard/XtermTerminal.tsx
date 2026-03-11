@@ -58,8 +58,8 @@ export function XtermTerminal({
     const terminal = new Terminal({
       theme: IMPERTIO_THEME,
       fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", monospace',
-      fontSize: 11,
-      lineHeight: 1.4,
+      fontSize: 12,
+      lineHeight: 1.5,
       cursorBlink: mode === 'interactive' ? true : isRunning,
       cursorStyle: 'bar',
       scrollback: 10000,
