@@ -18,7 +18,6 @@ import type { MainTab } from '../../types';
 
 const TABS: { id: MainTab; label: string; icon: React.ReactNode; highlight?: boolean }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={15} /> },
-  { id: 'dashboard2', label: 'Dashboard v2', icon: <LayoutDashboard size={15} />, highlight: true },
   { id: 'builder', label: 'Agent Builder', icon: <Cpu size={15} /> },
   { id: 'templates', label: 'Templates', icon: <Library size={15} /> },
   { id: 'context', label: 'Context', icon: <LayersIcon size={15} /> },
@@ -47,20 +46,11 @@ export function Sidebar() {
     <div className="w-[196px] min-w-[196px] flex flex-col shrink-0" style={{ background: 'var(--color-oa-sidebar)', borderRight: '1px solid var(--color-oa-border)' }}>
       {/* Logo + status */}
       <div className="px-4 py-4 border-b border-oa-border">
-        <div className="flex items-center gap-2.5">
-          <span
-            className="shrink-0 font-extrabold text-[11px] px-2 py-1 rounded-md tracking-widest text-white"
-            style={{ background: 'linear-gradient(135deg, #f97316, #c2410c)' }}
-          >
-            OA
-          </span>
-          <div className="min-w-0">
-            <div className="text-[13px] font-bold text-oa-text leading-tight">Open Agents</div>
-            <div className="text-[10px] text-oa-text-dim font-mono mt-0.5">
-              {formatTime(new Date(now))}
-            </div>
-          </div>
-        </div>
+        <img
+          src="/assets/logos/openaec/openaec-logo-amber-on-dark.svg"
+          alt="OpenAEC"
+          style={{ height: "36px", width: "auto" }}
+        />
 
         {/* Live status badges */}
         <div className="flex flex-wrap gap-1.5 mt-3">

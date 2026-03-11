@@ -16,6 +16,8 @@ dependencies = [
     "textual>=0.80",
     "flask>=3.0",
     "flask-cors>=5.0",
+    "flask-sock>=0.7",
+    "ptyprocess>=0.7",
     "prompt_toolkit>=3.0",
     "mcp>=1.0",
 ]

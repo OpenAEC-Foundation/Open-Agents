@@ -3,11 +3,14 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import '@xterm/xterm/css/xterm.css';
+import { WS_BASE } from '../../api/client';
 
 interface XtermTerminalProps {
-  output: string;
-  agentName: string;
-  isRunning: boolean;
+  output?: string;
+  agentName?: string;
+  isRunning?: boolean;
+  /** 'readonly' shows string output; 'interactive' connects to PTY WebSocket */
+  mode?: 'readonly' | 'interactive';
 }
 
 const IMPERTIO_THEME = {
@@ -33,12 +36,20 @@ const IMPERTIO_THEME = {
   brightCyan: '#40e0ff',
 };
 
-export function XtermTerminal({ output, agentName, isRunning }: XtermTerminalProps) {
+export function XtermTerminal({
+  output = '',
+  agentName = '',
+  isRunning = false,
+  mode = 'readonly',
+}: XtermTerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const prevAgentRef = useRef<string>('');
   const prevOutputRef = useRef<string>('');
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closedRef = useRef(false);
 
   // Initialize terminal once
   useEffect(() => {
@@ -49,7 +60,7 @@ export function XtermTerminal({ output, agentName, isRunning }: XtermTerminalPro
       fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", monospace',
       fontSize: 11,
       lineHeight: 1.4,
-      cursorBlink: isRunning,
+      cursorBlink: mode === 'interactive' ? true : isRunning,
       cursorStyle: 'bar',
       scrollback: 10000,
       convertEol: true,
@@ -70,6 +81,12 @@ export function XtermTerminal({ output, agentName, isRunning }: XtermTerminalPro
     const observer = new ResizeObserver(() => {
       try {
         fitAddon.fit();
+        if (mode === 'interactive' && wsRef.current?.readyState === WebSocket.OPEN) {
+          const dims = fitAddon.proposeDimensions();
+          if (dims) {
+            wsRef.current.send(JSON.stringify({ type: 'resize', cols: dims.cols, rows: dims.rows }));
+          }
+        }
       } catch {
         // ignore resize errors during unmount
       }
@@ -84,8 +101,72 @@ export function XtermTerminal({ output, agentName, isRunning }: XtermTerminalPro
     };
   }, []);
 
-  // When agentName changes: clear terminal
+  // Interactive mode: connect WebSocket + wire input
   useEffect(() => {
+    if (mode !== 'interactive') return;
+
+    closedRef.current = false;
+
+    function connect() {
+      if (closedRef.current) return;
+      const ws = new WebSocket(`${WS_BASE}/ws/terminal`);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        const terminal = terminalRef.current;
+        const fitAddon = fitAddonRef.current;
+        if (terminal && fitAddon) {
+          const dims = fitAddon.proposeDimensions();
+          if (dims) {
+            ws.send(JSON.stringify({ type: 'resize', cols: dims.cols, rows: dims.rows }));
+          }
+        }
+      };
+
+      ws.onmessage = (event) => {
+        terminalRef.current?.write(event.data);
+      };
+
+      ws.onclose = () => {
+        if (!closedRef.current) {
+          // Auto-reconnect after 2 s
+          reconnectTimerRef.current = setTimeout(connect, 2000);
+        }
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+    }
+
+    connect();
+
+    // Wire keyboard input
+    const terminal = terminalRef.current;
+    let dataDisposable: { dispose(): void } | null = null;
+    if (terminal) {
+      dataDisposable = terminal.onData((data) => {
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify({ type: 'input', data }));
+        }
+      });
+    }
+
+    return () => {
+      closedRef.current = true;
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+      dataDisposable?.dispose();
+      if (wsRef.current) {
+        wsRef.current.send(JSON.stringify({ type: 'close' }));
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
+  }, [mode]);
+
+  // Readonly mode: when agentName changes → clear terminal
+  useEffect(() => {
+    if (mode !== 'readonly') return;
     const terminal = terminalRef.current;
     if (!terminal) return;
     if (prevAgentRef.current !== agentName) {
@@ -93,10 +174,11 @@ export function XtermTerminal({ output, agentName, isRunning }: XtermTerminalPro
       prevAgentRef.current = agentName;
       prevOutputRef.current = '';
     }
-  }, [agentName]);
+  }, [agentName, mode]);
 
-  // When output changes: reset and write
+  // Readonly mode: when output changes → reset and write
   useEffect(() => {
+    if (mode !== 'readonly') return;
     const terminal = terminalRef.current;
     if (!terminal) return;
     if (prevOutputRef.current === output) return;
@@ -108,14 +190,15 @@ export function XtermTerminal({ output, agentName, isRunning }: XtermTerminalPro
     } else {
       terminal.reset();
     }
-  }, [output]);
+  }, [output, mode]);
 
-  // Update cursor blink when running state changes
+  // Update cursor blink when running state changes (readonly only)
   useEffect(() => {
+    if (mode !== 'readonly') return;
     const terminal = terminalRef.current;
     if (!terminal) return;
     terminal.options.cursorBlink = isRunning;
-  }, [isRunning]);
+  }, [isRunning, mode]);
 
   return (
     <div

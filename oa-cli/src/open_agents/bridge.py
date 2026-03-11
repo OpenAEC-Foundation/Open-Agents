@@ -77,10 +77,21 @@ try:
 except ImportError:
     _checkpoints_ok = False
 
+try:
+    from .terminal_server import register_terminal_routes
+    _terminal_available = True
+except ImportError:
+    _terminal_available = False
+
 # Resolve the web/dist directory (built React SPA)
 WEB_DIR = Path(__file__).parent.parent.parent / "web" / "dist"
 
 app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path="")
+
+# Register WebSocket terminal routes (requires flask-sock + ptyprocess)
+if _terminal_available:
+    register_terminal_routes(app)
+
 CORS(app,
      origins=["http://localhost:5173", "http://127.0.0.1:5173",
               "http://localhost:5174", "http://127.0.0.1:5174",

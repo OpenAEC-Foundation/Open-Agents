@@ -2,6 +2,8 @@ import type { Agent, Message, SpawnAgentBody } from '../types';
 
 const IS_TAURI = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 export const API_BASE = IS_TAURI ? 'http://127.0.0.1:5174' : '';
+/** WebSocket base URL (ws:// equivalent of API_BASE) */
+export const WS_BASE = IS_TAURI ? 'ws://127.0.0.1:5174' : `ws://${window.location.host}`;
 
 const API = `${API_BASE}/api`;
 
@@ -318,4 +320,51 @@ export function streamAgentOutput(
 export async function fetchSessionStatus(): Promise<unknown> {
   const res = await fetch(`${API}/session/status`);
   return res.json();
+}
+
+// --- WebSocket terminal ---
+
+export interface TerminalSession {
+  sendInput(data: string): void;
+  sendResize(cols: number, rows: number): void;
+  close(): void;
+}
+
+/**
+ * Open a WebSocket PTY terminal session.
+ * @param onData   called with raw terminal output string
+ * @param onClose  called when the connection closes
+ */
+export function openTerminalSession(
+  onData: (data: string) => void,
+  onClose?: () => void,
+): TerminalSession {
+  const ws = new WebSocket(`${WS_BASE}/ws/terminal`);
+
+  ws.onmessage = (event) => {
+    onData(typeof event.data === 'string' ? event.data : '');
+  };
+
+  ws.onclose = () => {
+    onClose?.();
+  };
+
+  return {
+    sendInput(data: string) {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'input', data }));
+      }
+    },
+    sendResize(cols: number, rows: number) {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'resize', cols, rows }));
+      }
+    },
+    close() {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'close' }));
+      }
+      ws.close();
+    },
+  };
 }

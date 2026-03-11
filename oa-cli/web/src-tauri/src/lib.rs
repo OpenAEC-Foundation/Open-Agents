@@ -3,7 +3,11 @@ use std::net::TcpStream;
 use std::process::{Child, Command};
 use std::sync::Mutex;
 use std::time::Duration;
-use tauri::{AppHandle, Manager, State};
+use tauri::{
+    menu::{Menu, MenuItem},
+    tray::TrayIconBuilder,
+    AppHandle, Manager, State,
+};
 
 struct PythonBridge {
     process: Mutex<Option<Child>>,
@@ -137,6 +141,42 @@ fn restart_bridge(state: State<PythonBridge>) -> Result<String, String> {
     Ok("Bridge restarted".to_string())
 }
 
+#[tauri::command]
+async fn invoke_oa(cmd: String, args: Vec<String>) -> Result<serde_json::Value, String> {
+    // Build PATH that includes oa-cli location
+    let path_env = "/home/freek/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
+
+    let output = tauri::async_runtime::spawn_blocking(move || {
+        Command::new("oa")
+            .arg(&cmd)
+            .args(&args)
+            .env("PATH", path_env)
+            .output()
+            .map_err(|e| format!("Failed to execute 'oa {}': {}", cmd, e))
+    })
+    .await
+    .map_err(|e| format!("Task join error: {}", e))??;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        return Err(format!(
+            "oa command failed (exit {}): {}{}",
+            output.status.code().unwrap_or(-1),
+            stderr.trim(),
+            if stdout.trim().is_empty() { "".to_string() } else { format!("\n{}", stdout.trim()) }
+        ));
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+
+    // Try to parse as JSON, otherwise return as string value
+    match serde_json::from_str::<serde_json::Value>(&stdout) {
+        Ok(json) => Ok(json),
+        Err(_) => Ok(serde_json::Value::String(stdout.trim().to_string())),
+    }
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
@@ -171,6 +211,29 @@ pub fn run() {
             let app_handle = app.handle().clone();
             start_watchdog(app_handle);
 
+            // Build system tray menu
+            let show_item = MenuItem::with_id(app, "show", "Show Window", true, None::<&str>)?;
+            let quit_item = MenuItem::with_id(app, "quit", "Quit Open Agents", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
+
+            let _tray = TrayIconBuilder::new()
+                .icon(app.default_window_icon().unwrap().clone())
+                .tooltip("Open Agents")
+                .menu(&menu)
+                .on_menu_event(|app, event| match event.id.as_ref() {
+                    "show" => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
+                    }
+                    "quit" => {
+                        app.exit(0);
+                    }
+                    _ => {}
+                })
+                .build(app)?;
+
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -189,6 +252,7 @@ pub fn run() {
             get_bridge_status,
             get_bridge_health,
             restart_bridge,
+            invoke_oa,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Activity, Bot, CheckCircle, XCircle, Zap } from 'lucide-react';
+import { Activity, CheckCircle, XCircle, Zap } from 'lucide-react';
 import { useAgentStore, formatTime, formatDuration } from '../../stores/agentStore';
 import { useUIStore } from '../../stores/uiStore';
 import { ThemePicker } from './ThemePicker';
@@ -21,20 +21,15 @@ export function Header() {
   return (
     <header className="flex items-center justify-between px-5 py-2.5 shrink-0" style={{ background: 'var(--color-oa-surface)', borderBottom: '1px solid var(--color-oa-border)' }}>
       <div className="flex items-center gap-3">
-        <span className="font-extrabold text-xs px-2 py-1 rounded-md tracking-wider text-white" style={{ background: 'var(--color-oa-accent)' }}>
-          OA
-        </span>
-        <Bot size={15} style={{ color: 'var(--color-oa-accent)' }} />
-        <h1 className="text-[15px] font-bold tracking-tight flex items-baseline gap-2" style={{ color: 'var(--color-oa-text)' }}>
-          Open Agents
-          <span className="text-[11px] font-medium" style={{ color: 'var(--color-oa-text-muted)' }}>
-            by Impertio
-          </span>
-        </h1>
+        <img
+          src="/assets/logos/openaec/openaec-logo-amber-on-dark.svg"
+          alt="OpenAEC"
+          style={{ height: "32px", width: "auto" }}
+        />
         {running.length > 0 && (
-          <span className="relative flex h-2 w-2 ml-1">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "var(--color-oa-terminal)" }} />
+            <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "var(--color-oa-terminal)" }} />
           </span>
         )}
       </div>
@@ -51,7 +46,7 @@ export function Header() {
         </span>
         <div className="flex gap-1.5">
           {running.length > 0 && (
-            <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200 font-semibold">
+            <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-semibold" style={{ background: 'color-mix(in srgb, var(--color-oa-terminal) 12%, transparent)', color: 'var(--color-oa-terminal)', border: '1px solid color-mix(in srgb, var(--color-oa-terminal) 30%, transparent)' }}>
               <Zap size={10} className="shrink-0" />
               {running.length} active
             </span>
