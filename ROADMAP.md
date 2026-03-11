@@ -4,7 +4,7 @@
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
 > **Laatste update**: 2026-03-11
-> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 19 (Session Persistence) Done — Sprint 11 (VS Code Bridge) In Progress — Sprint 17 (Agent Teams) In Progress — Sprint 18 (Dashboard UI) In Progress — Sprint 21 (oa-cli als Product) Planned — Agent Library: 454 templates (32 categories) — 22 skills gebouwd
+> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 13 (Docker Isolation) Done — Sprint 14 (Agent Library) Done — Sprint 17 (Agent Teams) Done — Sprint 18 (Dashboard UI) Done — Sprint 19 (Session Persistence) Done — Sprint 22 (Quality Gates) In Progress — Sprint 21 (oa-cli als Product) Planned — Agent Library: 454 templates (32 categories) — 22 skills gebouwd
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -30,7 +30,8 @@
 | Agent Library (doel: 1015+) | 454 | 1015 |
 | CLI Agentic Layer (oa-cli) | 1 | 1 |
 | VS Code Bridge (Sprint 11) | 0 | 1 |
-| Agent Teams Patterns (Sprint 17) | 0 | 12 |
+| Agent Teams Patterns (Sprint 17) | 12 | 12 |
+| Quality Gates (Sprint 22) | 1 | 2 |
 | Session Persistence (Sprint 19) | 1 | 1 |
 | oa-cli als Product (Sprint 21) | 0 | 1 |
 | Desktop + Web App (Sprint 20) | 0 | 1 |
@@ -49,10 +50,11 @@
 **Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond), v0.2.0 released 2026-03-02
 **Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 21+ commando's, Textual TUI, pipeline orchestrator, React web UI; checkpoints en resume geïmplementeerd
 **Fase 10 (VS Code Bridge)**: ████████████████░░░░ **80%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator, package migratie, launch config werkend; shared types mergen, test-workspace, CLI tool integreren bij agent sprint11-finisher
-**Fase 11 (Agent Teams Patterns)**: ████████████░░░░░░░░ **58%** - Sprint 17 in progress: task_list.py, teams.py, messaging.py (send/inbox/broadcast werkend), CLI commando's volledig; hooks.py, graceful shutdown, tests, TUI/web views nog open
-**Fase 12 (Dashboard & UI Refactor)**: ████████████████░░░░ **80%** - Sprint 18 in progress: ErrorBoundary + ToastProvider componenten, PipelinePanel (visual trigger + live status), TaskBoard (kanban per team), 11 dashboard componenten refactored met CSS design tokens
+**Fase 11 (Agent Teams Patterns)**: ████████████████████ **100%** - Sprint 17 Done: task_list.py, teams.py, messaging.py (send/inbox/broadcast werkend), CLI commando's volledig geïmplementeerd
+**Fase 12 (Dashboard & UI Refactor)**: ████████████████████ **100%** - Sprint 18 Done: ErrorBoundary + ToastProvider componenten, PipelinePanel, TaskBoard, 11 dashboard componenten refactored met CSS design tokens
 **Fase 13 (Session Persistence)**: ████████████████████ **100%** - session store, guardian daemon, resume flow, notifications
 **Fase 15 (oa-cli als Product)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - Web UI Command Centre (F1/F2/F3), oa MCP Server, PyPI packaging, oa setup wizard
+**Sprint 22 (Quality Gates)**: ██████████░░░░░░░░░░ **50%** - context-gap, honesty, invocation, budget, backlog, reviewer klaar; auto-compaction nog bezig
 **Fase 14 (Desktop + Web App)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - Web-first architectuur: xterm.js terminal, Tauri desktop wrapper, gedeelde React codebase
 
 ---
@@ -357,7 +359,7 @@
 
 ---
 
-## Sprint 18: Dashboard UI & CSS Design Tokens — In Progress (2026-03-10)
+## Sprint 18: Dashboard UI & CSS Design Tokens — Complete (2026-03-11)
 
 **Doel**: Refactor van React dashboard componenten met design tokens, ErrorBoundary/ToastProvider, en visuele pipeline-triggers.
 
@@ -423,7 +425,7 @@
 
 ## Sprint 13+: Planning
 
-### Sprint 13: Docker Isolation + Non-Claude Tool Use — Planned
+### Sprint 13: Docker Isolation + Non-Claude Tool Use — Complete
 
 **Doel**: Container isolatie per agent (D-040) + non-Claude runtime tool use (D-032 PoC-beperking opheffen)
 
@@ -450,7 +452,7 @@
 
 ---
 
-### Sprint 14: Agent Library Scale-up — Planned
+### Sprint 14: Agent Library Scale-up — Complete
 
 **Doel**: Van 220 naar 400+ agents (categorieën N-T als volgende batch)
 **Afhankelijk van**: Sprint 9 (library infrastructuur)
@@ -491,7 +493,7 @@
 
 ---
 
-### Sprint 17: oa-cli Agent Teams Patterns — In Progress
+### Sprint 17: oa-cli Agent Teams Patterns — Complete
 
 **Doel**: Agent Teams patterns (D-052, L-022 t/m L-029) implementeren in oa-cli
 **Afhankelijk van**: Sprint 12 (oa-cli basis Done)
@@ -601,6 +603,63 @@
 - [ ] `oa setup` wizard commando
 - [ ] `oa doctor` dependency checker
 - [ ] GitHub Actions PyPI release workflow
+
+---
+
+---
+
+## Sprint 22: Self-Improvement Foundation — In Progress (50%)
+
+**Doel**: Telemetrie, hooks, context tracking en kwaliteits-gates — het fundament voor al het zelflerende gedrag.
+**Afhankelijk van**: Sprint 12 (oa-cli basis)
+**Status**: 50% — context-gap, honesty, invocation, budget, backlog, reviewer klaar; auto-compaction nog bezig
+
+**Klaar**:
+- [x] #26 Context Gap Detector
+- [x] #27 Honesty Enforcer
+- [x] #33 Invocation Quality Gate
+- [x] #45 Token Budget Allocator
+- [x] #30 Persistent Backlog
+- [x] #28 Adversarial Reviewer
+
+**Pending**:
+- [ ] #20 Auto-Compaction (> 75% context trigger)
+- [ ] #14 Agent Run Telemetry
+- [ ] #15 Post-Run Hook System
+- [ ] #16 Context Window Tracking
+
+---
+
+## Sprint 23: Self-Improvement Automation — Planned
+
+**Doel**: Kennisaccumulatie automatiseren op basis van Sprint 22 telemetrie.
+**Afhankelijk van**: Sprint 22 (telemetrie + hooks beschikbaar)
+
+- [ ] Lesson extractor: automatisch LESSONS.md updaten na agent runs
+- [ ] Pattern detector: terugkerende faalpatronen signaleren
+- [ ] Skill evolver: skills aanpassen op basis van gebruik
+
+---
+
+## Sprint 24: Iteration Control & Meta-Agent — Planned
+
+**Doel**: Zelf-regulerend systeem, skill evolver, meta-agent
+**Afhankelijk van**: Sprint 22 + Sprint 23
+
+- [ ] Meta-agent die andere agents bewaakt en bijstuurt
+- [ ] Iteratiecontrole: automatisch herspawnen bij failure
+- [ ] Self-improvement loop volledig gesloten
+
+---
+
+## Sprint 25: Periodic Analytics & Observability — Planned
+
+**Doel**: Diepe analyse agent-ecosysteem op historische data
+**Afhankelijk van**: Sprint 22 + 23 (minimaal 2-3 sprints productiedata)
+
+- [ ] Periodieke rapporten (dagelijks/wekelijks) over agent performance
+- [ ] Observability dashboard (success rate, cost, duration trends)
+- [ ] Anomaly detection op run-logs
 
 ---
 

@@ -383,3 +383,28 @@ def install_default_hooks() -> None:
             'exit 0\n'
         )
         check_hook.chmod(check_hook.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+
+
+def install_guardian_hook() -> Path:
+    """Write post-run hook 03-auto-lessons.sh that triggers guardian agents.
+
+    The hook only runs when OA_AUTO_GUARDIANS=1 is set in the environment
+    (opt-in, not enabled by default).  It calls::
+
+        oa guardians --context "auto: post-run hook for <agent-name>"
+
+    Returns the path to the created hook file.
+    """
+    ensure_hook_dirs()
+    post_run_dir = HOOK_DIRS["post-run"]
+    guardian_hook = post_run_dir / "03-auto-lessons.sh"
+
+    guardian_hook.write_text(
+        '#!/bin/bash\n'
+        '# Auto-guardian hook — triggered after every agent run.\n'
+        '# Only active when OA_AUTO_GUARDIANS=1 (opt-in).\n'
+        '[ "$OA_AUTO_GUARDIANS" = "1" ] || exit 0\n'
+        'oa guardians --context "auto: post-run hook for $OA_AGENT_NAME"\n'
+    )
+    guardian_hook.chmod(guardian_hook.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    return guardian_hook

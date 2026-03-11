@@ -127,3 +127,39 @@ HEALTH_ICONS = {
     "yellow": "🟡",
     "red": "🔴",
 }
+
+# Track agents compacted this session to avoid repeated triggers
+_compacted_agents: set[str] = set()
+
+
+def should_compact(agent_name: str, pct: float) -> bool:
+    """Return True if agent should be compacted (threshold exceeded and not already triggered)."""
+    import os
+    threshold = float(os.environ.get("OA_COMPACT_THRESHOLD", "75"))
+    return pct >= threshold and agent_name not in _compacted_agents
+
+
+def trigger_compaction(agent_name: str, tmux_window: str) -> None:
+    """Send /compact to agent pane via tmux send-keys and log the event."""
+    session = _get_session_name()
+    target = f"{session}:{shlex.quote(tmux_window)}"
+    try:
+        subprocess.run(
+            ["tmux", "send-keys", "-t", target, "/compact", "Enter"],
+            capture_output=True,
+            timeout=5,
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        pass
+
+    _compacted_agents.add(agent_name)
+
+    CONTEXT_LOG_DIR.mkdir(parents=True, exist_ok=True)
+    log_file = CONTEXT_LOG_DIR / f"{agent_name}.jsonl"
+    entry = {
+        "timestamp": time.time(),
+        "event": "compaction_triggered",
+        "agent": agent_name,
+    }
+    with open(log_file, "a") as f:
+        f.write(json.dumps(entry) + "\n")

@@ -18,7 +18,7 @@ from .lifecycle import attach_agent, check_agent, clean_finished, kill_agent
 from .orchestrator import spawn_with_orchestrator
 from .spawner import spawn_agent, spawn_remote_agent
 from .tmux import session_exists, start_session
-from .state import get_agent, list_agents
+from .state import get_agent, list_agents, update_agent
 from .messaging import broadcast_message, mark_read, poll_shutdown_response, read_inbox, send_message, shutdown_request, unread_count
 from .workspace import read_output, remote_is_done, sync_output_from_remote
 from .prompt_templates import L010_TEMPLATE_NAMES, apply_template, validate_prompt
@@ -338,6 +338,7 @@ def run(
     docker: bool = typer.Option(False, "--docker", help="Run agent in Docker container (requires Docker)"),
     skip_context_check: bool = typer.Option(False, "--skip-context-check", help="Skip context gap pre-flight check"),
     budget: int = typer.Option(None, "--budget", help="Token budget for this run (optional, no limit if omitted)"),
+    no_autocompact: bool = typer.Option(False, "--no-autocompact", help="Disable auto-compaction for this agent (overrides OA_COMPACT_THRESHOLD)"),
 ):
     """Spawn an agent with a task in a new tmux window."""
     if not remote and not session_exists():
@@ -485,6 +486,10 @@ def run(
     except RuntimeError as e:
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1)
+
+    # Persist no_autocompact flag on the agent record if set
+    if no_autocompact:
+        update_agent(rec.name, no_autocompact=True)
 
     model_label = format_model_rich(rec.model)
     parent_label = f"  (child of [bold]{rec.parent}[/bold])" if rec.parent else ""
@@ -974,9 +979,31 @@ def stop(
 def guardians_cmd(
     register: bool = typer.Option(False, "--register", help="Register a new guardian (interactive)"),
     trigger: str = typer.Option("", "--trigger", help="Manually trigger guardians for an event type"),
+    context: str = typer.Option("", "--context", help="Batch context description; spawns all three guardian agents (lessons, roadmap, decisions)"),
+    install_hook: bool = typer.Option(False, "--install-hook", help="Install the post-run 03-auto-lessons.sh hook"),
 ):
     """List, trigger, or register guardian agents."""
     from rich.table import Table
+
+    # --install-hook: write the guardian post-run hook file
+    if install_hook:
+        from .hooks import install_guardian_hook
+        hook_path = install_guardian_hook()
+        console.print(f"[green]Guardian hook installed at {hook_path}[/green]")
+        console.print("[dim]Set OA_AUTO_GUARDIANS=1 in your environment to enable it.[/dim]")
+        return
+
+    # --context: spawn all three guardian agents with the given context
+    if context:
+        from .guardian import GuardianAgent
+        ga = GuardianAgent(batch_context=context)
+        records = ga.spawn_all_guardians()
+        if records:
+            names = ", ".join(r.name for r in records)
+            console.print(f"[green]Spawned {len(records)} guardian(s): {names}[/green]")
+        else:
+            console.print("[yellow]No guardians could be spawned (session running?).[/yellow]")
+        return
 
     if trigger:
         triggered = trigger_guardian(trigger)
@@ -1675,6 +1702,34 @@ def review(
     console.print(f"[green]Reviewer agent '{reviewer_rec.name}' spawned[/green]  (model: {model})")
     console.print(f"  Reviewing: {result_path}")
     console.print(f"  Output:    {review_path}")
+
+
+lessons_app = typer.Typer(name="lessons", help="Manage lessons learned in LESSONS.md.")
+app.add_typer(lessons_app)
+
+
+@lessons_app.command(name="add")
+def lessons_add(
+    lesson: str = typer.Argument(..., help="Lesson text to record"),
+    agent: str = typer.Option("manual", "--agent", "-a", help="Agent or context name"),
+    outcome: str = typer.Option("observation", "--outcome", "-o", help="Outcome (success/error/observation)"),
+):
+    """Append a lesson to LESSONS.md with the next L-NNN identifier."""
+    from .lessons_extractor import extract_lesson
+
+    lesson_id = extract_lesson(agent_name=agent, outcome=outcome, lesson=lesson)
+    console.print(f"[green]Les opgeslagen als {lesson_id}[/green]")
+
+
+@app.command()
+def handoff(
+    summary: str = typer.Option(None, "--summary", "-s", help="Session summary to include in the handoff document"),
+):
+    """Generate a handoff document (docs/HANDOFF-<date>.md) for the next session."""
+    from .handoff_generator import generate_handoff
+
+    path = generate_handoff(session_summary=summary)
+    console.print(f"[green]Handoff document geschreven naar:[/green] {path}")
 
 
 if __name__ == "__main__":

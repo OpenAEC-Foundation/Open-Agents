@@ -102,6 +102,9 @@ class AgentRecord:
     # --- Telemetry ---
     run_id: Optional[str] = None            # telemetry run_id (uuid4)
 
+    # --- Auto-compaction ---
+    no_autocompact: bool = False            # disable auto-compaction for this agent
+
     def __post_init__(self) -> None:
         """Bereken task_hash als nog niet ingesteld."""
         if not self.task_hash and self.task:

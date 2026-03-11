@@ -187,6 +187,29 @@ def render_status_table_with_context(agents: list[AgentRecord] | None = None) ->
     return table
 
 
+def check_and_compact(agent_name: str) -> bool:
+    """Check context usage for agent and trigger /compact if threshold exceeded.
+
+    Returns True if compaction was triggered, False otherwise.
+    Respects per-agent no_autocompact flag and OA_COMPACT_THRESHOLD env var (default 75).
+    """
+    from .context_tracker import get_context_status, should_compact, trigger_compaction
+    from .state import get_agent
+
+    rec = get_agent(agent_name)
+    if rec is None or rec.status != "running":
+        return False
+
+    if getattr(rec, "no_autocompact", False):
+        return False
+
+    ctx = get_context_status(agent_name, rec.tmux_window)
+    if should_compact(agent_name, ctx["pct"]):
+        trigger_compaction(agent_name, rec.tmux_window)
+        return True
+    return False
+
+
 def print_status_with_context() -> None:
     """Print the agent status table with context window usage columns."""
     from .lifecycle import check_agent
