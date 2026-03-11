@@ -31,6 +31,8 @@ import { OpenAIRuntime } from "./runtimes/openai.js";
 import { MistralRuntime } from "./runtimes/mistral.js";
 import { OllamaRuntime } from "./runtimes/ollama.js";
 import { ClaudeCLIRuntime } from "./runtimes/claude-cli.js";
+import { OaCLIRuntime } from "./runtimes/oa-cli.js";
+import { DockerRuntime } from "./runtimes/docker-runtime.js";
 
 const PORT = Number(process.env.PORT) || 3001;
 const BRIDGE_URL = process.env.VSCODE_BRIDGE_URL ?? "http://localhost:7483";
@@ -43,6 +45,17 @@ registerRuntime(new OpenAIRuntime());
 registerRuntime(new MistralRuntime());
 registerRuntime(new OllamaRuntime());
 
+// Register Docker runtime — isolated container execution (D-040)
+const dockerRuntime = new DockerRuntime();
+dockerRuntime.isAvailable().then((ok) => {
+  if (ok) {
+    registerRuntime(dockerRuntime);
+    app.log.info("Docker detected — docker runtime available for isolated agent execution");
+  } else {
+    app.log.info("Docker not detected — docker runtime disabled");
+  }
+});
+
 // Register CLI runtime — connects to VS Code bridge for terminal-based Claude agents
 const cliRuntime = new ClaudeCLIRuntime(BRIDGE_URL);
 cliRuntime.isAvailable().then((ok) => {
@@ -51,6 +64,17 @@ cliRuntime.isAvailable().then((ok) => {
     app.log.info(`VS Code bridge connected at ${BRIDGE_URL} — cli/claude runtime available`);
   } else {
     app.log.info(`VS Code bridge not detected at ${BRIDGE_URL} — cli/claude runtime disabled (start EH with F5)`);
+  }
+});
+
+// Register oa-cli (tmux) runtime — connects to oa-cli for tmux-based agent sessions
+const oaCLIRuntime = new OaCLIRuntime();
+oaCLIRuntime.isAvailable().then((ok) => {
+  if (ok) {
+    registerRuntime(oaCLIRuntime);
+    app.log.info("oa-cli detected — tmux/claude runtime available");
+  } else {
+    app.log.info("oa-cli not detected — tmux runtime disabled (run: oa start)");
   }
 });
 

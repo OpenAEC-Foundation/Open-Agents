@@ -4,7 +4,7 @@
 // =============================================
 
 /** Supported model providers */
-export type ModelProvider = "anthropic" | "openai" | "mistral" | "ollama" | "cli";
+export type ModelProvider = "anthropic" | "openai" | "mistral" | "ollama" | "cli" | "tmux" | "docker";
 
 /** Provider-specific model identifiers */
 export type AnthropicModel = "claude-haiku-4-5" | "claude-sonnet-4-6" | "claude-opus-4-6";
@@ -19,12 +19,20 @@ export type OllamaModel = string; // user-installed models, not enumerable
 /** CLI-based model (runs via VS Code bridge terminal) */
 export type CLIModel = "claude";
 
+/** Tmux-based model (runs via oa-cli in tmux sessions) */
+export type TmuxModel = "claude" | "ollama";
+
+/** Docker-isolated model (runs inside Docker container) */
+export type DockerModel = string; // any model — Docker wraps the execution
+
 export type ModelId =
   | `anthropic/${AnthropicModel}`
   | `openai/${OpenAIModel}`
   | `mistral/${MistralModel}`
   | `ollama/${OllamaModel}`
-  | `cli/${CLIModel}`;
+  | `cli/${CLIModel}`
+  | `tmux/${TmuxModel}`
+  | `docker/${DockerModel}`;
 
 /** Tools that an agent can use */
 export type AgentTool =
@@ -365,6 +373,8 @@ export const MODEL_CATALOG: ModelMeta[] = [
   { id: "openai/o3", provider: "openai", labels: { beginner: "GPT (reasoning)", intermediate: "o3", advanced: "o3" }, color: "bg-teal-500" },
   { id: "mistral/mistral-large", provider: "mistral", labels: { beginner: "Mistral (large)", intermediate: "Mistral L", advanced: "Mistral L" }, color: "bg-orange-500" },
   { id: "cli/claude", provider: "cli", labels: { beginner: "Claude (terminal)", intermediate: "CLI Claude", advanced: "cli/claude" }, color: "bg-cyan-500" },
+  { id: "tmux/claude", provider: "tmux", labels: { beginner: "Tmux Claude", intermediate: "Tmux Claude", advanced: "tmux/claude" }, color: "bg-yellow-500" },
+  { id: "tmux/ollama", provider: "tmux", labels: { beginner: "Tmux Ollama", intermediate: "Tmux Ollama", advanced: "tmux/ollama" }, color: "bg-yellow-600" },
 ];
 
 /** Lookup model metadata by id. Falls back to a generic entry. */
@@ -379,6 +389,29 @@ export function getModelMeta(id: string): ModelMeta {
     labels: { beginner: shortName, intermediate: shortName, advanced: shortName },
     color: "bg-zinc-500",
   };
+}
+
+// =============================================
+// Runtime Types (Sprint 15 — oa-cli integration)
+// =============================================
+
+/** Available runtime execution backends */
+export type RuntimeType = "api" | "vscode-bridge" | "tmux";
+
+/** Record from ~/.oa/agents.json — matches oa-cli agent state */
+export interface OaAgentRecord {
+  name: string;
+  model: string;
+  status: "running" | "done" | "error" | "killed";
+  pid?: number;
+  tmux_session?: string;
+  workspace?: string;
+  parent?: string;
+  task?: string;
+  started_at?: string;
+  finished_at?: string;
+  duration?: string;
+  messages?: number;
 }
 
 // =============================================
