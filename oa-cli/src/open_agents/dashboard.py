@@ -367,6 +367,7 @@ class OADashboard(App):
         self._cursor_idx: int = 0
         self._auto_follow: bool = True
         self._last_output: str = ""
+        self._updating_tree: bool = False  # guard: suppress RowHighlighted during render
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -375,7 +376,7 @@ class OADashboard(App):
                 with Horizontal(id="agents-pane"):
                     with Vertical(id="left-panel"):
                         yield Static(" AGENT TREE", id="tree-header")
-                        yield RichLog(id="agent-tree", highlight=False, markup=True, wrap=False)
+                        yield DataTable(id="agent-tree", cursor_type="row", show_cursor=True, show_header=False)
                         yield Static("[#333355]─" * 30 + "[/#333355]", id="stats-separator")
                         yield Static("", id="stats-panel")
                     with Vertical(id="right-panel"):
@@ -386,6 +387,8 @@ class OADashboard(App):
         yield Footer()
 
     def on_mount(self) -> None:
+        table = self.query_one("#agent-tree", DataTable)
+        table.add_columns("agent", "info")
         self._refresh_all()
         self.set_interval(2.0, self._refresh_all)
         self.set_interval(1.0, self._refresh_clock)
@@ -417,23 +420,42 @@ class OADashboard(App):
         self._refresh_clock()
 
     def _render_tree(self) -> None:
-        """Render the agent tree in the left panel."""
-        tree_log = self.query_one("#agent-tree", RichLog)
-        tree_log.clear()
-        if not self._hierarchy:
-            tree_log.write("[#888888]No agents yet. Press [bold]s[/bold] to spawn one.[/#888888]")
-            return
+        """Render the agent tree using DataTable (supports mouse + keyboard selection)."""
+        table = self.query_one("#agent-tree", DataTable)
+        self._updating_tree = True
+        try:
+            table.clear()
 
-        for i, (rec, depth) in enumerate(self._hierarchy):
-            marker = "[reverse]>[/reverse] " if i == self._cursor_idx else "  "
-            name_line = _tree_name(rec, depth)
-            dur = format_duration(rec.created_at, rec.finished_at)
-            model = format_model_label(getattr(rec, "model", "claude"))
-            tree_log.write(f"{marker}{name_line}  [#666688]{model} · {dur}[/#666688]")
+            if not self._hierarchy:
+                table.add_row("[#888888]No agents — press s to spawn[/#888888]", "", key="__empty__")
+                return
 
-        # Scroll cursor into view
-        if self._cursor_idx > 0:
-            tree_log.scroll_to(y=self._cursor_idx, animate=False)
+            for rec, depth in self._hierarchy:
+                name_cell = _tree_name(rec, depth)
+                dur = format_duration(rec.created_at, rec.finished_at)
+                model = format_model_label(getattr(rec, "model", "claude"))
+                info_cell = f"[#666688]{model} · {dur}[/#666688]"
+                table.add_row(name_cell, info_cell, key=rec.name)
+
+            # Restore cursor — follow active agent visually when auto-follow is on
+            if table.row_count > 0:
+                if self._auto_follow:
+                    active = self._get_active_agent()
+                    if active:
+                        try:
+                            row = next(
+                                i for i, (r, _) in enumerate(self._hierarchy) if r.name == active.name
+                            )
+                            table.move_cursor(row=row)
+                        except StopIteration:
+                            table.move_cursor(row=0)
+                    else:
+                        table.move_cursor(row=0)
+                else:
+                    self._cursor_idx = min(self._cursor_idx, table.row_count - 1)
+                    table.move_cursor(row=self._cursor_idx)
+        finally:
+            self._updating_tree = False
 
     def _render_stats(self) -> None:
         """Render stats panel below the tree."""
@@ -530,12 +552,29 @@ class OADashboard(App):
     # Actions
     # ------------------------------------------------------------------
 
+    def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
+        """Sync _cursor_idx when user navigates the agent tree (mouse or keyboard)."""
+        if event.data_table.id != "agent-tree":
+            return
+        if self._updating_tree:
+            return  # programmatic update — ignore
+        if event.cursor_row is None:
+            return
+        self._cursor_idx = event.cursor_row
+        self._auto_follow = False
+        self._last_output = ""
+        self._render_output()
+
     def action_cursor_up(self) -> None:
         if self._hierarchy and self._cursor_idx > 0:
             self._cursor_idx -= 1
             self._auto_follow = False
             self._last_output = ""
-            self._render_tree()
+            self._updating_tree = True
+            try:
+                self.query_one("#agent-tree", DataTable).move_cursor(row=self._cursor_idx)
+            finally:
+                self._updating_tree = False
             self._render_output()
 
     def action_cursor_down(self) -> None:
@@ -543,7 +582,11 @@ class OADashboard(App):
             self._cursor_idx += 1
             self._auto_follow = False
             self._last_output = ""
-            self._render_tree()
+            self._updating_tree = True
+            try:
+                self.query_one("#agent-tree", DataTable).move_cursor(row=self._cursor_idx)
+            finally:
+                self._updating_tree = False
             self._render_output()
 
     def action_toggle_follow(self) -> None:
