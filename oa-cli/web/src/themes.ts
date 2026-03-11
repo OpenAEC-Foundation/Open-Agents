@@ -127,9 +127,30 @@ export const THEMES: Theme[] = [
       '--color-oa-accent-hover': '#00b8dc',
     },
   },
+  {
+    id: 'openaec',
+    name: 'OpenAEC',
+    preview: { bg: '#2A2A32', sidebar: '#222228', accent: '#D97706' },
+    vars: {
+      '--color-oa-bg': '#2A2A32',
+      '--color-oa-surface': '#36363E',
+      '--color-oa-surface-hover': '#3E3E48',
+      '--color-oa-sidebar': '#222228',
+      '--color-oa-border': '#4A4A54',
+      '--color-oa-border-light': '#404048',
+      '--color-oa-text': '#FAFAF9',
+      '--color-oa-text-muted': '#A1A1AA',
+      '--color-oa-text-dim': '#666670',
+      '--color-oa-accent': '#D97706',
+      '--color-oa-accent-bg': '#2E2418',
+      '--color-oa-accent-hover': '#EA580C',
+      '--color-oa-terminal': '#F59E0B',
+      '--color-oa-terminal-dim': '#D97706',
+    },
+  },
 ];
 
-export const DEFAULT_THEME_ID = 'impertio';
+export const DEFAULT_THEME_ID = 'openaec';
 
 export function applyTheme(theme: Theme) {
   const root = document.documentElement;
