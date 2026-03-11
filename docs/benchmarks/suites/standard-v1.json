@@ -1,0 +1,76 @@
+{
+  "suite_id": "standard-v1",
+  "name": "Standard Benchmark Suite v1",
+  "version": "1.0",
+  "description": "Standaard benchmark suite voor Open-Agents GPU-modellen. Dekt reasoning, code, taalvermogen en instructie-opvolging.",
+  "created": "2026-03-11",
+  "max_score_per_test": 5,
+  "categories": ["reasoning", "code", "language", "instruction"],
+  "tests": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "name": "nohup/SSH Process Reasoning",
+      "prompt_nl": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "prompt_en": "You started a nohup process on a remote server via SSH. Your SSH session is disconnected. What happens to the nohup process and why? Explain how nohup works.",
+      "max_score": 5,
+      "eval_criteria": {
+        "5": "Volledig correct: nohup onderschept SIGHUP, proces blijft draaien na SSH disconnect, output naar nohup.out, uitleg van process groups",
+        "4": "Grotendeels correct: nohup blijft draaien, SIGHUP uitgelegd, maar mist detail over output of process groups",
+        "3": "Gedeeltelijk correct: weet dat nohup blijft draaien maar uitleg oppervlakkig of onvolledig",
+        "2": "Basis begrip: noemt dat nohup iets doet met SSH maar uitleg incorrect of verward",
+        "1": "Onjuist of miniem begrip",
+        "0": "Geen antwoord of volledig fout"
+      }
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "name": "Python Deduplication Function",
+      "prompt_nl": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "prompt_en": "Write a Python function `deduplicate(items)` that removes duplicates from a list while preserving the original order. Do not use sets as the final result. Add a docstring and type hints.",
+      "max_score": 5,
+      "eval_criteria": {
+        "5": "Werkende functie met type hints, docstring, behoudt volgorde correct, efficiënte implementatie (dict/set voor seen tracking)",
+        "4": "Werkende functie, volgorde correct, maar mist type hints of docstring",
+        "3": "Functie werkt maar volgorde niet altijd correct, of inefficiënte implementatie",
+        "2": "Gedeeltelijk werkende code met duidelijke fouten",
+        "1": "Pseudocode of niet-werkende code",
+        "0": "Geen antwoord of volledig fout"
+      }
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "name": "NL Uitleg Agent vs Workflow",
+      "prompt_nl": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "prompt_en": "Explain in exactly 3 sentences in Dutch what the difference is between an AI agent and an AI workflow. Write for a non-technical audience.",
+      "max_score": 5,
+      "eval_criteria": {
+        "5": "Precies 3 zinnen NL, correct onderscheid agent (autonoom, beslist zelf) vs workflow (vaste stappen), begrijpelijk voor leken",
+        "4": "3 zinnen NL, inhoud grotendeels correct, maar technisch of niet helemaal helder",
+        "3": "Correct onderscheid maar niet precies 3 zinnen, of in verkeerde taal",
+        "2": "Antwoord gegeven maar onderscheid niet duidelijk of onjuist",
+        "1": "Nauwelijks relevant antwoord",
+        "0": "Geen antwoord"
+      }
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "name": "Fibonacci Sequence to 100",
+      "prompt_nl": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "prompt_en": "Give the complete Fibonacci sequence up to and including 100 (all Fibonacci numbers less than or equal to 100). Give only the numbers, separated by commas, without further explanation.",
+      "expected_output": "0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89",
+      "max_score": 5,
+      "eval_criteria": {
+        "5": "Exact correct: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 — alleen getallen, komma gescheiden, geen extra tekst",
+        "4": "Correct getallen maar kleine formatteerfout (spaties, puntkomma) of kleine afwijking in formatting",
+        "3": "Grotendeels correct maar mist een getal of heeft een extra getal",
+        "2": "Fibonacci begrijpt maar significante fouten in de reeks",
+        "1": "Verkeerde getallen of verkeerd opgestopt",
+        "0": "Geen antwoord of volledig fout"
+      }
+    }
+  ]
+}

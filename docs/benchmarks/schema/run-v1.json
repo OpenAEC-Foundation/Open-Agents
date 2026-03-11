@@ -1,0 +1,202 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "run-v1",
+  "title": "Benchmark Run Schema v1",
+  "description": "Schema voor een Open-Agents benchmark run resultaat",
+  "type": "object",
+  "required": ["run_id", "timestamp", "model", "provider", "hardware", "suite", "suite_version", "results", "summary", "runner", "run_by"],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Unieke identifier: <timestamp>-<model-safe>",
+      "example": "2026-03-11T14-30-00-qwen2.5-14b"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO8601 timestamp van de run"
+    },
+    "model": {
+      "type": "string",
+      "description": "Volledig model pad inclusief provider prefix",
+      "example": "hetzner/qwen2.5:14b"
+    },
+    "model_short": {
+      "type": "string",
+      "description": "Model naam zonder provider prefix",
+      "example": "qwen2.5:14b"
+    },
+    "provider": {
+      "type": "string",
+      "description": "Provider identifier",
+      "example": "hetzner-ollama"
+    },
+    "hardware": {
+      "type": "object",
+      "required": ["gpu", "vram_gb", "host"],
+      "properties": {
+        "gpu": {
+          "type": "string",
+          "example": "RTX 4000 Ada"
+        },
+        "vram_gb": {
+          "type": "number",
+          "example": 20
+        },
+        "host": {
+          "type": "string",
+          "example": "hetzner-agent"
+        }
+      }
+    },
+    "suite": {
+      "type": "string",
+      "description": "Naam van de gebruikte test suite",
+      "example": "standard-v1"
+    },
+    "suite_version": {
+      "type": "string",
+      "description": "Versie van de suite",
+      "example": "1.0"
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["test_id", "category", "prompt", "response", "score", "max_score", "latency_ms"],
+        "properties": {
+          "test_id": {
+            "type": "string",
+            "example": "reasoning-001"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["reasoning", "code", "language", "instruction"]
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "response": {
+            "type": "string"
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "max_score": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "score_rationale": {
+            "type": "string"
+          },
+          "latency_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "tokens_estimated": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total_score", "max_score", "pct_score", "avg_score", "by_category", "total_latency_ms"],
+      "properties": {
+        "total_score": {
+          "type": "number"
+        },
+        "max_score": {
+          "type": "number"
+        },
+        "pct_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "avg_score": {
+          "type": "number"
+        },
+        "by_category": {
+          "type": "object",
+          "properties": {
+            "reasoning": {"type": "number"},
+            "code": {"type": "number"},
+            "language": {"type": "number"},
+            "instruction": {"type": "number"}
+          }
+        },
+        "total_latency_ms": {
+          "type": "integer"
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "default": ""
+    },
+    "linked_decisions": {
+      "type": "array",
+      "items": {"type": "string"},
+      "default": []
+    },
+    "runner": {
+      "type": "string",
+      "description": "Agent/model die de benchmark heeft uitgevoerd",
+      "example": "claude/haiku"
+    },
+    "run_by": {
+      "type": "string",
+      "description": "Wie de run heeft geinitieerd",
+      "example": "meta-orchestrator"
+    }
+  },
+  "examples": [
+    {
+      "run_id": "2026-03-11T14-30-00-qwen2.5-14b",
+      "timestamp": "2026-03-11T14:30:00Z",
+      "model": "hetzner/qwen2.5:14b",
+      "model_short": "qwen2.5:14b",
+      "provider": "hetzner-ollama",
+      "hardware": {
+        "gpu": "RTX 4000 Ada",
+        "vram_gb": 20,
+        "host": "hetzner-agent"
+      },
+      "suite": "standard-v1",
+      "suite_version": "1.0",
+      "results": [
+        {
+          "test_id": "reasoning-001",
+          "category": "reasoning",
+          "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces?",
+          "response": "Het nohup proces blijft draaien...",
+          "score": 4,
+          "max_score": 5,
+          "score_rationale": "Correct basisantwoord, mist nuance over SIGHUP",
+          "latency_ms": 1200,
+          "tokens_estimated": 150
+        }
+      ],
+      "summary": {
+        "total_score": 16,
+        "max_score": 20,
+        "pct_score": 80.0,
+        "avg_score": 4.0,
+        "by_category": {
+          "reasoning": 4,
+          "code": 5,
+          "language": 3,
+          "instruction": 4
+        },
+        "total_latency_ms": 4800
+      },
+      "notes": "",
+      "linked_decisions": [],
+      "runner": "claude/haiku",
+      "run_by": "meta-orchestrator"
+    }
+  ]
+}

@@ -25,6 +25,16 @@ DEFAULT_CONFIG = {
     },
     "periodic_checkpoint_minutes": 5,
     "session_log_max_mb": 50,
+    # GPU-first routing — when True, ollama/* models auto-route to Hetzner GPU
+    "prefer_gpu": False,
+    "gpu_machine": "hetzner",           # machine ID to route to when prefer_gpu=True
+    "gpu_model_map": {                  # local ollama → hetzner equivalent
+        "ollama/qwen3:4b":       "hetzner/llama3.1:8b",
+        "ollama/phi4-mini":      "hetzner/phi4:14b",
+        "ollama/qwen2.5-coder:7b": "hetzner/qwen2.5-coder:14b",
+        "ollama/qwen3:8b":       "hetzner/qwen2.5:14b",
+        "ollama/llama3.2:3b":    "hetzner/llama3.1:8b",
+    },
     # Docker isolation (D-040) — opt-in via --docker flag
     "docker_enabled": False,
     "docker_image": "oa-agent:latest",

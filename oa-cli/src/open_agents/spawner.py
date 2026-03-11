@@ -229,6 +229,12 @@ def spawn_agent(
     window_index = result.stdout.strip()
     send_target = f"{SESSION_NAME}:{window_index}" if window_index else f"{SESSION_NAME}:{shlex.quote(window_name)}"
 
+    # GPU-first routing: when prefer_gpu=True in config, redirect ollama/* to Hetzner
+    _cfg = load_config()
+    if _cfg.get("prefer_gpu") and model.startswith("ollama/"):
+        gpu_map = _cfg.get("gpu_model_map", {})
+        model = gpu_map.get(model, f"hetzner/{model.split('/', 1)[1]}")
+
     # Route hetzner/* models to spawn_remote_agent
     if model.startswith("hetzner/"):
         from .config import get_machine_host
