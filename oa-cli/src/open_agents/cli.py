@@ -2427,5 +2427,88 @@ def meta_cmd(
         console.print(f"[red]Unknown action '{action}'. Use 'analyze' or 'run'.[/red]")
 
 
+# --- Sprint 25: analytics commands ---
+
+@app.command(name="analytics")
+def analytics_cmd(
+    subcommand: str = typer.Argument(
+        ..., help="Subcommand: 'health', 'domains', or 'blind-spots'"
+    ),
+    open_report: bool = typer.Option(False, "--open", help="Open report in $PAGER or less"),
+):
+    """Periodic Analytics & Observability — health, domains, blind-spots (#37/#38/#39)."""
+    import os
+    import subprocess
+    from rich.table import Table
+
+    if subcommand == "health":
+        from .analytics import health_report
+
+        path = health_report()
+        console.print(f"[green]Health report generated:[/green] {path}")
+        if open_report:
+            pager = os.environ.get("PAGER", "less")
+            subprocess.run([pager, path])
+        else:
+            console.print(Path(path).read_text())
+
+    elif subcommand == "domains":
+        from .knowledge_map import success_by_domain
+
+        domains = success_by_domain()
+        if not domains:
+            console.print("[yellow]No run data available.[/yellow]")
+            return
+
+        table = Table(title="Success Rate by Domain")
+        table.add_column("Domain", style="bold")
+        table.add_column("Total", justify="right")
+        table.add_column("Success", justify="right", style="green")
+        table.add_column("Failed", justify="right", style="red")
+        table.add_column("Rate", justify="right")
+
+        for domain, s in sorted(domains.items(), key=lambda x: x[1]["rate"]):
+            rate_style = "green" if s["rate"] >= 80 else "yellow" if s["rate"] >= 50 else "red"
+            table.add_row(
+                domain, str(s["total"]), str(s["success"]),
+                str(s["failed"]), f"[{rate_style}]{s['rate']}%[/{rate_style}]",
+            )
+        console.print(table)
+
+    elif subcommand in ("blind-spots", "blindspots"):
+        from .blind_spot import categorize_blind_spots, generate_blind_spot_report
+
+        runs_count = len(json.loads(
+            (Path.home() / ".oa" / "runs-index.json").read_text()
+        )) if (Path.home() / ".oa" / "runs-index.json").exists() else 0
+
+        if runs_count < 5:
+            console.print(f"[yellow]Insufficient data (need 5+ runs, have {runs_count}).[/yellow]")
+            return
+
+        categories = categorize_blind_spots()
+        if not categories:
+            console.print("[green]No failure patterns detected.[/green]")
+            return
+
+        table = Table(title="Blind Spot Analysis — Failure Patterns")
+        table.add_column("Category", style="bold")
+        table.add_column("Count", justify="right", style="red")
+        table.add_column("Example Agents")
+
+        for cat, runs in sorted(categories.items(), key=lambda x: -len(x[1])):
+            examples = ", ".join(r.get("agent_name", "?") for r in runs[:3])
+            table.add_row(cat, str(len(runs)), examples)
+        console.print(table)
+
+        path = generate_blind_spot_report()
+        console.print(f"\n[dim]Full report: {path}[/dim]")
+
+    else:
+        console.print(
+            "[red]Unknown subcommand. Use 'health', 'domains', or 'blind-spots'.[/red]"
+        )
+
+
 if __name__ == "__main__":
     app()
