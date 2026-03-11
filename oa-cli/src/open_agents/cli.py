@@ -426,6 +426,7 @@ def run(
     budget: int = typer.Option(None, "--budget", help="Token budget for this run (optional, no limit if omitted)"),
     no_autocompact: bool = typer.Option(False, "--no-autocompact", help="Disable auto-compaction for this agent (overrides OA_COMPACT_THRESHOLD)"),
     prompt_file: str = typer.Option("", "--prompt-file", "-pf", help="Read task prompt from a file (avoids shell escaping issues with special characters)"),
+    skills: str = typer.Option("", "--skills", help="Komma-gescheiden skill namen om te laden via skill_registry (bijv. 'api-design,oa-quality-gates')"),
 ):
     """Spawn an agent with a task in a new tmux window."""
     # --prompt-file: read task from file to avoid shell escaping issues (#62)
@@ -583,7 +584,8 @@ def run(
             )
             add_agent(rec)
         else:
-            rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None, project_root=proj_root, agent_type=agent_type, can_spawn=can_spawn)
+            skills_list = [s.strip() for s in skills.split(",") if s.strip()] if skills else []
+            rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None, project_root=proj_root, agent_type=agent_type, can_spawn=can_spawn, skills=skills_list)
     except RuntimeError as e:
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1)
@@ -2361,11 +2363,32 @@ def skill_benchmark(
 @skill_app.command(name="list")
 def skill_list(
     metrics: bool = typer.Option(False, "--metrics", "-m", help="Show usage metrics alongside skill names"),
+    level: str = typer.Option("", "--level", "-l", help="Filter op level: workspace|global|system|package"),
+    tag: str = typer.Option("", "--tag", "-t", help="Filter op tag"),
+    project_root: str = typer.Option("", "--project-root", help="Project root voor workspace skills"),
 ):
-    """List all skills, optionally with usage metrics."""
+    """List all skills, optionally with usage metrics or filtered by level/tag."""
     from rich.table import Table
 
-    # Discover skills from ~/.claude/skills/
+    # If level/tag filtering requested, use skill_registry for full multi-level scan
+    if level or tag:
+        from .skill_registry import list_skills as _list_skills
+        pr = Path(project_root) if project_root else Path.cwd()
+        found = _list_skills(level=level or None, tag=tag or None, project_root=pr)
+        if not found:
+            console.print("[dim]Geen skills gevonden.[/dim]")
+            return
+        table = Table(title=f"Skills ({len(found)})")
+        table.add_column("Name", style="cyan")
+        table.add_column("Level", style="yellow")
+        table.add_column("Tags")
+        table.add_column("Description")
+        for s in sorted(found, key=lambda x: (x.level, x.name)):
+            table.add_row(s.name, s.level, ", ".join(s.tags[:3]), s.description[:60])
+        console.print(table)
+        return
+
+    # Default: discover skills from ~/.claude/skills/ (original behaviour + registry fallback)
     skill_dirs = []
     for base in [Path.home() / ".claude" / "skills", Path.cwd() / ".claude" / "skills"]:
         if base.exists():
@@ -2400,6 +2423,44 @@ def skill_list(
         table.add_row(*row)
 
     console.print(table)
+
+
+@skill_app.command(name="show")
+def skill_show(name: str = typer.Argument(..., help="Skill naam")):
+    """Toon SKILL.md inhoud van een skill."""
+    from .skill_registry import find_skill, load_skill_content
+    match = find_skill(name, project_root=Path.cwd())
+    if not match:
+        typer.echo(f"Skill '{name}' niet gevonden.", err=True)
+        raise typer.Exit(1)
+    typer.echo(f"# {match.name}  [{match.level}]\n{match.path}\n")
+    typer.echo(load_skill_content(match))
+
+
+@skill_app.command(name="install")
+def skill_install(package_path: str = typer.Argument(..., help="Pad naar skill package")):
+    """Registreer een skill package in de registry."""
+    from .skill_registry import install_package
+    result = install_package(package_path)
+    typer.echo(f"Geinstalleerd: {result['installed']} skills uit {package_path}")
+    for s in result.get("skills", [])[:10]:
+        typer.echo(f"  - {s}")
+
+
+@skill_app.command(name="assign")
+def skill_assign(
+    agent_name: str = typer.Argument(..., help="Agent naam"),
+    skill_name: str = typer.Argument(..., help="Skill naam"),
+):
+    """Stuur skill inhoud naar lopende agent via inbox."""
+    from .skill_registry import find_skill, load_skill_content
+    match = find_skill(skill_name, project_root=Path.cwd())
+    if not match:
+        typer.echo(f"Skill '{skill_name}' niet gevonden.", err=True)
+        raise typer.Exit(1)
+    content = load_skill_content(match)
+    send_message(to=agent_name, message=f"Skill toegewezen: {skill_name}\n\n{content[:500]}...", from_agent="meta")
+    typer.echo(f"Skill '{skill_name}' gestuurd naar agent '{agent_name}'")
 
 
 # --- Sprint 24: test (regression guard) commands ---
@@ -2611,6 +2672,242 @@ def guardian(
         console.print("[dim]Monitor with: oa status[/dim]")
     else:
         console.print("[red]Failed to spawn Doc Guardian.[/red]")
+
+
+@app.command(name="init")
+def init_cmd(
+    project_type: str = typer.Option(
+        "minimal", "--type", "-t",
+        help="Template type: platform|skill-package|deployment|minimal",
+    ),
+    name: str = typer.Option("", "--name", "-n", help="Project naam"),
+    project_root: str = typer.Option(
+        ".", "--project-root", "-r", help="Directory voor core bestanden"
+    ),
+    force: bool = typer.Option(False, "--force", "-f", help="Overschrijf bestaande bestanden"),
+) -> None:
+    """Initialiseer core bestanden voor een nieuw project."""
+    from datetime import date
+
+    root = Path(project_root).resolve()
+    root.mkdir(parents=True, exist_ok=True)
+
+    # Bepaal project naam
+    project_name = name.strip() if name.strip() else root.name
+
+    # Laad CLAUDE.md template
+    valid_types = ("platform", "skill-package", "deployment", "minimal")
+    if project_type not in valid_types:
+        console.print(f"[red]Onbekend type '{project_type}'. Kies uit: {', '.join(valid_types)}[/red]")
+        raise typer.Exit(1)
+
+    templates_dir = Path(__file__).parent / "templates" / "init"
+    template_file = templates_dir / f"{project_type}.md"
+    claude_md_content = template_file.read_text(encoding="utf-8").replace("{project_name}", project_name)
+
+    today = date.today().isoformat()
+
+    # Schrijf bestanden
+    created: list[str] = []
+    skipped: list[str] = []
+
+    def _write(path: Path, content: str) -> None:
+        if path.exists() and not force:
+            skipped.append(str(path.relative_to(root)))
+            return
+        path.write_text(content, encoding="utf-8")
+        created.append(str(path.relative_to(root)))
+
+    _write(root / "CLAUDE.md", claude_md_content)
+
+    _write(
+        root / "ROADMAP.md",
+        f"# ROADMAP — {project_name}\n\n"
+        f"> **Status**: 0% — Initieel\n"
+        f"> **Laatste update**: {today}\n\n"
+        "## Fase 1 — Setup\n"
+        "- [ ] Project initialisatie\n",
+    )
+
+    _write(
+        root / "LESSONS.md",
+        f"# LESSONS — {project_name}\n\n"
+        "Geleerde lessen. Genummerd L-001+. Nooit bewerken, alleen toevoegen.\n\n"
+        "<!-- L-001 — Eerste les hier -->\n",
+    )
+
+    _write(
+        root / "DECISIONS.md",
+        f"# DECISIONS — {project_name}\n\n"
+        "Architectuurbeslissingen. Genummerd D-001+.\n\n"
+        "<!-- D-001 — Eerste beslissing hier -->\n",
+    )
+
+    _write(
+        root / "INDEX.md",
+        f"# INDEX — {project_name}\n\n"
+        "| Bestand | Doel | Type |\n"
+        "|---------|------|------|\n"
+        "| CLAUDE.md | Werkwijze en conventies | Instructies |\n"
+        "| ROADMAP.md | Status en voortgang | Staat |\n"
+        "| LESSONS.md | Geleerde lessen | Kennis |\n"
+        "| DECISIONS.md | Architectuurbeslissingen | Kennis |\n",
+    )
+
+    # Maak .claude/skills/ aan
+    skills_dir = root / ".claude" / "skills"
+    skills_dir.mkdir(parents=True, exist_ok=True)
+    created.append(".claude/skills/")
+
+    # Print overzicht
+    console.print(Panel(f"[bold green]oa init — {project_name}[/bold green]", subtitle=f"type: {project_type}"))
+    if created:
+        console.print("[green]Aangemaakt:[/green]")
+        for f in created:
+            console.print(f"  [green]✓[/green] {f}")
+    if skipped:
+        console.print("[yellow]Overgeslagen (gebruik --force om te overschrijven):[/yellow]")
+        for f in skipped:
+            console.print(f"  [yellow]–[/yellow] {f}")
+
+
+# --- Product Owner (PO) gate ---
+
+po_app = typer.Typer(
+    name="po",
+    help="Product Owner gate — evaluate changes against project vision and requirements.",
+    no_args_is_help=True,
+)
+app.add_typer(po_app)
+
+
+@po_app.command(name="review")
+def po_review(
+    model: str = typer.Option("claude/sonnet", "--model", "-m", help="Model: claude/haiku|sonnet|opus"),
+    diff: str = typer.Option("", "--diff", help="Provide diff text directly (skips git)"),
+    description: str = typer.Option("", "--description", "-d", help="Plain-text description of the change"),
+):
+    """Evaluate the current git diff (or provided text) and show the PO verdict."""
+    from .po_agent import evaluate
+    import datetime
+
+    console.print("[bold cyan]Product Owner evaluatie...[/bold cyan]")
+
+    result = evaluate(
+        diff=diff or None,
+        description=description or None,
+        model=model,
+    )
+
+    verdict = result["verdict"]
+    explanation = result["explanation"]
+    ts = datetime.datetime.fromtimestamp(result["timestamp"]).strftime("%H:%M:%S")
+
+    color_map = {"APPROVE": "green", "WARN": "yellow", "BLOCK": "red"}
+    icon_map  = {"APPROVE": "✅", "WARN": "⚠️ ", "BLOCK": "🚫"}
+    color = color_map.get(verdict, "white")
+    icon  = icon_map.get(verdict, "❓")
+
+    console.print(Panel(
+        f"[{color}][bold]{icon}  {verdict}[/bold][/{color}]\n\n{explanation}",
+        title=f"[bold]Product Owner[/bold]  [{color}]{verdict}[/{color}]",
+        subtitle=f"model: {model}  |  {ts}",
+        border_style=color,
+    ))
+
+
+@po_app.command(name="check")
+def po_check(
+    model: str = typer.Option("claude/sonnet", "--model", "-m", help="Model to use"),
+    exit_code: bool = typer.Option(False, "--exit-code", help="Exit 1 on BLOCK (for git hooks)"),
+    diff: str = typer.Option("", "--diff", help="Provide diff text directly (skips git)"),
+):
+    """Run PO check silently. Exit 1 on BLOCK when --exit-code is set (used by git hook)."""
+    from .po_agent import evaluate
+    import sys
+
+    result = evaluate(diff=diff or None, model=model)
+    verdict = result["verdict"]
+    explanation = result["explanation"]
+
+    color_map = {"APPROVE": "green", "WARN": "yellow", "BLOCK": "red"}
+    icon_map  = {"APPROVE": "✅", "WARN": "⚠️ ", "BLOCK": "🚫"}
+
+    color = color_map.get(verdict, "white")
+    icon  = icon_map.get(verdict, "❓")
+    console.print(f"[{color}]{icon}  PO: {verdict}[/{color}]")
+
+    if verdict != "APPROVE":
+        # Print first 3 lines of explanation for quick context
+        lines = [l for l in explanation.splitlines() if l.strip()]
+        for line in lines[1:4]:
+            console.print(f"[{color}]   {line}[/{color}]")
+
+    if exit_code and verdict == "BLOCK":
+        console.print(
+            "\n[red bold]Commit geblokkeerd door Product Owner.[/red bold] "
+            "Gebruik [dim]OA_PO_SKIP=1 git commit[/dim] om te bypassen."
+        )
+        raise typer.Exit(1)
+
+
+@po_app.command(name="install")
+def po_install():
+    """Install the PO pre-commit git hook in the current repo."""
+    from .po_agent import install_git_hook
+    hook_path = install_git_hook()
+    console.print(f"[green]✅ PO pre-commit hook geinstalleerd: {hook_path}[/green]")
+    console.print("[dim]Elke commit wordt nu beoordeeld door de Product Owner.[/dim]")
+    console.print("[dim]Bypass (noodgeval): OA_PO_SKIP=1 git commit[/dim]")
+
+
+@po_app.command(name="uninstall")
+def po_uninstall():
+    """Remove the PO pre-commit git hook."""
+    from .po_agent import uninstall_git_hook
+    removed = uninstall_git_hook()
+    if removed:
+        console.print("[yellow]PO pre-commit hook verwijderd.[/yellow]")
+    else:
+        console.print("[dim]Geen PO hook gevonden om te verwijderen.[/dim]")
+
+
+@po_app.command(name="log")
+def po_log(
+    n: int = typer.Option(10, "--n", "-n", help="Number of recent decisions to show"),
+):
+    """Show recent Product Owner decisions."""
+    from .po_agent import recent_decisions
+    from rich.table import Table
+    import datetime
+
+    decisions = recent_decisions(n)
+    if not decisions:
+        console.print("[dim]Geen PO beslissingen gevonden (~/.oa/po-decisions.json).[/dim]")
+        return
+
+    table = Table(title=f"Product Owner — laatste {len(decisions)} beslissingen")
+    table.add_column("Tijd", style="dim", no_wrap=True)
+    table.add_column("Verdict", justify="center")
+    table.add_column("Uitleg (fragment)")
+    table.add_column("Model", style="dim")
+
+    color_map = {"APPROVE": "green", "WARN": "yellow", "BLOCK": "red"}
+
+    for d in reversed(decisions):
+        ts = datetime.datetime.fromtimestamp(d.get("timestamp", 0)).strftime("%m-%d %H:%M")
+        verdict = d.get("verdict", "?")
+        color = color_map.get(verdict, "white")
+        lines = [l for l in d.get("explanation", "").splitlines() if l.strip()]
+        snippet = lines[1] if len(lines) > 1 else (lines[0] if lines else "—")
+        table.add_row(
+            ts,
+            f"[{color}]{verdict}[/{color}]",
+            snippet[:80],
+            d.get("model", "—"),
+        )
+
+    console.print(table)
 
 
 if __name__ == "__main__":
