@@ -374,14 +374,41 @@ def spawn_remote_agent(
     # 2. Upload workspace to remote
     sync_workspace_to_remote(host, local_ws, remote_ws)
 
-    # 3. Build remote command based on model type
+    # 3. Detect whether the remote user is root.
+    # Claude Code blocks --dangerously-skip-permissions when running as root (#64).
+    # We check upfront so we can raise a clear error instead of spawning a process
+    # that fails silently and creates a .done file after ~1 second.
+    if not is_hetzner_ollama:
+        try:
+            uid_result = subprocess.run(
+                ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", host, "id -u"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            remote_uid = uid_result.stdout.strip()
+        except (subprocess.TimeoutExpired, OSError):
+            remote_uid = ""
+
+        if remote_uid == "0":
+            raise RuntimeError(
+                f"Remote host '{host}' is running as root (UID 0). "
+                "Claude Code blocks --dangerously-skip-permissions for root users. "
+                "Fix options:\n"
+                "  1. Create a non-root user on the remote server and update your SSH config.\n"
+                "  2. Run: adduser oa-agent && usermod -aG sudo oa-agent\n"
+                "     Then update ~/.ssh/config: User oa-agent\n"
+                "See GitHub issue #64 for details."
+            )
+
+    # 4. Build remote command based on model type
     if is_hetzner_ollama:
         # Ollama text-only agent on GPU server
         inner_cmd = _build_remote_ollama_command(remote_ws, name, ollama_model_name)
         # Wrap in subshell to properly background and detach from SSH session
         remote_cmd = f"({inner_cmd}) > /dev/null 2>&1 &"
     else:
-        # Claude Code agentic agent on remote host (fix #64: subshell backgrounding)
+        # Claude Code agentic agent on remote host
         claude_model = CLAUDE_MODEL_MAP.get(effective_model)
         if claude_model is None and "/" in effective_model:
             claude_model = effective_model.split("/", 1)[1]
@@ -391,8 +418,8 @@ def spawn_remote_agent(
             "Lees CLAUDE.md en voer de taak uit. "
             "Schrijf al je output naar ./output/ en maak een .done file als je klaar bent."
         )
-        # FIX #64: Use subshell ( ... ) & to properly background on root servers.
-        # Plain 'nohup ... &' doesn't detach the process group when SSH exits on root.
+        # Use subshell ( ... ) & to properly background and detach from SSH session.
+        # Plain 'nohup ... &' doesn't reliably detach the process group when SSH exits.
         remote_path = "/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
         remote_cmd = (
             f"export PATH=\"{remote_path}:$PATH\" && "
@@ -403,7 +430,7 @@ def spawn_remote_agent(
             f"> output/result.md 2>&1; touch .done) &"
         )
 
-    # 4. Execute on remote host via SSH (BatchMode=yes prevents password prompts)
+    # 5. Execute on remote host via SSH (BatchMode=yes prevents password prompts)
     subprocess.run(["ssh", "-o", "BatchMode=yes", host, remote_cmd], check=True)
 
     # 5. Register in local state with remote fields
