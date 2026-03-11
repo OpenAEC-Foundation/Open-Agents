@@ -1,7 +1,7 @@
 # Masterplan - Open-Agents
 
-> **Versie**: 0.6
-> **Laatste update**: 2026-03-02
+> **Versie**: 0.7
+> **Laatste update**: 2026-03-11
 > **Methodiek**: Scrum (korte sprints, snel waarde leveren)
 > **Zie ook**: REQUIREMENTS.md, PRINCIPLES.md, ROADMAP.md, SOURCES.md
 >
@@ -27,7 +27,7 @@
 | 6c | AI Assembly Assistant | Sidebar kennispartner + pattern library | Sprint 6b | Done |
 | 7 | VS Code Extension | Canvas als VS Code webview + MCP | Sprint 1 | Done |
 | 8 | Frappe App | Frappe wrapper + ERPNext templates | Sprint 1 | Done |
-| 9 | Agent Library | 1000+ atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | Done (90/1000) |
+| 9 | Agent Library | 1015+ atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | In Progress (454/1015) |
 | 10 | Refactor & Consolidatie | Refactor van alles uit eerste Scrum iteratie | Sprint 1-9 | Done |
 | 11 | VS Code Bridge & Terminal Agents | Echte Claude CLI agents via VS Code bridge. Gemigreerd van Open-VSCode-Controller | Sprint 1 | In Progress |
 | 12 | CLI Agentic Layer (oa-cli) | Tmux-based multi-agent orchestrator op subscription. Python CLI + Textual TUI + Pipeline | -- | Done |
@@ -35,7 +35,9 @@
 | 14 | Agent Library Scale-up | 900+ agents bouwen in 10 resterende categorieën (doel: 1000+) | Sprint 9 | Planned |
 | 15 | oa-cli × packages/ Convergentie | oa-cli als alternatieve execution backend voor het visuele platform | Sprint 12 | Planned |
 | 16 | Google A2A Protocol Evaluatie | Agent-to-Agent protocol evaluatie en eventuele integratie | Sprint 13 | Planned |
-| 17 | oa-cli Agent Teams Patterns | Shared task list, inter-agent messaging, graceful shutdown, quality hooks (D-052) | Sprint 12 | Planned |
+| 17 | oa-cli Agent Teams Patterns | Shared task list, inter-agent messaging, graceful shutdown, quality hooks (D-052) | Sprint 12 | In Progress (58%) |
+| 18 | Dashboard UI & CSS Design Tokens | React web UI refactor: design tokens, ErrorBoundary, ToastProvider, PipelinePanel, TaskBoard | Sprint 12 | In Progress (80%) |
+| 19 | Session Persistence | Automatische sessie-herstel: session store, guardian daemon, resume flow, notifications | Sprint 12, 17 | Done |
 | 20 | Desktop + Web App | Web-first: xterm.js terminal, Tauri desktop wrapper, shared codebase | Sprint 12, Sprint 15 | Planned |
 
 ```
@@ -51,13 +53,19 @@ Sprint 0 ──→ Sprint 1 ──→ Sprint 1.2a ──→ Sprint 1.5
                                                      v
                                                    S6c
 
-Sprint 6a-6c is de nieuwe Semantische Laag, opgesplitst in:
-  6a: Knowledge Base (FR-16) - kennisbibliotheek + snippet engine
-  6b: Assembly Engine (FR-17) - NL → agent graph generatie
-  6c: AI Assistant (FR-18, FR-19) - sidebar + pattern library
-
 Sprint 9 (Agent Library) loopt DOORLOPEND naast alle sprints (vanaf Sprint 2)
 Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
+
+── oa-cli tak (parallel aan packages/ tak) ──────────────────────────────────
+Sprint 12 (oa-cli) ──→ Sprint 17 (Agent Teams) ──→ Sprint 19 (Session Persistence) ✅
+                   ├──→ Sprint 18 (Dashboard UI)
+                   ├──→ Sprint 15 (packages/ convergentie) ──→ Sprint 20 (Desktop+Web)
+                   └──→ Sprint 11 (VS Code Bridge, packages/ tak)
+
+Sprint 6a-6c is de Semantische Laag (packages/):
+  6a: Knowledge Base (FR-16) — kennisbibliotheek + snippet engine
+  6b: Assembly Engine (FR-17) — NL → agent graph generatie
+  6c: AI Assistant (FR-18, FR-19) — sidebar + pattern library
 ```
 
 > **Na Sprint 1.5 kunnen Sprints 2, 3, 5, 6a, 7 en 8 parallel starten.**
@@ -1775,7 +1783,7 @@ Google A2A is een open protocol voor agent-to-agent communicatie (2025). Mogelij
 
 ## Sprint 17: oa-cli Agent Teams Patterns
 
-**Status**: Planned
+**Status**: In Progress (58%) — messaging/teams/CLI volledig; hooks, graceful shutdown, tests, TUI/web nog open
 **Doel**: Agent Teams patterns (L-022 t/m L-029) implementeren in oa-cli. Gebaseerd op Claude Code Agent Teams referentie-architectuur.
 
 **Afhankelijk van**: Sprint 12 (oa-cli basis Done)
@@ -1824,19 +1832,78 @@ Bron: https://code.claude.com/docs/en/agent-teams
 > Tests schrijven in oa-cli/tests/.
 > ```
 
-**Taken:**
-- [ ] Shared task list module (`task_list.py`) — CRUD + file locking + JSON storage
+**Voltooide taken:**
+- [x] Shared task list module (`task_list.py`) — CRUD + file locking + JSON storage in `~/.oa/tasks/<team>/`
+- [x] Inter-agent messaging (`messaging.py`) — mailbox per agent, DM + broadcast (send/inbox/broadcast werkend)
+- [x] Team config (`teams.py`) — create/list/delete, members array, `~/.oa/teams/<team>/config.json`
+- [x] CLI commando's: `oa team`, `oa task`, `oa send`, `oa inbox`, `oa broadcast`
+
+**Pending:**
 - [ ] Task dependencies — `blockedBy` veld, auto-unblock bij status=completed
-- [ ] Inter-agent messaging (`messaging.py`) — mailbox per agent, DM + broadcast
-- [ ] Team config (`teams.py`) — create/list/delete, members array, config.json
 - [ ] Graceful shutdown protocol — request/approve/reject via messaging
 - [ ] Quality hooks (`hooks.py`) — on_idle, on_task_complete met configureerbare callbacks
-- [ ] CLI commando's: `oa team`, `oa task`, `oa msg`, `oa broadcast`, `oa shutdown`
 - [ ] AgentRecord uitbreiden: `team` veld, `mailbox_path`
 - [ ] Workspace CLAUDE.md template: team context meegeven aan agents
 - [ ] Tests voor task list, messaging, team management
 - [ ] TUI dashboard: team view met task status en agent communicatie
 - [ ] Web UI: team overzicht pagina
+
+---
+
+## Sprint 18: Dashboard UI & CSS Design Tokens — In Progress (80%)
+
+**Status**: In Progress (80%) — Wave 1 compleet; integration tests, API wiring, Wave 2 nog open
+**Doel**: Refactor van React web UI (oa-cli/web/) met design tokens, ErrorBoundary/ToastProvider, en visuele pipeline-triggers.
+**Afhankelijk van**: Sprint 12 (oa-cli)
+**Beslissingen**: zie D-050 (React SPA), D-048 (3 interfaces)
+
+### Voltooide taken
+
+- [x] ErrorBoundary.tsx component (error fallback, error logging, recovery)
+- [x] ToastProvider.tsx component + useToast hook (context-based toast notifications)
+- [x] PipelinePanel.tsx component (visuele pipeline trigger UI + live status polling)
+- [x] TaskBoard.tsx component (kanban bord per team: todo/in_progress/done kolommen)
+- [x] Dashboard refactor — 11 React componenten (ConnectionIndicator, ExecutionToolbar, OutputPanel, StatusColors, etc.)
+- [x] CSS design token refactoring (hardcoded kleuren → `--token` variabelen, TailwindCSS integration)
+- [x] Design docs gecommit (webapp-masterplan-raw.md, webapp-sprint-plan.md, bridge-api-design.md)
+- [x] app.tsx gewrapped met ToastProvider en ErrorBoundary per tab
+
+### Pending
+
+- [ ] Integration tests voor ErrorBoundary + ToastProvider
+- [ ] PipelinePanel API integration + polling logic volledig verbinden
+- [ ] TaskBoard API endpoints en dataflow (ontbrekende endpoints: zie Web UI Sprint Plan)
+- [ ] CSS token audit — zorgen dat alle 11 componenten consistent zijn
+
+### Web UI Sprint Plan (gedetailleerd — 3 fasen)
+
+Zie de uitgebreide fasering (F1/F2/F3 taken) in de sectie **Web UI Sprint Plan (2026-03-10)** verderop in dit document.
+
+---
+
+## Sprint 19: Session Persistence — Done ✅
+
+**Status**: Done (2026-03-11)
+**Doel**: Automatische sessie-herstel na crash, detach of intentionele stop. Dual safety net: tmux hook + periodic guardian.
+**Afhankelijk van**: Sprint 12 (oa-cli), Sprint 17 (hooks.py events)
+**Beslissingen**: D-055 (Session Persistence Architecture), D-056 (Session Resume UX)
+
+### Voltooide taken
+
+- [x] `session.py` — lock file, heartbeat, shutdown detection
+- [x] `session_store.py` — session records CRUD (`~/.oa/sessions/`)
+- [x] `session_cleanup.py` — tmux hook entry point
+- [x] `session_guardian.py` — periodic checkpoint daemon
+- [x] `notify.py` — cross-platform desktop notifications
+- [x] `config.py` — on_disconnect settings
+- [x] `hooks.py` — 3 nieuwe events (session_start, session_end, session_resume)
+- [x] `tmux.py` — guardian window, detach hook registratie
+- [x] `cli.py` — `oa start` resume flow, `oa stop` 5-phase shutdown, `oa session` subcommando's
+
+### Pending (nice-to-have)
+
+- [ ] Integration tests voor session persistence
+- [ ] Delegation fix end-to-end testing
 
 ---
 
@@ -1996,6 +2063,110 @@ React (shared codebase)
 - [ ] `[SEQ]` T20.7 — Agent dashboard embedded als React componenten (na T20.6)
 - [ ] `[PAR]` T20.8 — Hosted deployment via Docker Compose
 - [ ] `[PAR]` T20.9 — Desktop CI/CD builds (Windows/macOS/Linux)
+
+---
+
+## GitHub Issues → Sprint Mapping
+
+> 50 open issues (stand 2026-03-11). Per issue: sprint en status.
+
+### Geïmplementeerd / Gedocumenteerde Workaround
+
+| Issue | Titel | Sprint | Status |
+|-------|-------|--------|--------|
+| [#9](https://github.com/OpenAEC-Foundation/Open-Agents/issues/9) | Bug: oa agents negeren oa run, gebruiken Claude Code Agent tool | Sprint 12/17 | Workaround gedocumenteerd (L-052, CLAUDE.md) |
+| [#10](https://github.com/OpenAEC-Foundation/Open-Agents/issues/10) | Bug: agents schrijven output naar /tmp zonder --direct | Sprint 12 | Workaround: `--direct` flag + CLAUDE.md (L-031) |
+| [#12](https://github.com/OpenAEC-Foundation/Open-Agents/issues/12) | Feature: structured task prompt template for oa run | Sprint 12 | Done — 5-element template gedocumenteerd (L-010) |
+| [#43](https://github.com/OpenAEC-Foundation/Open-Agents/issues/43) | Session State Preserver | Sprint 19 | Done — session_store.py, oa session |
+| [#60](https://github.com/OpenAEC-Foundation/Open-Agents/issues/60) | Architectuurdocumentatie — conceptueel model | Sprint 0/10 | Done — CLAUDE.md, docs/design/ |
+| [#47](https://github.com/OpenAEC-Foundation/Open-Agents/issues/47) | CLI Toolchain voor Agentic Orchestration — Overzicht | Sprint 12 | Done — oa-cli gebouwd |
+
+### In Actieve Sprints
+
+| Issue | Titel | Sprint | Status |
+|-------|-------|--------|--------|
+| [#11](https://github.com/OpenAEC-Foundation/Open-Agents/issues/11) | Nested agent spawning | Sprint 17 | Gedeeltelijk — flat spawning werkt, nested open |
+| [#21](https://github.com/OpenAEC-Foundation/Open-Agents/issues/21) | Structured Handoff Protocol | Sprint 17 | In progress — messaging.py gebouwd |
+| [#48](https://github.com/OpenAEC-Foundation/Open-Agents/issues/48) | Inter-Agent Communication Protocol Design | Sprint 17 | In progress — send/inbox/broadcast werkend |
+| [#49](https://github.com/OpenAEC-Foundation/Open-Agents/issues/49) | CLI-based Message Bus Evaluatie | Sprint 17 | In progress — zie messaging.py |
+| [#51](https://github.com/OpenAEC-Foundation/Open-Agents/issues/51) | Tmux als Agent Container Runtime | Sprint 12 | Done — oa-cli gebruikt tmux |
+| [#52](https://github.com/OpenAEC-Foundation/Open-Agents/issues/52) | Agent Workspace Templating & Isolation | Sprint 12/19 | Done — workspace builder, session persistence |
+| [#53](https://github.com/OpenAEC-Foundation/Open-Agents/issues/53) | Agent Pool Management & Scaling | Sprint 17 | In progress — teams.py |
+| [#54](https://github.com/OpenAEC-Foundation/Open-Agents/issues/54) | Orchestration Task Runner Evaluatie | Sprint 12/17 | In progress |
+| [#55](https://github.com/OpenAEC-Foundation/Open-Agents/issues/55) | Emergent Agent Gedrag & Dispatcher Architectuur | Sprint 17 | In progress |
+| [#61](https://github.com/OpenAEC-Foundation/Open-Agents/issues/61) | Visual Canvas <> oa CLI integratie | Sprint 15 | Planned |
+
+### Gepland — Sprint 21+
+
+> Issues #13-#46 en #56-#59 zijn feature requests voor toekomstige sprints.
+> Gegroepeerd per thema:
+
+**Agent Autonomie & Zelfsturing (Sprint 21-23)**
+
+| Issue | Titel | Geplande Sprint |
+|-------|-------|-----------------|
+| [#17](https://github.com/OpenAEC-Foundation/Open-Agents/issues/17) | Auto Template Generation | Sprint 21 |
+| [#18](https://github.com/OpenAEC-Foundation/Open-Agents/issues/18) | Automated Lessons Extraction | Sprint 21 |
+| [#25](https://github.com/OpenAEC-Foundation/Open-Agents/issues/25) | Meta-Agent OA Improver | Sprint 21 |
+| [#32](https://github.com/OpenAEC-Foundation/Open-Agents/issues/32) | Skill-Evolver (ACE benchmark) | Sprint 22 |
+| [#19](https://github.com/OpenAEC-Foundation/Open-Agents/issues/19) | Self-Benchmark Workflow | Sprint 22 |
+| [#23](https://github.com/OpenAEC-Foundation/Open-Agents/issues/23) | Global/Local Settings Auto-Tuning | Sprint 23 |
+
+**Kwaliteitsborging & Observability (Sprint 21-22)**
+
+| Issue | Titel | Geplande Sprint |
+|-------|-------|-----------------|
+| [#14](https://github.com/OpenAEC-Foundation/Open-Agents/issues/14) | Agent Run Telemetry | Sprint 21 |
+| [#15](https://github.com/OpenAEC-Foundation/Open-Agents/issues/15) | Post-Run Hook System | Sprint 21 |
+| [#16](https://github.com/OpenAEC-Foundation/Open-Agents/issues/16) | Context Window Tracking | Sprint 21 |
+| [#28](https://github.com/OpenAEC-Foundation/Open-Agents/issues/28) | Adversarial Reviewer | Sprint 21 |
+| [#29](https://github.com/OpenAEC-Foundation/Open-Agents/issues/29) | End-to-End Verifier | Sprint 21 |
+| [#33](https://github.com/OpenAEC-Foundation/Open-Agents/issues/33) | Invocation Quality Gate | Sprint 21 |
+| [#37](https://github.com/OpenAEC-Foundation/Open-Agents/issues/37) | Ecosystem Health Dashboard | Sprint 21 |
+| [#44](https://github.com/OpenAEC-Foundation/Open-Agents/issues/44) | Anti-Regression Guard | Sprint 21 |
+| [#45](https://github.com/OpenAEC-Foundation/Open-Agents/issues/45) | Token Budget Allocator | Sprint 22 |
+
+**Context & State Management (Sprint 21-22)**
+
+| Issue | Titel | Geplande Sprint |
+|-------|-------|-----------------|
+| [#20](https://github.com/OpenAEC-Foundation/Open-Agents/issues/20) | Auto-Compaction Triggers | Sprint 21 |
+| [#24](https://github.com/OpenAEC-Foundation/Open-Agents/issues/24) | Agent Graveyard & Resurrection | Sprint 21 |
+| [#30](https://github.com/OpenAEC-Foundation/Open-Agents/issues/30) | Persistent Backlog | Sprint 21 |
+| [#34](https://github.com/OpenAEC-Foundation/Open-Agents/issues/34) | Assumption Tracker | Sprint 22 |
+| [#35](https://github.com/OpenAEC-Foundation/Open-Agents/issues/35) | Context Decay Monitor | Sprint 22 |
+| [#36](https://github.com/OpenAEC-Foundation/Open-Agents/issues/36) | Information Loss Detector | Sprint 22 |
+
+**Skills & Kennissysteem (Sprint 22-23)**
+
+| Issue | Titel | Geplande Sprint |
+|-------|-------|-----------------|
+| [#22](https://github.com/OpenAEC-Foundation/Open-Agents/issues/22) | Skill System per Agent Type | Sprint 22 |
+| [#26](https://github.com/OpenAEC-Foundation/Open-Agents/issues/26) | Context-Gap-Detector Skill | Skill Package |
+| [#27](https://github.com/OpenAEC-Foundation/Open-Agents/issues/27) | Honesty-Enforcer Skill | Skill Package |
+| [#38](https://github.com/OpenAEC-Foundation/Open-Agents/issues/38) | Knowledge Boundary Mapper | Sprint 22 |
+| [#39](https://github.com/OpenAEC-Foundation/Open-Agents/issues/39) | Blind Spot Scanner | Sprint 22 |
+| [#40](https://github.com/OpenAEC-Foundation/Open-Agents/issues/40) | Cross-Agent Pattern Miner | Sprint 22 |
+| [#46](https://github.com/OpenAEC-Foundation/Open-Agents/issues/46) | Documentation Generator | Sprint 22 |
+
+**Agent Communicatie & Infrastructuur (Sprint 21-22)**
+
+| Issue | Titel | Geplande Sprint |
+|-------|-------|-----------------|
+| [#13](https://github.com/OpenAEC-Foundation/Open-Agents/issues/13) | --remote flag voor GPU servers | Sprint 15/21 |
+| [#31](https://github.com/OpenAEC-Foundation/Open-Agents/issues/31) | File-Conflict-Preventer | Sprint 21 |
+| [#41](https://github.com/OpenAEC-Foundation/Open-Agents/issues/41) | Diminishing Returns Detector | Sprint 22 |
+| [#42](https://github.com/OpenAEC-Foundation/Open-Agents/issues/42) | Instruction Compliance Checker | Sprint 21 |
+| [#50](https://github.com/OpenAEC-Foundation/Open-Agents/issues/50) | Agent Registry & Discovery | Sprint 21 |
+| [#56](https://github.com/OpenAEC-Foundation/Open-Agents/issues/56) | Observability & Logging Multi-Agent | Sprint 21 |
+
+**Research — Informeert Architectuur**
+
+| Issue | Titel | Beïnvloedt Sprint |
+|-------|-------|-------------------|
+| [#57](https://github.com/OpenAEC-Foundation/Open-Agents/issues/57) | A2A Protocol Compatibiliteit | Sprint 16 |
+| [#58](https://github.com/OpenAEC-Foundation/Open-Agents/issues/58) | Context Engineering Agent Workspaces | Sprint 22 |
+| [#59](https://github.com/OpenAEC-Foundation/Open-Agents/issues/59) | Security Model Autonome Agent Communicatie | Sprint 16/22 |
 
 ---
 
