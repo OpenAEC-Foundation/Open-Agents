@@ -32,6 +32,7 @@
 | VS Code Bridge (Sprint 11) | 0 | 1 |
 | Agent Teams Patterns (Sprint 17) | 0 | 12 |
 | Session Persistence (Sprint 19) | 1 | 1 |
+| Desktop + Web App (Sprint 20) | 0 | 1 |
 
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
 **Fase 1 (PoC)**: ████████████████████ **100%** - canvas UI, backend API, e2e wiring, theming, BYOK
@@ -50,6 +51,7 @@
 **Fase 11 (Agent Teams Patterns)**: ████████████░░░░░░░░ **58%** - Sprint 17 in progress: task_list.py, teams.py, messaging.py (send/inbox/broadcast werkend), CLI commando's volledig; hooks.py, graceful shutdown, tests, TUI/web views nog open
 **Fase 12 (Dashboard & UI Refactor)**: ████████████████░░░░ **80%** - Sprint 18 in progress: ErrorBoundary + ToastProvider componenten, PipelinePanel (visual trigger + live status), TaskBoard (kanban per team), 11 dashboard componenten refactored met CSS design tokens
 **Fase 13 (Session Persistence)**: ████████████████████ **100%** - session store, guardian daemon, resume flow, notifications
+**Fase 14 (Desktop + Web App)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - Web-first architectuur: xterm.js terminal, Tauri desktop wrapper, gedeelde React codebase
 
 ---
 
@@ -531,6 +533,28 @@
 - [ ] Auto-updater via GitHub Releases
 - [ ] PyInstaller sidecar binary (geen Python vereist voor gebruiker)
 - [ ] Android support
+
+---
+
+## Sprint 20 — Desktop + Web App (Planned)
+
+> Web-first architectuur: één React codebase voor hosted web app én Tauri desktop app
+
+**Beslissingen**: D-057 (Approach C: Web-first PWA + Desktop Wrapper), D-058 (xterm.js + node-pty), D-059 (Tauri v2)
+
+**Stack**: React 19 + xterm.js + Fastify + node-pty + Tauri v2
+**Architectuur**: Shared TerminalService interface — WebSocket (web) / IPC (desktop)
+
+**Taken**:
+- [ ] Terminal backend: Fastify + node-pty + WebSocket server
+- [ ] xterm.js component: React wrapper met addons (web-links, fit, search)
+- [ ] TerminalService interface: abstractie over WebSocket en IPC
+- [ ] Tauri desktop shell: wrapper rond React app
+- [ ] Multi-terminal: meerdere tabs/splits
+- [ ] tmux integratie: oa sessions zichtbaar in terminal
+- [ ] Agent dashboard in-app: oa status/logs/attach embedded
+- [ ] Hosted deployment: Docker compose voor web versie
+- [ ] Desktop builds: CI/CD voor Windows/macOS/Linux binaries
 
 ---
 

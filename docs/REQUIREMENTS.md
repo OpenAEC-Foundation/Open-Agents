@@ -1,8 +1,8 @@
 # Requirements - Open-Agents
 
-> **Versie**: 0.5
-> **Laatste update**: 2026-03-03
-> **Status**: In ontwikkeling — v0.5: requirements herijkt na oa-cli shift (Sprint 12)
+> **Versie**: 0.5.1
+> **Laatste update**: 2026-03-11
+> **Status**: In ontwikkeling — v0.5.1: FR-36, FR-37, NFR-07 toegevoegd (desktop/web applicatie)
 
 ## Visie
 
@@ -501,6 +501,30 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - Langlopende taken hervatten na timeout, crash, of machine restart
 - CLI: `oa resume <agent-name>`
 
+### FR-36: Desktop Applicatie
+
+> **Status**: 0% — Planned (Sprint 20)
+
+- Tauri v2 desktop wrapper rond gedeelde React codebase
+- Echte terminal emulatie via xterm.js + node-pty
+- Claude Code, oa-cli en tmux draaien direct in de app
+- System tray integratie met notificaties
+- Auto-update mechanisme
+- Native performance (~30MB RAM, 10-50MB bundle)
+- Cross-platform: Windows, macOS, Linux
+
+### FR-37: Hosted Web Applicatie
+
+> **Status**: 0% — Planned (Sprint 20)
+
+- Dezelfde React app als de desktop versie (95% gedeelde code)
+- Terminal emulatie via xterm.js + WebSocket naar Fastify backend
+- Multi-user support met sessie-isolatie
+- Docker Compose deployment
+- SSL/TLS + WebSocket proxy (nginx)
+- Responsive layout voor verschillende schermformaten
+- Agent dashboard: real-time status, logs, kill/attach
+
 ---
 
 ## Niet-Functionele Requirements
@@ -553,6 +577,15 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 - Waarschuwingen bij dure configuraties (Opus voor eenvoudige taken, hoge fan-out)
 - Confidence levels: high/medium/low afhankelijk van voorspelbaarheid
 
+### NFR-07: Code Sharing Desktop/Web
+
+> **Status**: 0% — Planned
+
+- Minimaal 90% gedeelde code tussen desktop en web versie
+- TerminalService abstractie: WebSocket (web) vs IPC (desktop)
+- Geen platform-specifieke UI code in shared components
+- Monorepo structuur met pnpm workspaces
+
 ---
 
 ## Technologie Keuzes
@@ -592,4 +625,4 @@ Het verschil met Langflow/Flowise/Dify: die doen alleen Laag 1 (orchestratie). O
 
 ---
 
-*Laatste update: 2026-03-03*
+*Laatste update: 2026-03-11*

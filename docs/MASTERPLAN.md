@@ -36,6 +36,7 @@
 | 15 | oa-cli × packages/ Convergentie | oa-cli als alternatieve execution backend voor het visuele platform | Sprint 12 | Planned |
 | 16 | Google A2A Protocol Evaluatie | Agent-to-Agent protocol evaluatie en eventuele integratie | Sprint 13 | Planned |
 | 17 | oa-cli Agent Teams Patterns | Shared task list, inter-agent messaging, graceful shutdown, quality hooks (D-052) | Sprint 12 | Planned |
+| 20 | Desktop + Web App | Web-first: xterm.js terminal, Tauri desktop wrapper, shared codebase | Sprint 12, Sprint 15 | Planned |
 
 ```
 Sprint 0 ──→ Sprint 1 ──→ Sprint 1.2a ──→ Sprint 1.5
@@ -1945,6 +1946,56 @@ Bron: https://code.claude.com/docs/en/agent-teams
 | `/api/teams/<name>/broadcast` | POST | Team broadcast (F2-11) |
 | `/api/guardians/register` | POST | Guardian registratie (F2-10) |
 | `/api/delegate` | POST | Delegate UI (F3-09) |
+
+---
+
+---
+
+## Sprint 20 — Desktop + Web App
+
+**Status**: Planned
+
+> **Doel**: Eén React codebase die zowel als hosted web app als Tauri desktop app werkt, met echte terminal emulatie (xterm.js + node-pty) zodat Claude Code, oa-cli en tmux erin draaien.
+>
+> **Afhankelijk van**: Sprint 12 (oa-cli), Sprint 15 (convergentie)
+>
+> **Beslissingen**: D-057, D-058, D-059
+
+### Architectuur
+
+```
+React (shared codebase)
+  ├── Browser (hosted)          → WebSocketTerminalService → Fastify backend → node-pty
+  └── Tauri (desktop wrapper)   → IPCTerminalService       → Rust PTY commands
+
+@open-agents/shared
+  └── TerminalService interface (twee implementaties, één useTerminal() hook)
+```
+
+### Taken
+
+| # | Taak | Type | Prompt |
+|---|------|------|--------|
+| T20.1 | [PAR] Terminal backend: Fastify routes + node-pty + WebSocket server | Backend | Bouw een Fastify plugin die node-pty gebruikt om shell processen te spawnen. WebSocket endpoint /ws/terminal/:id voor bidirectionele I/O. Sessie management (create, resize, kill). |
+| T20.2 | [PAR] xterm.js React component | Frontend | Bouw een React component <Terminal /> die xterm.js wropt. Addons: fit, web-links, search. Props: sessionId, onData, theme. Connecteert via useTerminal() hook. |
+| T20.3 | [SEQ] TerminalService interface | Shared | Definieer een TerminalService interface in @open-agents/shared. Twee implementaties: WebSocketTerminalService (browser) en IPCTerminalService (Tauri). useTerminal() hook gebruikt de juiste service via context. |
+| T20.4 | [SEQ] Tauri desktop shell | Desktop | Tauri v2 project dat de React app laadt. Rust commands voor PTY spawning via tauri-plugin-pty. System tray, auto-update, native notifications. |
+| T20.5 | [PAR] Multi-terminal tabs/splits | Frontend | Tab bar component + split pane layout. Meerdere terminal sessies naast elkaar. Drag-and-drop tab reordering. |
+| T20.6 | [SEQ] tmux + oa-cli integratie | Integration | oa sessions zichtbaar als tabs. oa status als sidebar widget. oa attach opent terminal tab naar agent. oa logs streamt naar terminal. |
+| T20.7 | [SEQ] Agent dashboard embedded | Frontend | oa dashboard functionaliteit (Textual TUI equivalent) als React componenten. Agent list, status, logs, kill/attach knoppen. |
+| T20.8 | [PAR] Hosted deployment | DevOps | Docker Compose: Fastify backend + nginx voor React static files. SSL termination. WebSocket proxy config. |
+| T20.9 | [PAR] Desktop CI/CD builds | DevOps | GitHub Actions workflow: Tauri build voor Windows (.msi), macOS (.dmg), Linux (.AppImage). Auto-release bij tag. |
+
+**Taken:**
+- [ ] `[PAR]` T20.1 — Terminal backend: Fastify + node-pty + WebSocket server
+- [ ] `[PAR]` T20.2 — xterm.js React component `<Terminal />`
+- [ ] `[SEQ]` T20.3 — TerminalService interface in @open-agents/shared (na T20.1 + T20.2)
+- [ ] `[SEQ]` T20.4 — Tauri v2 desktop shell met Rust PTY
+- [ ] `[PAR]` T20.5 — Multi-terminal tabs/splits
+- [ ] `[SEQ]` T20.6 — tmux + oa-cli integratie (na T20.3)
+- [ ] `[SEQ]` T20.7 — Agent dashboard embedded als React componenten (na T20.6)
+- [ ] `[PAR]` T20.8 — Hosted deployment via Docker Compose
+- [ ] `[PAR]` T20.9 — Desktop CI/CD builds (Windows/macOS/Linux)
 
 ---
 

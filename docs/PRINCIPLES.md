@@ -1,9 +1,9 @@
 # Principles - Open-Agents
 
-> **Versie**: 0.3
-> **Laatste update**: 2026-03-03
+> **Versie**: 0.4
+> **Laatste update**: 2026-03-11
 > **Doel**: Design uitgangspunten die elke beslissing sturen
-> **Aantal**: 15 principes
+> **Aantal**: 16 principes
 
 ---
 
@@ -86,7 +86,15 @@ Naast de canvas UI is **CLI- en tmux-gebaseerde orchestratie een first-class cit
 
 De drie interfaces (CLI, TUI, Web UI) zijn gelijkwaardig en delen één state (`~/.oa/agents.json`) via de tmux execution layer. Geen interface is "de echte" — de juiste keuze hangt af van de context: scripting, monitoring of visuele exploratie.
 
-## ~~16. Proposal-based workflow~~ (VERWIJDERD)
+## 16. Web-First, Desktop-Second
+
+De applicatie wordt primair als web app gebouwd en secondair als desktop app verpakt. Dit garandeert maximale code sharing (95%+) en voorkomt platform lock-in. De web versie is de referentie-implementatie; de desktop versie is een Tauri wrapper die dezelfde React app laadt met aanvullende native capabilities (system tray, notifications, offline support). Elke feature wordt eerst voor web gebouwd en daarna gevalideerd op desktop.
+
+**Rationale**: Web-first maakt hosting mogelijk (multi-user, team access), terwijl Tauri wrapping native desktop experience toevoegt zonder code duplicatie. Dit is hoe Slack, VS Code (web + desktop), en moderne tools hun dual-platform strategie aanpakken.
+
+**Relatie**: Versterkt P-01 (Visuele Orchestratie) door terminal + canvas in één app. Versterkt P-03 (Privacy-First) door optie voor self-hosted deployment.
+
+## ~~17. Proposal-based workflow~~ (VERWIJDERD)
 
 > **Verwijderd op 2026-03-03.** Proposal mode is afgeschaft (L-018, L-031). Agents schrijven direct naar bestanden. Geen `oa review` / `oa apply` meer. Veiligheid wordt geborgd door container isolation (D-040) en workspace isolatie (temp directories per agent), niet door proposal workflows.
 
@@ -94,8 +102,8 @@ De drie interfaces (CLI, TUI, Web UI) zijn gelijkwaardig en delen één state (`
 
 ## Samenvatting
 
-> **Open-Agents is een hyper session workspace builder met agentic orchestratie. Je bouwt visueel de ideale workspace per agent en orkestreert ze samen op een canvas — zelf of door AI. De complexiteit van drie engineering-lagen zit achter de schermen. De gebruiker ziet alleen de eenvoud.** *(15 actieve principes na verwijdering van Principe 16)*
+> **Open-Agents is een hyper session workspace builder met agentic orchestratie. Je bouwt visueel de ideale workspace per agent en orkestreert ze samen op een canvas — zelf of door AI. De complexiteit van drie engineering-lagen zit achter de schermen. De gebruiker ziet alleen de eenvoud.** *(16 actieve principes)*
 
 ---
 
-*Laatste update: 2026-03-03*
+*Laatste update: 2026-03-11*
