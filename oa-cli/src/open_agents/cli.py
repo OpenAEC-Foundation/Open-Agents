@@ -398,8 +398,18 @@ def run(
     skip_context_check: bool = typer.Option(False, "--skip-context-check", help="Skip context gap pre-flight check"),
     budget: int = typer.Option(None, "--budget", help="Token budget for this run (optional, no limit if omitted)"),
     no_autocompact: bool = typer.Option(False, "--no-autocompact", help="Disable auto-compaction for this agent (overrides OA_COMPACT_THRESHOLD)"),
+    prompt_file: str = typer.Option("", "--prompt-file", "-pf", help="Read task prompt from a file (avoids shell escaping issues with special characters)"),
 ):
     """Spawn an agent with a task in a new tmux window."""
+    # --prompt-file: read task from file to avoid shell escaping issues (#62)
+    if prompt_file:
+        pf = Path(prompt_file)
+        if not pf.exists():
+            console.print(f"[red]--prompt-file: file not found: {pf}[/red]")
+            raise typer.Exit(1)
+        task = pf.read_text(encoding="utf-8")
+        console.print(f"[dim]Prompt loaded from file: {pf} ({len(task)} chars)[/dim]")
+
     if not remote and not session_exists():
         console.print("[red]No oa session. Run 'oa start' first.[/red]")
         raise typer.Exit(1)
@@ -430,6 +440,11 @@ def run(
     if not task:
         console.print("[red]No task provided. Pass a task argument or use --template.[/red]")
         raise typer.Exit(1)
+
+    # Warn if task looks suspiciously short (possible shell truncation due to special chars)
+    if len(task.strip()) < 10 and not template:
+        console.print(f"[yellow]⚠ Prompt is very short ({len(task.strip())} chars). If it was truncated by shell escaping, use --prompt-file instead.[/yellow]")
+        console.print("[yellow]  Example: echo 'your prompt' > /tmp/task.txt && oa run --prompt-file /tmp/task.txt[/yellow]")
 
     if strict:
         warnings = validate_prompt(task)

@@ -94,6 +94,30 @@ oa status
 | `--parent NAME` | Parent agent for nested hierarchies |
 | `--direct` | Write directly to codebase (skip proposals) |
 | `--workspace DIR` | Use existing workspace |
+| `--prompt-file FILE` | Read task from file (avoids shell escaping issues) |
+
+### Multi-line Prompts & Special Characters
+
+When your prompt contains single quotes, backticks, `$variables`, or spans multiple lines, use `--prompt-file` to avoid shell parsing issues:
+
+```bash
+# Write your prompt to a file
+cat > /tmp/task.txt << 'EOF'
+Refactor the `parse_user()` function in src/utils.py.
+It's broken when input contains $special chars or it's > 100 chars.
+EOF
+
+oa run --prompt-file /tmp/task.txt --model claude/sonnet
+```
+
+Or use a heredoc variable:
+```bash
+PROMPT=$(cat << 'EOF'
+Your multi-line prompt with 'quotes', `backticks`, and $variables here.
+EOF
+)
+oa run "$PROMPT" --model claude/sonnet
+```
 
 ---
 
