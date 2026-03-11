@@ -9,7 +9,7 @@
     "Glob",
     "Grep"
   ],
-  "modelHint": "anthropic/claude-haiku-4-5",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
   "atomic": true,
   "tags": [
     "communication"

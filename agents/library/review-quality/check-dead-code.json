@@ -15,6 +15,6 @@
     "dead-code",
     "cleanup"
   ],
-  "modelHint": "claude/haiku",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
   "id": "review-quality-check-dead-code"
 }

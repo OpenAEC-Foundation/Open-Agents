@@ -12,7 +12,7 @@
     "ssh"
   ],
   "maturity": "tool-capable",
-  "modelHint": "anthropic/claude-sonnet-4-20250514",
+  "modelHint": "anthropic/claude-sonnet-4-6",
   "tools": [
     "Bash",
     "Write"

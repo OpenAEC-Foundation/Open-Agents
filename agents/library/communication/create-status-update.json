@@ -15,6 +15,6 @@
     "update",
     "project"
   ],
-  "modelHint": "claude/sonnet",
+  "modelHint": "anthropic/claude-sonnet-4-6",
   "id": "communication-create-status-update"
 }

@@ -15,6 +15,6 @@
     "bugs",
     "quality"
   ],
-  "modelHint": "claude/sonnet",
+  "modelHint": "anthropic/claude-sonnet-4-6",
   "id": "core-find-bugs"
 }

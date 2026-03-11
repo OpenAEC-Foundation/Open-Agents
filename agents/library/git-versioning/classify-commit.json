@@ -11,6 +11,6 @@
     "commit",
     "classification"
   ],
-  "modelHint": "claude/haiku",
+  "modelHint": "anthropic/claude-haiku-4-5-20251001",
   "id": "git-versioning-classify-commit"
 }

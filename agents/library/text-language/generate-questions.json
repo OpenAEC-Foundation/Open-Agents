@@ -11,6 +11,6 @@
     "questions",
     "generation"
   ],
-  "modelHint": "claude/sonnet",
+  "modelHint": "anthropic/claude-sonnet-4-6",
   "id": "text-language-generate-questions"
 }

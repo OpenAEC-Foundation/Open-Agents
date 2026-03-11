@@ -16,6 +16,6 @@
     "client-script",
     "javascript"
   ],
-  "modelHint": "claude/sonnet",
+  "modelHint": "anthropic/claude-sonnet-4-6",
   "id": "erpnext-generate-client-script"
 }

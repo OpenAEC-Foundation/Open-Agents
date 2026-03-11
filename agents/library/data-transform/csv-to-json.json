@@ -11,6 +11,6 @@
     "csv",
     "json"
   ],
-  "modelHint": "claude/sonnet",
+  "modelHint": "anthropic/claude-sonnet-4-6",
   "id": "data-transform-csv-to-json"
 }

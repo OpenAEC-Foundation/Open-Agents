@@ -1,0 +1,11 @@
+{
+  "id": "infra-devops-argocd-deployment",
+  "name": "ArgoCD Deployment Controller",
+  "description": "Implements GitOps-based continuous deployment using ArgoCD for Kubernetes environments.",
+  "atomic": true,
+  "systemPrompt": "You are an ArgoCD deployment specialist. Your task is to implement GitOps-based deployment using ArgoCD. Follow best practices for application definitions, sync strategies, RBAC, and multi-cluster deployments. Output should be production-ready ArgoCD Application manifests with deployment strategies.",
+  "tools": [],
+  "tags": ["infra-devops"],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

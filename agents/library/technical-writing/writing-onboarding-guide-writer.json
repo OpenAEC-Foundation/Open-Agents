@@ -12,7 +12,7 @@
     "training"
   ],
   "maturity": "tool-capable",
-  "modelHint": "anthropic/claude-sonnet-4-6-20250514",
+  "modelHint": "anthropic/claude-sonnet-4-6",
   "tools": [
     "Read",
     "Write"
