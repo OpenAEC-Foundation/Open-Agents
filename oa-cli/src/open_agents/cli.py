@@ -1902,5 +1902,116 @@ def canvas_import(
             console.print(f"  [red]✗[/red] {step['name']}: {e}")
 
 
+# --- Graveyard sub-commands (#24) ---
+
+graveyard_app = typer.Typer(name="graveyard", help="Agent Graveyard: archive and resurrect finished agents.")
+app.add_typer(graveyard_app)
+
+
+@graveyard_app.command(name="list")
+def graveyard_list(
+    status: str = typer.Option(None, "--status", "-s", help="Filter by exit status (done/error/killed/failed/timeout)"),
+):
+    """List all archived agents in the graveyard."""
+    from .graveyard import AgentGraveyard
+
+    g = AgentGraveyard()
+    entries = g.list_archived(status_filter=status)
+    if not entries:
+        console.print("[yellow]Graveyard is empty.[/yellow]")
+        raise typer.Exit(0)
+
+    console.print(f"[bold]Graveyard[/bold] — {len(entries)} entr{'y' if len(entries) == 1 else 'ies'}\n")
+    for e in entries:
+        run_id = e.get("run_id", "?")
+        name = e.get("agent_name", "?")
+        exit_status = e.get("exit_status", "?")
+        archived_at = e.get("archived_at", "")[:10]
+        duration = e.get("duration_seconds")
+        dur_str = f"  {duration:.1f}s" if duration is not None else ""
+        color = "green" if exit_status == "done" else "red"
+        console.print(f"  [{color}]{exit_status:8}[/{color}]  [cyan]{run_id}[/cyan]  ({name})  {archived_at}{dur_str}")
+
+
+@graveyard_app.command(name="resurrect")
+def graveyard_resurrect(
+    run_id: str = typer.Argument(..., help="run_id of the archived agent to resurrect"),
+    task: str = typer.Option(None, "--task", "-t", help="Override the original task"),
+    model: str = typer.Option(None, "--model", "-m", help="Override the model (e.g. claude/sonnet)"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show spawn parameters without spawning"),
+):
+    """Resurrect an archived agent by spawning it again with its original task."""
+    from .graveyard import AgentGraveyard
+
+    g = AgentGraveyard()
+    params = g.resurrect(run_id, new_task=task)
+    if not params:
+        console.print(f"[red]No graveyard entry found for run_id: {run_id}[/red]")
+        raise typer.Exit(1)
+
+    effective_model = model or params["model"]
+    spawn_name = params["name"]
+    spawn_task = params["task"]
+
+    console.print(f"[bold cyan]Resurrect:[/bold cyan] {run_id} → [cyan]{spawn_name}[/cyan]")
+    console.print(f"  Task:  {spawn_task[:80]}{'…' if len(spawn_task) > 80 else ''}")
+    console.print(f"  Model: {effective_model}")
+
+    if dry_run:
+        console.print("[dim]--dry-run: agent not spawned.[/dim]")
+        return
+
+    if not session_exists():
+        console.print("[red]No oa session running. Run 'oa start' first.[/red]")
+        raise typer.Exit(1)
+
+    try:
+        rec = spawn_agent(name=spawn_name, task=spawn_task, model=effective_model)
+        console.print(f"[green]✓ Resurrected as '{rec.name}'[/green]  (workspace: {rec.workspace})")
+    except RuntimeError as e:
+        console.print(f"[red]Spawn failed: {e}[/red]")
+        raise typer.Exit(1)
+
+
+# --- Docs sub-commands (#46) ---
+
+docs_app = typer.Typer(name="docs", help="Documentation generator for agent templates.")
+app.add_typer(docs_app)
+
+
+@docs_app.command(name="generate")
+def docs_generate(
+    library_dir: str = typer.Option(None, "--library", "-l", help="Path to agents/library dir (overrides default)"),
+    output: str = typer.Option(None, "--output", "-o", help="Write report to this path instead of ~/.oa/doc-report.md"),
+    no_changelog: bool = typer.Option(False, "--no-changelog", help="Skip CHANGELOG.md update"),
+):
+    """Generate documentation from agent library templates and update CHANGELOG."""
+    from .doc_generator import DocGenerator
+
+    gen = DocGenerator(library_dir=library_dir)
+    report = gen.generate_template_docs()
+
+    if output:
+        try:
+            Path(output).write_text(report, encoding="utf-8")
+            console.print(f"[green]Report written to:[/green] {output}")
+        except OSError as exc:
+            console.print(f"[red]Could not write to {output}: {exc}[/red]")
+            raise typer.Exit(1)
+    else:
+        from .doc_generator import REPORT_PATH
+        console.print(f"[green]Report written to:[/green] {REPORT_PATH}")
+
+    score = gen.get_quality_score()
+    console.print(f"[bold]Quality score:[/bold] {score:.1%}  ({len(gen._load_templates())} templates)")
+
+    if not no_changelog:
+        ok = gen.update_changelog("docs regenerated")
+        if ok:
+            console.print("[green]CHANGELOG.md updated.[/green]")
+        else:
+            console.print("[yellow]Could not update CHANGELOG.md (file may not exist).[/yellow]")
+
+
 if __name__ == "__main__":
     app()
