@@ -19,6 +19,7 @@
 <br/><br/>
 
 <img src="https://img.shields.io/badge/1612%2B-Agent%20Templates-D97706?style=for-the-badge" alt="1612+ Agent Templates"/>
+<img src="https://img.shields.io/badge/150%2B-Skills-EA580C?style=for-the-badge" alt="150+ Skills"/>
 <img src="https://img.shields.io/badge/112-Categories-EA580C?style=for-the-badge" alt="112 Categories"/>
 <img src="https://img.shields.io/badge/21%2B-CLI%20Commands-D97706?style=for-the-badge" alt="21+ CLI Commands"/>
 <img src="https://img.shields.io/badge/Zero-API%20Costs-16A34A?style=for-the-badge" alt="Zero API Costs"/>
