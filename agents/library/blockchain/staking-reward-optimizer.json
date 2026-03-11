@@ -11,5 +11,8 @@
   "atomic": true,
   "maturity": "tool-capable",
   "version": "1.0.0",
-  "created": "2026-03-10"
+  "created": "2026-03-10",
+  "tags": [
+    "blockchain"
+  ]
 }

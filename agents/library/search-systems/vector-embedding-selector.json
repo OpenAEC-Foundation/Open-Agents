@@ -4,10 +4,16 @@
   "category": "search-systems",
   "description": "Evaluates and selects appropriate vector embedding models for search applications based on content types and requirements",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "systemPrompt": "You are an embedding models expert. Evaluate different vector embedding models, compare their characteristics, and recommend optimal choices based on content types, dimensionality requirements, and performance needs.",
   "inputFormat": "Content domain, dimensionality constraints, latency requirements, budget considerations, available models",
-  "outputFormat": "Embedding model recommendations, comparative analysis, implementation specifications"
+  "outputFormat": "Embedding model recommendations, comparative analysis, implementation specifications",
+  "tags": [
+    "search-systems"
+  ]
 }

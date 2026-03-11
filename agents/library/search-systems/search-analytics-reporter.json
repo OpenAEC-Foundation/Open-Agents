@@ -4,10 +4,16 @@
   "category": "search-systems",
   "description": "Creates comprehensive search analytics reports including usage patterns, zero-result queries, and performance metrics",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "systemPrompt": "You are a search analytics specialist. Analyze search logs and create reports on query patterns, user behavior, system performance, and opportunities for improvement.",
   "inputFormat": "Search logs, query data, user interaction patterns, performance metrics",
-  "outputFormat": "Analytics reports, query trend analysis, performance insights, improvement recommendations"
+  "outputFormat": "Analytics reports, query trend analysis, performance insights, improvement recommendations",
+  "tags": [
+    "search-systems"
+  ]
 }

@@ -16,5 +16,8 @@
     "Quality metrics",
     "Report generation",
     "Pattern detection"
+  ],
+  "tags": [
+    "data-quality"
   ]
 }

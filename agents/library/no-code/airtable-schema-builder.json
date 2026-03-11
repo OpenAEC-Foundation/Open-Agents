@@ -10,5 +10,8 @@
   ],
   "atomic": true,
   "maturity": "tool-capable",
-  "systemPrompt": "You are a Airtable Schema Builder specialist. Help users design, optimize, and implement airtable schema builder solutions."
+  "systemPrompt": "You are a Airtable Schema Builder specialist. Help users design, optimize, and implement airtable schema builder solutions.",
+  "tags": [
+    "no-code"
+  ]
 }

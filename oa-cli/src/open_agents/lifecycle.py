@@ -17,6 +17,7 @@ from .config import load_config
 from .tmux import SESSION_NAME, _tmux
 from .workspace import cleanup_workspace, workspace_is_done
 from . import hooks as _hooks
+from . import telemetry as _telemetry
 
 _config = load_config()
 TIMEOUT_MINUTES = _config.get("timeout_minutes", 60)
@@ -52,6 +53,11 @@ def check_agent(name: str) -> str | None:
             except Exception:
                 pass
             update_agent(name, status="done", finished_at=now, last_activity=now)
+            if rec.run_id:
+                try:
+                    _telemetry.finish_run(rec.run_id, exit_status="success")
+                except Exception:
+                    pass
             if rec.shared_results_dir:
                 _write_shared_result(rec)
             _hook_env = {
@@ -83,6 +89,11 @@ def check_agent(name: str) -> str | None:
             return "running"
 
         update_agent(name, status="done", finished_at=now, last_activity=now)
+        if rec.run_id:
+            try:
+                _telemetry.finish_run(rec.run_id, exit_status="success")
+            except Exception:
+                pass
 
         # Schrijf result naar shared_results_dir als beschikbaar
         if rec.shared_results_dir:
@@ -105,6 +116,11 @@ def check_agent(name: str) -> str | None:
     )
     if result.returncode != 0:
         update_agent(name, status="failed", finished_at=now, last_activity=now)
+        if rec.run_id:
+            try:
+                _telemetry.finish_run(rec.run_id, exit_status="failed")
+            except Exception:
+                pass
         _hook_env = {
             "OA_AGENT_NAME": name,
             "OA_RUN_ID": name,
@@ -119,6 +135,11 @@ def check_agent(name: str) -> str | None:
     if rec.tmux_window not in windows:
         # Window gone but no .done — agent crashed or was killed externally
         update_agent(name, status="error", finished_at=now, last_activity=now)
+        if rec.run_id:
+            try:
+                _telemetry.finish_run(rec.run_id, exit_status="error")
+            except Exception:
+                pass
         _hook_env = {
             "OA_AGENT_NAME": name,
             "OA_RUN_ID": name,
@@ -138,6 +159,11 @@ def check_agent(name: str) -> str | None:
             check=False,
         )
         update_agent(name, status="timeout", finished_at=now, last_activity=now)
+        if rec.run_id:
+            try:
+                _telemetry.finish_run(rec.run_id, exit_status="timeout")
+            except Exception:
+                pass
         _hook_env = {
             "OA_AGENT_NAME": name,
             "OA_RUN_ID": name,

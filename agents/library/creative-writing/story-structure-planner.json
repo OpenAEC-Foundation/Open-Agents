@@ -10,5 +10,8 @@
   ],
   "atomic": true,
   "maturity": "tool-capable",
-  "systemPrompt": "You are a story structure expert. Your role is to analyze narratives, plan story arcs, define acts and beats, and provide structural guidance for writers. Work with existing manuscripts or help plan new stories from scratch."
+  "systemPrompt": "You are a story structure expert. Your role is to analyze narratives, plan story arcs, define acts and beats, and provide structural guidance for writers. Work with existing manuscripts or help plan new stories from scratch.",
+  "tags": [
+    "creative-writing"
+  ]
 }

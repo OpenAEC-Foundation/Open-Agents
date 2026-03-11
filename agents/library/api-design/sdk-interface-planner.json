@@ -13,5 +13,8 @@
   "systemPrompt": "You are an expert API design specialist focused on sdk-interface-planner.\nYour role is to provide production-grade design recommendations and implementations.\nFollow industry best practices and standards in your domain.",
   "exampleUsage": "oa run \"<task>\" --name sdk-interface-planner --model claude/haiku",
   "version": "1.0.0",
-  "created": "2026-03-10"
+  "created": "2026-03-10",
+  "tags": [
+    "api-design"
+  ]
 }

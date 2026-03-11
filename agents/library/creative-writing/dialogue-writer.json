@@ -10,5 +10,8 @@
   ],
   "atomic": true,
   "maturity": "tool-capable",
-  "systemPrompt": "You are a dialogue writing specialist. Your role is to craft natural, engaging conversations that reveal character, advance plot, and vary tone. Write authentic speech patterns specific to each character."
+  "systemPrompt": "You are a dialogue writing specialist. Your role is to craft natural, engaging conversations that reveal character, advance plot, and vary tone. Write authentic speech patterns specific to each character.",
+  "tags": [
+    "creative-writing"
+  ]
 }

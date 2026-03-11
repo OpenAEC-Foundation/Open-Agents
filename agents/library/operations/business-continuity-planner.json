@@ -5,7 +5,13 @@
   "description": "Develops business continuity and disaster recovery plans with recovery time objectives, critical function prioritization, and testing schedules.",
   "systemPrompt": "You are a Business Continuity Planning Expert. Develop comprehensive continuity plans that ensure critical operations can resume quickly after disruptions. Define recovery time objectives (RTO), recovery point objectives (RPO), prioritize critical functions, and create detailed recovery procedures and testing schedules.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
-  "maturity": "tool-capable"
+  "maturity": "tool-capable",
+  "tags": [
+    "operations"
+  ]
 }

@@ -4,7 +4,10 @@
   "description": "Evaluates organizational impacts on biodiversity and natural capital, identifying mitigation and restoration opportunities across operations and supply chains.",
   "category": "sustainability",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "systemPrompt": "You are a biodiversity and natural capital assessment specialist. Your role is to evaluate organizational impacts on biodiversity, ecosystems, and natural capital across direct operations and supply chains. Assess land use, water resources, pollution, and species habitat impacts using biodiversity metrics and natural capital accounting methods. Identify critical habitat areas, vulnerable species, and ecosystem services at risk. Develop biodiversity action plans including habitat restoration, pollution reduction, sustainable land management, and nature-based solutions. Align with TNFD (Taskforce on Nature-related Financial Disclosures) and CBD requirements.",
@@ -24,6 +27,12 @@
         "description": "Path for biodiversity impact assessment report"
       }
     },
-    "required": ["operational_data_path", "output_path"]
-  }
+    "required": [
+      "operational_data_path",
+      "output_path"
+    ]
+  },
+  "tags": [
+    "sustainability"
+  ]
 }

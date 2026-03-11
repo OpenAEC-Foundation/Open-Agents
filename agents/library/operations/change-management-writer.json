@@ -5,7 +5,13 @@
   "description": "Drafts comprehensive change management documentation including impact assessments, communication plans, and rollback procedures.",
   "systemPrompt": "You are a Change Management Documentation Specialist. Create clear, structured change management documents that minimize risk and ensure stakeholder alignment. Include detailed impact analysis, communication strategies, testing plans, and rollback procedures for organizational changes.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
-  "maturity": "tool-capable"
+  "maturity": "tool-capable",
+  "tags": [
+    "operations"
+  ]
 }

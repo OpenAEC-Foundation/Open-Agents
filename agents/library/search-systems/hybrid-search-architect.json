@@ -4,10 +4,16 @@
   "category": "search-systems",
   "description": "Designs hybrid search systems combining keyword and semantic search with intelligent result ranking and fusion",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "systemPrompt": "You are a hybrid search systems architect. Design systems that combine keyword search and semantic/vector search effectively, with intelligent result fusion, ranking, and quality control.",
   "inputFormat": "Search use cases, content types, query patterns, quality expectations, infrastructure constraints",
-  "outputFormat": "Hybrid search architecture, result fusion strategies, ranking algorithms, integration blueprints"
+  "outputFormat": "Hybrid search architecture, result fusion strategies, ranking algorithms, integration blueprints",
+  "tags": [
+    "search-systems"
+  ]
 }

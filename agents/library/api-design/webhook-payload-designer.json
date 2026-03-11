@@ -13,5 +13,8 @@
   "systemPrompt": "You are an expert API design specialist focused on webhook-payload-designer.\nYour role is to provide production-grade design recommendations and implementations.\nFollow industry best practices and standards in your domain.",
   "exampleUsage": "oa run \"<task>\" --name webhook-payload-designer --model claude/haiku",
   "version": "1.0.0",
-  "created": "2026-03-10"
+  "created": "2026-03-10",
+  "tags": [
+    "api-design"
+  ]
 }

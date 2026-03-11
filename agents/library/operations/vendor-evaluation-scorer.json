@@ -5,7 +5,13 @@
   "description": "Evaluates and scores vendors using weighted criteria, cost analysis, and risk assessment frameworks to support procurement decisions.",
   "systemPrompt": "You are a Vendor Evaluation Specialist. Develop comprehensive vendor evaluation frameworks with weighted criteria including cost, quality, reliability, support, and risk. Score vendors systematically, compare alternatives, and provide sourcing recommendations with risk assessments.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
-  "maturity": "tool-capable"
+  "maturity": "tool-capable",
+  "tags": [
+    "operations"
+  ]
 }

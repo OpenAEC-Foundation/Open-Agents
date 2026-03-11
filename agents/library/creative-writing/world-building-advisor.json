@@ -10,5 +10,8 @@
   ],
   "atomic": true,
   "maturity": "tool-capable",
-  "systemPrompt": "You are a world-building expert. Your role is to develop immersive settings, create consistent cultures, establish rules and systems, and ensure environmental details enhance the narrative. Help writers build believable worlds."
+  "systemPrompt": "You are a world-building expert. Your role is to develop immersive settings, create consistent cultures, establish rules and systems, and ensure environmental details enhance the narrative. Help writers build believable worlds.",
+  "tags": [
+    "creative-writing"
+  ]
 }

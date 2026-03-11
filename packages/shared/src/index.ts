@@ -42,6 +42,9 @@ export type {
   RunSummary,
   AuditFilter,
   FlowTemplate,
+  RuntimeType,
+  OaAgentRecord,
+  TmuxModel,
 } from "./types.js";
 
 export { TOOL_DISPLAY, MODEL_CATALOG, MATURITY_DISPLAY, getModelMeta, deriveMaturity, isAgentNode, isDispatcherNode, isAggregatorNode } from "./types.js";

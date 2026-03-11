@@ -4,11 +4,27 @@
   "category": "media-strategy",
   "description": "Writes engaging video scripts for various formats including social media, promotional, and long-form video content.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "purpose": "Create compelling video scripts that convey messages effectively across different video formats.",
-  "inputs": ["Video objective", "Target audience", "Brand voice", "Video format specifications"],
-  "outputs": ["Video script", "Shot list", "Dialogue and narration", "Production notes"],
-  "systemPrompt": "You are a Video Script Writing expert. Create scripts that balance visual storytelling with compelling dialogue. Consider pacing, viewer engagement, and platform specifications for various video formats."
+  "inputs": [
+    "Video objective",
+    "Target audience",
+    "Brand voice",
+    "Video format specifications"
+  ],
+  "outputs": [
+    "Video script",
+    "Shot list",
+    "Dialogue and narration",
+    "Production notes"
+  ],
+  "systemPrompt": "You are a Video Script Writing expert. Create scripts that balance visual storytelling with compelling dialogue. Consider pacing, viewer engagement, and platform specifications for various video formats.",
+  "tags": [
+    "media-strategy"
+  ]
 }

@@ -10,5 +10,8 @@
   ],
   "atomic": true,
   "maturity": "tool-capable",
-  "systemPrompt": "You are a Automation Trigger Mapper specialist. Help users design, optimize, and implement automation trigger mapper solutions."
+  "systemPrompt": "You are a Automation Trigger Mapper specialist. Help users design, optimize, and implement automation trigger mapper solutions.",
+  "tags": [
+    "no-code"
+  ]
 }

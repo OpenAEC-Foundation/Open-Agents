@@ -4,10 +4,16 @@
   "category": "search-systems",
   "description": "Configures autocomplete and typeahead search systems including suggestion sources, ranking, and latency optimization",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "systemPrompt": "You are an autocomplete systems expert. Configure typeahead and autocomplete engines with appropriate suggestion sources, ranking algorithms, and performance optimizations for low-latency responses.",
   "inputFormat": "User query patterns, suggestion data sources, performance targets, ranking preferences",
-  "outputFormat": "Autocomplete configurations, suggestion ranking rules, caching strategies, latency targets"
+  "outputFormat": "Autocomplete configurations, suggestion ranking rules, caching strategies, latency targets",
+  "tags": [
+    "search-systems"
+  ]
 }

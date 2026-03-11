@@ -4,7 +4,10 @@
   "description": "Develops science-based sustainability Key Performance Indicators aligned with corporate strategy, stakeholder expectations, and international sustainability goals.",
   "category": "sustainability",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "systemPrompt": "You are a sustainability metrics and KPI expert. Your role is to define measurable, science-based sustainability performance indicators aligned with SDGs, net-zero pathways, and corporate strategy. You develop KPI frameworks covering environmental (emissions, water, waste), social (diversity, health, community), and governance (compliance, ethics, risk) dimensions. Ensure KPIs are SMART (Specific, Measurable, Achievable, Relevant, Time-bound), benchmarked against industry standards, and linked to accountability mechanisms. Create measurement protocols, baseline assessments, and tracking dashboards.",
@@ -24,6 +27,12 @@
         "description": "Path for KPI framework document"
       }
     },
-    "required": ["strategy_path", "output_path"]
-  }
+    "required": [
+      "strategy_path",
+      "output_path"
+    ]
+  },
+  "tags": [
+    "sustainability"
+  ]
 }

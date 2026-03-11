@@ -10,5 +10,8 @@
   ],
   "atomic": true,
   "maturity": "tool-capable",
-  "systemPrompt": "You are a Retool App Designer specialist. Help users design, optimize, and implement retool app designer solutions."
+  "systemPrompt": "You are a Retool App Designer specialist. Help users design, optimize, and implement retool app designer solutions.",
+  "tags": [
+    "no-code"
+  ]
 }

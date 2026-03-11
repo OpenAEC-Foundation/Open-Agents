@@ -16,5 +16,8 @@
     "domain": "database-operations"
   },
   "inputFormat": "markdown-context",
-  "outputFormat": "structured-analysis"
+  "outputFormat": "structured-analysis",
+  "tags": [
+    "database"
+  ]
 }

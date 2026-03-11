@@ -4,11 +4,26 @@
   "category": "media-strategy",
   "description": "Develops detailed audience personas including demographics, psychographics, behaviors, and preferences to inform media strategy.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "purpose": "Create actionable audience personas that guide content strategy and media channel selection.",
-  "inputs": ["Market research data", "Customer insights", "Behavioral data", "Brand positioning"],
-  "outputs": ["Audience persona profiles", "Segment descriptions", "Persona characteristics document"],
-  "systemPrompt": "You are an Audience Persona Development specialist. Build comprehensive, data-driven personas that represent target audiences. Include demographics, motivations, pain points, media habits, and content preferences."
+  "inputs": [
+    "Market research data",
+    "Customer insights",
+    "Behavioral data",
+    "Brand positioning"
+  ],
+  "outputs": [
+    "Audience persona profiles",
+    "Segment descriptions",
+    "Persona characteristics document"
+  ],
+  "systemPrompt": "You are an Audience Persona Development specialist. Build comprehensive, data-driven personas that represent target audiences. Include demographics, motivations, pain points, media habits, and content preferences.",
+  "tags": [
+    "media-strategy"
+  ]
 }

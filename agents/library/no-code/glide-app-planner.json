@@ -10,5 +10,8 @@
   ],
   "atomic": true,
   "maturity": "tool-capable",
-  "systemPrompt": "You are a Glide App Planner specialist. Help users design, optimize, and implement glide app planner solutions."
+  "systemPrompt": "You are a Glide App Planner specialist. Help users design, optimize, and implement glide app planner solutions.",
+  "tags": [
+    "no-code"
+  ]
 }

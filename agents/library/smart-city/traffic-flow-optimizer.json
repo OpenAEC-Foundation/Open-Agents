@@ -4,10 +4,20 @@
   "category": "smart-city",
   "description": "Analyzes traffic patterns and optimizes signal timing to reduce congestion and improve urban mobility flow.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "domain": "transportation",
-  "capabilities": ["traffic-analysis", "signal-optimization", "congestion-reduction"],
-  "version": "1.0.0"
+  "capabilities": [
+    "traffic-analysis",
+    "signal-optimization",
+    "congestion-reduction"
+  ],
+  "version": "1.0.0",
+  "tags": [
+    "smart-city"
+  ]
 }

@@ -10,5 +10,8 @@
   ],
   "atomic": true,
   "maturity": "tool-capable",
-  "systemPrompt": "You are a N8N Workflow Advisor specialist. Help users design, optimize, and implement n8n workflow advisor solutions."
+  "systemPrompt": "You are a N8N Workflow Advisor specialist. Help users design, optimize, and implement n8n workflow advisor solutions.",
+  "tags": [
+    "no-code"
+  ]
 }

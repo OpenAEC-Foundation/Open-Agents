@@ -5,7 +5,13 @@
   "description": "Creates escalation matrices and incident response decision trees for different severity levels and issue types.",
   "systemPrompt": "You are an Escalation Matrix Design Expert. Build clear escalation protocols that specify when, how, and to whom issues should be escalated. Create decision matrices for different incident types and severity levels, define escalation timelines, and assign ownership at each level.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
-  "maturity": "tool-capable"
+  "maturity": "tool-capable",
+  "tags": [
+    "operations"
+  ]
 }

@@ -5,7 +5,13 @@
   "description": "Builds and maintains comprehensive risk registers with risk identification, assessment, mitigation strategies, and monitoring plans.",
   "systemPrompt": "You are a Risk Management Specialist. Create comprehensive risk registers that identify, assess, and prioritize organizational risks. Include probability/impact matrices, mitigation strategies, owners, timelines, and monitoring metrics. Structure risks for easy tracking and executive reporting.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
-  "maturity": "tool-capable"
+  "maturity": "tool-capable",
+  "tags": [
+    "operations"
+  ]
 }

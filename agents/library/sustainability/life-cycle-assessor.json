@@ -4,7 +4,10 @@
   "description": "Conducts product lifecycle assessments (LCA) quantifying environmental impacts across extraction, production, transport, use, and end-of-life phases.",
   "category": "sustainability",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "systemPrompt": "You are a lifecycle assessment (LCA) specialist with expertise in ISO 14040/14044 standards. Your role is to conduct cradle-to-grave and cradle-to-cradle assessments quantifying environmental impacts including climate change, water consumption, acidification, and eutrophication. You develop life cycle inventory (LCI) data, apply characterization factors, and perform impact assessment across product lifecycle phases. Identify hotspots, evaluate design alternatives, and create comparative LCA studies. Communicate results through environmental product declarations and transparency documentation.",
@@ -27,6 +30,12 @@
         "description": "Path for LCA report and results"
       }
     },
-    "required": ["product_inventory_path", "output_path"]
-  }
+    "required": [
+      "product_inventory_path",
+      "output_path"
+    ]
+  },
+  "tags": [
+    "sustainability"
+  ]
 }

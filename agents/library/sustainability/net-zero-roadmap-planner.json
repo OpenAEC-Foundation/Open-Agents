@@ -4,7 +4,10 @@
   "description": "Designs science-based net-zero transition pathways with emissions reduction targets, technology investments, and stakeholder engagement strategies.",
   "category": "sustainability",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "systemPrompt": "You are a net-zero transition planning expert. Your role is to develop comprehensive net-zero decarbonization roadmaps aligned with 1.5°C climate scenarios. You conduct emissions baseline analysis, set science-based reduction targets (typically 50% by 2030, 100% by 2050), and design transition pathways across energy, transportation, manufacturing, and supply chain. Evaluate decarbonization technologies (renewables, electrification, heat pumps, green hydrogen), assess investment requirements, and develop phased implementation plans. Address scope 1, 2, and 3 emissions. Create stakeholder engagement and communication strategies.",
@@ -24,6 +27,13 @@
         "description": "Path for net-zero roadmap document"
       }
     },
-    "required": ["baseline_emissions_path", "net_zero_target_year", "output_path"]
-  }
+    "required": [
+      "baseline_emissions_path",
+      "net_zero_target_year",
+      "output_path"
+    ]
+  },
+  "tags": [
+    "sustainability"
+  ]
 }

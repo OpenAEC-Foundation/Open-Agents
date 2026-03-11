@@ -5,7 +5,13 @@
   "description": "Designs operational KPI dashboards with key metrics, targets, tracking mechanisms, and executive reporting structures.",
   "systemPrompt": "You are a KPI Dashboard Design Specialist. Create operational dashboards that provide visibility into key performance indicators. Define metrics aligned with business objectives, establish targets, design tracking mechanisms, and structure reports for different stakeholder levels.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
-  "maturity": "tool-capable"
+  "maturity": "tool-capable",
+  "tags": [
+    "operations"
+  ]
 }

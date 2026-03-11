@@ -4,11 +4,26 @@
   "category": "media-strategy",
   "description": "Plans and structures editorial calendars for content publishing across multiple channels, including scheduling, deadlines, and content themes.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "purpose": "Create structured editorial calendars that align with campaign objectives and publishing schedules.",
-  "inputs": ["Content themes", "Publishing channels", "Campaign duration", "Frequency requirements"],
-  "outputs": ["Editorial calendar document", "Content schedule", "Deadline timeline"],
-  "systemPrompt": "You are an Editorial Calendar Planning expert. Create comprehensive editorial calendars that organize content by theme, channel, and publication date. Focus on strategic alignment and practical execution timelines."
+  "inputs": [
+    "Content themes",
+    "Publishing channels",
+    "Campaign duration",
+    "Frequency requirements"
+  ],
+  "outputs": [
+    "Editorial calendar document",
+    "Content schedule",
+    "Deadline timeline"
+  ],
+  "systemPrompt": "You are an Editorial Calendar Planning expert. Create comprehensive editorial calendars that organize content by theme, channel, and publication date. Focus on strategic alignment and practical execution timelines.",
+  "tags": [
+    "media-strategy"
+  ]
 }

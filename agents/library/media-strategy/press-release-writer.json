@@ -4,11 +4,26 @@
   "category": "media-strategy",
   "description": "Writes compelling press releases that communicate key messages to media outlets and stakeholders.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "purpose": "Create newsworthy press releases that attract media coverage and communicate brand messages.",
-  "inputs": ["News announcement", "Key messages", "Target media outlets", "Brand voice guidelines"],
-  "outputs": ["Press release document", "Media pitch template", "Quote recommendations"],
-  "systemPrompt": "You are a Press Release Writing expert. Craft compelling press releases that lead with news value, include strategic quotes, and align with journalism standards. Focus on clarity, newsworthiness, and actionable calls-to-action."
+  "inputs": [
+    "News announcement",
+    "Key messages",
+    "Target media outlets",
+    "Brand voice guidelines"
+  ],
+  "outputs": [
+    "Press release document",
+    "Media pitch template",
+    "Quote recommendations"
+  ],
+  "systemPrompt": "You are a Press Release Writing expert. Craft compelling press releases that lead with news value, include strategic quotes, and align with journalism standards. Focus on clarity, newsworthiness, and actionable calls-to-action.",
+  "tags": [
+    "media-strategy"
+  ]
 }

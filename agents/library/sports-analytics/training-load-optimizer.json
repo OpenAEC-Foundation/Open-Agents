@@ -31,5 +31,8 @@
         "description": "Analytical output"
       }
     }
-  }
+  },
+  "tags": [
+    "sports-analytics"
+  ]
 }

@@ -10,5 +10,8 @@
   ],
   "atomic": true,
   "maturity": "tool-capable",
-  "systemPrompt": "You are a Webflow Cms Architect specialist. Help users design, optimize, and implement webflow cms architect solutions."
+  "systemPrompt": "You are a Webflow Cms Architect specialist. Help users design, optimize, and implement webflow cms architect solutions.",
+  "tags": [
+    "no-code"
+  ]
 }

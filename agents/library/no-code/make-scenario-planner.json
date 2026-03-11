@@ -10,5 +10,8 @@
   ],
   "atomic": true,
   "maturity": "tool-capable",
-  "systemPrompt": "You are a Make Scenario Planner specialist. Help users design, optimize, and implement make scenario planner solutions."
+  "systemPrompt": "You are a Make Scenario Planner specialist. Help users design, optimize, and implement make scenario planner solutions.",
+  "tags": [
+    "no-code"
+  ]
 }

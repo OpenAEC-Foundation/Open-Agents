@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120" width="480" height="120">
+  <title>OpenAEC Foundation — Logo (white on dark / monochrome)</title>
+  <rect width="480" height="120" rx="12" fill="#36363E"/>
+
+  <!-- Symbol (scaled down, monochrome white) -->
+  <g transform="translate(60,60) scale(0.55)">
+    <polygon points="-65,-23 0,15 0,82 -65,45" fill="#FAFAF9" fill-opacity="0.15" stroke="#FAFAF9" stroke-width="3.2" stroke-linejoin="round"/>
+    <polygon points="0,-58 65,-23 0,15 -65,-23" fill="#FAFAF9" fill-opacity="0.08" stroke="#FAFAF9" stroke-width="3.2" stroke-linejoin="round"/>
+    <line x1="65" y1="-23" x2="65" y2="45" stroke="#FAFAF9" stroke-width="3.2" stroke-linecap="round"/>
+    <line x1="0" y1="82" x2="65" y2="45" stroke="#FAFAF9" stroke-width="3.2" stroke-linecap="round"/>
+    <line x1="-65" y1="45" x2="0" y2="82" stroke="#FAFAF9" stroke-width="3.2" stroke-linecap="round"/>
+    <polygon points="65,-23 0,15 0,35 65,0" fill="#FAFAF9" fill-opacity="0.05"/>
+    <line x1="0" y1="15" x2="0" y2="35" stroke="#FAFAF9" stroke-width="3.2" stroke-linecap="round"/>
+    <line x1="0" y1="35" x2="65" y2="0" stroke="#FAFAF9" stroke-width="2.8" stroke-linecap="round"/>
+    <line x1="0" y1="35" x2="-30" y2="52" stroke="#FAFAF9" stroke-width="1.5" opacity="0.35"/>
+    <line x1="65" y1="0" x2="35" y2="17" stroke="#FAFAF9" stroke-width="1.5" opacity="0.35"/>
+    <polygon points="-45,-4 -35,-10 -35,-3 -45,3" fill="none" stroke="#FAFAF9" stroke-width="1.5" opacity="0.5"/>
+    <polygon points="-30,-12 -20,-18 -20,-11 -30,-5" fill="none" stroke="#FAFAF9" stroke-width="1.5" opacity="0.5"/>
+    <polygon points="-45,14 -35,8 -35,15 -45,21" fill="none" stroke="#FAFAF9" stroke-width="1.5" opacity="0.5"/>
+    <polygon points="-30,6 -20,0 -20,7 -30,13" fill="none" stroke="#FAFAF9" stroke-width="1.5" opacity="0.5"/>
+  </g>
+
+  <!-- Wordmark (monochrome white) -->
+  <text x="115" y="53" font-family="'Space Grotesk', system-ui, sans-serif" font-weight="700" font-size="36" fill="#FAFAF9" letter-spacing="-0.02em">
+    OpenAEC
+  </text>
+  <text x="116" y="78" font-family="'Inter', system-ui, sans-serif" font-weight="400" font-size="11.5" fill="#A1A1AA" letter-spacing="0.03em">
+    Build free. Build together.
+  </text>
+</svg>

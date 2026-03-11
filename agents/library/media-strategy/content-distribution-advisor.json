@@ -4,11 +4,26 @@
   "category": "media-strategy",
   "description": "Recommends optimal distribution channels and strategies for content based on audience analysis and platform characteristics.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "purpose": "Guide content distribution decisions across channels for maximum reach and engagement.",
-  "inputs": ["Content type", "Target audience", "Campaign goals", "Platform analytics"],
-  "outputs": ["Distribution strategy document", "Channel recommendations", "Timing guidelines"],
-  "systemPrompt": "You are a Content Distribution strategist. Analyze content types and audiences to recommend optimal distribution channels. Consider platform algorithms, audience presence, and engagement patterns."
+  "inputs": [
+    "Content type",
+    "Target audience",
+    "Campaign goals",
+    "Platform analytics"
+  ],
+  "outputs": [
+    "Distribution strategy document",
+    "Channel recommendations",
+    "Timing guidelines"
+  ],
+  "systemPrompt": "You are a Content Distribution strategist. Analyze content types and audiences to recommend optimal distribution channels. Consider platform algorithms, audience presence, and engagement patterns.",
+  "tags": [
+    "media-strategy"
+  ]
 }

@@ -4,7 +4,7 @@
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
 > **Laatste update**: 2026-03-11
-> **Status**: v0.2.0 released — Sprint 13-15 Done — Sprint 16 (A2A) In Progress — Sprint 17 (Agent Teams) Done — Sprint 18 (Dashboard UI) Done — Sprint 19 (Session Persistence) Done — Sprint 20 (Desktop+Web) In Progress — Sprint 21 (oa-cli Product) Done — Sprint 22 (Quality Gates) Done — Sprint 23-26 Done — Agent Library: 714+ templates (32 categories) — 22 skills gebouwd
+> **Status**: v0.2.0 released — Sprint 13-15 Done — Sprint 16 (A2A) In Progress — Sprint 17 (Agent Teams) Done — Sprint 18 (Dashboard UI) Done — Sprint 19 (Session Persistence) Done — Sprint 20 (Desktop+Web) In Progress — Sprint 21 (oa-cli Product) Done — Sprint 22 (Quality Gates) Done — Sprint 23-26 Done — Agent Library: 1580+ templates (106 categories) — 22 skills gebouwd
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -27,7 +27,7 @@
 | Frappe App | 1 | 1 |
 | Library Ecosystem (10 types) | 0 | 10 |
 | LLM Asset Generation (Factory) | 1 | 1 |
-| Agent Library (doel: 1015+) | 714 | 1015 |
+| Agent Library (doel: 1015+) | 1580 | 1580 |
 | CLI Agentic Layer (oa-cli) | 1 | 1 |
 | VS Code Bridge (Sprint 11) | 0 | 1 |
 | Agent Teams Patterns (Sprint 17) | 12 | 12 |
@@ -46,7 +46,7 @@
 **Fase 4c (Assistant)**: ████████████████████ **100%** - AI assembly assistant sidebar (Sprint 6c)
 **Fase 5 (Deployment)**: ████████████████████ **100%** - VS Code extension (Sprint 7) + Frappe app (Sprint 8)
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
-**Fase 7 (Agent Library)**: ██████████████░░░░░░ **70%** - 714/1015 agents geïmplementeerd (32 directory-categorieën: aec-blender/bonsai/cross/ifcopenshell/sverchok, code-dev, communication, core, data-transform, erpnext, file-system, git-versioning, research, review-quality, text-language, analytics, blockchain, healthcare, iot, audio, video, image-processing, legal, marketing, product-management, security, devops, mobile, physics, education, finance, logistics)
+**Fase 7 (Agent Library)**: ████████████████████ **100%** - 1580+ agents geïmplementeerd in 106 categorieën (doel van 1015 ruimschoots behaald)
 **Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond), v0.2.0 released 2026-03-02
 **Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 21+ commando's, Textual TUI, pipeline orchestrator, React web UI; checkpoints en resume geïmplementeerd
 **Fase 10 (VS Code Bridge)**: ████████████████░░░░ **80%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator, package migratie, launch config werkend; shared types mergen, test-workspace, CLI tool integreren bij agent sprint11-finisher
@@ -257,7 +257,7 @@
 - [x] Launch configuratie (.vscode/launch.json)
 
 **Pending**:
-- [ ] Shared types mergen (bridge events, agent types, constants) — delegate: sprint11-finisher
+- [x] Shared types mergen (bridge events, agent types, constants) — delegate: sprint11-finisher
 - [ ] test-workspace migreren — delegate: sprint11-finisher
 - [ ] CLI tool integreren — delegate: sprint11-finisher
 - [ ] E2E verificatie: canvas → cli/claude agent → terminal → result
@@ -400,7 +400,7 @@
 - [ ] PipelinePanel API integration + polling logic
 - [ ] TaskBoard API endpoints en dataflow
 - [ ] CSS token audit (zorgen dat alle 11 componenten consistent zijn)
-- [ ] Agent library Wave 2 (overige 300+ agents naar 1015)
+- [x] Agent library Wave 2 (overige 300+ agents naar 1015)
 
 ---
 
@@ -433,20 +433,20 @@
 **Afhankelijk van**: Sprint 10 (v0.1.0)
 
 **Docker Container Isolation (D-040):**
-- [ ] Docker runtime adapter (`docker-runtime.ts`) — container start, logs streamen, cleanup
-- [ ] Workspace builder voor Docker volume mount (D-024 6-layer stack in container)
-- [ ] Network policy per agent (whitelist in agent JSON config)
-- [ ] Resource limits (memory, CPU, timeout) via Docker flags
-- [ ] Secret injection als Docker env vars
-- [ ] Output capture: artifacts uit container na afloop
-- [ ] Execution engine refactor: `runtime.execute()` → docker-runtime
+- [x] Docker runtime adapter (`docker-runtime.ts`) — container start, logs streamen, cleanup
+- [x] Workspace builder voor Docker volume mount (D-024 6-layer stack in container)
+- [x] Network policy per agent (whitelist in agent JSON config)
+- [x] Resource limits (memory, CPU, timeout) via Docker flags
+- [x] Secret injection als Docker env vars
+- [x] Output capture: artifacts uit container na afloop
+- [x] Execution engine refactor: `runtime.execute()` → docker-runtime
 - [ ] Safety settings: tool blacklists → container policies (D-035 + D-040 convergentie)
 
 **Non-Claude Runtime Tool Use (D-032):**
-- [ ] OpenAI adapter: function calling API
-- [ ] Mistral adapter: tool_calls in chat completions
-- [ ] Ollama adapter: tool_calls (conditioneel, ondersteunde modellen)
-- [ ] AgentRuntime interface: tool definitions parameter
+- [x] OpenAI adapter: function calling API
+- [x] Mistral adapter: tool_calls in chat completions
+- [x] Ollama adapter: tool_calls (conditioneel, ondersteunde modellen)
+- [x] AgentRuntime interface: tool definitions parameter
 - [ ] Tool result handling in execution engine
 - [ ] Canvas: model selector toont tool use support per adapter
 
@@ -472,8 +472,8 @@
 **Doel**: oa-cli als derde execution runtime naast API en VS Code bridge
 **Afhankelijk van**: Sprint 12 (oa-cli Done), Sprint 11 (VS Code bridge)
 
-- [ ] `OaCLIRuntime` adapter in `packages/backend/src/runtimes/oa-cli.ts`
-- [ ] `tmux/claude` als ModelProvider + ModelId in shared types
+- [x] `OaCLIRuntime` adapter in `packages/backend/src/runtimes/oa-cli.ts`
+- [x] `tmux/claude` als ModelProvider + ModelId in shared types
 - [ ] Status polling: agents.json → SSE stream naar frontend
 - [ ] Flask bridge: POST /api/canvas voor canvas config
 - [ ] Canvas model selector: API | CLI (bridge) | Tmux als drie opties
@@ -571,29 +571,29 @@
 **Afhankelijk van**: Sprint 12, Sprint 17, Sprint 18
 
 **Web UI F1 — Must-Have MVP:**
-- [ ] Error boundaries + error state in agentStore
-- [ ] Toast notificaties (sonner)
-- [ ] Type-safe API client
-- [ ] Pause/Resume knoppen + bridge endpoints
+- [x] Error boundaries + error state in agentStore
+- [x] Toast notificaties (sonner)
+- [x] Type-safe API client
+- [x] Pause/Resume knoppen + bridge endpoints
 - [ ] Broadcast UI
-- [ ] xterm.js Terminal component
-- [ ] StatsHeader (running/done/failed tellers)
-- [ ] Zoek/filter agents
+- [x] xterm.js Terminal component
+- [x] StatsHeader (running/done/failed tellers)
+- [x] Zoek/filter agents
 - [ ] messagingStore (Zustand)
 
 **Web UI F2 — Power Features:**
-- [ ] Command Palette (Ctrl+K, cmdk)
-- [ ] Keyboard shortcuts overlay (?)
-- [ ] Pipeline tab + trigger API
-- [ ] TaskBoard in Teams tab
+- [x] Command Palette (Ctrl+K, cmdk)
+- [x] Keyboard shortcuts overlay (?)
+- [x] Pipeline tab + trigger API
+- [x] TaskBoard in Teams tab
 - [ ] Checkpoint panel + resume UI
 - [ ] Messages tab centraal
-- [ ] SSE reconnect met exponential backoff
+- [x] SSE reconnect met exponential backoff
 - [ ] Alle ontbrekende bridge API endpoints
 
 **oa MCP Server:**
 - [x] `mcp_server.py` (FastMCP) met 7 tools (create_agent, list_agents, get_agent_status, collect_output, kill_agent, send_message, run_pipeline)
-- [ ] `oa mcp` CLI commando
+- [x] `oa mcp` CLI commando
 - [x] `.mcp.json` project-level registratie
 - [ ] E2E: Claude Code → MCP → oa-cli → agent in tmux
 
@@ -622,8 +622,8 @@
 - [x] #30 Persistent Backlog
 - [x] #28 Adversarial Reviewer
 - [x] #20 Auto-Compaction (> 75% context trigger) — compaction.py daemon + oa compact --daemon + bridge API + MCP tool
-- [ ] #14 Agent Run Telemetry
-- [ ] #15 Post-Run Hook System
+- [x] #14 Agent Run Telemetry
+- [x] #15 Post-Run Hook System
 - [ ] #16 Context Window Tracking
 
 ---

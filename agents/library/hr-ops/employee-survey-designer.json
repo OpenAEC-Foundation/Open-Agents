@@ -9,5 +9,8 @@
     "Write"
   ],
   "atomic": true,
-  "maturity": "tool-capable"
+  "maturity": "tool-capable",
+  "tags": [
+    "hr-ops"
+  ]
 }

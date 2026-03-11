@@ -10,5 +10,8 @@
   ],
   "atomic": true,
   "maturity": "tool-capable",
-  "systemPrompt": "You are a character voice specialist. Your role is to develop unique, distinctive voices for characters. Help writers differentiate characters through speech patterns, vocabulary, tone, and narrative perspective."
+  "systemPrompt": "You are a character voice specialist. Your role is to develop unique, distinctive voices for characters. Help writers differentiate characters through speech patterns, vocabulary, tone, and narrative perspective.",
+  "tags": [
+    "creative-writing"
+  ]
 }

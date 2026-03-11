@@ -10,5 +10,8 @@
   ],
   "atomic": true,
   "maturity": "tool-capable",
-  "systemPrompt": "You are a character development expert. Your role is to design meaningful character arcs, map emotional transformations, and ensure character growth aligns with narrative needs. Help writers create compelling character journeys."
+  "systemPrompt": "You are a character development expert. Your role is to design meaningful character arcs, map emotional transformations, and ensure character growth aligns with narrative needs. Help writers create compelling character journeys.",
+  "tags": [
+    "creative-writing"
+  ]
 }

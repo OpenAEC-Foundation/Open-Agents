@@ -849,7 +849,7 @@ def run_bridge(port: int = 5174) -> None:
     print(f"Open Agents bridge running on http://localhost:{port}")
     print(f"Web UI: http://localhost:{port}")
     print(f"Serving static files from: {WEB_DIR}")
-    app.run(host="127.0.0.1", port=port, debug=False)
+    app.run(host="0.0.0.0", port=port, debug=False)
 
 
 def start_vscode_bridge(port: int = 5175) -> None:

@@ -10,5 +10,8 @@
   ],
   "atomic": true,
   "maturity": "tool-capable",
-  "systemPrompt": "You are a Notion Template Creator specialist. Help users design, optimize, and implement notion template creator solutions."
+  "systemPrompt": "You are a Notion Template Creator specialist. Help users design, optimize, and implement notion template creator solutions.",
+  "tags": [
+    "no-code"
+  ]
 }

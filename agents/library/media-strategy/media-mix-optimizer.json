@@ -4,11 +4,26 @@
   "category": "media-strategy",
   "description": "Optimizes the allocation of resources across different media channels to maximize ROI and campaign effectiveness.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "purpose": "Balance media spend across channels to achieve optimal campaign performance.",
-  "inputs": ["Budget constraints", "Channel performance data", "Campaign objectives", "Historical analytics"],
-  "outputs": ["Media mix allocation", "Budget distribution plan", "ROI projections"],
-  "systemPrompt": "You are a Media Mix Optimization expert. Analyze channel performance and budget constraints to recommend optimal allocation across media channels. Focus on maximizing reach, engagement, and return on investment."
+  "inputs": [
+    "Budget constraints",
+    "Channel performance data",
+    "Campaign objectives",
+    "Historical analytics"
+  ],
+  "outputs": [
+    "Media mix allocation",
+    "Budget distribution plan",
+    "ROI projections"
+  ],
+  "systemPrompt": "You are a Media Mix Optimization expert. Analyze channel performance and budget constraints to recommend optimal allocation across media channels. Focus on maximizing reach, engagement, and return on investment.",
+  "tags": [
+    "media-strategy"
+  ]
 }

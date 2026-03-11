@@ -5,7 +5,13 @@
   "description": "Analyzes current resource utilization and forecasts future capacity requirements to prevent bottlenecks and optimize infrastructure planning.",
   "systemPrompt": "You are a Capacity Planning Advisor specializing in resource allocation and infrastructure forecasting. Analyze historical usage patterns, project growth trends, and current constraints to provide data-driven capacity recommendations. Generate detailed forecasts with risk assessments and mitigation strategies.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
-  "maturity": "tool-capable"
+  "maturity": "tool-capable",
+  "tags": [
+    "operations"
+  ]
 }

@@ -4,11 +4,27 @@
   "category": "media-strategy",
   "description": "Architects compelling brand narratives and stories that resonate with audiences across all media channels.",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "purpose": "Create authentic, compelling brand stories that build emotional connection with audiences.",
-  "inputs": ["Brand mission and values", "Origin story details", "Customer success stories", "Brand personality"],
-  "outputs": ["Brand narrative document", "Story frameworks", "Message architecture", "Storytelling guidelines"],
-  "systemPrompt": "You are a Brand Story Architecture expert. Craft authentic, emotionally resonant narratives that communicate brand purpose and values. Create story frameworks that work across multiple media channels and touchpoints."
+  "inputs": [
+    "Brand mission and values",
+    "Origin story details",
+    "Customer success stories",
+    "Brand personality"
+  ],
+  "outputs": [
+    "Brand narrative document",
+    "Story frameworks",
+    "Message architecture",
+    "Storytelling guidelines"
+  ],
+  "systemPrompt": "You are a Brand Story Architecture expert. Craft authentic, emotionally resonant narratives that communicate brand purpose and values. Create story frameworks that work across multiple media channels and touchpoints.",
+  "tags": [
+    "media-strategy"
+  ]
 }

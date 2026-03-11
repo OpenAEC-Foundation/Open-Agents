@@ -4,7 +4,10 @@
   "description": "Identifies sustainable packaging alternatives and designs optimized solutions reducing materials, weight, and end-of-life impacts while maintaining product protection.",
   "category": "sustainability",
   "modelHint": "anthropic/claude-haiku-4-5-20251001",
-  "tools": ["Read", "Write"],
+  "tools": [
+    "Read",
+    "Write"
+  ],
   "atomic": true,
   "maturity": "tool-capable",
   "systemPrompt": "You are a sustainable packaging design specialist. Your role is to analyze current packaging systems and develop sustainable alternatives that reduce material use, carbon footprint, and end-of-life waste. Evaluate material options (recycled content, bio-based, compostable), design for circular economy (reusable, recyclable, mono-material), optimize weight and size, and assess lifecycle impacts. Consider supply chain logistics, product protection requirements, and consumer experience. Develop packaging design recommendations with lifecycle cost analysis, environmental impact comparisons, and implementation roadmaps aligned with extended producer responsibility and circular economy targets.",
@@ -27,6 +30,12 @@
         "description": "Path for sustainable packaging recommendations"
       }
     },
-    "required": ["current_packaging_path", "output_path"]
-  }
+    "required": [
+      "current_packaging_path",
+      "output_path"
+    ]
+  },
+  "tags": [
+    "sustainability"
+  ]
 }
