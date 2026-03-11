@@ -2583,5 +2583,35 @@ def analytics_cmd(
         )
 
 
+@app.command()
+def guardian(
+    trigger: str = typer.Argument("manual", help="Trigger type: release|feature|manual"),
+    tag: str = typer.Option(None, "--tag", help="Release tag (bijv. v0.3.1)"),
+) -> None:
+    """Spawn de Doc Guardian agent om docs en release notes te updaten."""
+    import os
+    from .spawner import spawn_agent
+
+    tag_info = f" Tag: {tag}." if tag else ""
+    task = (
+        f"Doc Guardian trigger: {trigger}.{tag_info} "
+        "Update README, docs, CHANGELOG en maak release notes. "
+        "Schrijf ./output/result.md met samenvatting en maak .done aan."
+    )
+
+    record = spawn_agent(
+        name="doc-guardian",
+        task=task,
+        model="claude/sonnet",
+    )
+
+    if record:
+        console.print(f"[green]Doc Guardian spawned: {record.get('name', 'doc-guardian')}[/green]")
+        console.print(f"[dim]Trigger: {trigger}{tag_info}[/dim]")
+        console.print("[dim]Monitor with: oa status[/dim]")
+    else:
+        console.print("[red]Failed to spawn Doc Guardian.[/red]")
+
+
 if __name__ == "__main__":
     app()

@@ -104,6 +104,14 @@ export const AgentCard = memo(function AgentCard({ agent, selected, onSelect }: 
         </div>
       )}
 
+      {/* Remote host indicator */}
+      {agent.remote_host && (
+        <div className="text-[10px] truncate mt-1 flex items-center gap-1" style={{ color: '#f59e0b' }}>
+          <span>⬡</span>
+          <span>{agent.remote_host}</span>
+        </div>
+      )}
+
       {/* Parent indicator */}
       {agent.parent && (
         <div className="text-[10px] truncate mt-1" style={{ color: 'var(--color-oa-text-dim)' }}>

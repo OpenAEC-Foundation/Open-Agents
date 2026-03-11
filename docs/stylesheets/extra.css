@@ -1,0 +1,152 @@
+/* Open-Agents custom theme — Amber accent (#D97706) */
+
+:root {
+  --md-primary-fg-color: #D97706;
+  --md-primary-fg-color--light: #F59E0B;
+  --md-primary-fg-color--dark: #B45309;
+  --md-primary-bg-color: #fff;
+  --md-accent-fg-color: #D97706;
+  --md-accent-fg-color--transparent: rgba(217, 119, 6, 0.1);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #D97706;
+  --md-primary-fg-color--light: #F59E0B;
+  --md-primary-fg-color--dark: #B45309;
+  --md-accent-fg-color: #F59E0B;
+  --md-default-bg-color: #1a1a1a;
+  --md-default-fg-color: #e8e8e8;
+  --md-code-bg-color: #242424;
+}
+
+/* Header */
+.md-header {
+  background-color: #1c1917;
+  border-bottom: 2px solid #D97706;
+}
+
+.md-header__title {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Navigation tabs */
+.md-tabs {
+  background-color: #1c1917;
+}
+
+.md-tabs__link--active,
+.md-tabs__link:focus,
+.md-tabs__link:hover {
+  color: #F59E0B;
+}
+
+/* Sidebar */
+.md-nav__link--active,
+.md-nav__link:hover {
+  color: #D97706;
+}
+
+/* Links */
+a {
+  color: #D97706;
+}
+
+a:hover {
+  color: #B45309;
+}
+
+/* Code blocks */
+.md-typeset code {
+  background-color: rgba(217, 119, 6, 0.08);
+  border: 1px solid rgba(217, 119, 6, 0.2);
+  border-radius: 3px;
+  padding: 0 4px;
+  color: #92400e;
+}
+
+[data-md-color-scheme="slate"] .md-typeset code {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #fcd34d;
+}
+
+/* Highlighted code blocks */
+.md-typeset pre > code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+}
+
+/* Admonitions */
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-color: #D97706;
+}
+
+.md-typeset .admonition.tip > .admonition-title,
+.md-typeset details.tip > summary {
+  background-color: rgba(217, 119, 6, 0.1);
+  color: #92400e;
+}
+
+.md-typeset .admonition.tip > .admonition-title::before,
+.md-typeset details.tip > summary::before {
+  color: #D97706;
+}
+
+/* Buttons */
+.md-button {
+  background-color: #D97706;
+  border-color: #D97706;
+  color: #fff;
+}
+
+.md-button:hover {
+  background-color: #B45309;
+  border-color: #B45309;
+}
+
+/* Tables */
+.md-typeset table:not([class]) th {
+  background-color: #1c1917;
+  color: #F59E0B;
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) th {
+  background-color: #292524;
+  color: #F59E0B;
+}
+
+/* Search highlight */
+.md-search-result mark {
+  background-color: rgba(217, 119, 6, 0.3);
+  color: inherit;
+}
+
+/* Footer */
+.md-footer {
+  background-color: #1c1917;
+}
+
+/* Hero section on homepage */
+.md-typeset h1 {
+  color: #1c1917;
+  font-weight: 800;
+}
+
+[data-md-color-scheme="slate"] .md-typeset h1 {
+  color: #F59E0B;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar-thumb {
+  background-color: #D97706;
+  border-radius: 3px;
+}
+
+/* Version badge style for code */
+.md-typeset .md-status {
+  background-color: #D97706;
+}

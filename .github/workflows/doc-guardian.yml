@@ -1,0 +1,97 @@
+name: Doc Guardian
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'oa-cli/**'
+      - 'agents/library/**'
+      - 'docs/**'
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      trigger_type:
+        description: 'Trigger type'
+        required: true
+        default: 'manual'
+        type: choice
+        options:
+          - release
+          - feature
+          - manual
+
+jobs:
+  doc-guardian:
+    name: Update docs and release notes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install open-agents-cli
+        run: pip install -e oa-cli/
+
+      - name: Determine trigger type and tag
+        id: context
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "trigger_type=release" >> $GITHUB_OUTPUT
+            echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "trigger_type=${{ inputs.trigger_type }}" >> $GITHUB_OUTPUT
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+            echo "tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
+          else
+            echo "trigger_type=feature" >> $GITHUB_OUTPUT
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+            echo "tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate release notes
+        if: steps.context.outputs.trigger_type == 'release'
+        run: |
+          python scripts/generate-release-notes.py \
+            --tag "${{ steps.context.outputs.tag }}"
+
+      - name: Update README agent count
+        run: |
+          AGENT_COUNT=$(find agents/library -name "*.json" | wc -l)
+          echo "Agent count: ${AGENT_COUNT}"
+          # Update badge in README if it exists
+          if [ -f README.md ]; then
+            sed -i "s/agent--[0-9]*-/agent--${AGENT_COUNT}-/g" README.md || true
+          fi
+
+      - name: Commit documentation changes
+        run: |
+          git config user.name "Doc Guardian [bot]"
+          git config user.email "doc-guardian@open-agents.dev"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No documentation changes to commit."
+          else
+            git commit -m "docs: auto-update by Doc Guardian [skip ci]"
+            git push
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub release notes
+        if: steps.context.outputs.trigger_type == 'release' && hashFiles('release-notes.md') != ''
+        run: |
+          gh release edit "${{ steps.context.outputs.tag }}" \
+            --notes-file release-notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,8 +1,17 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useAgentStore, modelColor, modelLabel, formatDuration } from '../../stores/agentStore';
 import { useUIStore } from '../../stores/uiStore';
 
 const FAILED_STATUSES = new Set(['error', 'failed', 'timeout', 'killed']);
+
+/** Extract the first meaningful line from a raw task prompt */
+function extractTaskIntent(task: string): string {
+  if (!task) return '';
+  const SKIP = [/^you are\b/i, /^je bent\b/i, /^##\s/, /^\*\*/, /^---/, /^```/];
+  const lines = task.split('\n').map(l => l.trim()).filter(l => l.length > 4);
+  const meaningful = lines.find(l => !SKIP.some(re => re.test(l)));
+  return meaningful || lines[0] || task;
+}
 
 // --- Metric Tile ---
 function MetricTile({
@@ -206,8 +215,9 @@ function AgentRow({
       <span
         className="text-[11px] truncate hidden sm:block"
         style={{ color: 'var(--color-oa-text-dim)' }}
+        title={agent.task}
       >
-        {agent.task}
+        {extractTaskIntent(agent.task)}
       </span>
 
       {/* Status label */}
@@ -246,27 +256,49 @@ function SectionHeader({ label, count, color }: { label: string; count: number; 
 }
 
 // --- Main ---
-export function MissionControl({ filteredAgents }: { filteredAgents?: { name: string; status: string; model: string; task: string; created_at: number; finished_at: number | null; parent: string | null; depth: number; unread_messages?: number }[] }) {
+type AgentRow = { name: string; status: string; model: string; task: string; created_at: number; finished_at: number | null; parent: string | null; depth: number; unread_messages?: number };
+
+export function MissionControl({ filteredAgents }: { filteredAgents?: AgentRow[] }) {
   const allAgents = useAgentStore((s) => s.agents);
   const agents = filteredAgents ?? allAgents;
   const selectedAgent = useAgentStore((s) => s.selectedAgent);
   const selectAgent = useAgentStore((s) => s.selectAgent);
   const sessionStart = useUIStore((s) => s.sessionStart);
   const [now, setNow] = useState(Date.now());
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'running' | 'done' | 'failed'>('all');
+  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
 
+  const filtered = useMemo(() => {
+    let list = agents;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(a => a.name.toLowerCase().includes(q) || a.task.toLowerCase().includes(q));
+    }
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'failed') list = list.filter(a => FAILED_STATUSES.has(a.status));
+      else list = list.filter(a => a.status === statusFilter);
+    }
+    return list;
+  }, [agents, search, statusFilter]);
+
   const { running, done, failed } = useMemo(
     () => ({
-      running: agents.filter((a) => a.status === 'running'),
-      done: agents.filter((a) => a.status === 'done'),
-      failed: agents.filter((a) => FAILED_STATUSES.has(a.status)),
+      running: filtered.filter((a) => a.status === 'running'),
+      done: filtered.filter((a) => a.status === 'done'),
+      failed: filtered.filter((a) => FAILED_STATUSES.has(a.status)),
     }),
-    [agents],
+    [filtered],
   );
+
+  const allRunning = agents.filter(a => a.status === 'running').length;
+  const allDone = agents.filter(a => a.status === 'done').length;
+  const allFailed = agents.filter(a => FAILED_STATUSES.has(a.status)).length;
 
   const uptimeSecs = Math.floor((now - sessionStart) / 1000);
   const h = Math.floor(uptimeSecs / 3600);
@@ -293,6 +325,58 @@ export function MissionControl({ filteredAgents }: { filteredAgents?: { name: st
         <MetricTile icon="⏱" label="Uptime" value={uptime} color="var(--color-oa-text-muted)" border={false} />
       </div>
 
+      {/* ── Search + filter bar ── */}
+      {agents.length > 0 && (
+        <div
+          className="flex items-center gap-2 px-3 py-2 shrink-0 border-b"
+          style={{ borderColor: 'var(--color-oa-border)', background: 'var(--color-oa-surface)' }}
+        >
+          <div className="relative flex-1">
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px]" style={{ color: 'var(--color-oa-text-dim)' }}>⌕</span>
+            <input
+              ref={searchRef}
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Filter agents..."
+              className="w-full pl-7 pr-3 py-1 text-[12px] rounded border focus:outline-none"
+              style={{
+                background: 'var(--color-oa-bg)',
+                borderColor: search ? 'var(--color-oa-accent)' : 'var(--color-oa-border)',
+                color: 'var(--color-oa-text)',
+              }}
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] cursor-pointer"
+                style={{ color: 'var(--color-oa-text-dim)' }}
+              >×</button>
+            )}
+          </div>
+          {/* Status filter pills */}
+          {(['all', 'running', 'done', 'failed'] as const).map(f => {
+            const count = f === 'all' ? agents.length : f === 'running' ? allRunning : f === 'done' ? allDone : allFailed;
+            const color = f === 'running' ? 'var(--color-status-running)' : f === 'done' ? 'var(--color-status-done)' : f === 'failed' ? 'var(--color-status-failed)' : 'var(--color-oa-text-muted)';
+            const active = statusFilter === f;
+            return (
+              <button
+                key={f}
+                onClick={() => setStatusFilter(f)}
+                className="px-2 py-0.5 rounded text-[10px] font-semibold cursor-pointer transition-all shrink-0"
+                style={{
+                  background: active ? `color-mix(in srgb, ${color} 15%, transparent)` : 'transparent',
+                  color: active ? color : 'var(--color-oa-text-dim)',
+                  border: `1px solid ${active ? color : 'transparent'}`,
+                }}
+              >
+                {f === 'all' ? `all ${count}` : `${f} ${count}`}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* ── Agent list ── */}
       {agents.length === 0 ? (
         <div
@@ -312,29 +396,38 @@ export function MissionControl({ filteredAgents }: { filteredAgents?: { name: st
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto" style={{ background: 'var(--color-oa-bg)' }}>
-          <TableHeader />
-          {running.length > 0 && (
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-32 gap-2" style={{ color: 'var(--color-oa-text-dim)' }}>
+              <span className="text-[13px]">No agents match your filter</span>
+              <button onClick={() => { setSearch(''); setStatusFilter('all'); }} className="text-[11px] cursor-pointer underline" style={{ color: 'var(--color-oa-accent)' }}>Clear filters</button>
+            </div>
+          ) : (
             <>
-              <SectionHeader label="Active" count={running.length} color="var(--color-status-running, #f97316)" />
-              {running.map((a) => (
-                <AgentRow key={a.name} agent={a} selected={selectedAgent === a.name} onSelect={selectAgent} />
-              ))}
-            </>
-          )}
-          {done.length > 0 && (
-            <>
-              <SectionHeader label="Completed" count={done.length} color="var(--color-status-done, #22c55e)" />
-              {done.map((a) => (
-                <AgentRow key={a.name} agent={a} selected={selectedAgent === a.name} onSelect={selectAgent} />
-              ))}
-            </>
-          )}
-          {failed.length > 0 && (
-            <>
-              <SectionHeader label="Failed" count={failed.length} color="var(--color-status-failed, #ef4444)" />
-              {failed.map((a) => (
-                <AgentRow key={a.name} agent={a} selected={selectedAgent === a.name} onSelect={selectAgent} />
-              ))}
+              <TableHeader />
+              {running.length > 0 && (
+                <>
+                  <SectionHeader label="Active" count={running.length} color="var(--color-status-running, #f97316)" />
+                  {running.map((a) => (
+                    <AgentRow key={a.name} agent={a} selected={selectedAgent === a.name} onSelect={selectAgent} />
+                  ))}
+                </>
+              )}
+              {done.length > 0 && (
+                <>
+                  <SectionHeader label="Completed" count={done.length} color="var(--color-status-done, #22c55e)" />
+                  {done.map((a) => (
+                    <AgentRow key={a.name} agent={a} selected={selectedAgent === a.name} onSelect={selectAgent} />
+                  ))}
+                </>
+              )}
+              {failed.length > 0 && (
+                <>
+                  <SectionHeader label="Failed" count={failed.length} color="var(--color-status-failed, #ef4444)" />
+                  {failed.map((a) => (
+                    <AgentRow key={a.name} agent={a} selected={selectedAgent === a.name} onSelect={selectAgent} />
+                  ))}
+                </>
+              )}
             </>
           )}
         </div>
