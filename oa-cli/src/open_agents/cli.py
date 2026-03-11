@@ -773,10 +773,13 @@ def clean():
 @app.command()
 def pipeline(
     task: str = typer.Argument(..., help="The high-level task to decompose and execute"),
+    auto_stop: bool = typer.Option(False, "--auto-stop", help="Stop pipeline when convergence is detected"),
 ):
     """Run a multi-agent pipeline: planner -> subtasks -> combiner."""
     from .pipeline import run_pipeline
 
+    if auto_stop:
+        console.print("[cyan]Auto-stop enabled — pipeline will halt on convergence.[/cyan]")
     run_pipeline(task)
 
 
@@ -2324,6 +2327,104 @@ def skill_list(
         table.add_row(*row)
 
     console.print(table)
+
+
+# --- Sprint 24: test (regression guard) commands ---
+
+@app.command(name="test")
+def test_cmd(
+    agent: str = typer.Argument(..., help="Agent name to test or save reference for"),
+    save_reference: bool = typer.Option(False, "--save-reference", help="Save current metrics as reference baseline"),
+    check: bool = typer.Option(False, "--check", help="Check current metrics against saved reference"),
+):
+    """Test agent performance against a saved reference baseline (#44)."""
+    from rich.table import Table
+    from .regression_guard import check_regression, get_agent_metrics_from_telemetry, save_reference_run
+
+    metrics = get_agent_metrics_from_telemetry(agent)
+
+    if save_reference:
+        path = save_reference_run(agent, metrics)
+        console.print(f"[green]Reference saved for '{agent}' → {path}[/green]")
+        table = Table(title=f"Reference Metrics: {agent}")
+        table.add_column("Metric", style="cyan")
+        table.add_column("Value", justify="right")
+        for k, v in metrics.items():
+            table.add_row(k, f"{v:.4f}" if isinstance(v, float) else str(v))
+        console.print(table)
+        return
+
+    if check:
+        result = check_regression(agent, metrics)
+        if not result.regressed:
+            console.print(f"[green]No regression detected for '{agent}'.[/green]")
+        else:
+            console.print(f"[red]Regression detected for '{agent}' — severity: {result.severity}[/red]")
+        if result.delta:
+            table = Table(title=f"Regression Check: {agent}")
+            table.add_column("Metric", style="cyan")
+            table.add_column("Delta %", justify="right")
+            for k, v in result.delta.items():
+                color = "red" if v < 0 else "green"
+                table.add_row(k, f"[{color}]{v:+.2f}%[/{color}]")
+            console.print(table)
+        return
+
+    console.print("[yellow]Use --save-reference or --check. See 'oa test --help'.[/yellow]")
+
+
+# --- Sprint 24: meta-agent commands ---
+
+@app.command(name="meta")
+def meta_cmd(
+    action: str = typer.Argument("analyze", help="Action: 'analyze' or 'run'"),
+):
+    """Meta-agent: analyze telemetry or run recommended actions (#25)."""
+    from rich.table import Table
+    from .meta_agent import analyze, run_top_actions, save_actions
+
+    if action == "analyze":
+        result = analyze()
+        console.print(Panel(
+            f"Total runs: {result.total_runs}  |  "
+            f"Success rate: {result.success_rate:.0%}  |  "
+            f"Fail patterns: {len(result.fail_patterns)}  |  "
+            f"Duration anomalies: {len(result.duration_anomalies)}",
+            title="Meta-Agent Analysis",
+        ))
+
+        if result.fail_patterns:
+            console.print("\n[bold]Fail Patterns:[/bold]")
+            for p in result.fail_patterns:
+                console.print(f"  [red]• {p}[/red]")
+
+        if result.duration_anomalies:
+            console.print("\n[bold]Duration Anomalies:[/bold]")
+            for a in result.duration_anomalies:
+                console.print(f"  [yellow]• {a}[/yellow]")
+
+        if result.actions:
+            save_actions(result.actions)
+            table = Table(title="Recommended Actions")
+            table.add_column("#", justify="right", style="dim")
+            table.add_column("Type", style="cyan")
+            table.add_column("Target", style="bold")
+            table.add_column("Reason")
+            for a in result.actions:
+                table.add_row(str(a.priority), a.action_type, a.target, a.reason)
+            console.print(table)
+            console.print(f"\n[dim]Actions saved to ~/.oa/meta-actions.yaml. Run 'oa meta run' to execute top 3.[/dim]")
+        else:
+            console.print("[green]No issues found. System looks healthy.[/green]")
+
+    elif action == "run":
+        results = run_top_actions(limit=3)
+        console.print(Panel("Executing Top Actions", title="Meta-Agent"))
+        for msg in results:
+            console.print(f"  • {msg}")
+
+    else:
+        console.print(f"[red]Unknown action '{action}'. Use 'analyze' or 'run'.[/red]")
 
 
 if __name__ == "__main__":
