@@ -280,4 +280,8 @@
 | L-071 | **Doc Guardian pattern: dedicated agent voor alle publieke docs + release notes.** | Een aparte agent (doc-guardian.json template) is verantwoordelijk voor LESSONS.md, HANDOFF, ROADMAP updates en release notes generatie. Trigger: `oa guardian release --tag vX.Y.Z`. Decouples doc-writing van andere werk. |
 | L-072 | **GitHub Pages via MkDocs Material — deploy via gh-pages branch, workflow via CI/CD.** | Docs site (11 pagina's, amber theme) gehost op GitHub Pages. Workflow (.github/workflows/docs.yml) auto-triggers op push/release/dispatch. OpenAPI 3.1.0 spec + Markdown API reference inbegrepen. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-073, L-074, etc.*
+| L-073 | **Skill systeem = folder-gebaseerd (Anthropic spec), niet enkel SKILL.md.** | Een skill is een folder met SKILL.md + optioneel scripts/, references/, assets/. skill_registry.py gebruikt nu rglob("SKILL.md") voor recursieve scan. Externe packages (Blender-Bonsai: 73, ERPNext: 28) met één `oa skill install <pad>` registreren, daarna altijd actueel. |
+| L-074 | **`oa skill list` moet altijd alle 4 niveaus scannen, ook zonder --level filter.** | Default variant scande alleen ~/.claude/skills/ — package-skills onzichtbaar. Fix: altijd list_skills() uit skill_registry. Resultaat: 142 skills zichtbaar i.p.v. 43. |
+| L-075 | **`oa init` werkt voor alle 4 types; minimal template was te dun (124 bytes).** | Alle typen maken CLAUDE.md, ROADMAP.md, LESSONS.md, DECISIONS.md, INDEX.md aan. minimal-template uitgebreid met kernbestanden tabel en conventies. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-076, L-077, etc.*
