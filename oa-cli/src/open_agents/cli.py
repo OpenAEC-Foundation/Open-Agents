@@ -2126,5 +2126,190 @@ def docs_generate(
             console.print("[yellow]Could not update CHANGELOG.md (file may not exist).[/yellow]")
 
 
+# --- Auto Template Generation (Sprint 23, Issue #17) ---
+
+
+@app.command(name="templates-review")
+def templates_review():
+    """Review auto-generated template candidates (from successful runs)."""
+    from rich.table import Table
+    from .template_gen import list_candidates
+
+    candidates = list_candidates()
+    if not candidates:
+        console.print("[dim]No template candidates found. Run agents to generate candidates.[/dim]")
+        return
+
+    table = Table(title=f"Template Candidates ({len(candidates)})")
+    table.add_column("Name", style="cyan", no_wrap=True)
+    table.add_column("Model", style="green")
+    table.add_column("Success Rate", justify="right")
+    table.add_column("Runs", justify="right")
+    table.add_column("Avg Duration", justify="right")
+    table.add_column("Last Updated", style="dim")
+
+    for c in candidates:
+        rate = c.get("success_rate", 0)
+        rate_color = "green" if rate >= 0.8 else "yellow" if rate >= 0.5 else "red"
+        table.add_row(
+            c.get("name", "?"),
+            c.get("model", "?"),
+            f"[{rate_color}]{rate:.1%}[/{rate_color}]",
+            str(c.get("run_count", 0)),
+            f"{c.get('avg_duration', 0):.1f}s",
+            (c.get("last_updated") or "")[:10],
+        )
+
+    console.print(table)
+    console.print("\n[dim]Promote with: oa templates-promote <name>[/dim]")
+
+
+@app.command(name="templates-promote")
+def templates_promote(
+    name: str = typer.Argument(..., help="Name of the template candidate to promote"),
+):
+    """Promote a template candidate to the active prompt-templates directory."""
+    from .template_gen import promote_candidate
+
+    result = promote_candidate(name)
+    if result:
+        console.print(f"[green]Template '{name}' promoted to {result}[/green]")
+    else:
+        console.print(f"[red]Candidate '{name}' not found in ~/.oa/template-candidates/[/red]")
+        raise typer.Exit(1)
+
+
+# --- Knowledge / Lessons (Sprint 23, Issue #18) ---
+
+knowledge_app = typer.Typer(name="knowledge", help="Automated knowledge base — lessons from agent runs.")
+app.add_typer(knowledge_app)
+
+
+@knowledge_app.command(name="show")
+def knowledge_show(
+    category: str = typer.Option(None, "--category", "-c", help="Filter by category (failure/success/duration_anomaly/observation)"),
+):
+    """Show extracted lessons from the knowledge base."""
+    from rich.table import Table
+    from .lessons import list_lessons
+
+    lessons = list_lessons(category=category)
+    if not lessons:
+        console.print("[dim]No lessons found. Lessons are auto-extracted after agent runs.[/dim]")
+        return
+
+    table = Table(title=f"Knowledge Base — Lessons ({len(lessons)})")
+    table.add_column("ID", style="dim", no_wrap=True)
+    table.add_column("Date", style="dim")
+    table.add_column("Category", style="yellow")
+    table.add_column("Confidence", justify="right")
+    table.add_column("Lesson", max_width=70)
+
+    cat_colors = {"failure": "red", "success": "green", "duration_anomaly": "yellow", "observation": "blue"}
+
+    for l in lessons:
+        cat = l.get("category", "?")
+        color = cat_colors.get(cat, "white")
+        conf = l.get("confidence", 0)
+        lesson_text = l.get("lesson", "")
+        if len(lesson_text) > 68:
+            lesson_text = lesson_text[:65] + "..."
+        table.add_row(
+            l.get("id", "?"),
+            l.get("date", "?"),
+            f"[{color}]{cat}[/{color}]",
+            f"{conf:.0%}",
+            lesson_text,
+        )
+
+    console.print(table)
+
+
+@knowledge_app.command(name="install-hook")
+def knowledge_install_hook():
+    """Install the auto-lessons post-run hook."""
+    from .lessons import install_auto_lessons_hook
+
+    path = install_auto_lessons_hook()
+    console.print(f"[green]Auto-lessons hook installed at {path}[/green]")
+
+
+# --- Skill Metrics (Sprint 23, Issue #32) ---
+
+skill_app = typer.Typer(name="skill", help="Skill usage metrics and benchmarks.")
+app.add_typer(skill_app)
+
+
+@skill_app.command(name="benchmark")
+def skill_benchmark(
+    name: str = typer.Argument(..., help="Skill name to show metrics for"),
+):
+    """Show usage metrics and improvement suggestions for a skill."""
+    from .skill_evolver import get_skill_stats, suggest_improvements
+
+    stats = get_skill_stats(name)
+    if stats["usage_count"] == 0:
+        console.print(f"[dim]No usage data for skill '{name}'.[/dim]")
+        return
+
+    trend_icons = {"improving": "[green]↑ improving[/green]", "declining": "[red]↓ declining[/red]", "stable": "[yellow]→ stable[/yellow]"}
+    avg = stats["avg_score"]
+    avg_color = "green" if avg and avg >= 0.7 else "yellow" if avg and avg >= 0.4 else "red"
+
+    console.print(f"\n[bold]Skill:[/bold] [cyan]{name}[/cyan]")
+    console.print(f"  Uses:      {stats['usage_count']}")
+    console.print(f"  Avg Score: [{avg_color}]{avg:.3f}[/{avg_color}]")
+    console.print(f"  Trend:     {trend_icons.get(stats['trend'], stats['trend'])}")
+
+    suggestions = suggest_improvements(name)
+    console.print(f"\n[bold]Suggestions:[/bold]")
+    for s in suggestions:
+        console.print(f"  - {s}")
+
+
+@skill_app.command(name="list")
+def skill_list(
+    metrics: bool = typer.Option(False, "--metrics", "-m", help="Show usage metrics alongside skill names"),
+):
+    """List all skills, optionally with usage metrics."""
+    from rich.table import Table
+
+    # Discover skills from ~/.claude/skills/
+    skill_dirs = []
+    for base in [Path.home() / ".claude" / "skills", Path.cwd() / ".claude" / "skills"]:
+        if base.exists():
+            for d in sorted(base.iterdir()):
+                if d.is_dir() and (d / "SKILL.md").exists():
+                    skill_dirs.append(d)
+
+    if not skill_dirs:
+        console.print("[dim]No skills found in ~/.claude/skills/ or ./.claude/skills/[/dim]")
+        return
+
+    table = Table(title=f"Skills ({len(skill_dirs)})")
+    table.add_column("Name", style="cyan")
+    table.add_column("Path", style="dim", max_width=50)
+
+    if metrics:
+        from .skill_evolver import get_skill_stats
+        table.add_column("Uses", justify="right")
+        table.add_column("Avg Score", justify="right")
+        table.add_column("Trend", justify="right")
+
+    for d in skill_dirs:
+        name = d.name
+        row = [name, str(d)]
+        if metrics:
+            stats = get_skill_stats(name)
+            uses = str(stats["usage_count"])
+            avg = f"{stats['avg_score']:.3f}" if stats["avg_score"] is not None else "—"
+            trend_icons = {"improving": "↑", "declining": "↓", "stable": "→"}
+            trend = trend_icons.get(stats["trend"], "→")
+            row.extend([uses, avg, trend])
+        table.add_row(*row)
+
+    console.print(table)
+
+
 if __name__ == "__main__":
     app()

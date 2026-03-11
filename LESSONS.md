@@ -269,4 +269,10 @@
 | L-067 | **check-delegation.sh telt && in agent-prompt inhoud als bash-stappen — false positive** — De hook telt alle && in het volledige bash-commando, inclusief de inhoud van string-argumenten. Hierdoor wordt `oa run "...prompt met && erin..."` geblokkeerd terwijl dit JA al delegatie is. Fix: als het commando begint met `oa run`, direct exit 0 (want oa run IS de delegatie). | Gevonden 2026-03-11: gpu-master agent prompt bevatte && in stap-beschrijvingen → hook blokkeerde het spawnen van de orchestrator zelf. Workaround: `touch /tmp/claude-delegation-override` voor elke oa run aanroep. |
 | L-068 | **Agent-prompts met meerdere stappen bewust && gebruiken — hook moet prompt-inhoud uitsluiten van analyse** — Elke goede orchestrator-prompt bevat instructies met && voor de sub-agents die hij zal spawnen. Deze && horen niet in de hook-analyse. Scoperegel: analyseer alleen het "outer" bash-commando (alles voor het eerste aanhalingsteken), niet string-argumenten. | Zelfde context als L-067. Patroon: `oa run '...10x && ...' --name x --model y --direct` triggert false positive bij 3+ && in de prompt. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-069, L-070, etc.*
+## Sessie 2026-03-11 — LiteLLM als oa-cli Model Gateway
+
+| # | Les | Context |
+|---|-----|---------|
+| L-069 | **LiteLLM is de unified model gateway voor gemengde agent-bomen — niet alleen een provider-mixer** — Initiële inschatting was dat LiteLLM weinig waarde toevoegt in een 100% lokale setup. Correctie: LiteLLM is essentieel zodra oa-cli agents draaien op lokale modellen naast Claude-agents. Het normaliseert Ollama, Groq, OpenAI en lokale backends naar één OpenAI-compatibel endpoint op :4000. Agents hoeven geen provider-specifiek formaat te kennen. | 2026-03-11: gebruiker wees op oa-cli tmux-architectuur — agents kunnen op elk model draaien. LiteLLM maakt mixed-provider agent-bomen mogelijk: claude/opus voor redenering, local/qwen14b voor batch, groq/mixtral voor snelheid — allemaal via dezelfde orchestratielaag. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-070, L-071, etc.*
