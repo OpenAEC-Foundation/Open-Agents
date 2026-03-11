@@ -2976,13 +2976,13 @@ def guardian(
 
 @app.command(name="benchmark")
 def benchmark(
-    subcommand: str = typer.Argument("run", help="run | leaderboard | rescore"),
+    subcommand: str = typer.Argument("run", help="run | all | leaderboard | rescore | embed"),
     model: str = typer.Option(None, "--model", "-m", help="Model naam (bijv. qwen2.5:14b)"),
     host: str = typer.Option("hetzner-agent", "--host", help="SSH host"),
     timeout: int = typer.Option(300, "--timeout", help="Max seconden per test"),
     auto_score: bool = typer.Option(True, "--auto-score/--no-auto-score", help="Auto-score met Claude haiku"),
 ) -> None:
-    """GPU model benchmark tool. Subcommands: run, leaderboard, rescore."""
+    """GPU model benchmark tool. Subcommands: run, all, leaderboard, rescore, embed."""
     import os
     import subprocess
     from pathlib import Path
@@ -2995,7 +2995,7 @@ def benchmark(
     if subcommand == "run":
         if not model:
             console.print("[red]Geef een model op: oa benchmark run --model qwen2.5:14b[/red]")
-            console.print("[dim]Beschikbare modellen: qwen2.5:14b, phi4:14b, gemma3:27b, llama3.1:8b, ...[/dim]")
+            console.print("[dim]Tip: gebruik 'oa benchmark all' om alle GPU modellen te benchmarken[/dim]")
             raise typer.Exit(1)
         console.print(f"[cyan]Benchmark: {model} @ {host}[/cyan]")
         score_flag = ["--auto-score"] if auto_score else []
@@ -3007,6 +3007,56 @@ def benchmark(
         if result.returncode == 0:
             console.print("[dim]Update leaderboard: oa benchmark leaderboard[/dim]")
         raise typer.Exit(result.returncode)
+
+    elif subcommand == "all":
+        # Discover all installed chat models on the GPU server and benchmark each
+        console.print(f"[cyan]Ontdek modellen op {host}...[/cyan]")
+        try:
+            result = subprocess.run(
+                ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=8",
+                 host, "ollama list 2>/dev/null"],
+                capture_output=True, text=True, timeout=10, env=env,
+            )
+            lines = result.stdout.strip().splitlines()[1:]  # skip header
+            # Filter out embedding models
+            models_found = [
+                line.split()[0] for line in lines
+                if line.strip() and not any(e in line for e in ("embed", "bge", "nomic"))
+            ]
+        except Exception as exc:
+            console.print(f"[red]SSH mislukt: {exc}[/red]")
+            raise typer.Exit(1)
+
+        if not models_found:
+            console.print("[red]Geen modellen gevonden op server.[/red]")
+            raise typer.Exit(1)
+
+        console.print(f"[green]{len(models_found)} modellen gevonden:[/green]")
+        for m in models_found:
+            console.print(f"  • {m}")
+        console.print()
+
+        score_flag = ["--auto-score"] if auto_score else []
+        failed = []
+        for i, m in enumerate(models_found, 1):
+            console.print(f"[cyan][{i}/{len(models_found)}] {m}[/cyan]")
+            r = subprocess.run(
+                ["python3", str(tools_dir / "benchmark_runner.py"),
+                 "--model", m, "--host", host, "--timeout", str(timeout)] + score_flag,
+                env=env,
+            )
+            if r.returncode != 0:
+                failed.append(m)
+
+        # Update leaderboard
+        subprocess.run(["python3", str(tools_dir / "benchmark_aggregate.py")], env=env)
+
+        console.print()
+        console.print(f"[green]✅ {len(models_found) - len(failed)}/{len(models_found)} modellen gebenchmarkt[/green]")
+        if failed:
+            console.print(f"[yellow]Mislukt: {', '.join(failed)}[/yellow]")
+        console.print("[dim]Bekijk resultaten: oa benchmark leaderboard[/dim]")
+        raise typer.Exit(0 if not failed else 1)
 
     elif subcommand == "embed":
         if not model:
@@ -3039,8 +3089,118 @@ def benchmark(
 
     else:
         console.print(f"[red]Onbekend subcommand: {subcommand}[/red]")
-        console.print("[dim]Gebruik: oa benchmark run|leaderboard|rescore|embed[/dim]")
+        console.print("[dim]Gebruik: oa benchmark run|all|leaderboard|rescore|embed[/dim]")
         raise typer.Exit(1)
+
+
+@app.command(name="gpu")
+def gpu_cmd(
+    host: str = typer.Option("hetzner-agent", "--host", help="SSH host van de GPU server"),
+    probe: bool = typer.Option(False, "--probe", help="Spawn een proef-agent per model"),
+    task: str = typer.Option("Geef je naam en één zin wat je kunt. Schrijf naar ./output/result.md", "--task", help="Proef-taak voor alle agents"),
+) -> None:
+    """Toon GPU server status en geïnstalleerde modellen. Optioneel: spawn proef-agents.
+
+    Gebruik:
+      oa gpu                    # overzicht modellen
+      oa gpu --probe            # proef-agent per model (parallel)
+      oa gpu --probe --task "..." # eigen proef-taak
+    """
+    import subprocess
+    from .spawner import spawn_agent
+
+    console.print(f"[cyan]GPU server: {host}[/cyan]")
+
+    # Discover models
+    try:
+        result = subprocess.run(
+            ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=8",
+             host, "ollama list 2>/dev/null"],
+            capture_output=True, text=True, timeout=10,
+        )
+        lines = result.stdout.strip().splitlines()
+        if len(lines) < 2:
+            console.print("[red]Geen modellen gevonden of SSH mislukt.[/red]")
+            raise typer.Exit(1)
+
+        chat_models = []
+        embed_models = []
+        for line in lines[1:]:
+            parts = line.split()
+            if not parts:
+                continue
+            name = parts[0]
+            size = parts[2] if len(parts) > 2 else "?"
+            unit = parts[3] if len(parts) > 3 else ""
+            if any(e in name for e in ("embed", "bge", "nomic")):
+                embed_models.append((name, size, unit))
+            else:
+                chat_models.append((name, size, unit))
+
+    except Exception as exc:
+        console.print(f"[red]SSH fout: {exc}[/red]")
+        raise typer.Exit(1)
+
+    # Display
+    console.print()
+    console.print(f"[bold]⚡ Chat modellen ({len(chat_models)}):[/bold]")
+    for name, size, unit in chat_models:
+        # Show benchmark score if available
+        from pathlib import Path
+        import json as _json
+        runs_dir = Path(__file__).parent.parent.parent.parent / "docs/benchmarks/runs"
+        best_score = None
+        if runs_dir.exists():
+            # Match files like "2026-03-11T16-44-09-qwen2.5-32b.json"
+            model_slug = name.replace(":", "-").replace("/", "-")
+            for f in sorted(runs_dir.glob(f"*{model_slug}*.json")):
+                try:
+                    d = _json.loads(f.read_text())
+                    s = d["summary"]["pct_score"]
+                    if best_score is None or s > best_score:
+                        best_score = s
+                except Exception:
+                    pass
+        score_str = f"  [green]{best_score}%[/green]" if best_score else ""
+        console.print(f"  [white]{name}[/white]  [dim]{size} {unit}[/dim]{score_str}")
+
+    if embed_models:
+        console.print()
+        console.print(f"[bold]🔢 Embedding modellen ({len(embed_models)}):[/bold]")
+        for name, size, unit in embed_models:
+            console.print(f"  [white]{name}[/white]  [dim]{size} {unit}[/dim]")
+
+    console.print()
+    console.print("[dim]Spawn agent:   oa run \"taak\" --model hetzner/<model> --direct[/dim]")
+    console.print("[dim]Benchmark:     oa benchmark run --model <model>[/dim]")
+    console.print("[dim]Alles testen:  oa benchmark all[/dim]")
+    console.print("[dim]Chat UI:       oa web  →  Chat tab  →  ⚡ GPU Server[/dim]")
+
+    if not probe:
+        return
+
+    # Probe mode: spawn one agent per chat model
+    console.print()
+    console.print(f"[yellow]Probe mode: {len(chat_models)} agents spawnen...[/yellow]")
+    spawned = []
+    for name, _, _ in chat_models:
+        agent_name = f"probe-{name.replace(':', '-').replace('.', '')}"
+        record = spawn_agent(
+            name=agent_name,
+            task=task,
+            model=f"hetzner/{name}",
+            direct=True,
+        )
+        if record:
+            console.print(f"  [green]✓[/green] {agent_name}  ({name})")
+            spawned.append(agent_name)
+        else:
+            console.print(f"  [red]✗[/red] {name}")
+
+    console.print()
+    console.print(f"[green]{len(spawned)} probe-agents actief.[/green]")
+    console.print("[dim]Status: oa status[/dim]")
+    console.print("[dim]Output: oa collect probe-<model>[/dim]")
 
 
 @app.command(name="init")
