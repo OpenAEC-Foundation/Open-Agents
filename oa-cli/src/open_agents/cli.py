@@ -26,7 +26,7 @@ from .context_gap_detector import detect_gaps, write_audit
 from .invocation_validator import InvocationValidator
 from .budget_tracker import start_budget
 from .guardians import list_guardians, log_event, register_guardian, trigger_guardian
-from .hooks import HOOK_DIRS, ensure_hook_dirs, install_default_hooks, run_hooks
+from .hooks import HOOK_DIRS, apply_hooks_config, ensure_hook_dirs, install_default_hooks, run_hooks
 from .session import detect_previous_shutdown, ShutdownMode
 from .session_store import get_latest_session, list_sessions, cleanup_sessions
 from .session_cleanup import session_cleanup
@@ -55,20 +55,41 @@ AGENTS_LIBRARY_DIR = _resolve_library_dir()
 
 
 def _load_template(template_id: str) -> dict:
-    """Search all JSON files in agents/library/ for a template with the given id (filename stem)."""
+    """Search all JSON files in agents/library/ for a template by:
+    1. Exact file stem match (e.g. 'api-contract-validator')
+    2. Relative path without extension (e.g. 'code-dev/api-contract-validator')
+    3. JSON 'id' field match (e.g. 'code-dev-api-contract-validator')
+    """
     if not AGENTS_LIBRARY_DIR.exists():
         console.print(f"[red]Agents library not found at {AGENTS_LIBRARY_DIR}[/red]")
         raise typer.Exit(1)
 
+    # Normalize: strip leading slash and .json suffix if present
+    lookup = template_id.lstrip("/")
+    if lookup.endswith(".json"):
+        lookup = lookup[:-5]
+
     for json_file in AGENTS_LIBRARY_DIR.rglob("*.json"):
-        if json_file.stem == template_id:
+        rel_no_ext = str(json_file.relative_to(AGENTS_LIBRARY_DIR)).replace("\\", "/").removesuffix(".json")
+        stem = json_file.stem
+        if stem == lookup or rel_no_ext == lookup:
             try:
                 return json.loads(json_file.read_text())
             except Exception:
                 console.print(f"[red]Failed to parse template file: {json_file}[/red]")
                 raise typer.Exit(1)
 
+    # Second pass: match by 'id' field
+    for json_file in AGENTS_LIBRARY_DIR.rglob("*.json"):
+        try:
+            data = json.loads(json_file.read_text())
+        except Exception:
+            continue
+        if data.get("id") == lookup:
+            return data
+
     console.print(f"[red]Template '{template_id}' not found in agents/library/[/red]")
+    console.print("[dim]Run 'oa templates' to see all available templates.[/dim]")
     raise typer.Exit(1)
 
 
@@ -311,6 +332,12 @@ def start(
         console.print("[green]Session 'oa' created with dashboard window.[/green]")
     else:
         console.print("[yellow]Session 'oa' already exists.[/yellow]")
+
+    # Load hook callables from ~/.oa/hooks-config.yaml
+    try:
+        apply_hooks_config()
+    except Exception:
+        pass  # Non-critical — don't block session start
 
     # Start auto-compaction daemon
     try:

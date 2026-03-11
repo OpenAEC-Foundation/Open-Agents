@@ -5,6 +5,7 @@ import { StatusBadge } from '../shared/StatusBadge';
 import { ModelBadge } from '../shared/ModelBadge';
 import { Terminal } from '../shared/Terminal';
 import { EmptyState } from '../shared/EmptyState';
+import { XtermTerminal } from './XtermTerminal';
 import { streamAgentOutput } from '../../api/client';
 import type { SSEReconnectStatus, SSEStreamHandle } from '../../api/client';
 import type { DetailTab } from '../../types';
@@ -137,9 +138,9 @@ export function AgentDetail() {
         )}
 
         {activeTab === 'output' && (
-          <pre className="absolute inset-3 p-3 bg-neutral-900 border border-oa-border rounded-md font-mono text-xs leading-relaxed text-neutral-300 overflow-auto whitespace-pre-wrap break-words">
-            {detail.result || 'No output yet.'}
-          </pre>
+          <div className="absolute inset-3 overflow-hidden rounded-md" style={{ background: '#0a0a0a' }}>
+            <XtermTerminal output={detail.result || ''} agentName={detail.name} isRunning={false} mode="readonly" />
+          </div>
         )}
 
         {activeTab === 'info' && (

@@ -3,6 +3,7 @@ import { ClipboardCopy, ChevronRight } from 'lucide-react';
 import { useAgentStore, modelColor, formatDuration, modelLabel } from '../../stores/agentStore';
 import type { Agent, Message } from '../../types';
 import * as api from '../../api/client';
+import { XtermTerminal } from './XtermTerminal';
 
 function statusBadgeStyle(status: string) {
   const s = status === 'error' ? 'failed' : ['running', 'done', 'failed', 'timeout', 'killed'].includes(status) ? status : 'killed';
@@ -289,17 +290,16 @@ export function AgentPanel() {
               {copied ? 'Copied!' : 'Copy'}
             </button>
           </div>
-          <div
-            ref={outputRef}
-            className="flex-1 overflow-auto p-3 font-mono text-sm leading-relaxed rounded"
-            style={{ background: 'var(--color-oa-bg)' }}
-          >
+          <div className="flex-1 overflow-hidden" style={{ background: '#0a0a0a' }}>
             {outputLines.length === 0 ? (
-              <div className="text-xs" style={{ color: 'var(--color-oa-text-dim)' }}>No output yet...</div>
+              <div className="flex items-center justify-center h-full text-xs" style={{ color: 'var(--color-oa-text-dim)' }}>No output yet...</div>
             ) : (
-              <pre className="whitespace-pre-wrap break-all text-[11px]" style={{ color: 'var(--color-oa-text)' }}>
-                {outputText}
-              </pre>
+              <XtermTerminal
+                output={outputText}
+                agentName={agent.name}
+                isRunning={agent.status === 'running'}
+                mode="readonly"
+              />
             )}
           </div>
         </div>

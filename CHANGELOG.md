@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [0.3.0] - 2026-03-11
+
+### Added
+- **Telemetry system**: run logs, analytics, and per-run metrics tracking
+- **Post-run hooks**: configurable shell commands triggered after agent completion
+- **Context window tracking**: monitor token usage and context consumption per agent
+- **Agent library**: 1567 templates across 106 categories (expanded from 90 templates/10 categories)
+- **Docker runtime adapter**: containerised agent execution via `packages/backend`
+- **A2A protocol PoC adapter**: Agent-to-Agent communication protocol proof-of-concept
+- **Terminal WebSocket server**: real-time terminal streaming via WebSocket
+- **`oa mcp` CLI command**: start and manage MCP server from the CLI
+- **Web UI — xterm.js integration**: full terminal emulation in the browser
+- **Web UI — command palette**: keyboard-driven command palette for agent management
+- **Web UI — keyboard shortcuts**: global keyboard shortcut bindings in the web UI
+
+### Changed
+- **modelHint normalised**: agent library templates now use official Anthropic model IDs (`claude-haiku-4-5-20251001`, `claude-sonnet-4-6`, `claude-opus-4-6`) instead of shorthand aliases
+
+### Fixed
+- **tmux window index conflict**: resolved race condition causing duplicate tmux window indices when spawning multiple agents simultaneously
+- **Telemetry `finish_run` integration**: telemetry now correctly records run completion timestamps and exit codes
+
+---
+
 ### Added
 - ErrorBoundary en ToastProvider componenten voor robuuste UI error handling
 - PipelinePanel: visuele pipeline trigger component met live status polling
