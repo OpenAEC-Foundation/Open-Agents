@@ -35,11 +35,18 @@ API_TOKEN = _load_or_create_token()
 
 
 def require_auth(f):
-    """Decorator that requires a valid X-API-Token header for state-changing endpoints."""
+    """Decorator that requires a valid X-API-Token or Authorization: Bearer <token> header."""
     @functools.wraps(f)
     def decorated(*args, **kwargs):
-        token = request.headers.get("X-API-Token")
-        if not token or not secrets.compare_digest(token, API_TOKEN):
+        # Try X-API-Token header first
+        provided = request.headers.get("X-API-Token", "")
+        # If not provided, try Authorization: Bearer <token>
+        if not provided:
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                provided = auth_header[7:]
+        # Validate the token
+        if not provided or not secrets.compare_digest(provided, API_TOKEN):
             return jsonify({"error": "Unauthorized"}), 401
         return f(*args, **kwargs)
     return decorated

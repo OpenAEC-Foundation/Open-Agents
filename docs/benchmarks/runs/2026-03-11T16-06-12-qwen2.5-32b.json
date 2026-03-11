@@ -1,0 +1,78 @@
+{
+  "run_id": "2026-03-11T16-06-12-qwen2.5-32b",
+  "timestamp": "2026-03-11T16:06:12.521309+00:00",
+  "model": "hetzner/qwen2.5:32b",
+  "model_short": "qwen2.5:32b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "[TIMEOUT na 120s]",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Geen antwoord gegeven — timeout na 120 seconden, geen verklaring van nohup-functionaliteit.",
+      "latency_ms": 120330,
+      "tokens_estimated": 3
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "Hier is een Python-functie `deduplicate` die de dubbele items uit een lijst verwijdert terwijl de originele volgorde wordt behouden, zonder gebruik te maken van sets als eindresultaat:\n\n```python\nfrom typing import List, Any\n\ndef deduplicate(items: List[Any]) -> List[Any]:\n    \"\"\"\n    Verwijdert dubbele waarden uit een lijst, behoudt de originele volgorde.\n    \n    :param items: De lijst met mogelijke dubbele waarden.\n    :type items: List[Any]\n    :return: Een nieuwe lijst zonder dubbele waarden.\n    :rtype: List[Any]\n    \"\"\"\n    seen = {}\n    result = []\n    for item in items:\n        if item not in seen:\n            seen[item] = True\n            result.append(item)\n    return result\n```\n\n### Uitleg:\n- **Type hints**: `items: List[Any]` en `-> List[Any]` zorgen ervoor dat de functie duidelijk aangeeft dat ze werkt met lijsten van willekeurige typen en ook een lijst van willekeurige typen retourneert.\n- **Docstring**: Bevat een korte beschrijving van wat de functie doet, de verwachte parameter en het retourneert type.\n- **Logica**: \n  - `seen`: Dit is een dictionary die bijhoudt welke items al zijn gezien.\n  - `result`: Dit is de lijst die het eindresultaat zal bevatten.\n  - Voor elke item in `items`:\n    - Als het item nog niet in `seen` staat, voeg het toe aan `seen` en `result`.\n  - Dit zorgt ervoor dat alle items behouden blijven in de volgorde waarin ze voor het eerst voorkomen in de originele lijst, maar dat dubbele items eruit worden gehaald.\n\n### Voorbeeldgebruik:\n```python\nlijst = [1, 2, 3, 2, 1, 4, 5, 3, 6]\nprint(deduplicate(lijst))  # Uitvoer: [1, 2, 3, 4, 5, 6]\n```",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Werkende functie met correcte type hints, uitgebreide docstring, behoudt volgorde via iteratie, efficiënte O(n) implementatie met dict-tracking, retourneert list (niet set) per eis.",
+      "latency_ms": 80046,
+      "tokens_estimated": 317
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Een AI agent is als een virtuele hulp die specifieketaken uitvoert, zoals het beantwoorden van vragen of het maken van voorstellen, terwijl een AI workflow een reeks van meerdere stappen of taken is die automatisch en volgens een vast patroon worden uitgevoerd, om bijvoorbeeld een proces van begin tot eind te vergemakkelijken. Denk aan een AI agent als een assistent die individuele opdrachten afwerkt, en een AI workflow als een fabrieksband waarbij meerdere stappen door de AI worden gestuurd.",
+      "score": 3,
+      "max_score": 5,
+      "score_rationale": "Correct onderscheid tussen agent en workflow met helder lekenuitleg in Nederlands, maar slechts 2 zinnen in plaats van vereiste 3.",
+      "latency_ms": 60747,
+      "tokens_estimated": 102
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Exact correct antwoord",
+      "latency_ms": 31786,
+      "tokens_estimated": 15
+    }
+  ],
+  "summary": {
+    "total_score": 13,
+    "max_score": 20,
+    "pct_score": 65.0,
+    "avg_score": 3.25,
+    "by_category": {
+      "reasoning": 0,
+      "code": 5,
+      "language": 3,
+      "instruction": 5
+    },
+    "total_latency_ms": 292909,
+    "scorer": "claude/haiku"
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}

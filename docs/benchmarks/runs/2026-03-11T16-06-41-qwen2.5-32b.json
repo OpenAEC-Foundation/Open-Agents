@@ -1,0 +1,78 @@
+{
+  "run_id": "2026-03-11T16-06-41-qwen2.5-32b",
+  "timestamp": "2026-03-11T16:06:41.693597+00:00",
+  "model": "hetzner/qwen2.5:32b",
+  "model_short": "qwen2.5:32b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "[TIMEOUT na 120s]",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Timeout na 120s resulteert in geen antwoord.",
+      "latency_ms": 120330,
+      "tokens_estimated": 3
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "[TIMEOUT na 120s]",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Geen antwoord geleverd; timeout na 120s.",
+      "latency_ms": 120361,
+      "tokens_estimated": 3
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Een AI agent is als een virtuele hulp die specifieke taken voor je uitvoert, zoals antwoorden op vragen of taken plannen. Een AI workflow daarentegen is een systeem dat meerdere AI agents of stappen samen combineert om complexere processen automatisch af te handelen, zoals het beheren van een hele klus van A tot Z. Terwijl een AI agent dus op个体的答案已经生成，但需要进行一些调整以确保它完全符合所需的语言和格式。下面是调整后的版本：\n\nEen AI agent is als een virtuele hulp die specifieke taken voor je uitvoert, zoals het beantwoorden van vragen of het plannen van taken. Een AI workflow daarentegen combineert meerdere AI agents of stappen om complexere processen automatisch af te handelen, zoals het beheren van een hele processtroom van A tot Z. Terwijl een AI agent dus op individuele taken gericht is, richt een AI workflow zich op het volledig automatiseren van een serie verbonden taken.",
+      "score": 4,
+      "max_score": 5,
+      "score_rationale": "Precies 3 zinnen in Nederlands, duidelijk onderscheid (individuele taken vs. serie verbonden taken), begrijpelijk voor leken, maar 'autonomie/zelf-bepaling' van agents en 'vaste stappen' van workflows niet expliciet genoeg uitgelegd.",
+      "latency_ms": 55442,
+      "tokens_estimated": 176
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89",
+      "score": 3,
+      "max_score": 5,
+      "score_rationale": "Bijna correct: 11/12 getallen aanwezig",
+      "latency_ms": 6798,
+      "tokens_estimated": 14
+    }
+  ],
+  "summary": {
+    "total_score": 7,
+    "max_score": 20,
+    "pct_score": 35.0,
+    "avg_score": 1.75,
+    "by_category": {
+      "reasoning": 0,
+      "code": 0,
+      "language": 4,
+      "instruction": 3
+    },
+    "total_latency_ms": 302931,
+    "scorer": "claude/haiku"
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}

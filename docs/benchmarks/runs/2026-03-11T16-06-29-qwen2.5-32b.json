@@ -1,0 +1,78 @@
+{
+  "run_id": "2026-03-11T16-06-29-qwen2.5-32b",
+  "timestamp": "2026-03-11T16:06:29.775848+00:00",
+  "model": "hetzner/qwen2.5:32b",
+  "model_short": "qwen2.5:32b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "[TIMEOUT na 120s]",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Geen antwoord gegeven; evaluatie timed out na 120 seconden.",
+      "latency_ms": 120331,
+      "tokens_estimated": 3
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "Hier is een Python functie `deduplicate(items)` die een lijst ontdubbelt terwijl de originele volgorde wordt behouden, zonder gebruik te maken van sets als eindresultaat:\n\n```python\nfrom typing import List, Any\n\ndef deduplicate(items: List[Any]) -> List[Any]:\n    \"\"\"\n    Verwijdert duplicaten uit een lijst terwijl de originele volgorde wordt behouden.\n\n    :param items: Een lijst met mogelijke duplicaten.\n    :return: Een nieuwe lijst met duplicaten verwijderd en de originele volgorde behouden.\n    \"\"\"\n    seen = {}\n    result = []\n    for item in items:\n        if item not in seen:\n            seen[item] = True\n            result.append(item)\n    return result\n```\n\nDeze functie maakt gebruik van een dictionary (`seen`) om te volgen welke items al zijn gezien, en voegt alleen nieuwe items toe aan de `result` lijst. Dit zorgt ervoor dat de originele volgorde wordt behouden. Type hints en een docstring zijn toegevoegd om de functionaliteit en gebruikte typen duidelijk te maken.",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Werkende functie met correcte type hints, duidelijke docstring, behoudt volgorde perfect, en efficiënte O(n) implementatie met dict-based deduplicatie.",
+      "latency_ms": 106047,
+      "tokens_estimated": 182
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Een AI agent is als een individuele hulp die specifieke taken uitvoert, zoals het beantwoorden van vragen of het analyseren van informatie. Een AI workflow daarentegen is meer als een georganiseerde productielijn waarbij verschillende AI agents samenwerken om een complex proces van begin tot eind af te handelen. Zoals een fabriek verschillende stappen heeft om een product te maken, zo voert een AI workflow verschillende AI agents aan de slag om een doel te bereiken.",
+      "score": 4,
+      "max_score": 5,
+      "score_rationale": "Precies 3 zinnen Nederlands, duidelijk onderscheid en goed begrijpbaar voor leken; maar het benadrukt eerder 'individueel vs. samenwerking' dan de kernkenmerken 'autonoom besluitvorming' vs. 'vaste processtappen'.",
+      "latency_ms": 39797,
+      "tokens_estimated": 97
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89",
+      "score": 3,
+      "max_score": 5,
+      "score_rationale": "Bijna correct: 11/12 getallen aanwezig",
+      "latency_ms": 19463,
+      "tokens_estimated": 14
+    }
+  ],
+  "summary": {
+    "total_score": 12,
+    "max_score": 20,
+    "pct_score": 60.0,
+    "avg_score": 3.0,
+    "by_category": {
+      "reasoning": 0,
+      "code": 5,
+      "language": 4,
+      "instruction": 3
+    },
+    "total_latency_ms": 285638,
+    "scorer": "claude/haiku"
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}

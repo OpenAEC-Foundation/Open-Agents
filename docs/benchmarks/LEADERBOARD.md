@@ -1,6 +1,6 @@
 # Open-Agents GPU Model Leaderboard
 
-> Automatisch gegenereerd op 2026-03-11 13:03 UTC
+> Automatisch gegenereerd op 2026-03-11 16:27 UTC
 > Bijgewerkt met: `python3 tools/benchmark_aggregate.py`
 
 ## Overzicht
@@ -16,7 +16,8 @@ Scores zijn gebaseerd op de [Standard Benchmark Suite v1](suites/standard-v1.jso
 | #2 | `qwen2.5:14b` | **75.0%** | 75.0% | 75.0% | — | 1 | 2026-03-11 |
 | #3 | `qwen2.5-coder:14b` | **75.0%** | 75.0% | 75.0% | — | 1 | 2026-03-11 |
 | #4 | `llama3.1:8b` | **70.0%** | 67.5% | 65.0% | ↓ -5.0% | 2 | 2026-03-11 |
-| #5 | `deepseek-r1:14b` | **45.0%** | 45.0% | 45.0% | — | 1 | 2026-03-11 |
+| #5 | `qwen2.5:32b` | **65.0%** | 53.3% | 35.0% | ↓ -30.0% | 3 | 2026-03-11 |
+| #6 | `deepseek-r1:14b` | **45.0%** | 45.0% | 45.0% | — | 1 | 2026-03-11 |
 
 ## Per Categorie
 
@@ -26,6 +27,7 @@ Scores zijn gebaseerd op de [Standard Benchmark Suite v1](suites/standard-v1.jso
 | `qwen2.5:14b` | 3.0 | 5.0 | 4.0 | 3.0 | 52260ms |
 | `qwen2.5-coder:14b` | 3.0 | 5.0 | 2.0 | 5.0 | 56270ms |
 | `llama3.1:8b` | 1.5 | 4.5 | 2.5 | 5.0 | 16308ms |
+| `qwen2.5:32b` | 0.0 | 3.3 | 3.7 | 3.7 | 293826ms |
 | `deepseek-r1:14b` | 4.0 | 1.0 | 1.0 | 3.0 | 191619ms |
 
 ## Trendanalyse
@@ -36,6 +38,14 @@ Scores zijn gebaseerd op de [Standard Benchmark Suite v1](suites/standard-v1.jso
 |-------|-------|---------|
 | 2026-03-11 | 70.0% | 14314ms |
 | 2026-03-11 | 65.0% | 18303ms |
+
+### qwen2.5:32b
+
+| Datum | Score | Latency |
+|-------|-------|---------|
+| 2026-03-11 | 65.0% | 292909ms |
+| 2026-03-11 | 60.0% | 285638ms |
+| 2026-03-11 | 35.0% | 302931ms |
 
 ## Hardware
 
@@ -58,4 +68,4 @@ Scores zijn gebaseerd op de [Standard Benchmark Suite v1](suites/standard-v1.jso
 Zie [suites/standard-v1.json](suites/standard-v1.json) voor volledige details.
 
 ---
-*Gegenereerd op 2026-03-11 13:03 UTC*
+*Gegenereerd op 2026-03-11 16:27 UTC*

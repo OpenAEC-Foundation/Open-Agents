@@ -375,10 +375,13 @@ def capture_agent_output(tmux_window: str, lines: int = 20) -> str | None:
         except Exception:
             return None
 
-    result = _tmux(
-        f"capture-pane -t {SESSION_NAME}:{shlex.quote(tmux_window)} -p -S -{lines}",
-        check=False,
-    )
-    if result.returncode != 0:
+    try:
+        result = _tmux(
+            f"capture-pane -t {SESSION_NAME}:{shlex.quote(tmux_window)} -p -S -{lines}",
+            check=False,
+        )
+        if result.returncode != 0:
+            return None
+        return result.stdout.rstrip("\n")
+    except (FileNotFoundError, OSError):
         return None
-    return result.stdout.rstrip("\n")
