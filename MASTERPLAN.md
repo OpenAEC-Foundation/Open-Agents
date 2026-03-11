@@ -29,7 +29,7 @@
 | 8 | Frappe App | Frappe wrapper + ERPNext templates | Sprint 1 | Done |
 | 9 | Agent Library | 1015+ atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | In Progress (454/1015) |
 | 10 | Refactor & Consolidatie | Refactor van alles uit eerste Scrum iteratie | Sprint 1-9 | Done |
-| 11 | VS Code Bridge & Terminal Agents | Echte Claude CLI agents via VS Code bridge. Gemigreerd van Open-VSCode-Controller | Sprint 1 | In Progress |
+| 11 | VS Code Bridge & Terminal Agents | Echte Claude CLI agents via VS Code bridge. Gemigreerd van Open-VSCode-Controller | Sprint 1 | In Progress (90%) |
 | 12 | CLI Agentic Layer (oa-cli) | Tmux-based multi-agent orchestrator op subscription. Python CLI + Textual TUI + Pipeline | -- | Done |
 | 13 | Docker Isolation + Non-Claude Tool Use | Container isolatie per agent (D-040) + non-Claude runtime tool use fix (D-032) | Sprint 10 | Planned |
 | 14 | Agent Library Scale-up | 900+ agents bouwen in 10 resterende categorieën (doel: 1000+) | Sprint 9 | Planned |
@@ -39,6 +39,11 @@
 | 18 | Dashboard UI & CSS Design Tokens | React web UI refactor: design tokens, ErrorBoundary, ToastProvider, PipelinePanel, TaskBoard | Sprint 12 | In Progress (80%) |
 | 19 | Session Persistence | Automatische sessie-herstel: session store, guardian daemon, resume flow, notifications | Sprint 12, 17 | Done |
 | 20 | Desktop + Web App | Web-first: xterm.js terminal, Tauri desktop wrapper, shared codebase | Sprint 12, Sprint 15 | Planned |
+| 22 | Self-Improvement Foundation | Telemetrie, hooks, context tracking, kwaliteits-gates | Sprint 12 | Planned |
+| 22b | Remote Execution (LOW PRIO) | Agents op remote GPU servers (Ollama) | Sprint 22, Sprint 12 | Planned |
+| 23 | Self-Improvement Automation | Kennisaccumulatie automatiseren op basis van telemetrie | Sprint 22 | Planned |
+| 24 | Iteration Control & Meta-Agent | Zelf-regulerend systeem, skill evolver, meta-agent | Sprint 22, Sprint 23 | Planned |
+| 25 | Periodic Analytics & Observability | Diepe analyse agent-ecosysteem op historische data | Sprint 22, Sprint 23 | Planned |
 
 ```
 Sprint 0 ──→ Sprint 1 ──→ Sprint 1.2a ──→ Sprint 1.5
@@ -60,7 +65,9 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 Sprint 12 (oa-cli) ──→ Sprint 17 (Agent Teams) ──→ Sprint 19 (Session Persistence) ✅
                    ├──→ Sprint 18 (Dashboard UI)
                    ├──→ Sprint 15 (packages/ convergentie) ──→ Sprint 20 (Desktop+Web)
-                   └──→ Sprint 11 (VS Code Bridge, packages/ tak)
+                   ├──→ Sprint 11 (VS Code Bridge, packages/ tak)
+                   └──→ Sprint 22 (Self-Improvement) ──→ Sprint 23 (Automation) ──→ Sprint 24 (Meta-Agent)
+                        ├──→ Sprint 22b (Remote Execution)         └──→ Sprint 25 (Analytics)
 
 Sprint 6a-6c is de Semantische Laag (packages/):
   6a: Knowledge Base (FR-16) — kennisbibliotheek + snippet engine
@@ -72,6 +79,40 @@ Sprint 6a-6c is de Semantische Laag (packages/):
 > **Sprint 6a → 6b → 6c is sequentieel (elke stap bouwt voort).**
 > **Sprint 9 (Agent Library) loopt continu en vult retroactief agents aan in elke sprint.**
 > **Sprint 10 (Refactor) is de laatste sprint: consolideert en refactort alles.**
+
+---
+
+## GitHub Issue Workflow
+
+> **Protocol**: Elke sprint-taak die een GitHub issue adresseert volgt dit sluitingsprotocol.
+
+### Sluitingsprotocol
+
+1. **Code committed**: Alle wijzigingen zijn gecommit naar de juiste branch
+2. **Tests groen**: Unit tests en/of integration tests slagen
+3. **Verificatie**: Functionaliteit handmatig geverifieerd (of via CI)
+4. **Issue sluiten**: `gh issue close #<nr> --comment "Implemented in <commit/PR>. <korte beschrijving>."`
+
+### Regels
+
+- Issues blijven **OPEN** in GitHub totdat code committed + getest is
+- Sluiten is de **LAATSTE** stap in elke sprint-taak — nooit eerder
+- Elke sprint heeft een **GitHub afsluiting** subsectie bij de relevante fase
+- Bij meerdere issues in één fix: sluit ze samen met cross-referentie
+- Bij gedeeltelijke implementatie: comment met voortgang, laat open
+
+---
+
+## Direct Actie: Issue #60 — Architectuurdocumentatie
+
+**Status**: Uitvoerbaar zonder blokkades
+**Issue**: [#60](https://github.com/OpenAEC-Foundation/Open-Agents/issues/60) — docs: Architectuurdocumentatie (conceptueel model + twee-lagen-structuur)
+
+**Taken:**
+- [ ] Maak `docs/architecture.md` met: mermaid diagram twee-lagen-systeem (oa-cli + Visual Canvas), decision tree (wanneer `oa run` vs `oa pipeline` vs direct), isolatie-onderbouwing
+- [ ] Update README.md met verwijzing naar docs/architecture.md
+- [ ] Geen duplicatie met bestaande docs
+- [ ] GitHub: close #60 na publicatie en README-update
 
 ---
 
@@ -1495,6 +1536,16 @@ VS Code Extension Host (:7483)  ← headless backend
 **[SEQ] Taak 11.7: E2E verificatie**
 > F5 → bridge start → `pnpm dev` → backend detecteert bridge → canvas agent met `cli/claude` → terminal opent → result verschijnt in UI.
 
+### Voortgang
+
+**Gedaan:**
+- [x] Shared types mergen — `shared.ts` in `packages/vscode-bridge/src/` re-exporteert alle bridge types van `@open-agents/shared`
+- [x] test-workspace migreren — `test-workspace/` bestaat met `CLAUDE.md` + `README.md`
+- [x] CLI tool integreren — `cli.ts` bestaat (68 regels) met bridge status check
+
+**Pending:**
+- [ ] E2E verificatie: canvas → cli/claude agent → terminal → result
+
 ### Wat ClaudeCLIRuntime anders maakt dan ClaudeSDKRuntime
 
 | | ClaudeSDKRuntime | ClaudeCLIRuntime |
@@ -1670,6 +1721,32 @@ Twee open problemen blokkeren productie-inzet:
 ### Context
 
 De library heeft 90 agents (categorieën A-I). Nog te implementeren: categorieën J-T (10 categorieën, ~900 agents). Doel is 1000+ atomaire bouwblokken.
+
+### Fase 14.0: Critical Bug Fixes (Issues #9, #10, #11, #12, #22)
+
+> Voeg toe VÓÓR de library scale-up — deze bugs breken kernfunctionaliteit.
+
+**Agent Tool Blokkade (#9 + #11):**
+- [ ] Inject `settings.json` block dat Agent tool uitschakelt per oa-agent (`"permissions": {"deny": ["Agent"]}`)
+- [ ] Voeg `--can-spawn` flag toe aan `oa run` (agent als orchestrator configureren met PATH + oa instructies)
+- [ ] Integration test: delegatie → child agents zichtbaar in `oa status`
+- [ ] GitHub: close #9, close #11
+
+**Direct Write Default (#10):**
+- [ ] Maak `--direct` default gedrag in `oa run` (voeg `--tmp` toe als opt-out)
+- [ ] Upgrade `oa collect` om bestanden in `output/` te tonen/kopiëren
+- [ ] GitHub: close #10
+
+**Structured Prompt Templates (#12):**
+- [ ] Voeg `--template <name>` flag toe aan `oa run`
+- [ ] Maak `~/.oa/prompt-templates/` met L-010 structured templates (skill-research, code-worker, planner)
+- [ ] Voeg prompt-validator toe die waarschuwt bij ontbrekende L-010 elementen
+- [ ] GitHub: close #12
+
+**Skill System per Agent Type (#22):**
+- [ ] Skill loader in `orchestrator.py` — `oa run --type <type>` laadt bijbehorende skills uit `agents/{type}/skills/`
+- [ ] `shared-skills/` directory voor cross-agent herbruikbare kennis
+- [ ] GitHub: close #22
 
 **Prioriteit voor Sprint 14 (eerste 200 agents):**
 
@@ -1847,6 +1924,13 @@ Bron: https://code.claude.com/docs/en/agent-teams
 - [ ] Tests voor task list, messaging, team management
 - [ ] TUI dashboard: team view met task status en agent communicatie
 - [ ] Web UI: team overzicht pagina
+
+**Structured Handoff Protocol (Issue #21):**
+- [ ] Definieer `handoff.yaml` schema (from, to, type, task, deliverables, success_criteria)
+- [ ] Planner genereert automatisch `handoff.yaml` bij worker-toewijzing
+- [ ] Worker valideert handoff bij ontvangst (context_files aanwezig? criteria concreet?)
+- [ ] `oa handoffs <pipeline-id>` voor traceerbaarheid
+- [ ] GitHub: close #21
 
 ---
 
@@ -2066,6 +2150,254 @@ React (shared codebase)
 
 ---
 
+## Sprint 22: Self-Improvement Foundation
+
+**Status**: Planned
+**Doel**: Telemetrie, hooks, context tracking en kwaliteits-gates — het fundament voor al het zelflerende gedrag.
+**Afhankelijk van**: Sprint 12 (oa-cli basis)
+**Issues**: #14, #15, #16, #20, #26, #27, #28, #30, #31, #33, #45 + research #47, #54, #58
+
+### Context
+
+Zonder telemetrie is het systeem een black box. Sprint 22 bouwt de 'boekhouding' van het agent-systeem: elk run wordt gelogd, hooks reageren automatisch, en kwaliteits-gates voorkomen de top-3 faalpatronen.
+
+### Fase 22.1: Agent Run Telemetry (Issue #14) [CRITICAL]
+
+- [ ] Hook in `oa run` na claude CLI — vang exit-code op, lees tmux scrollback
+- [ ] Genereer `run-log.json` (run_id, agent_name, task, model, timestamps, exit_status, duration)
+- [ ] Maak `~/.oa/runs/` directory structuur met symlinks naar workspaces
+- [ ] Onderhoud `~/.oa/runs-index.json` voor snelle queries
+- [ ] Voeg `oa logs` commando toe voor inspectie van run-logs
+- [ ] GitHub: close #14
+
+### Fase 22.2: Post-Run Hook System (Issue #15) [CRITICAL, na 22.1]
+
+- [ ] Hook runner in `orchestrator.py` — voer scripts uit in `~/.oa/hooks/`
+- [ ] Environment variabelen: `OA_RUN_ID`, `OA_RUN_LOG`, `OA_RUN_LOG_PATH`, `OA_AGENT_NAME`
+- [ ] Hook directories: `post-run/`, `post-pipeline/`, `on-failure/`, `on-success/`
+- [ ] Standaard hooks: `01-log-to-index.sh`, `02-check-success.sh`
+- [ ] `oa hooks list` en `oa hooks run <hook>` commando's
+- [ ] GitHub: close #15
+
+### Fase 22.3: Context Window Tracking (Issue #16) [CRITICAL]
+
+- [ ] Token-schatting via tmux scrollback buffer (chars × 0.25 ≈ tokens)
+- [ ] Context-log per agent naar `~/.oa/context-log/{agent-name}.jsonl`
+- [ ] `oa status --context` met tokens, window%, trend, health indicator
+- [ ] Configureerbare thresholds in `~/.oa/config.yaml` (green/yellow/red)
+- [ ] TUI waarschuwing bij overschrijding threshold
+- [ ] GitHub: close #16
+
+### Fase 22.4: Auto-Compaction (Issue #20) [na 22.3]
+
+- [ ] Compaction-trigger bij > 75% context
+- [ ] `oa compact <agent>` handmatige trigger
+- [ ] Compaction-events in telemetrie
+- [ ] GitHub: close #20
+
+### Fase 22.5: Quality Gates [PAR met 22.1]
+
+- [ ] #26 Context Gap Detector: `context_gap_detector.py` module in oa-cli; pre-flight check op `oa run`
+- [ ] #26: GitHub: close #26
+- [ ] #27 Honesty Enforcer: honesty-enforcer skill template toegevoegd aan globale agent CLAUDE.md
+- [ ] #27: GitHub: close #27
+- [ ] #28 Adversarial Reviewer: `oa review <naam>` command — spawnt read-only reviewer agent
+- [ ] #28: GitHub: close #28
+- [ ] #30 Persistent Backlog: `oa backlog` subcommand (list/add/done) + `~/.oa/backlog.yaml`
+- [ ] #30: GitHub: close #30
+- [ ] #31 File Conflict Preventer: file-ownership YAML per pipeline run; conflict check voor spawn
+- [ ] #31: GitHub: close #31
+- [ ] #33 Invocation Quality Gate: `invocation_validator.py` met 5-dimensie scoring; pre-flight in `oa run`
+- [ ] #33: GitHub: close #33
+- [ ] #45 Token Budget Allocator: `--budget <n>` flag; budget-tracking in run-state
+- [ ] #45: GitHub: close #45
+
+### Fase 22.6: Research [PAR]
+
+- [ ] #47 CLI Toolchain Evaluatie → `docs/research/cli-toolchain.md` + installatie-script
+- [ ] #54 Task Runner Evaluatie → `docs/research/task-runner.md` + workflow format voorstel
+- [ ] #58 Context Engineering → `docs/research/context-engineering.md` + context budget model
+- [ ] GitHub: close #47, #54, #58 na publicatie rapporten in docs/research/
+
+### Acceptatiecriteria Sprint 22
+
+- Elke `oa run` genereert automatisch `run-log.json`
+- Post-run scripts in `~/.oa/hooks/post-run/` worden automatisch aangeroepen
+- `oa status --context` toont context-gebruik per actieve agent
+- `oa review <naam>` spawnt een adversarial reviewer
+- `oa backlog` toont persistente backlog
+- Invocation validator waarschuwt bij slechte prompts voor spawn
+
+---
+
+## Sprint 22b: Remote Execution (LOW PRIORITY)
+
+**Status**: Planned (lage prioriteit)
+**Doel**: Agents uitvoeren op remote GPU servers (Ollama).
+**Afhankelijk van**: Sprint 22 (telemetrie stabiel), Sprint 12
+**Issue**: #13
+
+### Taken
+
+- [ ] Remote host configuratie in `~/.config/oa/remotes.json`
+- [ ] SSH-gebaseerde tmux session management voor remote agents
+- [ ] Ollama model routing (`--model ollama/mistral`)
+- [ ] `oa collect` transparant voor locale + remote agents
+- [ ] `oa status` toont local/remote agents gescheiden
+- [ ] GitHub: close #13
+
+---
+
+## Sprint 23: Self-Improvement Automation
+
+**Status**: Planned
+**Doel**: Kennisaccumulatie automatiseren op basis van Sprint 22 telemetrie.
+**Afhankelijk van**: Sprint 22 (telemetrie + hooks beschikbaar)
+**Issues**: #17, #18, #19, #23, #24, #29, #34, #35, #36, #42, #43 + research #53, #56
+
+### Fase 23.1: Auto Template Generation (Issue #17)
+
+- [ ] Template-evaluator hook bij success-score ≥ threshold
+- [ ] YAML template-kandidaat generatie naar `~/.oa/template-candidates/`
+- [ ] `oa templates review` CLI voor handmatige goedkeuring
+- [ ] GitHub: close #17
+
+### Fase 23.2: Automated Lessons Extraction (Issue #18)
+
+- [ ] Lessons-extractor hook (mini Claude-aanroep na elke run)
+- [ ] YAML-lessen met id, datum, categorie, lesson, evidence, confidence
+- [ ] Deduplicatie t.o.v. bestaande kennisbasis
+- [ ] `~/.oa/knowledge/` structuur (lessons.yaml, failure-patterns.yaml, success-patterns.yaml)
+- [ ] `oa knowledge show` CLI
+- [ ] GitHub: close #18
+
+### Fase 23.3: Self-Benchmark Workflow (Issue #19)
+
+- [ ] `~/.oa/benchmarks/suite.yaml` definitie met benchmark-taken
+- [ ] `oa benchmark run` commando
+- [ ] `oa benchmark compare` voor vergelijking van 2 runs
+- [ ] `oa benchmark history` voor TUI trend-visualisatie
+- [ ] GitHub: close #19
+
+### Fase 23.4: Settings Auto-Tuning (Issue #23)
+
+- [ ] `oa tune` commando — aggregeert telemetrie per model + agent-type
+- [ ] Analyse per model (success-rate, token-efficiency, duration)
+- [ ] `tune-report.md` met suggesties en onderbouwing
+- [ ] `oa tune --apply` voor goedgekeurde suggesties
+- [ ] GitHub: close #23
+
+### Fase 23.5: Agent Graveyard & Resurrection (Issue #24)
+
+- [ ] Post-run snapshot in `~/.oa/graveyard/{run-id}/snapshot.json`
+- [ ] `oa graveyard` lijst-commando met filters
+- [ ] `oa resurrect <run-id>` herstart agent met zelfde config
+- [ ] `oa resurrect <run-id> --improve` met lessons-verbeterde CLAUDE.md
+- [ ] GitHub: close #24
+
+### Fase 23.6: During/Post-Execution Hooks [PAR]
+
+- [ ] #29 End-to-End Verifier: post-run hook die tests detecteert en uitvoert; FAIL blokkeert done-status
+- [ ] #34 Assumption Tracker: during-execution skill-prompt injectie; `assumptions-log.md` in workspace
+- [ ] #35 Context Decay Monitor: periodieke tmux-job voor context-kwaliteitsmonitoring
+- [ ] #36 Information Loss Detector: combiner-output vergelijking; `information-loss-report.md`
+- [ ] #42 Instruction Compliance Checker: post-run script; `compliance-report.md` + score in telemetrie
+- [ ] #43 Session State Preserver: session-state.json serialisatie; `oa resume` commando
+- [ ] GitHub: close #29, #34, #35, #36, #42, #43 na implementatie
+
+### Fase 23.7: Research [PAR]
+
+- [ ] #53 Agent Pool Management → `docs/research/agent-pool-management.md` + scaling policy
+- [ ] #56 Observability & Logging → `docs/research/observability.md` + logging format spec + metrics
+- [ ] GitHub: close #53, #56 na publicatie rapporten
+
+### Acceptatiecriteria Sprint 23
+
+- Succesvolle runs genereren automatisch template-kandidaten
+- Elke run levert 0-2 nieuwe lessen (geen duplicaten)
+- `oa benchmark run` voert suite uit en slaat resultaten op
+- `oa resurrect` herstart agent met vorige state
+- Hook-systeem ondersteunt during/post hooks per agent-type
+
+---
+
+## Sprint 24: Iteration Control & Meta-Agent
+
+**Status**: Planned
+**Doel**: Zelf-regulerend systeem dat eigen iteraties beheert en zichzelf verbetert.
+**Afhankelijk van**: Sprint 22 + Sprint 23
+**Issues**: #25, #32, #41, #44
+
+### Fase 24.1: Diminishing Returns Detector (Issue #41)
+
+- [ ] Kwaliteitsdelta tracking in iteratieve pipeline-loop
+- [ ] Convergence-threshold configureerbaar per pipeline-type
+- [ ] `oa pipeline --auto-stop` bij automatisch stoppen
+- [ ] GitHub: close #41
+
+### Fase 24.2: Anti-Regression Guard (Issue #44)
+
+- [ ] Referentie-run systeem: `oa test --save-reference` + `oa test --check`
+- [ ] Vergelijking na elke agent-configuratie wijziging
+- [ ] Automatische alert of rollback bij regressie
+- [ ] GitHub: close #44
+
+### Fase 24.3: Skill Evolver (Issue #32)
+
+- [ ] `~/.oa/skill-metrics.yaml` tracking na elk skill-gebruik
+- [ ] `oa skill benchmark <naam>` commando
+- [ ] skill-evolver agent template in `agents/library/`
+- [ ] GitHub: close #32
+
+### Fase 24.4: Meta-Agent OA Improver (Issue #25) [na 24.1-3]
+
+- [ ] `oa improve` entry point
+- [ ] Fase 1 diagnose-agent: leest telemetrie + lessons + benchmarks
+- [ ] Fase 2 planning-agent: prioriteert max 3 verbeteringen per cyclus
+- [ ] Fase 3 parallelle workers: template-verbetering, config-aanpassing, nieuwe skill/hook
+- [ ] `oa improve --review` voor human-in-the-loop goedkeuring
+- [ ] Veiligheidscheck: verbeteringen mogen geen tests breken
+- [ ] GitHub: close #25
+
+---
+
+## Sprint 25: Periodic Analytics & Observability
+
+**Status**: Planned
+**Doel**: Diepe analyse van het agent-ecosysteem op basis van verzamelde historische data.
+**Afhankelijk van**: Sprint 22 + 23 (minimaal 2-3 sprints productiedata)
+**Issues**: #37, #38, #39, #40
+
+### Fase 25.1: Ecosystem Health Dashboard (Issue #37)
+
+- [ ] Python script dat run-logs aggregeert → `health-report.md`
+- [ ] Minimaal 5 metrics: success-rate, gem. duur, token-gebruik, error-rate, trending patterns
+- [ ] Scheduled uitvoering via `oa schedule` of cron
+- [ ] GitHub: close #37
+
+### Fase 25.2: Knowledge Boundary Mapper (Issue #38)
+
+- [ ] Domein-tagging op run-metadata
+- [ ] Success-rate per domein → `knowledge-boundary-map.md`
+- [ ] Koppeling met skill-ontwikkelingsroadmap
+- [ ] GitHub: close #38
+
+### Fase 25.3: Blind Spot Scanner (Issue #39)
+
+- [ ] Failed-run pattern clustering (minimaal 20 runs vereist)
+- [ ] Blind spots gecategoriseerd op type en frequentie
+- [ ] Aanbevelingen per geïdentificeerde blind spot
+- [ ] GitHub: close #39
+
+### Fase 25.4: Cross-Agent Pattern Miner (Issue #40)
+
+- [ ] Pattern extractie uit succesvolle multi-agent runs
+- [ ] Auto-gegenereerde library templates op basis van bewezen patronen
+- [ ] Kwaliteitsscore per patroon
+- [ ] GitHub: close #40
+
+---
+
 ## GitHub Issues → Sprint Mapping
 
 > 50 open issues (stand 2026-03-11). Per issue: sprint en status.
@@ -2096,77 +2428,96 @@ React (shared codebase)
 | [#55](https://github.com/OpenAEC-Foundation/Open-Agents/issues/55) | Emergent Agent Gedrag & Dispatcher Architectuur | Sprint 17 | In progress |
 | [#61](https://github.com/OpenAEC-Foundation/Open-Agents/issues/61) | Visual Canvas <> oa CLI integratie | Sprint 15 | Planned |
 
-### Gepland — Sprint 21+
+### Gepland — Sprint 22+
 
-> Issues #13-#46 en #56-#59 zijn feature requests voor toekomstige sprints.
-> Gegroepeerd per thema:
+> Issues #13-#46 en #56-#59 zijn gemapped naar concrete sprints (22-25).
+> Gegroepeerd per sprint:
 
-**Agent Autonomie & Zelfsturing (Sprint 21-23)**
+**Sprint 14 — Bug Fixes & Agent Library Scale-up**
 
-| Issue | Titel | Geplande Sprint |
-|-------|-------|-----------------|
-| [#17](https://github.com/OpenAEC-Foundation/Open-Agents/issues/17) | Auto Template Generation | Sprint 21 |
-| [#18](https://github.com/OpenAEC-Foundation/Open-Agents/issues/18) | Automated Lessons Extraction | Sprint 21 |
-| [#25](https://github.com/OpenAEC-Foundation/Open-Agents/issues/25) | Meta-Agent OA Improver | Sprint 21 |
-| [#32](https://github.com/OpenAEC-Foundation/Open-Agents/issues/32) | Skill-Evolver (ACE benchmark) | Sprint 22 |
-| [#19](https://github.com/OpenAEC-Foundation/Open-Agents/issues/19) | Self-Benchmark Workflow | Sprint 22 |
-| [#23](https://github.com/OpenAEC-Foundation/Open-Agents/issues/23) | Global/Local Settings Auto-Tuning | Sprint 23 |
+| Issue | Titel | Fase |
+|-------|-------|------|
+| [#9](https://github.com/OpenAEC-Foundation/Open-Agents/issues/9) | Agent Tool Blokkade | Fase 14.0 |
+| [#10](https://github.com/OpenAEC-Foundation/Open-Agents/issues/10) | --direct default | Fase 14.0 |
+| [#11](https://github.com/OpenAEC-Foundation/Open-Agents/issues/11) | Nested agent spawning | Fase 14.0 (samen met #9) |
+| [#12](https://github.com/OpenAEC-Foundation/Open-Agents/issues/12) | Structured prompt templates | Fase 14.0 |
+| [#22](https://github.com/OpenAEC-Foundation/Open-Agents/issues/22) | Skill System per Agent Type | Fase 14.0 |
 
-**Kwaliteitsborging & Observability (Sprint 21-22)**
+**Sprint 17 — Agent Teams + Handoff**
 
-| Issue | Titel | Geplande Sprint |
-|-------|-------|-----------------|
-| [#14](https://github.com/OpenAEC-Foundation/Open-Agents/issues/14) | Agent Run Telemetry | Sprint 21 |
-| [#15](https://github.com/OpenAEC-Foundation/Open-Agents/issues/15) | Post-Run Hook System | Sprint 21 |
-| [#16](https://github.com/OpenAEC-Foundation/Open-Agents/issues/16) | Context Window Tracking | Sprint 21 |
-| [#28](https://github.com/OpenAEC-Foundation/Open-Agents/issues/28) | Adversarial Reviewer | Sprint 21 |
-| [#29](https://github.com/OpenAEC-Foundation/Open-Agents/issues/29) | End-to-End Verifier | Sprint 21 |
-| [#33](https://github.com/OpenAEC-Foundation/Open-Agents/issues/33) | Invocation Quality Gate | Sprint 21 |
-| [#37](https://github.com/OpenAEC-Foundation/Open-Agents/issues/37) | Ecosystem Health Dashboard | Sprint 21 |
-| [#44](https://github.com/OpenAEC-Foundation/Open-Agents/issues/44) | Anti-Regression Guard | Sprint 21 |
-| [#45](https://github.com/OpenAEC-Foundation/Open-Agents/issues/45) | Token Budget Allocator | Sprint 22 |
+| Issue | Titel | Status |
+|-------|-------|--------|
+| [#21](https://github.com/OpenAEC-Foundation/Open-Agents/issues/21) | Structured Handoff Protocol | Pending — handoff.yaml schema |
 
-**Context & State Management (Sprint 21-22)**
+**Sprint 22 — Self-Improvement Foundation**
 
-| Issue | Titel | Geplande Sprint |
-|-------|-------|-----------------|
-| [#20](https://github.com/OpenAEC-Foundation/Open-Agents/issues/20) | Auto-Compaction Triggers | Sprint 21 |
-| [#24](https://github.com/OpenAEC-Foundation/Open-Agents/issues/24) | Agent Graveyard & Resurrection | Sprint 21 |
-| [#30](https://github.com/OpenAEC-Foundation/Open-Agents/issues/30) | Persistent Backlog | Sprint 21 |
-| [#34](https://github.com/OpenAEC-Foundation/Open-Agents/issues/34) | Assumption Tracker | Sprint 22 |
-| [#35](https://github.com/OpenAEC-Foundation/Open-Agents/issues/35) | Context Decay Monitor | Sprint 22 |
-| [#36](https://github.com/OpenAEC-Foundation/Open-Agents/issues/36) | Information Loss Detector | Sprint 22 |
+| Issue | Titel | Fase |
+|-------|-------|------|
+| [#14](https://github.com/OpenAEC-Foundation/Open-Agents/issues/14) | Agent Run Telemetry | Fase 22.1 [CRITICAL] |
+| [#15](https://github.com/OpenAEC-Foundation/Open-Agents/issues/15) | Post-Run Hook System | Fase 22.2 [CRITICAL] |
+| [#16](https://github.com/OpenAEC-Foundation/Open-Agents/issues/16) | Context Window Tracking | Fase 22.3 [CRITICAL] |
+| [#20](https://github.com/OpenAEC-Foundation/Open-Agents/issues/20) | Auto-Compaction Triggers | Fase 22.4 |
+| [#26](https://github.com/OpenAEC-Foundation/Open-Agents/issues/26) | Context-Gap-Detector | Fase 22.5 |
+| [#27](https://github.com/OpenAEC-Foundation/Open-Agents/issues/27) | Honesty-Enforcer | Fase 22.5 |
+| [#28](https://github.com/OpenAEC-Foundation/Open-Agents/issues/28) | Adversarial Reviewer | Fase 22.5 |
+| [#30](https://github.com/OpenAEC-Foundation/Open-Agents/issues/30) | Persistent Backlog | Fase 22.5 |
+| [#31](https://github.com/OpenAEC-Foundation/Open-Agents/issues/31) | File-Conflict-Preventer | Fase 22.5 |
+| [#33](https://github.com/OpenAEC-Foundation/Open-Agents/issues/33) | Invocation Quality Gate | Fase 22.5 |
+| [#45](https://github.com/OpenAEC-Foundation/Open-Agents/issues/45) | Token Budget Allocator | Fase 22.5 |
+| [#47](https://github.com/OpenAEC-Foundation/Open-Agents/issues/47) | CLI Toolchain Evaluatie | Fase 22.6 (research) |
+| [#54](https://github.com/OpenAEC-Foundation/Open-Agents/issues/54) | Task Runner Evaluatie | Fase 22.6 (research) |
+| [#58](https://github.com/OpenAEC-Foundation/Open-Agents/issues/58) | Context Engineering | Fase 22.6 (research) |
 
-**Skills & Kennissysteem (Sprint 22-23)**
+**Sprint 22b — Remote Execution (LOW PRIORITY)**
 
-| Issue | Titel | Geplande Sprint |
-|-------|-------|-----------------|
-| [#22](https://github.com/OpenAEC-Foundation/Open-Agents/issues/22) | Skill System per Agent Type | Sprint 22 |
-| [#26](https://github.com/OpenAEC-Foundation/Open-Agents/issues/26) | Context-Gap-Detector Skill | Skill Package |
-| [#27](https://github.com/OpenAEC-Foundation/Open-Agents/issues/27) | Honesty-Enforcer Skill | Skill Package |
-| [#38](https://github.com/OpenAEC-Foundation/Open-Agents/issues/38) | Knowledge Boundary Mapper | Sprint 22 |
-| [#39](https://github.com/OpenAEC-Foundation/Open-Agents/issues/39) | Blind Spot Scanner | Sprint 22 |
-| [#40](https://github.com/OpenAEC-Foundation/Open-Agents/issues/40) | Cross-Agent Pattern Miner | Sprint 22 |
-| [#46](https://github.com/OpenAEC-Foundation/Open-Agents/issues/46) | Documentation Generator | Sprint 22 |
+| Issue | Titel | Status |
+|-------|-------|--------|
+| [#13](https://github.com/OpenAEC-Foundation/Open-Agents/issues/13) | --remote flag voor GPU servers | Planned |
 
-**Agent Communicatie & Infrastructuur (Sprint 21-22)**
+**Sprint 23 — Self-Improvement Automation**
 
-| Issue | Titel | Geplande Sprint |
-|-------|-------|-----------------|
-| [#13](https://github.com/OpenAEC-Foundation/Open-Agents/issues/13) | --remote flag voor GPU servers | Sprint 15/21 |
-| [#31](https://github.com/OpenAEC-Foundation/Open-Agents/issues/31) | File-Conflict-Preventer | Sprint 21 |
-| [#41](https://github.com/OpenAEC-Foundation/Open-Agents/issues/41) | Diminishing Returns Detector | Sprint 22 |
-| [#42](https://github.com/OpenAEC-Foundation/Open-Agents/issues/42) | Instruction Compliance Checker | Sprint 21 |
-| [#50](https://github.com/OpenAEC-Foundation/Open-Agents/issues/50) | Agent Registry & Discovery | Sprint 21 |
-| [#56](https://github.com/OpenAEC-Foundation/Open-Agents/issues/56) | Observability & Logging Multi-Agent | Sprint 21 |
+| Issue | Titel | Fase |
+|-------|-------|------|
+| [#17](https://github.com/OpenAEC-Foundation/Open-Agents/issues/17) | Auto Template Generation | Fase 23.1 |
+| [#18](https://github.com/OpenAEC-Foundation/Open-Agents/issues/18) | Automated Lessons Extraction | Fase 23.2 |
+| [#19](https://github.com/OpenAEC-Foundation/Open-Agents/issues/19) | Self-Benchmark Workflow | Fase 23.3 |
+| [#23](https://github.com/OpenAEC-Foundation/Open-Agents/issues/23) | Settings Auto-Tuning | Fase 23.4 |
+| [#24](https://github.com/OpenAEC-Foundation/Open-Agents/issues/24) | Agent Graveyard & Resurrection | Fase 23.5 |
+| [#29](https://github.com/OpenAEC-Foundation/Open-Agents/issues/29) | End-to-End Verifier | Fase 23.6 |
+| [#34](https://github.com/OpenAEC-Foundation/Open-Agents/issues/34) | Assumption Tracker | Fase 23.6 |
+| [#35](https://github.com/OpenAEC-Foundation/Open-Agents/issues/35) | Context Decay Monitor | Fase 23.6 |
+| [#36](https://github.com/OpenAEC-Foundation/Open-Agents/issues/36) | Information Loss Detector | Fase 23.6 |
+| [#42](https://github.com/OpenAEC-Foundation/Open-Agents/issues/42) | Instruction Compliance Checker | Fase 23.6 |
+| [#43](https://github.com/OpenAEC-Foundation/Open-Agents/issues/43) | Session State Preserver | Fase 23.6 |
+| [#53](https://github.com/OpenAEC-Foundation/Open-Agents/issues/53) | Agent Pool Management | Fase 23.7 (research) |
+| [#56](https://github.com/OpenAEC-Foundation/Open-Agents/issues/56) | Observability & Logging | Fase 23.7 (research) |
+
+**Sprint 24 — Iteration Control & Meta-Agent**
+
+| Issue | Titel | Fase |
+|-------|-------|------|
+| [#25](https://github.com/OpenAEC-Foundation/Open-Agents/issues/25) | Meta-Agent OA Improver | Fase 24.4 |
+| [#32](https://github.com/OpenAEC-Foundation/Open-Agents/issues/32) | Skill-Evolver | Fase 24.3 |
+| [#41](https://github.com/OpenAEC-Foundation/Open-Agents/issues/41) | Diminishing Returns Detector | Fase 24.1 |
+| [#44](https://github.com/OpenAEC-Foundation/Open-Agents/issues/44) | Anti-Regression Guard | Fase 24.2 |
+
+**Sprint 25 — Periodic Analytics & Observability**
+
+| Issue | Titel | Fase |
+|-------|-------|------|
+| [#37](https://github.com/OpenAEC-Foundation/Open-Agents/issues/37) | Ecosystem Health Dashboard | Fase 25.1 |
+| [#38](https://github.com/OpenAEC-Foundation/Open-Agents/issues/38) | Knowledge Boundary Mapper | Fase 25.2 |
+| [#39](https://github.com/OpenAEC-Foundation/Open-Agents/issues/39) | Blind Spot Scanner | Fase 25.3 |
+| [#40](https://github.com/OpenAEC-Foundation/Open-Agents/issues/40) | Cross-Agent Pattern Miner | Fase 25.4 |
 
 **Research — Informeert Architectuur**
 
 | Issue | Titel | Beïnvloedt Sprint |
 |-------|-------|-------------------|
+| [#50](https://github.com/OpenAEC-Foundation/Open-Agents/issues/50) | Agent Registry & Discovery | Sprint 17 |
+| [#55](https://github.com/OpenAEC-Foundation/Open-Agents/issues/55) | Emergent Agent Gedrag & Dispatcher | Sprint 17 |
 | [#57](https://github.com/OpenAEC-Foundation/Open-Agents/issues/57) | A2A Protocol Compatibiliteit | Sprint 16 |
-| [#58](https://github.com/OpenAEC-Foundation/Open-Agents/issues/58) | Context Engineering Agent Workspaces | Sprint 22 |
-| [#59](https://github.com/OpenAEC-Foundation/Open-Agents/issues/59) | Security Model Autonome Agent Communicatie | Sprint 16/22 |
+| [#59](https://github.com/OpenAEC-Foundation/Open-Agents/issues/59) | Security Model Autonome Agent Communicatie | Sprint 17 |
 
 ---
 
