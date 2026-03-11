@@ -1255,6 +1255,23 @@ def stop(
         if triggered:
             console.print(f"[dim]Guardians triggered: {', '.join(triggered)}[/dim]")
 
+    # Show core files needing update at session end
+    try:
+        from .core_files import files_needing_update, get_stale_files
+        needs_update = files_needing_update("session_end")
+        stale = get_stale_files()
+        all_attention = {f["name"]: f for f in needs_update + stale}
+        if all_attention:
+            names = ", ".join(all_attention.keys())
+            console.print(Panel(
+                f"[yellow]Update deze core bestanden voor de volgende sessie:[/yellow]\n{names}\n\n"
+                "[dim]Guardians zijn al getriggerd. Handmatig: oa guardians --context 'session end'[/dim]",
+                title="[bold]Core Files[/bold]",
+                border_style="yellow",
+            ))
+    except Exception:
+        pass
+
     # Phase 5: CLOSE tmux session
     console.print("[bold]Phase 5:[/bold] Closing tmux session...")
     _tmux(f"kill-session -t {SESSION_NAME}", check=False)
@@ -2085,6 +2102,98 @@ def lessons_add(
 
     lesson_id = extract_lesson(agent_name=agent, outcome=outcome, lesson=lesson)
     console.print(f"[green]Les opgeslagen als {lesson_id}[/green]")
+
+
+@app.command()
+def loop(
+    task: str = typer.Argument(..., help="Task description for each agent run"),
+    interval: str = typer.Option("10m", "--interval", "-i", help="Interval between spawns: e.g. 30s, 5m, 2h"),
+    model: str = typer.Option("claude/sonnet", "--model", "-m", help="Model for each agent"),
+    name_prefix: str = typer.Option("loop", "--name", "-n", help="Prefix for agent names (loop-0, loop-1, ...)"),
+    remote: str = typer.Option("", "--remote", "-r", help="Remote SSH host for remote execution"),
+    max_runs: int = typer.Option(0, "--max", help="Maximum number of runs (0 = infinite)"),
+    wait: bool = typer.Option(False, "--wait", help="Wait for each agent to finish before spawning the next"),
+) -> None:
+    """Spawn an agent on a recurring interval. Ctrl-C to stop.
+
+    Examples:
+      oa loop "health check" --interval 5m
+      oa loop "benchmark run" --interval 1h --max 10 --remote hetzner
+      oa loop "nightly scan" --interval 30m --wait --model claude/haiku
+    """
+    import re
+    import time as _time
+    import signal
+
+    # Parse interval string → seconds
+    def _parse_interval(s: str) -> int:
+        s = s.strip().lower()
+        m = re.fullmatch(r"(\d+)(s|m|h|d)", s)
+        if not m:
+            console.print(f"[red]Invalid interval '{s}'. Use format: 30s, 5m, 2h, 1d[/red]")
+            raise typer.Exit(1)
+        value, unit = int(m.group(1)), m.group(2)
+        return value * {"s": 1, "m": 60, "h": 3600, "d": 86400}[unit]
+
+    seconds = _parse_interval(interval)
+    console.print(f"[green]oa loop started[/green] — interval: [bold]{interval}[/bold] ({seconds}s), model: [bold]{model}[/bold]")
+    if remote:
+        console.print(f"  Remote: [bold]{remote}[/bold]")
+    if max_runs:
+        console.print(f"  Max runs: [bold]{max_runs}[/bold]")
+    console.print("  Press [bold]Ctrl-C[/bold] to stop.\n")
+
+    run_count = 0
+    _stop = False
+
+    def _handle_sigint(sig, frame):
+        nonlocal _stop
+        _stop = True
+        console.print("\n[yellow]oa loop: stopping after current sleep...[/yellow]")
+
+    signal.signal(signal.SIGINT, _handle_sigint)
+
+    while not _stop:
+        if max_runs and run_count >= max_runs:
+            console.print(f"[green]oa loop: reached max runs ({max_runs}). Done.[/green]")
+            break
+
+        agent_name = f"{name_prefix}-{run_count}"
+        console.print(f"[cyan]→ Spawning {agent_name}[/cyan] (run {run_count + 1}{f'/{max_runs}' if max_runs else ''})")
+
+        try:
+            if remote:
+                rec = spawn_remote_agent(agent_name, task, host=remote, model=model, direct=True)
+            else:
+                rec = spawn_agent(agent_name, task, model=model)
+            console.print(f"  [dim]spawned → status: {rec.status}[/dim]")
+        except Exception as e:
+            console.print(f"  [red]spawn failed: {e}[/red]")
+            rec = None
+
+        run_count += 1
+
+        if wait and rec is not None and not remote:
+            # Poll until agent is done
+            from .lifecycle import check_agent
+            console.print(f"  [dim]waiting for {agent_name} to finish...[/dim]")
+            while not _stop:
+                status = check_agent(agent_name)
+                if status in ("done", "error", "timeout", "killed", None):
+                    console.print(f"  [dim]{agent_name} → {status}[/dim]")
+                    break
+                _time.sleep(3)
+
+        if _stop:
+            break
+
+        # Sleep in small increments so Ctrl-C is responsive
+        elapsed = 0
+        while elapsed < seconds and not _stop:
+            _time.sleep(min(1, seconds - elapsed))
+            elapsed += 1
+
+    console.print(f"[green]oa loop done[/green] — {run_count} agent(s) spawned.")
 
 
 @app.command()
