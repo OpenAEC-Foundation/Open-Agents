@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:D97706,100:EA580C&height=220&section=header&text=Open-Agents&fontSize=80&fontColor=ffffff&animation=fadeIn&desc=Spawn%20AI%20agents.%20Orchestrate%20anything.%20Build%20free.&descAlignY=62&descSize=20&descFontColor=FDE68A" width="100%"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:451a03,40:b45309,100:EA580C&height=280&section=header&text=Open-Agents&fontSize=85&fontColor=ffffff&animation=fadeIn&desc=Spawn%20AI%20agents.%20Orchestrate%20anything.%20Build%20free.&descAlignY=70&descSize=22&descFontColor=ffffff" width="100%"/>
 
 <img src="https://raw.githubusercontent.com/OpenAEC-Foundation/Open-Agents/main/oa-cli/web/public/assets/logos/openaec/openaec-logo-amber-on-dark.svg" alt="OpenAEC Foundation" width="200"/>
 
