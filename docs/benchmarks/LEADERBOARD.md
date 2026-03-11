@@ -1,57 +1,41 @@
 # Open-Agents GPU Model Leaderboard
 
-> Automatisch gegenereerd door `python3 tools/benchmark_aggregate.py`
-> Bijgewerkt na elke benchmark run.
+> Automatisch gegenereerd op 2026-03-11 12:49 UTC
+> Bijgewerkt met: `python3 tools/benchmark_aggregate.py`
 
 ## Overzicht
 
 Dit leaderboard toont de prestaties van GPU-modellen op de Hetzner server (RTX 4000 Ada).
 Scores zijn gebaseerd op de [Standard Benchmark Suite v1](suites/standard-v1.json).
 
-**Nog geen benchmark runs beschikbaar.**
+## Ranglijst
 
-Voer je eerste benchmark uit met:
-```bash
-python3 tools/benchmark_runner.py --model <model-naam> --host hetzner-agent
-```
+| Rang | Model | Beste Score | Gem. Score | Laatste Score | Trend | Runs | Laatste Run |
+|------|-------|------------|-----------|--------------|-------|------|------------|
+| #1 | `llama3.1:8b` | **25.0%** | 25.0% | 25.0% | → stabiel | 2 | 2026-03-11 |
+| #2 | `phi4:14b` | **25.0%** | 25.0% | 25.0% | — | 1 | 2026-03-11 |
+| #3 | `qwen2.5-coder:14b` | **25.0%** | 25.0% | 25.0% | — | 1 | 2026-03-11 |
+| #4 | `qwen2.5:14b` | **15.0%** | 15.0% | 15.0% | — | 1 | 2026-03-11 |
+| #5 | `deepseek-r1:14b` | **15.0%** | 15.0% | 15.0% | — | 1 | 2026-03-11 |
 
-Na de run, update het leaderboard:
-```bash
-python3 tools/benchmark_aggregate.py
-```
+## Per Categorie
 
----
+| Model | Reasoning | Code | Taal | Instructie | Gem. Latency |
+|-------|-----------|------|------|-----------|-------------|
+| `llama3.1:8b` | 0.0 | 0.0 | 0.0 | 5.0 | 16308ms |
+| `phi4:14b` | 0.0 | 0.0 | 0.0 | 5.0 | 74297ms |
+| `qwen2.5-coder:14b` | 0.0 | 0.0 | 0.0 | 5.0 | 56270ms |
+| `qwen2.5:14b` | 0.0 | 0.0 | 0.0 | 3.0 | 52260ms |
+| `deepseek-r1:14b` | 0.0 | 0.0 | 0.0 | 3.0 | 191619ms |
 
-## Beschikbare Modellen
+## Trendanalyse
 
-Bekijk beschikbare modellen op de Hetzner server:
-```bash
-python3 tools/benchmark_runner.py --list-models --host hetzner-agent
-```
+### llama3.1:8b
 
-Typische modellen die beschikbaar zijn:
-- `qwen2.5:14b`
-- `phi4:14b`
-- `mistral:7b`
-- `llama3.1:8b`
-- `deepseek-r1:14b`
-
----
-
-## Benchmark Suite
-
-| Test ID | Categorie | Beschrijving | Max Score |
-|---------|-----------|-------------|-----------|
-| reasoning-001 | Reasoning | nohup/SSH process kennis en uitleg | 5 |
-| code-001 | Code | Python deduplicatie functie met type hints | 5 |
-| language-001 | Taal | NL uitleg agent vs workflow (3 zinnen) | 5 |
-| instruction-001 | Instructie | Fibonacci reeks t/m 100 (exacte output) | 5 |
-
-**Totaal: 20 punten** per run.
-
-Zie [suites/standard-v1.json](suites/standard-v1.json) voor volledige details en evaluatiecriteria.
-
----
+| Datum | Score | Latency |
+|-------|-------|---------|
+| 2026-03-11 | 25.0% | 14314ms |
+| 2026-03-11 | 25.0% | 18303ms |
 
 ## Hardware
 
@@ -62,6 +46,16 @@ Zie [suites/standard-v1.json](suites/standard-v1.json) voor volledige details en
 | Host | hetzner-agent |
 | Backend | Ollama |
 
----
+## Benchmark Suite
 
-*Dit bestand wordt automatisch overschreven bij elke `benchmark_aggregate.py` run.*
+| Test ID | Categorie | Beschrijving |
+|---------|-----------|-------------|
+| reasoning-001 | Reasoning | nohup/SSH process kennis |
+| code-001 | Code | Python deduplicatie functie |
+| language-001 | Taal | NL uitleg agent vs workflow |
+| instruction-001 | Instructie | Fibonacci reeks t/m 100 |
+
+Zie [suites/standard-v1.json](suites/standard-v1.json) voor volledige details.
+
+---
+*Gegenereerd op 2026-03-11 12:49 UTC*

@@ -1,0 +1,77 @@
+{
+  "run_id": "2026-03-11T12-45-29-qwen2.5-coder-14b",
+  "timestamp": "2026-03-11T12:45:29.038647+00:00",
+  "model": "hetzner/qwen2.5-coder:14b",
+  "model_short": "qwen2.5-coder:14b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "Wanneer je een proces met nohup (no hangup) op een remote server start via SSH, blijft dat proces na de afsluiting van je SSH-sessie actief draaien. Dit is vanwege de manier waarop nohup werkt en hoe het afhandelt van signaals zoals SIGHUP (hangup).\n\n### Hoe nohup werkt:\n\n1. **SIGHUP signaal**: In Unix- en Linux-systemen, wanneer je een SSH-sessie verbroken of afsluit, stuurt het systeem een SIGHUP signaal naar alle processen die aan die sessie zijn gekoppeld. Dit signaal wordt gebruikt om processen te vertellen dat hun controlling terminal (terminal waarop ze draaien) is verbroken. Standaard zou dit het proces laten stoppen, maar nohup verandert dat gedrag.\n\n2. **No hangup (nohup)**: Door `nohup` te gebruiken voordat je een opdracht uitvoert, zorg je ervoor dat het proces de SIGHUP signaal negeren en niet stopt wanneer de SSH-sessie wordt verbroken. In plaats daarvan stuurt nohup het output van het proces naar een bestand `nohup.out` in de huidige directory, tenzij je een ander bestand opgeeft.\n\n3. **Background uitvoering**: `nohup` draait het proces standaard op de achtergrond. Dit betekent dat het proces niet gebonden is aan de terminal waarop je SSH inzit, en blijft het blijven draaien zelfs na het afsluiten van de sessie.\n\n### Wat gebeurt er met het nohup proces wanneer je SSH-sessie wordt verbroken:\n\n- **Proces blijft draaien**: Het nohup proces blijft draaien op de remote server, ongeacht of je SSH-sessie is verbroken of niet.\n- **Output wordt opgeslagen**: Alle output van het proces (standaard output en standaard fout) wordt doorgestuurd naar het `nohup.out` bestand, tenzij je een ander bestand opgeeft met de redirect operatoren `>` of `2>`.\n- **SIGHUP wordt genegeerd**: Het proces ontvangt het SIGHUP signaal, maar nohup zorgt ervoor dat dit signaal wordt genegeerd en het proces niet wordt gestopt.\n\n### Voorbeeld:\n\n```bash\nnohup ./my_script.sh &\n```\n\nIn dit voorbeeld wordt `my_script.sh` uitgevoerd in de achtergrond en wordt het output naar `nohup.out` geschreven. Als je SSH-sessie verbroken wordt, blijft `my_script.sh` actief draaien op de server.\n\n### Opmerking:\n\nAls je een proces wilt stoppen dat met nohup is gestart, kun je de process ID (PID) vinden en het proces killen met het `kill` commando. Je kunt de PID vinden met het `ps` commando, bijvoorbeeld:\n\n```bash\nps aux | grep my_script.sh\n```\n\nDit zal de PID en andere details van het proces weergeven, waarmee je het kunt stoppen met:\n\n```bash\nkill PID\n```\n\nWaarbij `PID` de process ID is die je hebt gevonden.",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "latency_ms": 30864,
+      "tokens_estimated": 522
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "Hier is een Python functie `deduplicate` die een lijst ontdubbelt terwijl de originele volgorde wordt behouden. De functie maakt gebruik van een set om bij te houden welke elementen al zijn gezien, maar retourneert uiteindelijk een lijst als eindresultaat. Type hints en een docstring zijn toegevoegd voor duidelijkheid.\n\n```python\ndef deduplicate(items: list) -> list:\n    \"\"\"\n    Verwijderd duplicaten uit de gegeven lijst terwijl de originele volgorde wordt behouden.\n\n    Parameters:\n    items (list): De lijst waaruit duplicaten moeten worden verwijderd.\n\n    Returns:\n    list: Een nieuwe lijst zonder duplicaten, behoudend de originele volgorde van elementen.\n    \"\"\"\n    seen = set()\n    result = []\n    for item in items:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n    return result\n\n# Voorbeeldgebruik:\nitems = [1, 2, 2, 3, 4, 4, 4, 5]\nunique_items = deduplicate(items)\nprint(unique_items)  # Output: [1, 2, 3, 4, 5]\n```\n\n### Uitleg:\n- **Docstring**: De docstring beschrijft de functionaliteit van de functie, de parameters die ze verwacht, en wat het retourneert.\n- **Type hints**: `list` wordt gebruikt voor de input en output om aan te geven dat we met lijsten werken.\n- **Set `seen`**: Een set wordt gebruikt om bij te houden welke elementen al zijn toegevoegd aan de resultaatlijst. Dit maakt het snel om te controleren of een element al voorkomt.\n- **Lijst `result`**: Dit is de lijst waar de unieke elementen in worden opgeslagen, in de originele volgorde van hun eerste voorkomen in de inputlijst.",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "latency_ms": 17510,
+      "tokens_estimated": 300
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Een AI agent is net zoals een persoonlijke assistent die je helpt met taken, maar dan gedaan door een computer. Hij kan communiceren, informatie verzamelen en beslissingen nemen om je te assisteren. Een AI workflow is meer als een checklist die een computer volgt om een specifieke taak of proces te voltooien. Het is een stappenplan dat wordt gevolgd om een resultaat te bereiken, net zoals wanneer je een recept volgt om een gerecht te maken. Een agent is flexibeler en meer interactief, terwijl een workflow eenvoudiger en gerichter is op een bepaald proces.",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "latency_ms": 6156,
+      "tokens_estimated": 122
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "0,1,1,2,3,5,8,13,21,34,55,89",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Exact correct antwoord",
+      "latency_ms": 1740,
+      "tokens_estimated": 1
+    }
+  ],
+  "summary": {
+    "total_score": 5,
+    "max_score": 20,
+    "pct_score": 25.0,
+    "avg_score": 1.25,
+    "by_category": {
+      "reasoning": 0,
+      "code": 0,
+      "language": 0,
+      "instruction": 5
+    },
+    "total_latency_ms": 56270
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}

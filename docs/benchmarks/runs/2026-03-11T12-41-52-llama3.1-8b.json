@@ -1,0 +1,77 @@
+{
+  "run_id": "2026-03-11T12-41-52-llama3.1-8b",
+  "timestamp": "2026-03-11T12:41:52.059304+00:00",
+  "model": "hetzner/llama3.1:8b",
+  "model_short": "llama3.1:8b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "Wanneer je een nohup proces start op een remote server via SSH en de SSH sessie wordt verbroken, gaat het nohup proces nog steeds door. Dit is omdat nohup een proces begint zonder het omgevingsvariabele $PPID (het proces-id van de oudste proces dat is verbonden met het terminal van de gebruiker die het proces heeft gestart) te behouden. \n\nDoor dit te doen, kan het proces nog steeds lopen ondanks dat de verbinding met de terminal wordt verbroken.",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "latency_ms": 4503,
+      "tokens_estimated": 100
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "Hier is de Python-functie om een lijst te ontdubbelen:\n```python\ndef deduplicate(items: list) -> list:\n    \"\"\"\n    Verwijdert dubbele waarden uit een lijst maar houdt de originele volgorde in stand.\n\n    :param items: De lijst die wordt ontdubbeld\n    :return: Een nieuwe lijst met unieke waarden\n    \"\"\"\n    result = []\n    for item in items:\n        if item not in result:\n            result.append(item)\n    return result\n```\nUitleg:\n\n*   We beginnen met een lege lijst `result`.\n*   We lopen door de invoerlijst `items`. Bij elke stap controleren we of de huidige item al in de resultatenlijst staat.\n*   Als het item nog niet in de resultatenlijst staat, voegen we het toe.\n*   Uiteindelijk returnen we de resultatenlijst.\n\nEen voorbeeld:\n```python\nitems = [1, 2, 2, 3, 4, 4, 5]\ndeduplicated = deduplicate(items)\nprint(deduplicated)  # [1, 2, 3, 4, 5]\n```\nMet deze oplossing worden dubbele waarden verwijderd uit de lijst, terwijl de originele volgorde wordt behouden.",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "latency_ms": 6564,
+      "tokens_estimated": 193
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Een AI agent is een programma dat op eigen initiatief taken uitvoert, zoals een chatbot die met klanten spreekt. Een AI workflow is een geordende reeks taken die door verschillende systemen worden uitgevoerd en wordt meestal gebruikt voor procesautomatisering.",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "latency_ms": 1948,
+      "tokens_estimated": 50
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Exact correct antwoord",
+      "latency_ms": 1299,
+      "tokens_estimated": 15
+    }
+  ],
+  "summary": {
+    "total_score": 5,
+    "max_score": 20,
+    "pct_score": 25.0,
+    "avg_score": 1.25,
+    "by_category": {
+      "reasoning": 0,
+      "code": 0,
+      "language": 0,
+      "instruction": 5
+    },
+    "total_latency_ms": 14314
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}

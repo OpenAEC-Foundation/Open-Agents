@@ -1,0 +1,77 @@
+{
+  "run_id": "2026-03-11T12-43-03-llama3.1-8b",
+  "timestamp": "2026-03-11T12:43:03.303507+00:00",
+  "model": "hetzner/llama3.1:8b",
+  "model_short": "llama3.1:8b",
+  "provider": "hetzner-ollama",
+  "hardware": {
+    "gpu": "RTX 4000 Ada",
+    "vram_gb": 20,
+    "host": "hetzner-agent"
+  },
+  "suite": "standard-v1",
+  "suite_version": "1.0",
+  "results": [
+    {
+      "test_id": "reasoning-001",
+      "category": "reasoning",
+      "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
+      "response": "Wanneer je een nohup proces start, wordt het proces achtervolgd door de sessie waarin het is gestart. Dit betekent dat als de SSH sessie wordt verbroken, de sessie ook wordt beëindigd en alle processen die zijn gestart vanuit die sessie worden beëindigd. Dit is vanwege de manier waarop nohup werkt.\n\nNohup is een commando dat gebruikt wordt om een proces te starten dat niet wordt gestopt als de sessie waarin het is gestart wordt beëindigd. Als een proces wordt gestart met nohup, wordt het proces in de background gestart en wordt het proces niet verwijderd als de sessie wordt beëindigd.\n\nNohup werkt door het proces in de background te plaatsen, waarbij het proces een nieuwe proces-ID krijgt. Dit nieuwe proces-ID wordt opgeslagen in de bestand `/dev/null`. De `/dev/null` is een bestand dat niet op schijf wordt geschreven, maar waarin alles wat naar dat bestand wordt geschreven wordt genegeerd. Dit betekent dat de output en de error van het proces naar `/dev/null` gaan, in plaats van naar de console.\n\nAls je een nohup proces start, wordt het proces dus niet verwijderd als de sessie wordt beëindigd. Het proces blijft in de background lopen en kan worden bekeken en beëindigd met de `ps` en `kill` commando's.",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "latency_ms": 7240,
+      "tokens_estimated": 265
+    },
+    {
+      "test_id": "code-001",
+      "category": "code",
+      "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
+      "response": "Hieronder ziet u een Python-functie die een lijst ontdubbelt terwijl de originele volgorde wordt behouden. \n```python\ndef deduplicate(items: list) -> list:\n    \"\"\"\n    Verwijdert dubbele items uit een lijst, terwijl de originele volgorde behouden wordt.\n    \n    Args:\n    items (list): De lijst met items die gedupliceerd worden verwijderd.\n    \n    Returns:\n    list: Een nieuwe lijst met items die niet gedupliceerd zijn, in de originele volgorde.\n    \"\"\"\n    seen = set()\n    unique_items = []\n    \n    for item in items:\n        if item not in seen:\n            seen.add(item)\n            unique_items.append(item)\n    \n    return unique_items\n```\nHieronder vindt u een voorbeeld van hoe deze functie gebruikt kan worden:\n```python\nitems = [1, 2, 2, 3, 4, 4, 5, 6, 6]\nprint(deduplicate(items))  # [1, 2, 3, 4, 5, 6]\n```\nDeze functie werkt door een set `seen` te gebruiken om dubbele items te onderscheiden. Indien een item niet in de set `seen` zit, wordt het toegevoegd aan de set en de lijst met unieke items.",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "latency_ms": 6666,
+      "tokens_estimated": 193
+    },
+    {
+      "test_id": "language-001",
+      "category": "language",
+      "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
+      "response": "Een AI-agent is een individuele programmeerbaar model dat specifieke taken uitvoert, zoals een computerprogramma dat een bepaalde taak op zich neemt. Een AI-workflow is een samenstelling van meerdere AI-agents die samenwerken om een complexere taak uit te voeren.\n\nDenk aan een restaurant waarbij iedere werknemer een specifieke taak heeft: de serveerster bestelt, de kok bereidt, en de barman serveert. Ze werken allemaal samen om het gehele proces te realiseren.",
+      "score": 0,
+      "max_score": 5,
+      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "latency_ms": 3139,
+      "tokens_estimated": 89
+    },
+    {
+      "test_id": "instruction-001",
+      "category": "instruction",
+      "prompt": "Geef de volledige Fibonacci reeks tot en met 100 (dus alle Fibonacci getallen kleiner dan of gelijk aan 100). Geef alleen de getallen, gescheiden door komma's, zonder verdere uitleg.",
+      "response": "0,1,1,2,3,5,8,13,21,34,55,89",
+      "score": 5,
+      "max_score": 5,
+      "score_rationale": "Exact correct antwoord",
+      "latency_ms": 1258,
+      "tokens_estimated": 1
+    }
+  ],
+  "summary": {
+    "total_score": 5,
+    "max_score": 20,
+    "pct_score": 25.0,
+    "avg_score": 1.25,
+    "by_category": {
+      "reasoning": 0,
+      "code": 0,
+      "language": 0,
+      "instruction": 5
+    },
+    "total_latency_ms": 18303
+  },
+  "notes": "",
+  "linked_decisions": [],
+  "runner": "benchmark_runner.py",
+  "run_by": "freek"
+}
