@@ -383,6 +383,7 @@ pnpm build:ext
 
 | Document | Purpose |
 |----------|---------|
+| [architecture.md](docs/architecture.md) | System architecture, decision tree, state management |
 | [ROADMAP.md](docs/ROADMAP.md) | Project status (single source of truth) |
 | [MASTERPLAN.md](docs/MASTERPLAN.md) | Sprint plan with executable prompts |
 | [DECISIONS.md](docs/DECISIONS.md) | Architecture decisions (D-001+) |

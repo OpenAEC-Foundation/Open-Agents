@@ -19,8 +19,9 @@ from .orchestrator import spawn_with_orchestrator
 from .spawner import spawn_agent, spawn_remote_agent
 from .tmux import session_exists, start_session
 from .state import get_agent, list_agents
-from .messaging import broadcast_message, mark_read, read_inbox, send_message, shutdown_request, unread_count
+from .messaging import broadcast_message, mark_read, poll_shutdown_response, read_inbox, send_message, shutdown_request, unread_count
 from .workspace import read_output, remote_is_done, sync_output_from_remote
+from .prompt_templates import L010_TEMPLATE_NAMES, apply_template, validate_prompt
 from .guardians import list_guardians, log_event, register_guardian, trigger_guardian
 from .session import detect_previous_shutdown, ShutdownMode
 from .session_store import get_latest_session, list_sessions, cleanup_sessions
@@ -316,18 +317,27 @@ def run(
     model: str = typer.Option("claude", "--model", "-m", help="Model: 'claude' or 'ollama/<model>' (e.g. ollama/qwen3:8b)"),
     parent: str = typer.Option("", "--parent", "-p", help="Parent/orchestrator agent name (for hierarchy)"),
     workspace: str = typer.Option("", "--workspace", "-w", help="Use existing workspace directory (skips workspace creation)"),
-    direct: bool = typer.Option(False, "--direct", "-d", help="Direct write mode: agent writes to project instead of proposals"),
+    direct: bool = typer.Option(True, "--direct", "-d", help="Direct write mode (default: True). Use --tmp for temporary workspace."),
+    tmp: bool = typer.Option(False, "--tmp", help="Write output to /tmp instead of project dir (old default)"),
     template: str = typer.Option("", "--template", "-t", help="Agent template ID from agents/library/"),
     context_skills: str = typer.Option("", "--context-skills", "-cs", help="Comma-separated skill IDs to inject as context (e.g. 'sverchok-errors-common,sverchok-syntax-scripting')"),
     guardians: bool = typer.Option(False, "--guardians/--no-guardians", help="Trigger batch_complete guardians after spawning"),
     remote: str = typer.Option("", "--remote", "-r", help="Remote SSH host voor remote execution (bijv. 'hetzner' of 'user@host')"),
+    strict: bool = typer.Option(False, "--strict", help="Fail if prompt is missing L-010 elements (absolute paths, scope, output)"),
 ):
     """Spawn an agent with a task in a new tmux window."""
     if not remote and not session_exists():
         console.print("[red]No oa session. Run 'oa start' first.[/red]")
         raise typer.Exit(1)
 
-    if template:
+    # Apply L-010 prompt template if name matches a built-in template
+    if template and template in L010_TEMPLATE_NAMES:
+        if not task:
+            console.print(f"[red]No task provided. Required when using L-010 template '{template}'.[/red]")
+            raise typer.Exit(1)
+        task = apply_template(task, template)
+        console.print(f"[dim]L-010 template applied: {template}[/dim]")
+    elif template:
         tmpl = _load_template(template)
         system_prompt = tmpl.get("systemPrompt", "")
         task = (system_prompt + "\n\n" + task).strip() if task else system_prompt
@@ -347,11 +357,22 @@ def run(
         console.print("[red]No task provided. Pass a task argument or use --template.[/red]")
         raise typer.Exit(1)
 
+    if strict:
+        warnings = validate_prompt(task)
+        for w in warnings:
+            console.print(f"[yellow]{w}[/yellow]")
+        if warnings:
+            console.print("[red]--strict: prompt faalt L-010 validatie. Voeg ontbrekende elementen toe of gebruik --template.[/red]")
+            raise typer.Exit(1)
+
     if not name:
         name = generate_agent_name(task)
 
     ws = Path(workspace) if workspace else None
-    proj_root = str(Path.cwd()) if direct else None
+    if tmp:
+        proj_root = None
+    else:
+        proj_root = str(Path.cwd()) if direct else None
 
     try:
         if remote:
@@ -701,6 +722,55 @@ def shutdown_request_cmd(
     """Send a graceful shutdown request to an agent."""
     path = shutdown_request(name, sender=sender)
     console.print(f"[yellow]Shutdown request sent to '{name}'.[/yellow]")
+
+
+@app.command()
+def shutdown(
+    name: str = typer.Argument(..., help="Agent name to shut down"),
+    force: bool = typer.Option(False, "--force", help="Skip graceful protocol; kill immediately"),
+    timeout: int = typer.Option(30, "--timeout", "-t", help="Seconds to wait for agent response (default: 30)"),
+    sender: str = typer.Option("user", "--from", "-f", help="Sender name"),
+):
+    """Gracefully shut down an agent with approve/reject and timeout.
+
+    Sends a shutdown request and waits up to --timeout seconds for the agent
+    to approve or reject. On timeout (or --force), the agent is killed immediately.
+    """
+    rec = get_agent(name)
+    if rec is None:
+        console.print(f"[red]Agent '{name}' not found.[/red]")
+        raise typer.Exit(1)
+
+    if force:
+        console.print(f"[yellow]--force: killing '{name}' immediately.[/yellow]")
+        kill_agent(name)
+        console.print(f"[red]Agent '{name}' killed.[/red]")
+        return
+
+    console.print(f"[yellow]Sending shutdown request to '{name}'...[/yellow]")
+    shutdown_request(name, sender=sender)
+    console.print(f"[dim]Waiting up to {timeout}s for response...[/dim]")
+
+    response = poll_shutdown_response(name, timeout=float(timeout))
+
+    if response == "approve":
+        console.print(f"[green]Agent '{name}' approved shutdown. Waiting for it to exit...[/green]")
+        # Give the agent a few seconds to wrap up after approving
+        deadline = time.time() + 10
+        while time.time() < deadline:
+            current = get_agent(name)
+            if current is None or current.status in ("done", "error"):
+                break
+            time.sleep(1)
+        kill_agent(name)
+        console.print(f"[green]Agent '{name}' shut down gracefully.[/green]")
+    elif response == "reject":
+        console.print(f"[red]Agent '{name}' rejected shutdown. Use --force to override.[/red]")
+        raise typer.Exit(1)
+    else:
+        console.print(f"[yellow]No response from '{name}' after {timeout}s. Force-killing.[/yellow]")
+        kill_agent(name)
+        console.print(f"[red]Agent '{name}' force-killed after timeout.[/red]")
 
 
 @app.command()

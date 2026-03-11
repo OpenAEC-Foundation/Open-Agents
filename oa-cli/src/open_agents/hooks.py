@@ -7,9 +7,12 @@ Supports decorator-based registration for ergonomic usage.
 from __future__ import annotations
 
 import logging
-from typing import Callable
+from pathlib import Path
+from typing import Callable, Optional
 
 logger = logging.getLogger(__name__)
+
+_HOOKS_CONFIG_PATH = Path.home() / ".oa" / "hooks-config.yaml"
 
 VALID_EVENTS = {"on_idle", "on_task_complete", "on_error", "on_batch_complete", "on_session_end", "on_detach", "on_resume"}
 
@@ -164,3 +167,130 @@ def on_resume(fn: Callable) -> Callable:
     """
     register_hook("on_resume", fn)
     return fn
+
+
+# --- HookRunner class ---
+
+class HookRunner:
+    """Object-oriented hook registry — useful for scoped/isolated hook management.
+
+    Example::
+
+        runner = HookRunner()
+        runner.register_hook("on_idle", lambda ctx: print("idle", ctx))
+        runner.trigger("on_idle", "my-agent")
+    """
+
+    def __init__(self) -> None:
+        self._hooks: dict[str, list[Callable]] = {event: [] for event in VALID_EVENTS}
+
+    def register_hook(self, event: str, callback: Callable) -> None:
+        """Register a callback for the given lifecycle event.
+
+        Args:
+            event: One of the VALID_EVENTS strings.
+            callback: Callable accepting a context dict.
+
+        Raises:
+            ValueError: If event is not valid.
+        """
+        if event not in VALID_EVENTS:
+            raise ValueError(f"Unknown hook event '{event}'. Valid events: {sorted(VALID_EVENTS)}")
+        self._hooks[event].append(callback)
+
+    def trigger(self, event: str, agent_name: str, extra: Optional[dict] = None) -> list[str]:
+        """Trigger all callbacks for the event, passing context with agent_name.
+
+        Args:
+            event: The lifecycle event name.
+            agent_name: The name of the agent that triggered the event.
+            extra: Optional additional context data.
+
+        Returns:
+            List of callback function names that were called.
+        """
+        if event not in VALID_EVENTS:
+            raise ValueError(f"Unknown hook event '{event}'.")
+
+        context = {"agent": agent_name, **(extra or {})}
+        called = []
+        for fn in self._hooks.get(event, []):
+            try:
+                fn(context)
+                called.append(getattr(fn, "__name__", repr(fn)))
+            except Exception as exc:
+                logger.error(
+                    "HookRunner callback '%s' for event '%s' raised: %s",
+                    getattr(fn, "__name__", fn),
+                    event,
+                    exc,
+                )
+        return called
+
+    def clear(self, event: Optional[str] = None) -> None:
+        """Clear registered callbacks. If event is None, clear all."""
+        if event is None:
+            for key in self._hooks:
+                self._hooks[key].clear()
+        elif event in VALID_EVENTS:
+            self._hooks[event].clear()
+        else:
+            raise ValueError(f"Unknown hook event '{event}'.")
+
+
+# --- YAML config loader ---
+
+def load_hooks_config(config_path: Optional[Path] = None) -> dict:
+    """Load hook configuration from a YAML file.
+
+    The config file (~/.oa/hooks-config.yaml) may contain a mapping of
+    event names to lists of importable callable strings, e.g.::
+
+        on_idle:
+          - mypackage.hooks.handle_idle
+        on_task_complete:
+          - mypackage.hooks.task_done
+
+    Returns the raw config dict (empty dict if file not found or unreadable).
+    """
+    path = config_path or _HOOKS_CONFIG_PATH
+    if not path.exists():
+        return {}
+    try:
+        import yaml  # type: ignore[import]
+    except ImportError:
+        logger.warning("PyYAML not installed; cannot load hooks-config.yaml")
+        return {}
+    try:
+        with open(path) as f:
+            data = yaml.safe_load(f)
+        return data if isinstance(data, dict) else {}
+    except Exception as exc:
+        logger.warning("Failed to load hooks config from %s: %s", path, exc)
+        return {}
+
+
+def apply_hooks_config(config_path: Optional[Path] = None) -> None:
+    """Load ~/.oa/hooks-config.yaml and register configured hook callables.
+
+    Skips entries where the import fails (logs a warning instead of raising).
+    """
+    import importlib
+
+    config = load_hooks_config(config_path)
+    for event, callables in config.items():
+        if event not in VALID_EVENTS:
+            logger.warning("hooks-config.yaml: unknown event '%s', skipping.", event)
+            continue
+        if not isinstance(callables, list):
+            continue
+        for dotted_path in callables:
+            try:
+                module_path, _, attr = dotted_path.rpartition(".")
+                if not module_path:
+                    raise ImportError(f"Invalid callable path: '{dotted_path}'")
+                module = importlib.import_module(module_path)
+                fn = getattr(module, attr)
+                register_hook(event, fn)
+            except Exception as exc:
+                logger.warning("Could not register hook '%s' for event '%s': %s", dotted_path, event, exc)

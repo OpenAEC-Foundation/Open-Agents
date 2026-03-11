@@ -244,3 +244,63 @@ def shutdown_request(agent_name: str, sender: str = "system") -> Path:
         content="Shutdown requested. Please save your work and exit gracefully.",
         metadata={"type": "shutdown_request"},
     )
+
+
+def shutdown_approve(agent_name: str, sender: str = "system") -> Path:
+    """Send a shutdown approval (agent agrees to shut down).
+
+    Used by an agent to signal that it received the shutdown request and
+    will exit gracefully.
+    """
+    return send_message(
+        sender=sender,
+        recipient=agent_name,
+        content="Shutdown approved. Agent will exit gracefully.",
+        metadata={"type": "shutdown_approve"},
+    )
+
+
+def shutdown_reject(agent_name: str, sender: str = "system", reason: str = "") -> Path:
+    """Send a shutdown rejection (agent refuses to shut down).
+
+    Used by an agent to signal that it cannot stop right now (e.g., mid-task).
+    """
+    content = "Shutdown rejected."
+    if reason:
+        content += f" Reason: {reason}"
+    return send_message(
+        sender=sender,
+        recipient=agent_name,
+        content=content,
+        metadata={"type": "shutdown_reject", "reason": reason},
+    )
+
+
+def poll_shutdown_response(
+    agent_name: str,
+    timeout: float = 30.0,
+    poll_interval: float = 1.0,
+) -> Optional[str]:
+    """Poll an agent's inbox for a shutdown_approve or shutdown_reject response.
+
+    Args:
+        agent_name: The agent whose inbox to watch (typically the caller's).
+        timeout: Maximum seconds to wait.
+        poll_interval: Seconds between polls.
+
+    Returns:
+        "approve" if a shutdown_approve message is found,
+        "reject" if a shutdown_reject message is found,
+        None if timeout is reached with no response.
+    """
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        messages = read_inbox(agent_name, unread_only=True)
+        for msg in messages:
+            msg_type = (msg.get("metadata") or {}).get("type", "")
+            if msg_type == "shutdown_approve":
+                return "approve"
+            if msg_type == "shutdown_reject":
+                return "reject"
+        time.sleep(poll_interval)
+    return None
