@@ -4,7 +4,7 @@
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
 > **Laatste update**: 2026-03-11
-> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 13 (Docker Isolation) Done — Sprint 14 (Agent Library) Done — Sprint 17 (Agent Teams) 95% — Sprint 18 (Dashboard UI) Done — Sprint 19 (Session Persistence) Done — Sprint 22 (Quality Gates) In Progress — Sprint 21 (oa-cli als Product) In Progress (60%) — Agent Library: 454 templates (32 categories) — 22 skills gebouwd
+> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 13 (Docker Isolation) Done — Sprint 14 (Agent Library) Done — Sprint 17 (Agent Teams) 95% — Sprint 18 (Dashboard UI) Done — Sprint 19 (Session Persistence) Done — Sprint 22 (Quality Gates) Done — Sprint 21 (oa-cli als Product) Done — Agent Library: 454 templates (32 categories) — 22 skills gebouwd
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -31,9 +31,9 @@
 | CLI Agentic Layer (oa-cli) | 1 | 1 |
 | VS Code Bridge (Sprint 11) | 0 | 1 |
 | Agent Teams Patterns (Sprint 17) | 12 | 12 |
-| Quality Gates (Sprint 22) | 1 | 2 |
+| Quality Gates (Sprint 22) | 2 | 2 |
 | Session Persistence (Sprint 19) | 1 | 1 |
-| oa-cli als Product (Sprint 21) | 0 | 1 |
+| oa-cli als Product (Sprint 21) | 1 | 1 |
 | Desktop + Web App (Sprint 20) | 0 | 1 |
 
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
@@ -53,8 +53,8 @@
 **Fase 11 (Agent Teams Patterns)**: ███████████████████░ **95%** - Sprint 17 In Progress (95%): task_list.py (blockedBy/auto-unblock), teams.py, messaging.py (graceful shutdown), state.py (AgentRecord team+mailbox_path), dashboard Teams tab, tests klaar; quality hooks + workspace template + web UI nog open
 **Fase 12 (Dashboard & UI Refactor)**: ████████████████████ **100%** - Sprint 18 Done: ErrorBoundary + ToastProvider componenten, PipelinePanel, TaskBoard, 11 dashboard componenten refactored met CSS design tokens
 **Fase 13 (Session Persistence)**: ████████████████████ **100%** - session store, guardian daemon, resume flow, notifications
-**Fase 15 (oa-cli als Product)**: ████████████░░░░░░░░ **60%** - Sprint 21 In Progress (60%): mcp_server.py (FastMCP 7 tools), .mcp.json, oa setup wizard, oa doctor, pyproject.toml productie-klaar, scripts/install.sh; Web UI Command Centre F1/F2 nog open
-**Sprint 22 (Quality Gates)**: ██████████░░░░░░░░░░ **50%** - context-gap, honesty, invocation, budget, backlog, reviewer klaar; auto-compaction nog bezig
+**Fase 15 (oa-cli als Product)**: ████████████████████ **100%** - Sprint 21 Done: mcp_server.py (FastMCP 8 tools), .mcp.json, oa setup wizard, oa doctor, pyproject.toml productie-klaar, scripts/install.sh, Web UI Command Centre F1/F2 complete
+**Sprint 22 (Quality Gates)**: ████████████████████ **100%** - context-gap, honesty, invocation, budget, backlog, reviewer, auto-compaction klaar
 **Fase 14 (Desktop + Web App)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - Web-first architectuur: xterm.js terminal, Tauri desktop wrapper, gedeelde React codebase
 
 ---
@@ -565,7 +565,7 @@
 
 ---
 
-## Sprint 21: oa-cli als Product — In Progress (60%)
+## Sprint 21: oa-cli als Product — Done
 
 **Doel**: oa-cli ombouwen van developer tool naar installeerbaar product met Web Command Centre, MCP Server en packaging.
 **Afhankelijk van**: Sprint 12, Sprint 17, Sprint 18
@@ -608,11 +608,11 @@
 
 ---
 
-## Sprint 22: Self-Improvement Foundation — In Progress (50%)
+## Sprint 22: Self-Improvement Foundation — Done
 
 **Doel**: Telemetrie, hooks, context tracking en kwaliteits-gates — het fundament voor al het zelflerende gedrag.
 **Afhankelijk van**: Sprint 12 (oa-cli basis)
-**Status**: 50% — context-gap, honesty, invocation, budget, backlog, reviewer klaar; auto-compaction nog bezig
+**Status**: 100% — all items complete
 
 **Klaar**:
 - [x] #26 Context Gap Detector
@@ -621,9 +621,7 @@
 - [x] #45 Token Budget Allocator
 - [x] #30 Persistent Backlog
 - [x] #28 Adversarial Reviewer
-
-**Pending**:
-- [ ] #20 Auto-Compaction (> 75% context trigger)
+- [x] #20 Auto-Compaction (> 75% context trigger) — compaction.py daemon + oa compact --daemon + bridge API + MCP tool
 - [ ] #14 Agent Run Telemetry
 - [ ] #15 Post-Run Hook System
 - [ ] #16 Context Window Tracking
