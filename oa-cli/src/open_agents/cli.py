@@ -546,9 +546,10 @@ def run(
     direct: bool = typer.Option(True, "--direct", "-d", help="Direct write mode (default: True). Use --tmp for temporary workspace."),
     tmp: bool = typer.Option(False, "--tmp", help="Write output to /tmp instead of project dir (old default)"),
     template: str = typer.Option("", "--template", "-t", help="Agent template ID from agents/library/"),
+    templates: str = typer.Option("", "--templates", help="Comma-separated template IDs to stack into one composite agent"),
     context_skills: str = typer.Option("", "--context-skills", "-cs", help="Comma-separated skill IDs to inject as context (e.g. 'sverchok-errors-common,sverchok-syntax-scripting')"),
     agent_type: str = typer.Option("", "--type", help="Agent type for skill loading. Use --profile for preset profiles (researcher|builder|orchestrator|reviewer|guardian)"),
-    profile: str = typer.Option("", "--profile", help="Agent profile: researcher|builder|orchestrator|reviewer|guardian"),
+    profile: str = typer.Option("", "--profile", help="Profile ID from agents/library/profiles/ or preset (researcher|builder|orchestrator|reviewer|guardian)"),
     guardians: bool = typer.Option(False, "--guardians/--no-guardians", help="Trigger batch_complete guardians after spawning"),
     remote: str = typer.Option("", "--remote", "-r", help="Remote SSH host voor remote execution (bijv. 'hetzner' of 'user@host')"),
     strict: bool = typer.Option(False, "--strict", help="Fail if prompt is missing L-010 elements (absolute paths, scope, output)"),
@@ -591,6 +592,47 @@ def run(
         # Auto-inject skillRef from template if no explicit --context-skills given
         if not context_skills and tmpl.get("skillRef"):
             context_skills = Path(tmpl["skillRef"]).parent.name  # use skill dir name as id
+
+    # Profile loading: --profile with registry ID (agents/library/profiles/<id>.json)
+    if profile and not profile in ("researcher", "builder", "orchestrator", "reviewer", "guardian"):
+        try:
+            from .profile_composer import load_profile, merge_templates as _merge_templates
+            _LIBRARY_DIR = Path(__file__).parent.parent.parent.parent / "agents" / "library"
+            prof = load_profile(profile)
+            _tmpl_ids = prof.get("templates", [])
+            if _tmpl_ids:
+                _merged = _merge_templates(_tmpl_ids, _LIBRARY_DIR)
+                _sys_prompt = _merged.get("systemPrompt", "")
+                if _sys_prompt:
+                    task = (_sys_prompt + "\n\n" + task).strip() if task else _sys_prompt
+                if model == "claude" and _merged.get("modelHint"):
+                    model = _merged["modelHint"]
+            if not context_skills and prof.get("skills"):
+                context_skills = ",".join(prof["skills"])
+            console.print(f"[dim]Profile loaded: {profile} ({len(_tmpl_ids)} templates)[/dim]")
+        except FileNotFoundError:
+            console.print(f"[yellow]Profile '{profile}' not found in registry, treating as preset.[/yellow]")
+
+    # Template stacking: --templates a,b,c → merge into composite agent
+    elif templates:
+        from .profile_composer import merge_templates as _merge_templates
+        _LIBRARY_DIR = Path(__file__).parent.parent.parent.parent / "agents" / "library"
+        _tmpl_list = [t.strip() for t in templates.split(",") if t.strip()]
+        if len(_tmpl_list) > 1:
+            _merged = _merge_templates(_tmpl_list, _LIBRARY_DIR)
+            _sys_prompt = _merged.get("systemPrompt", "")
+            if _sys_prompt:
+                task = (_sys_prompt + "\n\n" + task).strip() if task else _sys_prompt
+            if model == "claude" and _merged.get("modelHint"):
+                model = _merged["modelHint"]
+            console.print(f"[dim]Stacked {len(_tmpl_list)} templates → {_merged.get('modelHint', 'default')} model[/dim]")
+        elif len(_tmpl_list) == 1 and not template:
+            # Single --templates value: treat same as --template
+            tmpl = _load_template(_tmpl_list[0])
+            _sys_prompt = tmpl.get("systemPrompt", "")
+            task = (_sys_prompt + "\n\n" + task).strip() if task else _sys_prompt
+            if model == "claude" and tmpl.get("modelHint"):
+                model = tmpl["modelHint"]
 
     if context_skills:
         skill_block = _load_skills(context_skills)
@@ -3725,6 +3767,19 @@ def suggest(
             )
         console.print()
 
+    # Aanbevolen stack (top 2-3 agents gecombineerd)
+    if len(agents) >= 2:
+        stack_ids = ",".join(a.agent_id for a in agents[:min(3, len(agents))])
+        stack_names = " + ".join(a.name for a in agents[:min(3, len(agents))])
+        console.print("\n[bold]Aanbevolen stack:[/bold]")
+        console.print(f"  [cyan]{stack_names}[/cyan]")
+        console.print(f"  [dim]→ oa run \"<taak>\" --templates {stack_ids} --direct[/dim]")
+        if skills:
+            skill_ids = ",".join(s.skill_id for s in skills[:3])
+            console.print(f"  [dim]   --skills {skill_ids}[/dim]")
+        console.print()
+        console.print(f"[dim]Sla op als profiel: oa profile create <id> --templates {stack_ids}[/dim]")
+
     # Show ready-to-use oa run command
     if agents:
         best = agents[0]
@@ -3735,6 +3790,90 @@ def suggest(
             f"  [cyan]oa run \"<task>\" --template {best.agent_id}{model_flag}{skills_flag} --direct[/cyan]"
         )
         console.print()
+
+
+# ── Profile subcommand group ──────────────────────────────────────────────────
+
+profile_app = typer.Typer(help="Manage agent profiles (stacked templates + skills)", no_args_is_help=True)
+app.add_typer(profile_app, name="profile")
+
+_PROFILES_LIBRARY_DIR = Path(__file__).parent.parent.parent.parent / "agents" / "library"
+
+
+@profile_app.command("list")
+def profile_list():
+    """List all available agent profiles."""
+    from .profile_composer import list_profiles
+    from rich.table import Table
+    profiles = list_profiles()
+    if not profiles:
+        console.print("[yellow]No profiles found.[/yellow]")
+        console.print("[dim]Create one: oa profile create <id> --templates a,b --description '...'[/dim]")
+        return
+    table = Table(title="Agent Profiles")
+    table.add_column("ID", style="cyan")
+    table.add_column("Name")
+    table.add_column("Templates", style="dim", justify="right")
+    table.add_column("Model", style="green")
+    table.add_column("Description", style="dim")
+    for p in profiles:
+        desc = p.get("description", "")
+        table.add_row(
+            p.get("id", ""),
+            p.get("name", ""),
+            str(len(p.get("templates", []))),
+            p.get("modelHint", "default"),
+            (desc[:50] + "…") if len(desc) > 50 else desc,
+        )
+    console.print(table)
+
+
+@profile_app.command("show")
+def profile_show(profile_id: str = typer.Argument(..., help="Profile ID")):
+    """Show details of an agent profile."""
+    from .profile_composer import load_profile
+    try:
+        prof = load_profile(profile_id)
+    except FileNotFoundError:
+        console.print(f"[red]Profile '{profile_id}' not found.[/red]")
+        raise typer.Exit(1)
+    console.print(f"\n[bold cyan]{prof.get('id', profile_id)}[/bold cyan] — {prof.get('name', '')}")
+    console.print(f"  [dim]{prof.get('description', '')}[/dim]")
+    console.print(f"\n  Model:     [green]{prof.get('modelHint', 'default')}[/green]")
+    console.print(f"  Templates: {', '.join(prof.get('templates', []))}")
+    console.print(f"  Skills:    {', '.join(prof.get('skills', []))}")
+    console.print(f"  Tags:      {', '.join(prof.get('tags', []))}")
+    console.print(f"\n[dim]Run: oa run \"<task>\" --profile {profile_id} --direct[/dim]\n")
+
+
+@profile_app.command("create")
+def profile_create(
+    profile_id: str = typer.Argument(..., help="Profile ID (e.g. ifc-full-pipeline)"),
+    templates: str = typer.Option(..., "--templates", help="Comma-separated template IDs"),
+    skills: str = typer.Option("", "--skills", help="Comma-separated skill IDs"),
+    description: str = typer.Option("", "--description", help="Profile description"),
+    profile_name: str = typer.Option("", "--name", help="Display name"),
+    model: str = typer.Option("", "--model", help="Model override (claude/sonnet, claude/opus, ...)"),
+):
+    """Create a new agent profile from stacked templates."""
+    from .profile_composer import save_profile, merge_templates as _merge_templates
+    tmpl_list = [t.strip() for t in templates.split(",") if t.strip()]
+    skill_list = [s.strip() for s in skills.split(",") if s.strip()]
+
+    if not model:
+        merged = _merge_templates(tmpl_list, _PROFILES_LIBRARY_DIR)
+        model = merged.get("modelHint", "claude/sonnet")
+
+    path = save_profile(
+        profile_id=profile_id,
+        templates=tmpl_list,
+        skills=skill_list,
+        description=description,
+        name=profile_name or profile_id,
+        model_hint=model,
+    )
+    console.print(f"[green]✓[/green] Profile saved: [cyan]{path}[/cyan]")
+    console.print(f"[dim]Use: oa run \"<task>\" --profile {profile_id} --direct[/dim]")
 
 
 if __name__ == "__main__":

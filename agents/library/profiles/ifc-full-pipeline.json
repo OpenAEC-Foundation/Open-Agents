@@ -1,0 +1,22 @@
+{
+  "id": "ifc-full-pipeline",
+  "name": "IFC Full Pipeline",
+  "description": "Valideert en analyseert IFC modellen",
+  "templates": [
+    "aec-ifcopenshell-ifcos-impl-creation",
+    "aec-bonsai-bonsai-agents-ifc-validator"
+  ],
+  "skills": [],
+  "tags": [
+    "aec",
+    "agents",
+    "bonsai",
+    "creation",
+    "ifc",
+    "ifcopenshell",
+    "ifcos",
+    "impl",
+    "validator"
+  ],
+  "modelHint": "anthropic/claude-opus-4-6"
+}
