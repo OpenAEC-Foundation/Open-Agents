@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-11 (alle issues gesloten sessie)
-> **Status**: v0.3.1 released — Sprint 13-15 Done — Sprint 16-26 Done — Feedback Loop Live — Doc Guardian Ready — MkDocs Site Ready — Agent Library: 1743+ templates (109 categories) — 22 skills gebouwd — GitHub issues: **0 open** (alle 16 issues opgelost/gesloten) — 298 tests groen
+> **Laatste update**: 2026-03-11 (Sprint 27 Done)
+> **Status**: v0.3.2 — Sprint 13-27 Done — Tree view toggle in web UI — Checkpoint/resume end-to-end — Living agent tree (oa session-start) — Delegation hooks actief — CLAUDE.md gesloopt naar pure gedragsconfig — Template consolidatie rapport klaar (1626→~200 plan)
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -670,6 +670,24 @@
 - [x] Research: libtmux/watchdog/psutil analyse
 - [x] Diagnostics tooling voor oa-cli
 - [x] Skills voor CLI power-gebruik
+
+---
+
+## Sprint 27: Living Agent Tree + Checkpoint/Resume — Done
+
+**Doel**: Maak het systeem self-enforcing: persistent orchestrator, delegatie-hooks, checkpoint/resume end-to-end in web UI, agent tree zichtbaar.
+**Status**: Done (commits 25ccf23, 23011b0, 482de59)
+
+- [x] DashboardTab: List/Tree view toggle — LiveCanvas (React Flow) nu zichtbaar
+- [x] CheckpointPanel.tsx: incomplete checkpoints tonen + resume knop
+- [x] AgentPanel: Resume from checkpoint op error/failed/killed agents
+- [x] bridge.py: api_resume_agent spawnt nu echt een nieuwe agent
+- [x] spawner.py: auto-save checkpoint bij elke agent spawn (L-044)
+- [x] `oa session-start`: spawnt persistent session-orch met inbox-polling loop
+- [x] .claude/hooks/check-delegation.sh: waarschuwt bij direct implementatiewerk
+- [x] CLAUDE.md: herschreven naar <216 regels — puur gedragsconfig, geen status
+- [x] docs/template-consolidation-report.md: 1626→~200 consolidatie plan (opus)
+- [ ] Template cleanup uitvoeren (rapport klaar, JSONs nog niet opgeruimd)
 
 ---
 
