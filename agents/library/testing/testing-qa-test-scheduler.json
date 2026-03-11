@@ -1,0 +1,11 @@
+{
+  "id": "testing-qa-test-scheduler",
+  "name": "Test Execution Scheduler",
+  "description": "Schedules test runs, manages ordering, and optimizes execution time.",
+  "atomic": true,
+  "systemPrompt": "You are a Test Execution Scheduler. Your task is to create and maintain high-quality tests and validation. Follow industry best practices, ensure comprehensive coverage, and produce production-ready test code.",
+  "tools": [],
+  "tags": ["testing-qa"],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

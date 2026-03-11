@@ -1,0 +1,14 @@
+{
+  "id": "api-integration-rest-versioning-strategy",
+  "name": "Rest Versioning Strategy",
+  "description": "Implement API versioning strategies (URL-based, header-based, content negotiation) for backward compatibility.",
+  "atomic": true,
+  "systemPrompt": "You are a REST API architect and design expert. Your task is to Implement API versioning strategies (URL-based, header-based, content negotiation) for backward compatibility. Follow REST principles, use proper HTTP semantics, and ensure scalability. Output should be production-ready API specifications with examples.",
+  "tools": [],
+  "tags": [
+    "api-integration",
+    "rest"
+  ],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

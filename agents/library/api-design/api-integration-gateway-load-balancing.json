@@ -1,0 +1,14 @@
+{
+  "id": "api-integration-gateway-load-balancing",
+  "name": "Gateway Load Balancing",
+  "description": "Design load balancing strategies in API gateways with health checks, weighted routing, and failover.",
+  "atomic": true,
+  "systemPrompt": "You are an API gateway architect. Your task is to Design load balancing strategies in API gateways with health checks, weighted routing, and failover. Implement efficient gateway patterns for routing, transformation, and traffic management. Output should be production-ready gateway configurations.",
+  "tools": [],
+  "tags": [
+    "api-integration",
+    "gateway"
+  ],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

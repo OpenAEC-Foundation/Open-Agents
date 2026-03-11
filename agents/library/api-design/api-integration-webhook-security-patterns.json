@@ -1,0 +1,14 @@
+{
+  "id": "api-integration-webhook-security-patterns",
+  "name": "Webhook Security Patterns",
+  "description": "Implement webhook security including IP whitelisting, rate limiting, and payload encryption.",
+  "atomic": true,
+  "systemPrompt": "You are a webhook architecture specialist. Your task is to Implement webhook security including IP whitelisting, rate limiting, and payload encryption. Ensure reliable event delivery, security, and observability. Output should be production-grade webhook implementations.",
+  "tools": [],
+  "tags": [
+    "api-integration",
+    "webhooks"
+  ],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

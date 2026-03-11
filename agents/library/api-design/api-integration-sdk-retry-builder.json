@@ -1,0 +1,14 @@
+{
+  "id": "api-integration-sdk-retry-builder",
+  "name": "Sdk Retry Builder",
+  "description": "Implement client-side retry logic with exponential backoff, jitter, and circuit breaker patterns.",
+  "atomic": true,
+  "systemPrompt": "You are an SDK architect and developer. Your task is to Implement client-side retry logic with exponential backoff, jitter, and circuit breaker patterns. Create developer-friendly, well-documented, production-grade SDKs. Output should be reusable, maintainable SDK code and patterns.",
+  "tools": [],
+  "tags": [
+    "api-integration",
+    "sdk"
+  ],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "api-integration-webhook-payload-schema",
+  "name": "Webhook Payload Schema",
+  "description": "Design webhook payload schemas with versioning support for backward compatibility and extensibility.",
+  "atomic": true,
+  "systemPrompt": "You are a webhook architecture specialist. Your task is to Design webhook payload schemas with versioning support for backward compatibility and extensibility. Ensure reliable event delivery, security, and observability. Output should be production-grade webhook implementations.",
+  "tools": [],
+  "tags": [
+    "api-integration",
+    "webhooks"
+  ],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

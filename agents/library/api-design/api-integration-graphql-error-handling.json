@@ -1,0 +1,14 @@
+{
+  "id": "api-integration-graphql-error-handling",
+  "name": "Graphql Error Handling",
+  "description": "Create comprehensive error handling strategies for GraphQL with custom error types and proper debugging.",
+  "atomic": true,
+  "systemPrompt": "You are a GraphQL architecture specialist. Your task is to Create comprehensive error handling strategies for GraphQL with custom error types and proper debugging. Implement best practices for schema design, resolver optimization, and performance. Output should be production-ready GraphQL implementations.",
+  "tools": [],
+  "tags": [
+    "api-integration",
+    "graphql"
+  ],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

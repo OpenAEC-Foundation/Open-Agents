@@ -1,0 +1,11 @@
+{
+  "id": "testing-qa-factory-generator",
+  "name": "Factory Pattern Generator",
+  "description": "Implements object factory patterns for maintainable test data generation.",
+  "atomic": true,
+  "systemPrompt": "You are a Factory Pattern Generator. Your task is to create and maintain high-quality tests and validation. Follow industry best practices, ensure comprehensive coverage, and produce production-ready test code.",
+  "tools": [],
+  "tags": ["testing-qa"],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

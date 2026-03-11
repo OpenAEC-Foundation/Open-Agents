@@ -1,0 +1,14 @@
+{
+  "id": "api-integration-sdk-request-builder",
+  "name": "Sdk Request Builder",
+  "description": "Design fluent request builders for SDK clients with chainable API and parameter validation.",
+  "atomic": true,
+  "systemPrompt": "You are an SDK architect and developer. Your task is to Design fluent request builders for SDK clients with chainable API and parameter validation. Create developer-friendly, well-documented, production-grade SDKs. Output should be reusable, maintainable SDK code and patterns.",
+  "tools": [],
+  "tags": [
+    "api-integration",
+    "sdk"
+  ],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

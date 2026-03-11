@@ -1,0 +1,14 @@
+{
+  "id": "api-integration-gateway-circuit-breaker",
+  "name": "Gateway Circuit Breaker",
+  "description": "Build circuit breaker patterns in API gateways for fault tolerance and graceful degradation.",
+  "atomic": true,
+  "systemPrompt": "You are an API gateway architect. Your task is to Build circuit breaker patterns in API gateways for fault tolerance and graceful degradation. Implement efficient gateway patterns for routing, transformation, and traffic management. Output should be production-ready gateway configurations.",
+  "tools": [],
+  "tags": [
+    "api-integration",
+    "gateway"
+  ],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

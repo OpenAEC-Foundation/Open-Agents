@@ -1,0 +1,11 @@
+{
+  "id": "testing-qa-rest-api-validator",
+  "name": "REST API Validator",
+  "description": "Validates REST API compliance, HTTP semantics, headers, and RESTful principles.",
+  "atomic": true,
+  "systemPrompt": "You are a REST API Validator. Your task is to create and maintain high-quality tests and validation. Follow industry best practices, ensure comprehensive coverage, and produce production-ready test code.",
+  "tools": [],
+  "tags": ["testing-qa"],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

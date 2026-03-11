@@ -1,0 +1,14 @@
+{
+  "id": "api-integration-webhook-event-handler",
+  "name": "Webhook Event Handler",
+  "description": "Design event-driven architectures using webhooks with reliable event delivery and retry mechanisms.",
+  "atomic": true,
+  "systemPrompt": "You are a webhook architecture specialist. Your task is to Design event-driven architectures using webhooks with reliable event delivery and retry mechanisms. Ensure reliable event delivery, security, and observability. Output should be production-grade webhook implementations.",
+  "tools": [],
+  "tags": [
+    "api-integration",
+    "webhooks"
+  ],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

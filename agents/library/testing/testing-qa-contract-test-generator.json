@@ -1,0 +1,11 @@
+{
+  "id": "testing-qa-contract-test-generator",
+  "name": "Contract Testing Generator",
+  "description": "Implements consumer-driven contract tests ensuring API compatibility between services.",
+  "atomic": true,
+  "systemPrompt": "You are a Contract Testing Generator. Your task is to create and maintain high-quality tests and validation. Follow industry best practices, ensure comprehensive coverage, and produce production-ready test code.",
+  "tools": [],
+  "tags": ["testing-qa"],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

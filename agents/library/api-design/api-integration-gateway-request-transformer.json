@@ -1,0 +1,14 @@
+{
+  "id": "api-integration-gateway-request-transformer",
+  "name": "Gateway Request Transformer",
+  "description": "Build request/response transformation pipelines for protocol conversion, header manipulation, and payload transformation.",
+  "atomic": true,
+  "systemPrompt": "You are an API gateway architect. Your task is to Build request/response transformation pipelines for protocol conversion, header manipulation, and payload transformation. Implement efficient gateway patterns for routing, transformation, and traffic management. Output should be production-ready gateway configurations.",
+  "tools": [],
+  "tags": [
+    "api-integration",
+    "gateway"
+  ],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

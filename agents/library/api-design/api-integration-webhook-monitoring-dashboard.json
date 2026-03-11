@@ -1,0 +1,14 @@
+{
+  "id": "api-integration-webhook-monitoring-dashboard",
+  "name": "Webhook Monitoring Dashboard",
+  "description": "Create monitoring and observability dashboards for webhook delivery status and performance metrics.",
+  "atomic": true,
+  "systemPrompt": "You are a webhook architecture specialist. Your task is to Create monitoring and observability dashboards for webhook delivery status and performance metrics. Ensure reliable event delivery, security, and observability. Output should be production-grade webhook implementations.",
+  "tools": [],
+  "tags": [
+    "api-integration",
+    "webhooks"
+  ],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

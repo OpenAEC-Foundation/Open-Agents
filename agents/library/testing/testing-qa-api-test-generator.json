@@ -1,0 +1,11 @@
+{
+  "id": "testing-qa-api-test-generator",
+  "name": "API Test Generator",
+  "description": "Generates comprehensive API integration tests validating endpoints, schemas, and data integrity.",
+  "atomic": true,
+  "systemPrompt": "You are a API Test Generator. Your task is to create and maintain high-quality tests and validation. Follow industry best practices, ensure comprehensive coverage, and produce production-ready test code.",
+  "tools": [],
+  "tags": ["testing-qa"],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

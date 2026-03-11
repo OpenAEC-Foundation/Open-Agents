@@ -1,0 +1,14 @@
+{
+  "id": "api-integration-rest-caching-design",
+  "name": "Rest Caching Design",
+  "description": "Design caching strategies for REST APIs using ETag, Last-Modified, and Cache-Control headers.",
+  "atomic": true,
+  "systemPrompt": "You are a REST API architect and design expert. Your task is to Design caching strategies for REST APIs using ETag, Last-Modified, and Cache-Control headers. Follow REST principles, use proper HTTP semantics, and ensure scalability. Output should be production-ready API specifications with examples.",
+  "tools": [],
+  "tags": [
+    "api-integration",
+    "rest"
+  ],
+  "maturity": "prompt-template",
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}
