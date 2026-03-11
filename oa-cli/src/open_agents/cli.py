@@ -599,7 +599,11 @@ def run(
             console.print(f"[dim]Skills injected: {context_skills}[/dim]")
 
     # Auto-inject context based on task keywords (non-blocking, opt-out via --no-context-inject)
-    if not no_context_inject and task:
+    # Skip for Ollama models: they receive task.txt directly — injected context bloats/confuses them (L-089)
+    _is_ollama = model.startswith("ollama/") or model.startswith("hetzner/") and not any(
+        model.startswith(f"hetzner/{p}") for p in ("claude/", "service/")
+    )
+    if not no_context_inject and task and not _is_ollama:
         try:
             from .context_injector import inject as _inject_context
             enriched = _inject_context(task)
