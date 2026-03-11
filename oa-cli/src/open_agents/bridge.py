@@ -543,6 +543,16 @@ def api_delete_team(name: str):
     return jsonify({"deleted": name})
 
 
+@app.route("/api/teams/<name>/tasks")
+def api_team_tasks(name: str):
+    """List tasks for a specific team — alias for /api/tasks/<team>."""
+    if not _tasks_ok:
+        return jsonify({"error": "task_list module not available"}), 501
+    if _teams_ok and get_team(name) is None:
+        return jsonify({"error": f"Team '{name}' not found"}), 404
+    return jsonify(list_tasks(name))
+
+
 @app.route("/api/teams/<name>/members", methods=["POST"])
 @require_auth
 def api_add_member(name: str):

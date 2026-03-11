@@ -2,18 +2,31 @@
 
 from __future__ import annotations
 
+import datetime
 from pathlib import Path
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
-from textual.widgets import DataTable, Footer, Header, RichLog, Static
+from textual.widgets import DataTable, Footer, Header, RichLog, Static, TabbedContent, TabPane
 
 from .monitor import _build_hierarchy
 from .lifecycle import capture_agent_output, check_agent, kill_agent
 from .state import AgentRecord, list_agents
 from .utils import format_duration, format_model_label, format_model_rich
 from .workspace import read_output
+
+try:
+    from .teams import list_teams as _list_teams
+    _teams_ok = True
+except ImportError:
+    _teams_ok = False
+
+try:
+    from .task_list import list_tasks as _list_tasks
+    _tasks_ok = True
+except ImportError:
+    _tasks_ok = False
 
 try:
     from importlib.metadata import version as _pkg_version
@@ -195,6 +208,212 @@ class AgentDetailPanel(Vertical):
 
 
 # ---------------------------------------------------------------------------
+# Teams Panel
+# ---------------------------------------------------------------------------
+
+def _task_status_badge(status: str) -> str:
+    """Compact status badge for task status column."""
+    if status == "pending":
+        return "[#8888aa]○ pending[/#8888aa]"
+    if status == "in_progress":
+        return "[bold yellow]● in_progress[/bold yellow]"
+    if status == "completed":
+        return "[bold green]✔ completed[/bold green]"
+    if status == "blocked":
+        return "[bold red]✘ blocked[/bold red]"
+    return "[#8888aa]" + status + "[/#8888aa]"
+
+
+class TeamsPanel(Horizontal):
+    """Teams tab: left pane = team list, right pane = tasks for selected team."""
+
+    DEFAULT_CSS = """
+    TeamsPanel {
+        background: #0a0a15;
+    }
+
+    #teams-left {
+        width: 40%;
+        border-right: solid #333355;
+        background: #0a0a15;
+    }
+
+    #teams-section-header {
+        height: 1;
+        padding: 0 2;
+        background: #1a1a44;
+        color: #ccccff;
+        text-style: bold;
+    }
+
+    #teams-table {
+        height: 1fr;
+        background: #0a0a15;
+    }
+
+    #teams-footer {
+        height: 1;
+        padding: 0 2;
+        background: #111133;
+        color: #aaaacc;
+    }
+
+    #tasks-right {
+        width: 60%;
+        background: #0a0a15;
+    }
+
+    #tasks-section-header {
+        height: 1;
+        padding: 0 2;
+        background: #1a1a44;
+        color: #ccccff;
+        text-style: bold;
+    }
+
+    #tasks-table {
+        height: 1fr;
+        background: #0a0a15;
+    }
+
+    #tasks-footer {
+        height: 1;
+        padding: 0 2;
+        background: #111133;
+        color: #aaaacc;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="teams-left"):
+            yield Static(" TEAMS", id="teams-section-header")
+            yield DataTable(id="teams-table", cursor_type="row", show_cursor=True)
+            yield Static("", id="teams-footer")
+        with Vertical(id="tasks-right"):
+            yield Static(" TASKS  [#556677](select a team)[/#556677]", id="tasks-section-header")
+            yield DataTable(id="tasks-table", cursor_type="row", show_cursor=False)
+            yield Static("", id="tasks-footer")
+
+    def on_mount(self) -> None:
+        teams_table = self.query_one("#teams-table", DataTable)
+        teams_table.add_columns("Team", "Members", "Tasks")
+
+        tasks_table = self.query_one("#tasks-table", DataTable)
+        tasks_table.add_columns("Title", "Status", "Assigned To", "Created")
+
+        self._refresh()
+        self.set_interval(5.0, self._refresh)
+
+    def _refresh(self) -> None:
+        if not _teams_ok:
+            self.query_one("#teams-footer", Static).update("[red]teams module unavailable[/red]")
+            return
+
+        teams = _list_teams()
+
+        teams_table = self.query_one("#teams-table", DataTable)
+        cursor_row = teams_table.cursor_row
+        teams_table.clear()
+
+        for team in teams:
+            name = team.get("name", "")
+            members = team.get("members", [])
+            member_count = len(members)
+
+            if _tasks_ok:
+                try:
+                    tasks = _list_tasks(name)
+                    task_count = len(tasks)
+                    active = sum(
+                        1 for t in tasks if t.get("status") in ("in_progress", "pending")
+                    )
+                except Exception:
+                    task_count = 0
+                    active = 0
+            else:
+                task_count = 0
+                active = 0
+
+            member_preview = ", ".join(members[:3])
+            if member_count > 3:
+                member_preview += f" +{member_count - 3}"
+            if not member_preview:
+                member_preview = "[#556677]none[/#556677]"
+
+            task_str = f"{active} active / {task_count} total"
+
+            teams_table.add_row(
+                "[bold cyan]" + name + "[/bold cyan]",
+                "[#88aadd]" + member_preview + "[/#88aadd]",
+                "[yellow]" + task_str + "[/yellow]",
+                key=name,
+            )
+
+        if teams and cursor_row >= 0:
+            teams_table.move_cursor(row=min(cursor_row, teams_table.row_count - 1))
+
+        footer = self.query_one("#teams-footer", Static)
+        footer.update("[#8888aa]" + str(len(teams)) + " team(s)[/#8888aa]")
+
+        self._update_tasks()
+
+    def _update_tasks(self) -> None:
+        tasks_table = self.query_one("#tasks-table", DataTable)
+        tasks_table.clear()
+
+        teams_table = self.query_one("#teams-table", DataTable)
+        if teams_table.row_count == 0:
+            self.query_one("#tasks-section-header", Static).update(
+                " TASKS  [#556677](no teams)[/#556677]"
+            )
+            return
+
+        try:
+            row_key, _ = teams_table.coordinate_to_cell_key(teams_table.cursor_coordinate)
+            team_name = str(row_key)
+        except Exception:
+            return
+
+        self.query_one("#tasks-section-header", Static).update(
+            " TASKS  [#88aadd]" + team_name + "[/#88aadd]"
+        )
+
+        if not _tasks_ok:
+            self.query_one("#tasks-footer", Static).update("[red]task_list module unavailable[/red]")
+            return
+
+        try:
+            tasks = _list_tasks(team_name)
+        except Exception:
+            return
+
+        for task in tasks:
+            title = task.get("title", task.get("description", ""))[:45]
+            status = task.get("status", "")
+            assigned = task.get("assigned_to") or "[#556677]—[/#556677]"
+            created_at = task.get("created_at", 0)
+            created_str = ""
+            if created_at:
+                created_str = datetime.datetime.fromtimestamp(created_at).strftime("%m-%d %H:%M")
+
+            tasks_table.add_row(
+                "[white]" + title + "[/white]",
+                _task_status_badge(status),
+                "[#88aadd]" + assigned + "[/#88aadd]",
+                "[#667788]" + created_str + "[/#667788]",
+            )
+
+        task_count = len(tasks)
+        self.query_one("#tasks-footer", Static).update(
+            "[#8888aa]" + str(task_count) + " task(s)[/#8888aa]"
+        )
+
+    def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
+        if event.data_table.id == "teams-table":
+            self._update_tasks()
+
+
+# ---------------------------------------------------------------------------
 # App
 # ---------------------------------------------------------------------------
 
@@ -219,6 +438,14 @@ class OADashboard(App):
     Footer {
         background: #111133;
         color: #aaaacc;
+    }
+
+    #main-tabs {
+        height: 1fr;
+    }
+
+    #main-tabs > TabPane {
+        padding: 0;
     }
 
     #main {
@@ -267,6 +494,8 @@ class OADashboard(App):
         Binding("enter", "select_agent", "View detail", show=False),
         Binding("up", "move_up", "Up", show=False),
         Binding("down", "move_down", "Down", show=False),
+        Binding("1", "show_agents_tab", "Agents", show=False),
+        Binding("2", "show_teams_tab", "Teams", show=False),
     ]
 
     def __init__(self) -> None:
@@ -275,11 +504,15 @@ class OADashboard(App):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        with Horizontal(id="main"):
-            with Vertical(id="table-pane"):
-                yield DataTable(id="agent-table", cursor_type="row", show_cursor=True)
-            yield AgentDetailPanel(id="detail")
-        yield Static("", id="status-bar")
+        with TabbedContent(id="main-tabs"):
+            with TabPane("Agents [1]", id="tab-agents"):
+                with Horizontal(id="main"):
+                    with Vertical(id="table-pane"):
+                        yield DataTable(id="agent-table", cursor_type="row", show_cursor=True)
+                    yield AgentDetailPanel(id="detail")
+                yield Static("", id="status-bar")
+            with TabPane("Teams [2]", id="tab-teams"):
+                yield TeamsPanel(id="teams-panel")
         yield Footer()
 
     def on_mount(self) -> None:
@@ -433,6 +666,12 @@ class OADashboard(App):
     def action_refresh(self) -> None:
         self._refresh_agents()
         self.notify("Refreshed", timeout=1.5)
+
+    def action_show_agents_tab(self) -> None:
+        self.query_one("#main-tabs", TabbedContent).active = "tab-agents"
+
+    def action_show_teams_tab(self) -> None:
+        self.query_one("#main-tabs", TabbedContent).active = "tab-teams"
 
 
 # ---------------------------------------------------------------------------

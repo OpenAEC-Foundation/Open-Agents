@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -276,3 +277,33 @@ class TestListProposals:
         (proposals_dir / "x.proposal.md").write_text("x")
         result = list_proposals(str(tmp_path))
         assert len(result) == 1
+
+
+# ---------------------------------------------------------------------------
+# Agent tool blocking (Issue #9/#11)
+# ---------------------------------------------------------------------------
+
+class TestAgentToolBlocking:
+    def test_agent_tool_blocked(self):
+        """Default workspace must have Agent in the permissions deny list."""
+        ws = create_workspace("block-test", "some task")
+        try:
+            settings_file = ws / ".claude" / "settings.json"
+            assert settings_file.exists(), ".claude/settings.json must exist"
+            settings = json.loads(settings_file.read_text())
+            deny = settings.get("permissions", {}).get("deny", [])
+            assert "Agent" in deny, f"Expected 'Agent' in deny list, got: {deny}"
+        finally:
+            cleanup_workspace(ws)
+
+    def test_can_spawn_allows_agent_tool(self):
+        """Workspace created with can_spawn=True must NOT have Agent in deny list."""
+        ws = create_workspace("spawn-test", "orchestrator task", can_spawn=True)
+        try:
+            settings_file = ws / ".claude" / "settings.json"
+            assert settings_file.exists(), ".claude/settings.json must exist"
+            settings = json.loads(settings_file.read_text())
+            deny = settings.get("permissions", {}).get("deny", [])
+            assert "Agent" not in deny, f"'Agent' must not be in deny list when can_spawn=True, got: {deny}"
+        finally:
+            cleanup_workspace(ws)
