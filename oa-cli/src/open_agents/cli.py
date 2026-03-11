@@ -547,7 +547,8 @@ def run(
     tmp: bool = typer.Option(False, "--tmp", help="Write output to /tmp instead of project dir (old default)"),
     template: str = typer.Option("", "--template", "-t", help="Agent template ID from agents/library/"),
     context_skills: str = typer.Option("", "--context-skills", "-cs", help="Comma-separated skill IDs to inject as context (e.g. 'sverchok-errors-common,sverchok-syntax-scripting')"),
-    agent_type: str = typer.Option("", "--type", help="Agent type for skill loading (researcher/code-worker/planner/reviewer/orchestrator)"),
+    agent_type: str = typer.Option("", "--type", help="Agent type for skill loading. Use --profile for preset profiles (researcher|builder|orchestrator|reviewer|guardian)"),
+    profile: str = typer.Option("", "--profile", help="Agent profile: researcher|builder|orchestrator|reviewer|guardian"),
     guardians: bool = typer.Option(False, "--guardians/--no-guardians", help="Trigger batch_complete guardians after spawning"),
     remote: str = typer.Option("", "--remote", "-r", help="Remote SSH host voor remote execution (bijv. 'hetzner' of 'user@host')"),
     strict: bool = typer.Option(False, "--strict", help="Fail if prompt is missing L-010 elements (absolute paths, scope, output)"),
@@ -716,7 +717,7 @@ def run(
             add_agent(rec)
         else:
             skills_list = [s.strip() for s in skills.split(",") if s.strip()] if skills else []
-            rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None, project_root=proj_root, agent_type=agent_type, can_spawn=can_spawn, skills=skills_list)
+            rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None, project_root=proj_root, agent_type=agent_type, can_spawn=can_spawn, skills=skills_list, profile=profile)
     except RuntimeError as e:
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1)

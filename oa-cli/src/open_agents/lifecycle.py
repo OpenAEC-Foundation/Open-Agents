@@ -117,6 +117,42 @@ def check_agent(name: str) -> str | None:
 
         return "done"
 
+    # Docker agent: check container status instead of tmux window
+    if rec.tmux_window and rec.tmux_window.startswith("docker:"):
+        container_id = rec.tmux_window[len("docker:"):]
+        try:
+            import subprocess as _sub
+            result = _sub.run(
+                ["docker", "inspect", "--format={{.State.Status}}", container_id],
+                capture_output=True, text=True, timeout=5,
+            )
+            container_status = result.stdout.strip() if result.returncode == 0 else "missing"
+        except Exception:
+            container_status = "unknown"
+
+        if container_status in ("exited", "dead", "missing", "unknown"):
+            # Container stopped — check .done file for success/error
+            exit_status = "success" if workspace_is_done(rec.workspace) else "error"
+            new_status = "done" if exit_status == "success" else "error"
+            update_agent(name, status=new_status, finished_at=now, last_activity=now)
+            if rec.run_id:
+                try:
+                    _telemetry.finish_run(rec.run_id, exit_status=exit_status)
+                except Exception:
+                    pass
+            if new_status == "done":
+                if rec.shared_results_dir:
+                    _write_shared_result(rec)
+                _hooks.run_hooks("post-run", {"OA_AGENT_NAME": name, "OA_EXIT_STATUS": "done"})
+                _hooks.run_hooks("on-success", {"OA_AGENT_NAME": name})
+            return new_status
+        # Container still running
+        elapsed_minutes = (now - rec.created_at) / 60
+        if elapsed_minutes > TIMEOUT_MINUTES:
+            update_agent(name, status="timeout", finished_at=now, last_activity=now)
+            return "timeout"
+        return "running"
+
     # Check if tmux window still exists
     result = _tmux(
         f"list-windows -t {SESSION_NAME} -F '#{{window_name}}'", check=False
@@ -254,7 +290,7 @@ def _write_shared_result(rec: AgentRecord) -> None:
 
 
 def kill_agent(name: str) -> bool:
-    """Kill a running agent: close tmux window, update state.
+    """Kill a running agent: stop container or close tmux window, then update state.
 
     Returns True if the agent was killed.
     """
@@ -263,11 +299,20 @@ def kill_agent(name: str) -> bool:
         return False
 
     if rec.status == "running":
-        # Kill the tmux window
-        _tmux(
-            f"kill-window -t {SESSION_NAME}:{shlex.quote(rec.tmux_window)}",
-            check=False,
-        )
+        if rec.tmux_window and rec.tmux_window.startswith("docker:"):
+            # Docker agent: stop the container
+            container_id = rec.tmux_window[len("docker:"):]
+            try:
+                import subprocess as _sub
+                _sub.run(["docker", "stop", container_id], capture_output=True, timeout=15)
+            except Exception:
+                pass
+        else:
+            # tmux agent: kill the window
+            _tmux(
+                f"kill-window -t {SESSION_NAME}:{shlex.quote(rec.tmux_window)}",
+                check=False,
+            )
 
     update_agent(name, status="killed", finished_at=time.time())
     return True
@@ -307,10 +352,29 @@ def attach_agent(name: str) -> bool:
 
 
 def capture_agent_output(tmux_window: str, lines: int = 20) -> str | None:
-    """Capture the last N lines from a tmux window pane.
+    """Capture the last N lines from a tmux window pane or Docker container logs.
 
-    Returns the captured text, or None if the window doesn't exist.
+    Returns the captured text, or None if the window/container doesn't exist.
     """
+    # Docker agent: use `docker logs` instead of tmux capture-pane
+    if tmux_window.startswith("docker:"):
+        container_id = tmux_window[len("docker:"):]
+        try:
+            import subprocess as _sub
+            result = _sub.run(
+                ["docker", "logs", "--tail", str(lines), container_id],
+                capture_output=True, text=True, timeout=5,
+            )
+            if result.returncode != 0:
+                return None
+            # Docker logs: stdout has regular output, stderr has build/progress output
+            output = (result.stdout + result.stderr).rstrip("\n")
+            # Return last N lines (combined output may exceed requested count)
+            tail_lines = output.split("\n")[-lines:]
+            return "\n".join(tail_lines)
+        except Exception:
+            return None
+
     result = _tmux(
         f"capture-pane -t {SESSION_NAME}:{shlex.quote(tmux_window)} -p -S -{lines}",
         check=False,

@@ -13,6 +13,14 @@ _HONESTY_ENFORCER_TEMPLATE = Path(__file__).parent.parent.parent / "templates" /
 
 WORKSPACE_PREFIX = "oa-agent-"
 
+CONTEXT_PROFILES: dict[str, dict] = {
+    "researcher":   {"skills": ["oa-prompting-5element", "oa-prompting-scope"], "extra_sections": ["## Sources\n- Use only verified sources\n- Cite every claim\n"]},
+    "builder":      {"skills": ["oa-quality-gates"], "extra_sections": ["## Direct Write\n- Write to real files immediately\n- No drafts or proposals\n"]},
+    "orchestrator": {"skills": ["oa-orchestration-patterns", "oa-orchestration-communication"], "extra_sections": ["## Orchestration\n- Decompose task into subtasks\n- Spawn workers via oa run --parent\n"]},
+    "reviewer":     {"skills": ["oa-quality-gates", "oa-prompting-scope"], "extra_sections": ["## Review\n- Check correctness, completeness, format\n- Write verdict to output/review.md\n"]},
+    "guardian":     {"skills": ["oa-quality-guardians"], "extra_sections": ["## Guardian\n- Update LESSONS.md, ROADMAP.md, DECISIONS.md\n- Be conservative — only add facts you are certain of\n"]},
+}
+
 # Full PATH so agents (and their sub-agents) can find oa-cli (Issue #9/#11)
 # Uses $HOME so it works for any user (expanded at shell runtime)
 _AGENT_PATH = (
@@ -195,7 +203,7 @@ def _team_context_section(agent_name: str, team: str) -> str:
     )
 
 
-def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None, agent_type: str = "", can_spawn: bool = False, honesty: bool = False, team: str = "", model: str = "", parent_name: str = "meta", skills: list[str] | None = None, skill_refs: list[str] | None = None) -> Path:
+def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None, agent_type: str = "", can_spawn: bool = False, honesty: bool = False, team: str = "", model: str = "", parent_name: str = "meta", skills: list[str] | None = None, skill_refs: list[str] | None = None, profile: str = "") -> Path:
     """Create a temporary workspace directory with a CLAUDE.md file.
 
     If project_root is provided, agents are instructed to write directly
@@ -204,6 +212,19 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
     Returns the workspace path.
     """
     workspace = Path(tempfile.mkdtemp(prefix=WORKSPACE_PREFIX))
+
+    # Apply context profile: merge profile skills and collect extra sections
+    profile_extra_sections: list[str] = []
+    if profile and profile in CONTEXT_PROFILES:
+        prof = CONTEXT_PROFILES[profile]
+        prof_skills: list[str] = prof.get("skills", [])
+        if prof_skills:
+            existing_skills = list(skills) if skills else []
+            for s in prof_skills:
+                if s not in existing_skills:
+                    existing_skills.append(s)
+            skills = existing_skills
+        profile_extra_sections = prof.get("extra_sections", [])
 
     # Create output directory
     (workspace / "output").mkdir()
@@ -276,6 +297,11 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"- Work autonomously — no confirmation needed\n"
             f"- On failure: write to ./output/error.md and create .done anyway\n"
         )
+
+    # Append profile extra sections to CLAUDE.md
+    if profile_extra_sections:
+        existing = claude_md.read_text()
+        claude_md.write_text(existing + "\n" + "\n".join(profile_extra_sections))
 
     # Resolve skills: agent_type skills + expliciete skills + skill_refs
     combined_skill_names: list[str] = []

@@ -154,6 +154,7 @@ def spawn_agent(
     can_spawn: bool = False,
     team: str = "",
     skills: list[str] | None = None,
+    profile: str = "",
 ) -> AgentRecord:
     """Spawn an agent in a tmux window.
 
@@ -216,7 +217,7 @@ def spawn_agent(
 
     # Create workspace (or use provided one)
     if workspace is None:
-        workspace = create_workspace(name, task, project_root=project_root, agent_type=agent_type, can_spawn=can_spawn, team=team, model=model, parent_name=parent_name, skills=skills)
+        workspace = create_workspace(name, task, project_root=project_root, agent_type=agent_type, can_spawn=can_spawn, team=team, model=model, parent_name=parent_name, skills=skills, profile=profile)
     else:
         workspace = Path(workspace)
 

@@ -1,0 +1,54 @@
+# Dockerfile.agent — Isolated agent container for oa-cli (issue #68)
+#
+# Build: docker build -f Dockerfile.agent -t oa-agent:latest .
+# Used by: oa run --docker (DockerAgentRuntime in docker_runtime.py)
+#
+# This image provides:
+# - Claude Code CLI (claude) installed via npm
+# - oa-cli installed from source
+# - Non-root user (oa-agent) — required for --dangerously-skip-permissions
+# - Python 3.11 + Node 20 LTS
+
+FROM ubuntu:22.04
+
+# Prevent interactive prompts during apt installs
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Install base dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    python3.11 \
+    python3.11-venv \
+    python3-pip \
+    ca-certificates \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node 20 LTS via NodeSource
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Claude Code CLI globally
+RUN npm install -g @anthropic-ai/claude-code
+
+# Create non-root agent user (required: Claude blocks --dangerously-skip-permissions for root)
+RUN useradd -m -s /bin/bash oa-agent
+
+# Install oa-cli from source
+COPY oa-cli/ /opt/oa-cli/
+RUN pip3 install -e /opt/oa-cli/ && \
+    # Fix permissions
+    chown -R oa-agent:oa-agent /opt/oa-cli/
+
+# Agent workspace lives at /workspace (mounted at runtime by DockerAgentRuntime)
+RUN mkdir -p /workspace && chown oa-agent:oa-agent /workspace
+
+USER oa-agent
+WORKDIR /workspace
+
+# Default: run claude with isolated permissions
+# Actual command is provided by DockerAgentRuntime.spawn_agent()
+CMD ["bash"]
