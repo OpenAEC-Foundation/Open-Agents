@@ -2962,6 +2962,75 @@ def guardian(
         console.print("[red]Failed to spawn Doc Guardian.[/red]")
 
 
+@app.command(name="benchmark")
+def benchmark(
+    subcommand: str = typer.Argument("run", help="run | leaderboard | rescore"),
+    model: str = typer.Option(None, "--model", "-m", help="Model naam (bijv. qwen2.5:14b)"),
+    host: str = typer.Option("hetzner-agent", "--host", help="SSH host"),
+    timeout: int = typer.Option(300, "--timeout", help="Max seconden per test"),
+    auto_score: bool = typer.Option(True, "--auto-score/--no-auto-score", help="Auto-score met Claude haiku"),
+) -> None:
+    """GPU model benchmark tool. Subcommands: run, leaderboard, rescore."""
+    import os
+    import subprocess
+    from pathlib import Path
+
+    repo_root = Path(__file__).parent.parent.parent.parent.parent
+    tools_dir = repo_root / "tools"
+
+    env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+
+    if subcommand == "run":
+        if not model:
+            console.print("[red]Geef een model op: oa benchmark run --model qwen2.5:14b[/red]")
+            console.print("[dim]Beschikbare modellen: qwen2.5:14b, phi4:14b, gemma3:27b, llama3.1:8b, ...[/dim]")
+            raise typer.Exit(1)
+        console.print(f"[cyan]Benchmark: {model} @ {host}[/cyan]")
+        score_flag = ["--auto-score"] if auto_score else []
+        result = subprocess.run(
+            ["python3", str(tools_dir / "benchmark_runner.py"),
+             "--model", model, "--host", host, "--timeout", str(timeout)] + score_flag,
+            env=env,
+        )
+        if result.returncode == 0:
+            console.print("[dim]Update leaderboard: oa benchmark leaderboard[/dim]")
+        raise typer.Exit(result.returncode)
+
+    elif subcommand == "embed":
+        if not model:
+            model = "bge-m3:latest"
+        console.print(f"[cyan]Embedding benchmark: {model} @ {host}[/cyan]")
+        result = subprocess.run(
+            ["python3", str(tools_dir / "benchmark_embedding.py"), "--model", model, "--host", host],
+            env=env,
+        )
+        raise typer.Exit(result.returncode)
+
+    elif subcommand == "leaderboard":
+        result = subprocess.run(
+            ["python3", str(tools_dir / "benchmark_aggregate.py")],
+            env=env,
+        )
+        if result.returncode == 0:
+            leaderboard = repo_root / "docs/benchmarks/LEADERBOARD.md"
+            if leaderboard.exists():
+                console.print(leaderboard.read_text())
+        raise typer.Exit(result.returncode)
+
+    elif subcommand == "rescore":
+        console.print("[cyan]Rescoring benchmark runs met Claude haiku...[/cyan]")
+        result = subprocess.run(
+            ["python3", str(tools_dir / "benchmark_rescore.py")],
+            env=env,
+        )
+        raise typer.Exit(result.returncode)
+
+    else:
+        console.print(f"[red]Onbekend subcommand: {subcommand}[/red]")
+        console.print("[dim]Gebruik: oa benchmark run|leaderboard|rescore|embed[/dim]")
+        raise typer.Exit(1)
+
+
 @app.command(name="init")
 def init_cmd(
     project_type: str = typer.Option(
