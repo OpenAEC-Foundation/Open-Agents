@@ -3,6 +3,7 @@ import { ClipboardCopy, ChevronRight, Terminal, FileText } from 'lucide-react';
 import { useAgentStore, modelColor, formatDuration, modelLabel } from '../../stores/agentStore';
 import type { Agent, Message } from '../../types';
 import * as api from '../../api/client';
+import { resumeFromCheckpoint } from '../../api/client';
 import { XtermTerminal } from './XtermTerminal';
 import { MarkdownOutput } from './MarkdownOutput';
 
@@ -25,6 +26,7 @@ export function AgentPanel() {
   const [tab, setTab] = useState<'info' | 'messages' | 'output'>('output');
   const [viewMode, setViewMode] = useState<'rendered' | 'raw'>('rendered');
   const [copied, setCopied] = useState(false);
+  const [resumeState, setResumeState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const outputRef = useRef<HTMLDivElement>(null);
 
   const agent = agents.find(a => a.name === selectedAgent);
@@ -112,6 +114,19 @@ export function AgentPanel() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
+  }
+
+  async function handleResumeCheckpoint() {
+    if (!selectedAgent) return;
+    setResumeState('loading');
+    try {
+      await resumeFromCheckpoint(selectedAgent);
+      setResumeState('success');
+    } catch {
+      setResumeState('error');
+    } finally {
+      setTimeout(() => setResumeState('idle'), 2500);
+    }
   }
 
   const outputLines = outputText ? outputText.split('\n') : [];
@@ -234,6 +249,27 @@ export function AgentPanel() {
             >
               Kill Agent
             </button>
+          )}
+          {(agent.status === 'error' || agent.status === 'failed' || agent.status === 'killed') && (
+            <div>
+              <div className="text-xs uppercase font-semibold tracking-wider mb-1" style={{ color: 'var(--color-oa-text-dim)' }}>Resume from checkpoint</div>
+              <button
+                onClick={handleResumeCheckpoint}
+                disabled={resumeState === 'loading'}
+                className="w-full py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                style={
+                  resumeState === 'success'
+                    ? { background: 'var(--color-status-done-bg)', color: 'var(--color-status-done)', border: '1px solid var(--color-status-done)' }
+                    : resumeState === 'error'
+                    ? { background: 'var(--color-status-failed-bg)', color: 'var(--color-status-failed)', border: '1px solid var(--color-status-failed)' }
+                    : resumeState === 'loading'
+                    ? { background: 'var(--color-oa-accent-bg)', color: 'var(--color-oa-text-dim)', border: '1px solid var(--color-oa-border)', cursor: 'not-allowed' }
+                    : { background: 'var(--color-oa-accent)', color: '#ffffff', border: '1px solid transparent' }
+                }
+              >
+                {resumeState === 'loading' ? '…' : resumeState === 'success' ? `✓ ${agent.name}-resume gespawnt` : resumeState === 'error' ? '✗ Resume mislukt' : '↻ Resume Agent'}
+              </button>
+            </div>
           )}
         </div>
       )}

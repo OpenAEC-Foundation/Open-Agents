@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Zap, Trash2, X } from 'lucide-react';
+import { Zap, Trash2, X, LayoutList, GitFork } from 'lucide-react';
 import { MissionControl } from './MissionControl';
+import { LiveCanvas } from './LiveCanvas';
 import { AgentPanel } from './AgentPanel';
 import { SpawnForm } from './SpawnForm';
 import { useAgentStore } from '../../stores/agentStore';
@@ -58,6 +59,7 @@ export function DashboardTab() {
   const cleanAgents = useAgentStore((s) => s.cleanAgents);
   const prefilledTask = useUIStore((s) => s.prefilledTask);
   const [showSpawnModal, setShowSpawnModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
 
   // Auto-open spawn modal when a task is pre-filled from another tab
   useEffect(() => {
@@ -116,6 +118,28 @@ export function DashboardTab() {
           {/* Spacer */}
           <div className="flex-1" />
 
+          {/* View toggle */}
+          <div
+            className="flex items-center rounded-lg overflow-hidden"
+            style={{ border: '1px solid var(--color-oa-border)' }}
+          >
+            {(['list', 'tree'] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] cursor-pointer transition-colors"
+                style={{
+                  background: viewMode === mode ? 'var(--color-oa-accent)' : 'transparent',
+                  color: viewMode === mode ? '#fff' : 'var(--color-oa-text-dim)',
+                  border: 'none',
+                }}
+                title={mode === 'list' ? 'List view' : 'Tree view'}
+              >
+                {mode === 'list' ? <LayoutList size={12} /> : <GitFork size={12} />}
+              </button>
+            ))}
+          </div>
+
           {/* Clean button */}
           {agents.some((a) => ['done', 'error', 'failed', 'timeout', 'killed'].includes(a.status)) && (
             <button
@@ -136,8 +160,14 @@ export function DashboardTab() {
           )}
         </div>
 
-        {/* Mission control */}
-        <MissionControl />
+        {/* Main view */}
+        {viewMode === 'list' ? (
+          <MissionControl />
+        ) : (
+          <div className="flex-1 overflow-hidden">
+            <LiveCanvas />
+          </div>
+        )}
       </div>
 
       {/* ── Right: Agent detail (slide-in when selected) ── */}

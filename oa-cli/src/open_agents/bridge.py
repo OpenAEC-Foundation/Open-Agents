@@ -79,7 +79,7 @@ except ImportError:
     _templates_ok = False
 
 try:
-    from .checkpoint import list_incomplete, resume_from_checkpoint
+    from .checkpoint import list_incomplete, resume_from_checkpoint, load_checkpoint
     _checkpoints_ok = True
 except ImportError:
     _checkpoints_ok = False
@@ -837,8 +837,24 @@ def api_list_checkpoints():
 def api_resume_agent(agent: str):
     if not _checkpoints_ok:
         return jsonify({"error": "checkpoint module not available"}), 501
-    result = resume_from_checkpoint(agent)
-    return jsonify(result)
+    try:
+        resume_task = resume_from_checkpoint(agent)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+    cp = load_checkpoint(agent)
+    model = cp.get("model", "claude/sonnet") if cp else "claude/sonnet"
+    if not model or model == "claude":
+        model = "claude/sonnet"
+    resume_name = f"{agent}-resume"
+    # Truncate name to 62 chars max (agent name validation)
+    if len(resume_name) > 62:
+        resume_name = resume_name[:55] + "-resume"
+    try:
+        spawn_agent(resume_name, resume_task, model=model)
+    except Exception:
+        # Fallback: invoke oa CLI via subprocess
+        subprocess.run(["oa", "resume", agent], capture_output=True)
+    return jsonify({"spawned": resume_name, "task": resume_task})
 
 
 # --- Helpers ---
@@ -916,11 +932,15 @@ def api_trigger_compaction():
 
 
 # ---------------------------------------------------------------------------
-# Chat API — local-first, provider-agnostic  (issue #63)
+# Chat API — local-first, provider-agnostic  (issue #63 + #76)
 # ---------------------------------------------------------------------------
 # Supported model prefixes:
 #   claude/*     → Anthropic API (requires ANTHROPIC_API_KEY)
 #   ollama/*     → Local Ollama (/api/chat on localhost:11434 or custom host)
+#   hetzner/*    → Remote Ollama on GPU server via SSH (OpenAI-compat format)
+# ---------------------------------------------------------------------------
+# OpenAI-compatible message format is used internally — no vendor lock-in.
+# To add a new provider: add a prefix + streaming function, update _chat_stream().
 # ---------------------------------------------------------------------------
 
 @app.route("/api/chat", methods=["POST"])
@@ -985,10 +1005,15 @@ def api_chat_stream():
 
 @app.route("/api/chat/models", methods=["GET"])
 def api_chat_models():
-    """List available chat models (Ollama + Claude/*)."""
+    """List available chat models (Ollama local + Hetzner GPU + Claude if key set).
+
+    Never returns cloud-paid models unless explicitly configured.
+    All hetzner/* models are local GPU (no API cost).
+    """
     models = []
 
-    # Claude models (always available if API key is set)
+    # Claude models — only if API key is explicitly configured
+    # (subscription users use claude/ prefix via tmux spawning, not chat API)
     if os.environ.get("ANTHROPIC_API_KEY"):
         models += [
             {"id": "claude/claude-opus-4-6", "provider": "claude", "name": "Claude Opus 4.6"},
@@ -1004,7 +1029,8 @@ def api_chat_models():
             tags = json.loads(resp.read())
             for m in tags.get("models", []):
                 name = m.get("name", "")
-                if name:
+                # Skip embedding models in chat list
+                if name and not any(e in name for e in ("embed", "bge", "nomic")):
                     models.append({
                         "id": f"ollama/{name}",
                         "provider": "ollama",
@@ -1013,6 +1039,37 @@ def api_chat_models():
                     })
     except Exception:
         pass
+
+    # Hetzner GPU models — fetch live via SSH, fallback to known list
+    ssh_host = os.environ.get("HETZNER_SSH_HOST", "hetzner-agent")
+    try:
+        import subprocess as _sub
+        result = _sub.run(
+            ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
+             ssh_host, "ollama list 2>/dev/null"],
+            capture_output=True, text=True, timeout=8
+        )
+        if result.returncode == 0:
+            for line in result.stdout.strip().splitlines()[1:]:  # skip header
+                parts = line.split()
+                if parts:
+                    name = parts[0]
+                    # Skip embedding models
+                    if not any(e in name for e in ("embed", "bge", "nomic")):
+                        models.append({
+                            "id": f"hetzner/{name}",
+                            "provider": "hetzner",
+                            "name": name,
+                            "gpu": True,
+                        })
+        else:
+            raise RuntimeError("SSH failed")
+    except Exception:
+        # Static fallback — known Hetzner models
+        for name in ["qwen2.5:14b", "phi4:14b", "gemma3:27b", "llama3.1:8b",
+                     "deepseek-r1:14b", "qwen2.5-coder:14b", "qwen2.5:32b"]:
+            models.append({"id": f"hetzner/{name}", "provider": "hetzner",
+                           "name": name, "gpu": True})
 
     return jsonify(models)
 
@@ -1025,13 +1082,23 @@ def _chat_complete(model: str, messages: list[dict], system: str, stream: bool) 
 
 
 def _chat_stream(model: str, messages: list[dict], system: str):
-    """Yield content chunks from the appropriate provider."""
+    """Yield content chunks from the appropriate provider.
+
+    OpenAI-compatible messages format used throughout — no vendor lock-in.
+    Add new providers by adding a prefix check + streaming function below.
+    """
     if model.startswith("claude/"):
         yield from _stream_claude(model[len("claude/"):], messages, system)
     elif model.startswith("ollama/"):
         yield from _stream_ollama(model[len("ollama/"):], messages, system)
+    elif model.startswith("hetzner/"):
+        model_id = model[len("hetzner/"):]
+        yield from _stream_hetzner_ollama(model_id, messages, system)
     else:
-        raise RuntimeError(f"Unknown model prefix '{model}'. Use 'claude/*' or 'ollama/*'.")
+        raise RuntimeError(
+            f"Unknown model prefix '{model}'. "
+            "Supported: claude/*, ollama/*, hetzner/*"
+        )
 
 
 def _stream_claude(model_id: str, messages: list[dict], system: str):
@@ -1096,6 +1163,80 @@ def _stream_ollama(model_id: str, messages: list[dict], system: str):
                     continue
     except OSError as exc:
         raise RuntimeError(f"Ollama not reachable at {ollama_host}: {exc}") from exc
+
+
+def _stream_hetzner_ollama(model_id: str, messages: list[dict], system: str):
+    """Stream from remote Ollama on Hetzner GPU server via SSH.
+
+    Uses Ollama's OpenAI-compatible /v1/chat/completions endpoint.
+    No API keys required — all local, no cloud.
+    """
+    import base64
+    import subprocess as _sub
+
+    if system:
+        messages = [{"role": "system", "content": system}] + list(messages)
+
+    payload_b64 = base64.b64encode(json.dumps({
+        "model": model_id,
+        "messages": messages,
+        "stream": True,
+    }).encode()).decode()
+
+    # Script runs on the remote server — calls Ollama OpenAI-compat endpoint
+    script = f"""
+import base64, json, urllib.request, sys
+payload = base64.b64decode("{payload_b64}")
+req = urllib.request.Request(
+    "http://localhost:11434/v1/chat/completions",
+    data=payload,
+    headers={{"Content-Type": "application/json"}}
+)
+try:
+    with urllib.request.urlopen(req, timeout=300) as resp:
+        for raw in resp:
+            line = raw.decode("utf-8", errors="replace").strip()
+            if not line.startswith("data: "):
+                continue
+            chunk = line[6:]
+            if chunk == "[DONE]":
+                break
+            try:
+                d = json.loads(chunk)
+                content = d["choices"][0]["delta"].get("content", "")
+                if content:
+                    sys.stdout.write(content)
+                    sys.stdout.flush()
+            except Exception:
+                pass
+except Exception as e:
+    sys.stderr.write(f"ERROR: {{e}}\\n")
+    sys.exit(1)
+"""
+
+    ssh_host = os.environ.get("HETZNER_SSH_HOST", "hetzner-agent")
+    encoded = base64.b64encode(script.encode()).decode()
+    cmd = [
+        "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
+        "-o", "ServerAliveInterval=30",
+        ssh_host,
+        f"echo {encoded} | base64 -d | python3",
+    ]
+
+    try:
+        proc = _sub.Popen(cmd, stdout=_sub.PIPE, stderr=_sub.PIPE)
+        assert proc.stdout is not None
+        for chunk in iter(lambda: proc.stdout.read(64), b""):
+            text = chunk.decode("utf-8", errors="replace")
+            if text:
+                yield text
+        proc.wait(timeout=5)
+        if proc.returncode not in (0, None):
+            stderr = proc.stderr.read().decode(errors="replace") if proc.stderr else ""
+            if stderr:
+                raise RuntimeError(f"Hetzner SSH error: {stderr[:200]}")
+    except OSError as exc:
+        raise RuntimeError(f"SSH to {ssh_host} failed: {exc}") from exc
 
 
 def run_bridge(port: int = 5174) -> None:
