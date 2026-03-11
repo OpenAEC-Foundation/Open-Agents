@@ -17,9 +17,9 @@
       "category": "reasoning",
       "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
       "response": "Wanneer je een proces start met `nohup` op een remote server via SSH, is het proces ontworpen om ongevoelig te zijn voor het verbreken van de SSH-sessie. Hier is hoe `nohup` werkt en wat er gebeurt met het proces wanneer je SSH-verbinding wordt verbroken:\n\n### Hoe `nohup` werkt\n\n1. **Terugstuurberichten en Terugroepen:**  \n   De kernfunctionaliteit van `nohup` is het omgeleiden van de standaardinput en standaardoutput van het proces naar een bestand genaamd `nohup.out` in het huidige werkende directory. Dit voorkomt dat het proces stopt als de invoer (zoals een gebruiker die via de SSH-sessie typ) niet langer beschikbaar is wanneer de sessie wordt beëindigd.\n\n2. **SIGHUP Omgewend:**  \n   Het belangrijkste doel van `nohup` is om het proces te beschermen tegen het signal `SIGHUP`. Dit signaal wordt meestal verzonden wanneer een terminal (of in dit geval een SSH-sessie) wordt gesloten, waardoor processen die direct afhankelijk zijn van de terminal normaal gesproken worden beëindigd. `nohup` zorgt ervoor dat het proces niet reageert op `SIGHUP`.\n\n### Wat er gebeurt bij het verbreken van de SSH-sessie\n\n- **Processusvoortzetting:**  \n  Het proces blijft actief en draait verder, ongeacht het verbreken van de SSH-sessie. `nohup` zorgt ervoor dat het proces niet stopt wanneer de invoer van de terminal (SSH-sessie) niet langer beschikbaar is.\n\n- **Uitvoerloggen:**  \n  De standaardoutput (STDOUT) en standaardfout (STDERR) van het proces worden standaard omgeleid naar een bestand genaamd `nohup.out` in het directory waarin je het proces hebt gestart. Als je expliciet de uitvoer wilt omleiden naar een ander bestand, kun je dit doen met de `>` of `2>&1` operators bij het starten van het proces.\n\n- **Zonder Terminalafhankelijkheid:**  \n  Omdat `nohup` het proces onafhankelijk maakt van de terminal (of SSH-sessie), kunnen de gebruikerscommando's of -scripts die zijn gestart via `nohup`, ook voortduren zonder menselijke interactie via de SSH.\n\n### Praktische Uitvoering\n\nLaten we een eenvoudig voorbeeld nemen:\n\n```bash\nnohup my_long_running_script.sh > my_output.log 2>&1 &\n```\n\n- `my_long_running_script.sh` wordt gestart met `nohup`.\n- `> my_output.log 2>&1` omleidt zowel de standaarduitvoer als de standaardfout naar `my_output.log`.\n- `&` zorgt ervoor dat het proces in de achtergrond draait, zodat je de SSH-sessie kunt verlaten.\n\n### Samenvatting\n\nHet `nohup` commando is bijzonder nuttig voor het starten van achtergrondprocessen op een remote server, waarbij je vertrouwen hebt dat ze zullen voortduren ongeacht je verbinding met de server. Het werkt door het proces te beschermen tegen het `SIGHUP` signaal en door de uitvoer naar een bestand te leiden wanneer de SSH-sessie wordt beëindigd.",
-      "score": 0,
+      "score": 4,
       "max_score": 5,
-      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "score_rationale": "Grotendeels correct: nohup-werking, SIGHUP-bescherming en output-omleiding goed uitgelegd; mist echter uitleg van process groups en terminal session decoupling.",
       "latency_ms": 33419,
       "tokens_estimated": 520
     },
@@ -28,9 +28,9 @@
       "category": "code",
       "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
       "response": "Zeker! Om een lijst van items te ontdubbelen terwijl de originele volgorde behouden blijft, kunnen we een functie maken die door de lijst itereert en elk item alleen opneemt als het nog niet eerder is gezien. We kunnen een extra lijst gebruiken om items te volgen die we al hebben gezien. Hier is hoe je de functie `deduplicate(items)` zou kunnen implementeren met behulp van type hints en een docstring:\n\n```python\nfrom typing import List, Any\n\ndef deduplicate(items: List[Any]) -> List[Any]:\n    \"\"\"\n    Ontdubbelt een lijst terwijl de originele volgorde behouden blijft.\n\n    Deze functie verwijdert duplicaten uit de gegeven lijst, waarbij de\n    eerste voorkomen van elk item behouden blijft. Het resultaat is een lijst\n    waarin elk item uniek is volgens de eerste optreden in de oorspronkelijke lijst.\n\n    Parameters:\n    items (List[Any]): De lijst met items die moeten worden ontdubbeld.\n\n    Returns:\n    List[Any]: Een nieuwe lijst met de duplicaten verwijderd terwijl de volgorde behouden blijft.\n    \"\"\"\n    seen = set()  # Houdt unieke items bij\n    result = []   # Resultaatlijst met unieke items\n\n    for item in items:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n\n    return result\n```\n\n### Uitleg:\n- **Type Hints**: We gebruiken `List[Any]` om aan te geven dat de functie een lijst kan accepteren met elk type item. Het retourneert ook een lijst van elk type.\n- **Docstring**: Beschrijft wat de functie doet, de parameters die het neemt en wat het retourneert.\n- **Implementatie**:\n  - We gebruiken een `set` genaamd `seen` om snel te controleren of een item al is gezien.\n  - We itereren door de `items`, en elke keer dat we een nieuw item tegenkomen (een item dat nog niet in `seen` staat), voegen we het toe aan zowel `seen` als de `result` lijst.\n- Deze methode zorgt ervoor dat de volgorde van het eerste voorkomen van elk item behouden blijft in de resultatenlijst.",
-      "score": 0,
+      "score": 5,
       "max_score": 5,
-      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "score_rationale": "Volledige, werkende implementatie met type hints, docstring, efficiënte O(n) logica gebruikmakend van set voor tracking, behoudt volgorde correct, en retourneert een lijst (geen set als eindresultaat).",
       "latency_ms": 22206,
       "tokens_estimated": 391
     },
@@ -39,9 +39,9 @@
       "category": "language",
       "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
       "response": "Een AI-agent is als een slimme assistent die zelfstandig beslissingen kan nemen en acties uitvoert om specifieke taken te voltooien. Deze agenten zijn ontworpen om te leren van eerdere ervaringen en zich aan te passen aan nieuwe situaties, wat hen helpt om problemen op een dynamische en contextgevoelige manier op te lossen. Ze opereren vaak in real-time en zijn geoptimaliseerd voor specifieke taken, zoals het beantwoorden van vragen of het beheren van een productielijn.\n\nAan de andere kant is een AI-workflow een gestructureerd proces waarin verschillende AI-taken worden gekoppeld om een groter doel te bereiken. Denk aan het als een reeks stappen of een pijplijn waarin gegevens door verschillende AI-componenten worden geleid. Elke stap kan afzonderlijke taken omvatten, zoals data-analyse, besluitvorming of het uitvoeren van een bepaalde taak, en is ontworpen om samen te werken om een complexe taak efficiënt af te handelen. Workflows zijn meestal meer gestructureerd en kunnen worden aangepast om grotere taken op te splitsen in beheersbare onderdelen, die samen een samenhangend eindresultaat opleveren.\n\nKortom, terwijl een AI-agent meer gericht is op het afhandelen van een specifieke taak met een zekere mate van autonomie, richt een AI-workflow zich op het integreren van meerdere AI-taken om een complexe, meerdere stappen omvattende taak naadloos af te handelen.",
-      "score": 0,
+      "score": 3,
       "max_score": 5,
-      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "score_rationale": "Inhoudelijk correct onderscheid tussen agent (autonoom) en workflow (gestructureerde stappen), Nederlands, maar voldoet niet aan de strikste eis: precies 3 zinnen (gegeven waren 8+ zinnen).",
       "latency_ms": 16714,
       "tokens_estimated": 270
     },
@@ -58,17 +58,18 @@
     }
   ],
   "summary": {
-    "total_score": 5,
+    "total_score": 17,
     "max_score": 20,
-    "pct_score": 25.0,
-    "avg_score": 1.25,
+    "pct_score": 85.0,
+    "avg_score": 4.25,
     "by_category": {
-      "reasoning": 0,
-      "code": 0,
-      "language": 0,
+      "reasoning": 4,
+      "code": 5,
+      "language": 3,
       "instruction": 5
     },
-    "total_latency_ms": 74297
+    "total_latency_ms": 74297,
+    "scorer": "claude/haiku"
   },
   "notes": "",
   "linked_decisions": [],

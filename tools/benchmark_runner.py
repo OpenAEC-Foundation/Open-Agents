@@ -110,6 +110,52 @@ def estimate_tokens(text: str) -> int:
     return int(words * 1.3)
 
 
+def score_response_auto(test: dict, response: str) -> tuple[int, str]:
+    """Auto-score een response. Gebruikt Claude CLI voor open-ended tests,
+    exacte matching voor instruction tests."""
+    # Instruction test: exacte/heuristische vergelijking
+    if test["test_id"] == "instruction-001":
+        return score_response(test, response)  # reuse existing exact logic
+
+    # Open-ended tests: vraag Claude om te scoren
+    criteria = test.get("eval_criteria", {})
+    criteria_str = "\n".join(f"  {k}: {v}" for k, v in criteria.items())
+    prompt = (
+        f"Je bent een objectieve LLM benchmark beoordelaar. "
+        f"Geef uitsluitend een JSON object als antwoord, geen andere tekst.\n\n"
+        f"Test: {test['test_id']} ({test['category']})\n"
+        f"Vraag aan het model: {test.get('prompt_nl', test.get('prompt_en', ''))}\n\n"
+        f"Antwoord van het model:\n{response[:1500]}\n\n"
+        f"Scorecriteria (0-{test['max_score']}):\n{criteria_str}\n\n"
+        f"Geef ALLEEN dit JSON object terug:\n"
+        f'{{\"score\": <getal 0-{test["max_score"]}>, \"rationale\": \"<1 zin uitleg>\"}}'
+    )
+    try:
+        import os as _os
+        env = {k: v for k, v in _os.environ.items() if k != "CLAUDECODE"}
+        result = subprocess.run(
+            ["claude", "--dangerously-skip-permissions", "-p", prompt,
+             "--model", "haiku", "--output-format", "text"],
+            capture_output=True, text=True, timeout=30, env=env
+        )
+        if result.returncode == 0:
+            output = result.stdout.strip()
+            # Extract JSON from output
+            import json as _json
+            # Try to find JSON in output
+            start = output.find('{')
+            end = output.rfind('}') + 1
+            if start >= 0 and end > start:
+                data = _json.loads(output[start:end])
+                score = max(0, min(int(data.get("score", 0)), test["max_score"]))
+                rationale = str(data.get("rationale", f"Claude score: {score}"))
+                return score, rationale
+    except Exception:
+        pass
+    # Fallback: geen score beschikbaar
+    return 0, "Auto-score mislukt (Claude niet beschikbaar)"
+
+
 def score_response(test: dict, response: str) -> tuple[int, str]:
     """
     Interactief of automatisch scoren van een response.
@@ -209,8 +255,8 @@ def run_benchmark(model: str, host: str, suite_name: str, provider: str,
 
         print(f"{latency_ms}ms, ~{tokens} tokens")
 
-        if auto_score and test["test_id"] != "instruction-001":
-            score, rationale = 0, "Auto-score niet beschikbaar voor deze test"
+        if auto_score:
+            score, rationale = score_response_auto(test, response)
         else:
             score, rationale = score_response(test, response)
 

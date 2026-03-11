@@ -17,9 +17,9 @@
       "category": "reasoning",
       "prompt": "Je hebt een nohup proces gestart op een remote server via SSH. Je SSH sessie wordt verbroken. Wat gebeurt er met het nohup proces en waarom? Leg uit hoe nohup werkt.",
       "response": "Wanneer je een nohup proces start op een remote server via SSH en de SSH sessie wordt verbroken, gaat het nohup proces nog steeds door. Dit is omdat nohup een proces begint zonder het omgevingsvariabele $PPID (het proces-id van de oudste proces dat is verbonden met het terminal van de gebruiker die het proces heeft gestart) te behouden. \n\nDoor dit te doen, kan het proces nog steeds lopen ondanks dat de verbinding met de terminal wordt verbroken.",
-      "score": 0,
+      "score": 2,
       "max_score": 5,
-      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "score_rationale": "Model begrijpt dat nohup proces laat doorlopen, maar technische uitleg over $PPID is incorrect; mist cruciale details over SIGHUP onderschepping, output redirection (nohup.out) en process groups.",
       "latency_ms": 4503,
       "tokens_estimated": 100
     },
@@ -28,9 +28,9 @@
       "category": "code",
       "prompt": "Schrijf een Python functie `deduplicate(items)` die een lijst ontdubbelt maar de originele volgorde behoudt. Geen gebruik van sets als eindresultaat. Voeg een docstring en type hints toe.",
       "response": "Hier is de Python-functie om een lijst te ontdubbelen:\n```python\ndef deduplicate(items: list) -> list:\n    \"\"\"\n    Verwijdert dubbele waarden uit een lijst maar houdt de originele volgorde in stand.\n\n    :param items: De lijst die wordt ontdubbeld\n    :return: Een nieuwe lijst met unieke waarden\n    \"\"\"\n    result = []\n    for item in items:\n        if item not in result:\n            result.append(item)\n    return result\n```\nUitleg:\n\n*   We beginnen met een lege lijst `result`.\n*   We lopen door de invoerlijst `items`. Bij elke stap controleren we of de huidige item al in de resultatenlijst staat.\n*   Als het item nog niet in de resultatenlijst staat, voegen we het toe.\n*   Uiteindelijk returnen we de resultatenlijst.\n\nEen voorbeeld:\n```python\nitems = [1, 2, 2, 3, 4, 4, 5]\ndeduplicated = deduplicate(items)\nprint(deduplicated)  # [1, 2, 3, 4, 5]\n```\nMet deze oplossing worden dubbele waarden verwijderd uit de lijst, terwijl de originele volgorde wordt behouden.",
-      "score": 0,
+      "score": 4,
       "max_score": 5,
-      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "score_rationale": "Functie werkend met type hints en docstring, volgorde correct, maar O(n²) inefficiënt zonder dict/set tracking voor seen-checking.",
       "latency_ms": 6564,
       "tokens_estimated": 193
     },
@@ -39,9 +39,9 @@
       "category": "language",
       "prompt": "Leg in precies 3 zinnen in het Nederlands uit wat het verschil is tussen een AI agent en een AI workflow. Schrijf voor een niet-technisch publiek.",
       "response": "Een AI agent is een programma dat op eigen initiatief taken uitvoert, zoals een chatbot die met klanten spreekt. Een AI workflow is een geordende reeks taken die door verschillende systemen worden uitgevoerd en wordt meestal gebruikt voor procesautomatisering.",
-      "score": 0,
+      "score": 3,
       "max_score": 5,
-      "score_rationale": "Auto-score niet beschikbaar voor deze test",
+      "score_rationale": "Correct onderscheid (agent autonoom, workflow vaste stappen), Nederlands en begrijpelijk voor leken, maar het antwoord bevat slechts 2 zinnen in plaats van de vereiste 3.",
       "latency_ms": 1948,
       "tokens_estimated": 50
     },
@@ -58,17 +58,18 @@
     }
   ],
   "summary": {
-    "total_score": 5,
+    "total_score": 14,
     "max_score": 20,
-    "pct_score": 25.0,
-    "avg_score": 1.25,
+    "pct_score": 70.0,
+    "avg_score": 3.5,
     "by_category": {
-      "reasoning": 0,
-      "code": 0,
-      "language": 0,
+      "reasoning": 2,
+      "code": 4,
+      "language": 3,
       "instruction": 5
     },
-    "total_latency_ms": 14314
+    "total_latency_ms": 14314,
+    "scorer": "claude/haiku"
   },
   "notes": "",
   "linked_decisions": [],
