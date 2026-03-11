@@ -260,4 +260,13 @@
 |---|-----|---------|
 | L-066 | **FastMCP @mcp.tool() decorators werken als drop-in voor oa-cli tools** — FastMCP tools zijn Python functies met @mcp.tool() decorator. Ze werken goed als wrapper rond bestaande oa-cli subprocess calls en messaging.py functies. Geen adapter-laag nodig — directe import van oa-cli modules werkt. | mcp_server.py implementatie: 7 tools gebouwd in één agent-run. FastMCP abstractie elimineert boilerplate. Tool-for-tool pariteit met CLI commando's bevestigd. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-067, L-068, etc.*
+## Sessie 2026-03-11 — Hook False Positive bij Agent Delegatie
+
+### check-delegation.sh Scope Probleem
+
+| # | Les | Context |
+|---|-----|---------|
+| L-067 | **check-delegation.sh telt && in agent-prompt inhoud als bash-stappen — false positive** — De hook telt alle && in het volledige bash-commando, inclusief de inhoud van string-argumenten. Hierdoor wordt `oa run "...prompt met && erin..."` geblokkeerd terwijl dit JA al delegatie is. Fix: als het commando begint met `oa run`, direct exit 0 (want oa run IS de delegatie). | Gevonden 2026-03-11: gpu-master agent prompt bevatte && in stap-beschrijvingen → hook blokkeerde het spawnen van de orchestrator zelf. Workaround: `touch /tmp/claude-delegation-override` voor elke oa run aanroep. |
+| L-068 | **Agent-prompts met meerdere stappen bewust && gebruiken — hook moet prompt-inhoud uitsluiten van analyse** — Elke goede orchestrator-prompt bevat instructies met && voor de sub-agents die hij zal spawnen. Deze && horen niet in de hook-analyse. Scoperegel: analyseer alleen het "outer" bash-commando (alles voor het eerste aanhalingsteken), niet string-argumenten. | Zelfde context als L-067. Patroon: `oa run '...10x && ...' --name x --model y --direct` triggert false positive bij 3+ && in de prompt. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-069, L-070, etc.*
