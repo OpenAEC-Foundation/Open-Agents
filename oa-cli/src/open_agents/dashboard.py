@@ -117,7 +117,7 @@ class HelpScreen(ModalScreen):
             "  [bold yellow]s[/bold yellow]     Spawn new agent\n"
             "  [bold yellow]a[/bold yellow]     Attach to tmux window\n"
             "  [bold yellow]1[/bold yellow]     Agents tab\n"
-            "  [bold yellow]2[/bold yellow]     Teams tab\n"
+            "  [bold yellow]2 / t[/bold yellow]  Teams tab\n"
             "  [bold yellow]?[/bold yellow]     This help\n"
             "  [bold yellow]q[/bold yellow]     Quit\n\n"
             "  [#888888]Press Escape to close[/#888888]",
@@ -202,7 +202,7 @@ class TeamsPanel(Horizontal):
 
     def on_mount(self) -> None:
         teams_table = self.query_one("#teams-table", DataTable)
-        teams_table.add_columns("Team", "Members", "Tasks")
+        teams_table.add_columns("Team", "Members", "todo/done", "Status")
         tasks_table = self.query_one("#tasks-table", DataTable)
         tasks_table.add_columns("Title", "Status", "Assigned To", "Created")
         self._refresh()
@@ -223,22 +223,29 @@ class TeamsPanel(Horizontal):
             if _tasks_ok:
                 try:
                     tasks = _list_tasks(name)
-                    task_count = len(tasks)
-                    active = sum(1 for t in tasks if t.get("status") in ("in_progress", "pending"))
+                    todo_count = sum(1 for t in tasks if t.get("status") in ("todo", "claimed", "blocked"))
+                    done_count = sum(1 for t in tasks if t.get("status") == "done")
                 except Exception:
-                    task_count, active = 0, 0
+                    todo_count, done_count = 0, 0
             else:
-                task_count, active = 0, 0
+                todo_count, done_count = 0, 0
             member_preview = ", ".join(members[:3])
             if member_count > 3:
                 member_preview += f" +{member_count - 3}"
             if not member_preview:
                 member_preview = "[#556677]none[/#556677]"
-            task_str = f"{active} active / {task_count} total"
+            todo_done_str = f"{todo_count} todo / {done_count} done"
+            if todo_count > 0:
+                team_status = "[bold yellow]active[/bold yellow]"
+            elif done_count > 0:
+                team_status = "[bold green]done[/bold green]"
+            else:
+                team_status = "[#556677]empty[/#556677]"
             teams_table.add_row(
                 "[bold cyan]" + name + "[/bold cyan]",
                 "[#88aadd]" + member_preview + "[/#88aadd]",
-                "[yellow]" + task_str + "[/yellow]",
+                "[yellow]" + todo_done_str + "[/yellow]",
+                team_status,
                 key=name,
             )
         if teams and cursor_row >= 0:
@@ -358,6 +365,7 @@ class OADashboard(App):
         Binding("down", "cursor_down", "Down", show=False, priority=True),
         Binding("1", "tab_agents", "", show=False),
         Binding("2", "tab_teams", "", show=False),
+        Binding("t", "tab_teams", "Teams", show=False),
     ]
 
     def __init__(self) -> None:
