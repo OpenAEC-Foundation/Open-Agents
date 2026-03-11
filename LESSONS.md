@@ -292,4 +292,34 @@
 |---|-----|---------|
 | L-076 | **"Code is reproduceerbaar, AI is de onvoorspelbare schakel" — bak gedrag in code in waar het altijd hetzelfde moet werken, gebruik AI alleen voor oordeel en begrip** — Elke architectuurkeuze in oa-cli toetst: kan dit deterministisch? Dan in code. Niet deterministisch? Dan AI. Voorbeelden: PO gate installeert ALTIJD via hook (code), inhoudelijke beoordeling doet een agent (AI). Staleness check draait ALTIJD (code), guardian agent schrijft de inhoud (AI). Session bootstrap protocol is ALTIJD reproduceerbaar (code), agents analyseren de sessie-context (AI). Dit principe voorkomt twee structurele fouten: (1) AI inzetten voor iets deterministisch — traag, foutgevoelig, onnodige kosten. (2) Code schrijven voor iets dat oordeel vereist — rigide, onderhoudsgevoelig, breekt bij randgevallen. oa-cli is het deterministisch fundament; agents zijn de intelligentielaag die daarbovenop opereert. | Bewust architectuurinzicht na meerdere sessies bouwen aan oa-cli + agent library. Vastgelegd als D-105 en P-17. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-077, L-078, etc.*
+---
+
+## Sessie 2026-03-11 — Issue Triage & Gerichte Bugfixes
+
+### Issue Triage Methodiek
+
+| # | Les | Context |
+|---|-----|---------|
+| L-077 | **Inspecteer code vóór je een issue fixt — veel issues zijn al opgelost** — Van 16 open GitHub issues bleken 5 al volledig geïmplementeerd in de codebase (check-delegation fix, SpawnForm auth header, bridge PATH fix, `oa run --template`, `oa mcp` + PyPI workflow). Altijd code-inspectie doen vóór implementatie: grep naar keywords, check gerelateerde bestanden, vergelijk gedocumenteerde fix met werkelijke code. | Sessie 2026-03-11: 5 stale issues gesloten na code-inspectie zonder één regel code te schrijven. Tijdwinst: ~2u. |
+| L-078 | **Symptoomissues herleiden tot root cause vóór je fixt** — Issue #77 (remote agent toont 1s duration) leek een duration-tracking bug. Na analyse bleek het een symptoom van #64 (root server blokkeert --dangerously-skip-permissions): agent faalt in 1s, `.done` verschijnt in 1s, duration = correct maar misleidend. Fix de root cause (#64), niet het symptoom. | Zonder root cause analyse had je de duration-code "gefixed" zonder het echte probleem op te lossen. |
+| L-079 | **`_archive/` uitsluiten is de schone fix voor schema-problemen in gearchiveerde data** — Issue #66 zei: "14 templates gebruiken `prompt` ipv `systemPrompt`, 156 missen `tags`". Scan wees uit: alle 130 ontbrekende `tags` zitten in `_archive/`, de 14 `prompt`-gevallen bestonden niet meer. Schone fix: sluit `_archive/` structureel uit via `EXCLUDED_DIRS`, patch niet 130 bestanden. | 130 JSON-patches zouden technische schuld opbouwen; structurele uitsluiting is de correcte architecturele keuze. |
+
+### Remote Agents & Root-Detectie
+
+| # | Les | Context |
+|---|-----|---------|
+| L-080 | **Detecteer root-user vóór SSH-spawn, niet daarna** — `spawn_remote_agent()` bouwde een command op en stuurde het naar de remote host zonder te controleren of de remote user root is. Claude Code blokkeert `--dangerously-skip-permissions` voor root → agent faalt in 1s stil. Fix: SSH `id -u` uitvoeren vóór de spawn, clear `RuntimeError` gooien met fix-instructies als UID=0. | Fail-fast principle: betere UX (directe fout met instructie) dan silent failure met misleidende status. |
+
+### UI Conditionaliteit
+
+| # | Les | Context |
+|---|-----|---------|
+| L-081 | **Verberg UI-secties wanneer de bijbehorende data afwezig is** — `SpawnForm` toonde altijd de Machine-sectie, ook als er geen remote machines geconfigureerd waren. Dit creëert visuele rommel voor solo-devs. Fix: `{machines.filter(m => m.id !== 'local').length > 0 && <MachineSectie />}`. Algemene regel: render UI-features conditioneel op de aanwezigheid van de data die ze bedienen. | Issue #75. Geldt breder: verberg ook template-dropdowns bij lege library, verberg team-functies bij geen teams, etc. |
+
+### Schema-Validatie
+
+| # | Les | Context |
+|---|-----|---------|
+| L-082 | **Schema-validatie moet altijd loggen en skippen, nooit crashen** — `template_loader.py` laadde eerder alles zonder validatie (silent failures). De nieuwe `_validate_template()` logt een warning en slaat de template over. Nooit een exception gooien in een loader — één kapot JSON-bestand mag het hele systeem niet platleggen. | Productie-principe: loaders zijn tolerant, validators zijn strict. `validate_library()` is de strict-mode tool voor CI. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-083, L-084, etc.*

@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-11 (session-guardian)
-> **Status**: v0.3.1 released — Sprint 13-15 Done — Sprint 16-26 Done — Feedback Loop Live — Doc Guardian Ready — MkDocs Site Ready — Agent Library: 1612+ templates (109 categories) — 22 skills gebouwd
+> **Laatste update**: 2026-03-11 (issue-triage sessie)
+> **Status**: v0.3.1 released — Sprint 13-15 Done — Sprint 16-26 Done — Feedback Loop Live — Doc Guardian Ready — MkDocs Site Ready — Agent Library: 1743+ templates (109 categories) — 22 skills gebouwd — GitHub issues: 16 → 6 open (10 gesloten/opgelost)
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 

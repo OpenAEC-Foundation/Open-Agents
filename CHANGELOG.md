@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **spawner.py — root-detectie vóór SSH-spawn (#64)**: `spawn_remote_agent()` controleert nu via `ssh id -u` of de remote user root is (UID 0). Als ja: directe `RuntimeError` met concrete fix-instructies i.p.v. silent failure na 1 seconde.
+- **template_loader.py — `_archive/` uitgesloten van scans (#66)**: Active template scans slaan `agents/library/_archive/` over via `EXCLUDED_DIRS`. Gearchiveerde templates verschijnen niet in de UI of via `oa run --template`.
+- **template_loader.py — schema-validatie toegevoegd (#66)**: `_validate_template()` controleert required fields (`name`, `systemPrompt`) en detecteert legacy `prompt` key. Ongeldigde templates worden gelogd als warning en overgeslagen. `validate_library()` toegevoegd voor CI.
+- **SpawnForm.tsx — machine-sectie verborgen bij geen remote machines (#75)**: De Machine-selector wordt nu alleen gerenderd als er niet-lokale machines geconfigureerd zijn. Solo-devs zien geen lege/verwarrende machine-selector.
+
+### Closed (stale — already implemented)
+- #65 check-delegation.sh false positive: al opgelost op regel 38 van de hook
+- #67 `oa run --template`: al geïmplementeerd in cli.py
+- #71 `oa mcp` + PyPI workflow: al aanwezig in cli.py + publish-pypi.yml
+- #73 SpawnForm auth header: al `authHeaders()` correct
+- #74 Bridge FileNotFoundError tmux: al opgelost in `run_bridge()`
+
+### Closed (duplicate/symptoom)
+- #77 Remote agent duration 1s: symptoom van #64 (root server fail), duration-code was altijd correct
+
 ---
 
 ## [0.3.0] - 2026-03-11
