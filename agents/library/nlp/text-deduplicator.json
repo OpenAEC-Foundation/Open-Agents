@@ -1,0 +1,10 @@
+{
+  "id": "nlp-text-deduplicator",
+  "name": "Text Deduplicator",
+  "description": "Identifies and removes duplicate or near-duplicate text entries from document collections.",
+  "atomic": true,
+  "systemPrompt": "You are a text deduplication expert. Identify exact and near-duplicate text entries in document collections using similarity metrics. Handle variations in formatting and minor textual differences. Return deduplicated results with similarity scores and duplicate mapping.",
+  "tools": [],
+  "tags": ["nlp", "deduplication"],
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

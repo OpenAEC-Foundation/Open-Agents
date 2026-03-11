@@ -140,8 +140,8 @@ export default function TaskBoard() {
   if (teams.length === 0) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#8899aa', gap: '8px' }}>
-        <span style={{ fontSize: '14px' }}>Geen teams gevonden</span>
-        <span style={{ fontSize: '12px', opacity: 0.7 }}>Maak eerst een team aan via het Teams tabblad</span>
+        <span style={{ fontSize: '14px' }}>No teams found</span>
+        <span style={{ fontSize: '12px', opacity: 0.7 }}>Create a team first using the Teams tab above</span>
       </div>
     );
   }
@@ -157,7 +157,7 @@ export default function TaskBoard() {
         background: '#0d1b2a', flexShrink: 0,
       }}>
         <span style={{ fontSize: '11px', fontWeight: 600, color: '#5a7a99', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-          Taakbord
+          Task Board
         </span>
 
         <select
@@ -187,7 +187,7 @@ export default function TaskBoard() {
             cursor: 'pointer',
           }}
         >
-          + Nieuwe taak
+          + New Task
         </button>
       </div>
 
@@ -203,7 +203,7 @@ export default function TaskBoard() {
         >
           <input
             type="text"
-            placeholder="Taaktitel…"
+            placeholder="Task title…"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             required
@@ -213,7 +213,7 @@ export default function TaskBoard() {
             }}
           />
           <textarea
-            placeholder="Beschrijving (optioneel)…"
+            placeholder="Description (optional)…"
             value={newDesc}
             onChange={(e) => setNewDesc(e.target.value)}
             rows={1}
@@ -231,7 +231,7 @@ export default function TaskBoard() {
               cursor: creating ? 'not-allowed' : 'pointer', opacity: creating ? 0.6 : 1,
             }}
           >
-            {creating ? 'Aanmaken…' : 'Aanmaken'}
+            {creating ? 'Creating…' : 'Create'}
           </button>
           <button
             type="button"
@@ -241,7 +241,7 @@ export default function TaskBoard() {
               borderRadius: '4px', color: '#8899aa', fontSize: '12px', cursor: 'pointer',
             }}
           >
-            Annuleer
+            Cancel
           </button>
         </form>
       )}
@@ -283,7 +283,7 @@ export default function TaskBoard() {
             <div style={{ flex: 1, overflowY: 'auto', padding: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {tasksByStatus(col.key).length === 0 && (
                 <div style={{ fontSize: '11px', color: '#3a5066', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
-                  Geen taken
+                  No tasks
                 </div>
               )}
               {tasksByStatus(col.key).map((task) => (

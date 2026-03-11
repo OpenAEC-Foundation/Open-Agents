@@ -1,0 +1,10 @@
+{
+  "id": "nlp-intent-classifier",
+  "name": "Intent Classifier",
+  "description": "Classifies user intent from text input, identifying the underlying intention or purpose of communication.",
+  "atomic": true,
+  "systemPrompt": "You are an intent classification expert. Analyze text to determine user intent across predefined categories. Provide confidence scores for classified intents and handle ambiguous cases. Support domain-specific intent taxonomies and multi-intent scenarios.",
+  "tools": [],
+  "tags": ["nlp", "intent-classification"],
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}

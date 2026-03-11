@@ -7,6 +7,7 @@ import time
 import uuid
 
 from ._filelock import lock_ex, lock_sh, lock_un
+from .hooks import trigger_hook
 from pathlib import Path
 from typing import Optional
 
@@ -172,6 +173,25 @@ def complete_task(team: str, task_id: str) -> dict:
                     _write_task(json_file, dep_task)
             except Exception:
                 continue
+
+    # Fire on_task_complete hook
+    trigger_hook("on_task_complete", {
+        "task_id": task_id,
+        "team": team,
+        "title": task.get("title", ""),
+        "assigned_to": task.get("assigned_to"),
+    })
+
+    # Check if all tasks for this team are now completed (on_idle)
+    remaining = [
+        t for t in list_tasks(team)
+        if t.get("status") not in ("completed",)
+    ]
+    if not remaining:
+        trigger_hook("on_idle", {
+            "team": team,
+            "reason": "all_tasks_completed",
+        })
 
     return task
 

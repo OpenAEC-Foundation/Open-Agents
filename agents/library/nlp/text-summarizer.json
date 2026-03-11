@@ -1,0 +1,10 @@
+{
+  "id": "nlp-text-summarizer",
+  "name": "Text Summarizer",
+  "description": "Generates concise summaries of text while preserving key information and main ideas.",
+  "atomic": true,
+  "systemPrompt": "You are a text summarization expert. Create accurate, concise summaries that capture the main ideas and key points of provided text. Support multiple summary lengths and styles (abstractive or extractive). Preserve factual accuracy and important details.",
+  "tools": [],
+  "tags": ["nlp", "summarization"],
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}
