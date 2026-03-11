@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import functools
 import json
 import os
+import secrets
 import signal
 import subprocess
 import time
@@ -11,6 +13,36 @@ from pathlib import Path
 
 from flask import Flask, Response, jsonify, request, send_from_directory
 from flask_cors import CORS
+
+
+# --- API Token Authentication ---
+
+_TOKEN_FILE = Path.home() / ".oa" / "bridge-token"
+
+
+def _load_or_create_token() -> str:
+    """Load or create the API authentication token."""
+    if _TOKEN_FILE.exists():
+        return _TOKEN_FILE.read_text().strip()
+    token = secrets.token_hex(32)
+    _TOKEN_FILE.parent.mkdir(parents=True, exist_ok=True)
+    _TOKEN_FILE.write_text(token)
+    _TOKEN_FILE.chmod(0o600)
+    return token
+
+
+API_TOKEN = _load_or_create_token()
+
+
+def require_auth(f):
+    """Decorator that requires a valid X-API-Token header for state-changing endpoints."""
+    @functools.wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get("X-API-Token")
+        if not token or not secrets.compare_digest(token, API_TOKEN):
+            return jsonify({"error": "Unauthorized"}), 401
+        return f(*args, **kwargs)
+    return decorated
 
 from .lifecycle import capture_agent_output, check_agent, clean_finished, kill_agent
 from .messaging import broadcast_message, mark_read, read_inbox, send_message, unread_count
@@ -49,7 +81,13 @@ except ImportError:
 WEB_DIR = Path(__file__).parent.parent.parent / "web" / "dist"
 
 app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path="")
-CORS(app)
+CORS(app,
+     origins=["http://localhost:5173", "http://127.0.0.1:5173",
+              "http://localhost:5174", "http://127.0.0.1:5174",
+              "http://localhost:5175", "http://127.0.0.1:5175",
+              "tauri://localhost"],
+     methods=["GET", "POST", "PUT", "DELETE"],
+     allow_headers=["Content-Type", "X-API-Token"])
 
 # PERF: Short-lived cache for /api/agents to prevent N+1 file reads per poll cycle.
 # The frontend polls every 2 s; caching for 1 s absorbs burst requests without
@@ -139,6 +177,7 @@ def api_agent_output(name: str):
 
 
 @app.route("/api/agents", methods=["POST"])
+@require_auth
 def api_spawn_agent():
     """Spawn a new agent."""
     data = request.get_json()
@@ -202,6 +241,7 @@ def api_agent_stream(name: str):
 
 
 @app.route("/api/agents/<name>/kill", methods=["POST"])
+@require_auth
 def api_kill_agent(name: str):
     """Kill a running agent."""
     success = kill_agent(name)
@@ -211,6 +251,7 @@ def api_kill_agent(name: str):
 
 
 @app.route("/api/agents/<name>/pause", methods=["POST"])
+@require_auth
 def api_pause_agent(name: str):
     """Pause a running agent by suspending its tmux pane."""
     rec = get_agent(name)
@@ -232,6 +273,7 @@ def api_pause_agent(name: str):
 
 
 @app.route("/api/agents/<name>/resume", methods=["POST"])
+@require_auth
 def api_resume_agent_pane(name: str):
     """Resume a paused agent by unpausing its tmux pane."""
     rec = get_agent(name)
@@ -253,6 +295,7 @@ def api_resume_agent_pane(name: str):
 
 
 @app.route("/api/clean", methods=["POST"])
+@require_auth
 def api_clean():
     """Clean finished agent workspaces."""
     cleaned = clean_finished()
@@ -260,6 +303,7 @@ def api_clean():
 
 
 @app.route("/api/session/start", methods=["POST"])
+@require_auth
 def api_start_session():
     """Start the tmux session."""
     created = start_session()
@@ -302,6 +346,7 @@ def api_list_guardians():
 
 
 @app.route("/api/guardians/trigger", methods=["POST"])
+@require_auth
 def api_trigger_guardian():
     """Manually trigger a specific guardian by name."""
     data = request.get_json() or {}
@@ -349,6 +394,7 @@ def api_spawn_alias():
 
 
 @app.route("/api/agents/<name>", methods=["DELETE"])
+@require_auth
 def api_delete_agent(name: str):
     """Delete/kill an agent via DELETE /api/agents/:name."""
     success = kill_agent(name)
@@ -369,6 +415,7 @@ def api_agent_messages_get(name: str):
 
 
 @app.route("/api/agents/<name>/messages", methods=["POST"])
+@require_auth
 def api_agent_messages_post(name: str):
     """Send a message to an agent via /api/agents/:name/messages."""
     data = request.get_json()
@@ -398,6 +445,7 @@ def api_get_messages(name: str):
 
 
 @app.route("/api/messages", methods=["POST"])
+@require_auth
 def api_send_message():
     """Send a message from one agent to another."""
     data = request.get_json()
@@ -414,6 +462,7 @@ def api_send_message():
 
 
 @app.route("/api/messages/broadcast", methods=["POST"])
+@require_auth
 def api_broadcast():
     """Broadcast a message to all running agents."""
     data = request.get_json()
@@ -455,6 +504,7 @@ def api_list_teams():
 
 
 @app.route("/api/teams", methods=["POST"])
+@require_auth
 def api_create_team():
     if not _teams_ok:
         return jsonify({"error": "teams module not available"}), 501
@@ -477,6 +527,7 @@ def api_get_team(name: str):
 
 
 @app.route("/api/teams/<name>", methods=["DELETE"])
+@require_auth
 def api_delete_team(name: str):
     if not _teams_ok:
         return jsonify({"error": "teams module not available"}), 501
@@ -487,6 +538,7 @@ def api_delete_team(name: str):
 
 
 @app.route("/api/teams/<name>/members", methods=["POST"])
+@require_auth
 def api_add_member(name: str):
     if not _teams_ok:
         return jsonify({"error": "teams module not available"}), 501
@@ -511,6 +563,7 @@ def api_list_tasks(team: str):
 
 
 @app.route("/api/tasks/<team>", methods=["POST"])
+@require_auth
 def api_create_task(team: str):
     if not _tasks_ok:
         return jsonify({"error": "task_list module not available"}), 501
@@ -523,6 +576,7 @@ def api_create_task(team: str):
 
 
 @app.route("/api/tasks/<team>/<task_id>", methods=["PUT"])
+@require_auth
 def api_update_task(team: str, task_id: str):
     if not _tasks_ok:
         return jsonify({"error": "task_list module not available"}), 501
@@ -564,6 +618,7 @@ def api_list_checkpoints():
 
 
 @app.route("/api/resume/<agent>", methods=["POST"])
+@require_auth
 def api_resume_agent(agent: str):
     if not _checkpoints_ok:
         return jsonify({"error": "checkpoint module not available"}), 501

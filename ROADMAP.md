@@ -340,13 +340,16 @@
 
 ---
 
-## Guardian Agents Module — In Progress (2026-03-08)
+## Guardian Agents Module — Complete (2026-03-08)
 
 **Doel**: Automatische reflexen die triggeren op session_end en batch_complete
 
 - [x] guardians.py met trigger_guardian(), register_guardian(), list_guardians()
 - [x] Session log (~/.oa/session-log.json)
-- [x] Integratie in oa stop command
+- [x] Integratie in oa stop command (`oa stop` triggert `session_end`)
+- [x] `oa guardians` CLI commando (list, trigger, register)
+- [x] `oa run --guardians` triggert `batch_complete` event
+- [x] Bridge API endpoints (`/api/guardians`, `/api/guardians/trigger`)
 - [x] Templates: guardian-lessons, guardian-roadmap, guardian-handoff
 - [x] Session-start-orchestrator template
 

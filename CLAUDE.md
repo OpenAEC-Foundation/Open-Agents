@@ -20,8 +20,8 @@
 
 Hyper session workspace builder met agentic orchestratie. **oa-cli is de PRIMAIRE manier om agents te gebruiken** — spawn agents via de terminal, beheer ze met tmux, volg status via dashboard. Gebruikers kunnen ook visueel de workspace-configuratie per agent bouwen (6-layer stack: CLAUDE.md, skills, rules, MCP, hooks) en ze orkestreren op een canvas (packages/ — SECUNDAIR/geavanceerd). Drie engineering-lagen (D-025): orchestratie (WIE), agent identiteit (WAT), workspace/context (HOE). Multi-provider LLM support (Anthropic, OpenAI, Mistral, Ollama). Eerste focus: generiek platform, ERPNext agents als latere use case (D-003).
 
-**oa-cli commando's (12)**:
-`oa start`, `oa stop`, `oa status`, `oa run`, `oa list`, `oa logs`, `oa attach`, `oa kill`, `oa dashboard`, `oa web`, `oa pipeline`, `oa config`
+**oa-cli commando's (21+)**:
+`oa start`, `oa stop`, `oa status`, `oa run`, `oa setup`, `oa templates`, `oa attach`, `oa watch`, `oa kill`, `oa collect`, `oa clean`, `oa dashboard`, `oa web`, `oa pipeline`, `oa delegate`, `oa version`, `oa send`, `oa inbox`, `oa broadcast`, `oa guardians`, `oa resume` + subcommando's: `oa team`, `oa task`, `oa checkpoint`
 
 ---
 
@@ -40,19 +40,19 @@ Elk bestand heeft een specifieke functie. **Gebruik ze actief — anders heeft h
 
 | Bestand | Functie | Wanneer raadplegen |
 |---------|---------|-------------------|
-| `docs/MASTERPLAN.md` | **Sprintplan met uitvoerbare prompts.** Bevat 12 sprints, elke fase heeft een concrete prompt die je kopieert naar een Claude Code sessie. Dit is het BOUWPLAN. | Bij elke taak: welke fase ben ik, wat is de prompt, wat zijn de taken? |
-| `docs/ROADMAP.md` | **Single source of truth voor STATUS.** Percentages, checkboxes, wat is af en wat niet. | Bij sessiestart: waar staan we? |
-| `docs/DECISIONS.md` | **Alle beslissingen (open + genomen).** Genummerd (D-001+), met rationale en datum. | Bij elke architectuurkeuze: is dit al besloten? Nieuwe beslissing? Documenteer hier. |
-| `docs/REQUIREMENTS.md` | **Functionele en non-functionele requirements.** FR-01..FR-14, NFR-01..NFR-05. | Bij feature-implementatie: voldoe ik aan de requirements? |
+| `MASTERPLAN.md` | **Sprintplan met uitvoerbare prompts.** Bevat 12 sprints, elke fase heeft een concrete prompt die je kopieert naar een Claude Code sessie. Dit is het BOUWPLAN. | Bij elke taak: welke fase ben ik, wat is de prompt, wat zijn de taken? |
+| `ROADMAP.md` | **Single source of truth voor STATUS.** Percentages, checkboxes, wat is af en wat niet. | Bij sessiestart: waar staan we? |
+| `DECISIONS.md` | **Alle beslissingen (open + genomen).** Genummerd (D-001+), met rationale en datum. | Bij elke architectuurkeuze: is dit al besloten? Nieuwe beslissing? Documenteer hier. |
+| `REQUIREMENTS.md` | **Functionele en non-functionele requirements.** FR-01..FR-14, NFR-01..NFR-05. | Bij feature-implementatie: voldoe ik aan de requirements? |
 
 ### Kennis & Research
 
 | Bestand | Functie | Wanneer raadplegen |
 |---------|---------|-------------------|
-| `docs/AGENTS.md` | **Agent library definitie.** 1015 atomaire agents in 20 categorieën (A-T). Elke agent: id, naam, beschrijving, tools, model hint. | Bij Sprint 9 (agent library), bij assembly pipeline, bij het kiezen van agents voor templates. |
-| `docs/PRINCIPLES.md` | **11 design uitgangspunten** die elke beslissing sturen. Atomaire agents, visuele orchestratie, privacy-first, etc. | Bij architectuurkeuzes: past dit bij onze principes? |
-| `docs/SOURCES.md` | **Bronnenregister.** Research inzichten, vergelijkbare platforms (Langflow, Flowise, Dify, n8n), Anthropic Agent Teams model. | Bij research-first werk: wat weten we al? |
-| `docs/OPEN-QUESTIONS.md` | **Onbeantwoorde vragen en risico's.** Pi.dev vs Agent SDK vergelijking, deployment vragen. | Bij onzekerheid: staat dit al als open vraag? |
+| `AGENTS.md` | **Agent library definitie.** 1015 atomaire agents in 20 categorieën (A-T). Elke agent: id, naam, beschrijving, tools, model hint. | Bij Sprint 9 (agent library), bij assembly pipeline, bij het kiezen van agents voor templates. |
+| `PRINCIPLES.md` | **11 design uitgangspunten** die elke beslissing sturen. Atomaire agents, visuele orchestratie, privacy-first, etc. | Bij architectuurkeuzes: past dit bij onze principes? |
+| `SOURCES.md` | **Bronnenregister.** Research inzichten, vergelijkbare platforms (Langflow, Flowise, Dify, n8n), Anthropic Agent Teams model. | Bij research-first werk: wat weten we al? |
+| `OPEN-QUESTIONS.md` | **Onbeantwoorde vragen en risico's.** Pi.dev vs Agent SDK vergelijking, deployment vragen. | Bij onzekerheid: staat dit al als open vraag? |
 
 ### Project & Community
 
@@ -71,7 +71,7 @@ Elk bestand heeft een specifieke functie. **Gebruik ze actief — anders heeft h
 | `CLAUDE.local.md` | **Credentials.** GitHub tokens, API keys. NIET gecommit. | Bij API calls of GitHub operaties. |
 
 > **GOUDEN REGEL**: GitHub = Single Source of Truth.
-> CLAUDE.md bevat HOE je werkt. docs/ROADMAP.md bevat WAAR je staat. docs/MASTERPLAN.md bevat WAT je bouwt.
+> CLAUDE.md bevat HOE je werkt. ROADMAP.md bevat WAAR je staat. MASTERPLAN.md bevat WAT je bouwt.
 
 ---
 
@@ -215,7 +215,7 @@ Elke `oa run` prompt MOET deze 5 elementen bevatten voor consistente output:
 oa run 'Je bent een RESEARCHER.
 
 ## Input
-Lees: /mnt/c/project/docs/SOURCES.md
+Lees: /mnt/c/project/SOURCES.md
 
 ## Output
 Schrijf naar: /mnt/c/project/docs/research/topic-research.md
@@ -412,7 +412,7 @@ Scope optioneel: `feat(frontend):`, `fix(backend):`
 2. `docs/HANDOFF-*.md` — lees het meest recente handoff document
 3. `oa start` — tmux sessie starten (als nog niet actief)
 4. `oa status` — lopende agents checken
-5. `docs/ROADMAP.md` — waar staan we? Welke fase is actief?
+5. `ROADMAP.md` — waar staan we? Welke fase is actief?
 6. `git status` — lokaal werk checken
 7. **Spawn orchestrator** — `oa run "taak" --name orchestrator --model claude/opus`
 8. **Delegeer ALLES** — Claude Code = doorgeefluik, niet de werker
@@ -432,11 +432,11 @@ Scope optioneel: `feat(frontend):`, `fix(backend):`
 
 | Wanneer | Update |
 |---------|--------|
-| Taak afgerond | `docs/ROADMAP.md` checkboxes + percentage |
-| Beslissing genomen | `docs/DECISIONS.md` verplaats naar "Genomen" |
-| Nieuwe open vraag | `docs/OPEN-QUESTIONS.md` toevoegen |
-| Requirement veranderd | `docs/REQUIREMENTS.md` updaten |
-| Agent toegevoegd/gewijzigd | `docs/AGENTS.md` bijwerken |
+| Taak afgerond | `ROADMAP.md` checkboxes + percentage |
+| Beslissing genomen | `DECISIONS.md` verplaats naar "Genomen" |
+| Nieuwe open vraag | `OPEN-QUESTIONS.md` toevoegen |
+| Requirement veranderd | `REQUIREMENTS.md` updaten |
+| Agent toegevoegd/gewijzigd | `AGENTS.md` bijwerken |
 | Release gemaakt | `CHANGELOG.md` bijwerken |
 
 > **Sync direct, niet achteraf.** Als je code commit maar vergeet ROADMAP.md te updaten, is de tracking onbetrouwbaar.
@@ -469,6 +469,26 @@ Scope optioneel: `feat(frontend):`, `fix(backend):`
 11. **Kennis bewaren** — Generieke inzichten → LESSONS.md en core docs
 12. **Workspace-local** — Alle config in workspace, nooit global (CC_007)
 13. **Templates hergebruiken** — Check `agents/library/` en `templates/` voordat je nieuwe agents definieert
+
+## Agent Routing
+
+**Twee systemen** — oa agents (via `oa run`) en Claude Code Agent tool. Kies bewust.
+
+### Gebruik OA AGENTS (`oa run`) wanneer:
+- Agent moet **zichtbaar** zijn in dashboard (`oa status`)
+- Agent moet **berichten** kunnen sturen/ontvangen (`oa send`/`oa inbox`)
+- **Langlopend werk** (>5 min) of output moet **bewaard** blijven na sessie
+- **Implementatiewerk** — code schrijven, bestanden wijzigen, engineering
+- Onderdeel van een **team** of **pipeline**
+
+### Gebruik CLAUDE AGENTS (Agent tool) wanneer:
+- **Quick research** — korte vragen, web search, file lookup
+- **Throwaway analysis** — eenmalige berekening, geen output bewaren
+- **Pre-flight checks** of **quality gates** — snelle validatie
+- oa-cli is **niet beschikbaar** (native Windows zonder WSL)
+
+### Default: OA AGENT
+Bij twijfel: gebruik oa agent. Zichtbaarheid en persistence zijn belangrijker dan spawning speed.
 
 ---
 

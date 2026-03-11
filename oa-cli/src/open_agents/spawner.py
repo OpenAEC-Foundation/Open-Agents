@@ -56,13 +56,29 @@ def _detect_ollama_cmd() -> str:
 OLLAMA_CMD = _detect_ollama_cmd()
 
 
+def _validate_claude_model(claude_model: str | None) -> str | None:
+    """Validate and sanitize a Claude model name.
+
+    Returns the validated model name, or raises ValueError if invalid.
+    Accepts known short names (opus/sonnet/haiku) and full model IDs
+    matching the pattern: alphanumeric with hyphens and dots.
+    """
+    if claude_model is None:
+        return None
+    # Allow known short names and full model IDs (e.g. claude-sonnet-4-6)
+    if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}', claude_model):
+        raise ValueError(f"Invalid Claude model name: {claude_model!r}")
+    return claude_model
+
+
 def _build_claude_command(workspace: Path, name: str, claude_model: str | None = None) -> str:
     """Build the shell command for a Claude Code agent.
 
     claude_model: None for default, or 'opus'/'sonnet'/'haiku' for specific model.
     """
+    claude_model = _validate_claude_model(claude_model)
     claude_prompt = "Lees CLAUDE.md en voer de taak uit. Schrijf al je output naar ./output/ en maak een .done file als je klaar bent."
-    model_flag = f" --model {claude_model}" if claude_model else ""
+    model_flag = f" --model {shlex.quote(claude_model)}" if claude_model else ""
     # Full PATH ensures oa-cli is available for nested agent spawning (Issue #9/#11)
     from .workspace import _AGENT_PATH
     return (
@@ -82,6 +98,9 @@ def _build_ollama_command(workspace: Path, name: str, ollama_model: str) -> str:
     We pipe CLAUDE.md as prompt and capture output to result.md.
     TERM=dumb prevents ollama from writing spinner/progress ANSI codes.
     """
+    # Validate ollama model name: alphanumeric with colons, dots, hyphens, underscores
+    if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9:._-]{0,127}', ollama_model):
+        raise ValueError(f"Invalid Ollama model name: {ollama_model!r}")
     from .workspace import _AGENT_PATH
     return (
         f"export PATH=\"{_AGENT_PATH}:$PATH\" && "
@@ -263,7 +282,8 @@ def spawn_remote_agent(
     claude_model = CLAUDE_MODEL_MAP.get(model)
     if claude_model is None and "/" in model:
         claude_model = model.split("/", 1)[1]
-    model_flag = f" --model {claude_model}" if claude_model else ""
+    claude_model = _validate_claude_model(claude_model)
+    model_flag = f" --model {shlex.quote(claude_model)}" if claude_model else ""
     claude_prompt = shlex.quote(
         "Lees CLAUDE.md en voer de taak uit. Schrijf al je output naar ./output/ en maak een .done file als je klaar bent."
     )

@@ -231,5 +231,17 @@ Open-Agents onderscheidt zich met D-042 (Agent Maturity Model): library begint a
 
 ---
 
+## 11. Local LLM Integration
+
+> Bron: `docs/LOCAL-LLM-INTEGRATION.md` — volledig implementatieplan voor open-source LLM integratie.
+
+Onderzochte **lokale modellen**: Qwen3-30B-A3B (MoE, Apache 2.0), Qwen3-Coder-Next, DeepSeek-R1-Distill-Qwen3-8B, GLM-4-9B-0414, SmolLM3-3B, Phi-4-mini, Qwen3-0.6B. API-modellen (te groot voor lokaal): MiniMax M2.5, GLM-4.7, DeepSeek V3.2, Kimi K2.5, GPT-OSS-120B.
+
+Onderzochte **inference runtimes**: Ollama (development), vLLM (production, 19x throughput), LocalAI (universele drop-in), LiteLLM (multi-provider gateway/router).
+
+6-fasen implementatieplan: OllamaRuntime upgrade → LocalLLMRuntime (universeel) → LiteLLM gateway → Model routing → Frontend discovery → Concurrency management. Alle lokale runtimes gebruiken het OpenAI chat completions format als standaard.
+
+---
+
 *Bronnenregister voor Open-Agents. Wordt bijgewerkt bij nieuwe inzichten of bronnen.*
-*Laatste update: 2026-03-03*
+*Laatste update: 2026-03-11*
