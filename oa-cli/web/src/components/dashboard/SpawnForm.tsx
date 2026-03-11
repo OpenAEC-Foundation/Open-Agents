@@ -38,6 +38,15 @@ const OLLAMA_MODELS = [
   { value: 'ollama/llama3.2:3b', label: 'llama3.2:3b' },
 ];
 
+// Static fallback for Hetzner GPU server models
+const HETZNER_MODELS_FALLBACK = [
+  { value: 'hetzner/qwen2.5:14b', label: 'qwen2.5:14b' },
+  { value: 'hetzner/qwen2.5-coder:14b', label: 'qwen2.5-coder:14b' },
+  { value: 'hetzner/phi4:14b', label: 'phi4:14b' },
+  { value: 'hetzner/llama3.1:8b', label: 'llama3.1:8b' },
+  { value: 'hetzner/deepseek-r1:14b', label: 'deepseek-r1:14b' },
+];
+
 export function SpawnForm({ onSpawned }: { onSpawned?: () => void } = {}) {
   const [task, setTask] = useState('');
   const [model, setModel] = useState('claude/sonnet');
@@ -47,6 +56,8 @@ export function SpawnForm({ onSpawned }: { onSpawned?: () => void } = {}) {
   const [feedback, setFeedback] = useState<{ ok: boolean; msg: string } | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [useOllama, setUseOllama] = useState(false);
+  const [useHetzner, setUseHetzner] = useState(false);
+  const [hetznerModels, setHetznerModels] = useState<{value: string; label: string}[]>(HETZNER_MODELS_FALLBACK);
   const [machine, setMachine] = useState('');
   const [machines, setMachines] = useState<{id: string; host: string; description: string}[]>([]);
   const [customHost, setCustomHost] = useState('');
@@ -64,6 +75,7 @@ export function SpawnForm({ onSpawned }: { onSpawned?: () => void } = {}) {
       if (prefilledModel) {
         setModel(prefilledModel);
         if (prefilledModel.startsWith('ollama/')) setUseOllama(true);
+        if (prefilledModel.startsWith('hetzner/')) setUseHetzner(true);
       }
       clearPrefilled();
     }
@@ -73,7 +85,22 @@ export function SpawnForm({ onSpawned }: { onSpawned?: () => void } = {}) {
     authHeaders().then(headers =>
       fetch('/api/machines', { headers })
         .then(r => r.json())
-        .then(data => setMachines(Array.isArray(data) ? data : []))
+        .then((data: {id: string; host: string; description: string}[]) => {
+          if (!Array.isArray(data)) return;
+          setMachines(data);
+          // Fetch models for first non-local machine (e.g. hetzner)
+          const remote = data.find(m => m.id !== 'local');
+          if (remote) {
+            fetch(`/api/machines/${remote.id}/models`, { headers })
+              .then(r => r.json())
+              .then((models: {id: string; name: string}[]) => {
+                if (Array.isArray(models) && models.length > 0) {
+                  setHetznerModels(models.map(m => ({ value: m.id, label: m.name })));
+                }
+              })
+              .catch(() => {});
+          }
+        })
         .catch(() => {})
     );
   }, []);
@@ -190,7 +217,7 @@ export function SpawnForm({ onSpawned }: { onSpawned?: () => void } = {}) {
           })}
           <button
             onClick={() => {
-              if (!useOllama) { setUseOllama(true); setModel(OLLAMA_MODELS[0].value); }
+              if (!useOllama) { setUseOllama(true); setUseHetzner(false); setModel(OLLAMA_MODELS[0].value); }
               else { setUseOllama(false); setModel('claude/sonnet'); }
             }}
             style={{
@@ -207,6 +234,25 @@ export function SpawnForm({ onSpawned }: { onSpawned?: () => void } = {}) {
           >
             ollama
           </button>
+          <button
+            onClick={() => {
+              if (!useHetzner) { setUseHetzner(true); setUseOllama(false); setModel(hetznerModels[0]?.value || 'hetzner/qwen2.5:14b'); }
+              else { setUseHetzner(false); setModel('claude/sonnet'); }
+            }}
+            style={{
+              padding: '3px 12px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: 600,
+              border: `1px solid ${useHetzner ? '#f59e0b' : 'var(--color-oa-border)'}`,
+              background: useHetzner ? '#f59e0b' : 'var(--color-oa-surface)',
+              color: useHetzner ? '#fff' : 'var(--color-oa-text-muted)',
+              cursor: 'pointer',
+              transition: 'all 120ms',
+            }}
+          >
+            hetzner
+          </button>
         </div>
         {useOllama && (
           <select
@@ -215,6 +261,17 @@ export function SpawnForm({ onSpawned }: { onSpawned?: () => void } = {}) {
             style={{ ...inputStyle, marginTop: '8px' }}
           >
             {OLLAMA_MODELS.map((m) => (
+              <option key={m.value} value={m.value}>{m.label}</option>
+            ))}
+          </select>
+        )}
+        {useHetzner && (
+          <select
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            style={{ ...inputStyle, marginTop: '8px' }}
+          >
+            {hetznerModels.map((m) => (
               <option key={m.value} value={m.value}>{m.label}</option>
             ))}
           </select>

@@ -220,7 +220,12 @@ def api_spawn_agent():
         start_session()
 
     try:
-        if machine:
+        if model.startswith("hetzner/"):
+            # hetzner/* models always route to Hetzner regardless of machine field
+            from .config import get_machine_host
+            host = machine if machine else (get_machine_host("hetzner") or "hetzner-agent")
+            rec = spawn_remote_agent(name, task, host=host, model=model, direct=True)
+        elif machine:
             rec = spawn_remote_agent(name, task, host=machine, model=model, direct=True)
         else:
             rec = spawn_agent(name, task, model=model, parent=parent or None)
@@ -235,6 +240,66 @@ def api_list_machines():
     """List available machines for agent spawning."""
     from .config import load_machines_config
     return jsonify(load_machines_config())
+
+
+def _parse_ollama_list(output: str, machine_id: str) -> list[dict]:
+    """Parse 'ollama list' text output into model descriptors."""
+    models = []
+    for line in output.strip().splitlines():
+        if line.startswith('NAME') or not line.strip():
+            continue
+        parts = line.split()
+        if parts:
+            name = parts[0]
+            models.append({
+                'id': f"hetzner/{name}",
+                'name': name,
+                'machine': machine_id,
+                'type': 'ollama',
+                'size': parts[2] if len(parts) > 2 else None,
+            })
+    return models
+
+
+@app.route('/api/machines/<machine_id>/models', methods=['GET'])
+def api_machine_models(machine_id: str):
+    """List models available on a specific machine.
+
+    For machines with Ollama capability: SSHes to the host and runs 'ollama list'.
+    Falls back to static model list from machines.json capabilities field.
+    """
+    import subprocess as _sp
+    from .config import load_machines_config
+    machines = load_machines_config()
+    machine = next((m for m in machines if m['id'] == machine_id), None)
+
+    if machine is None:
+        return jsonify({'error': f"Machine '{machine_id}' not found"}), 404
+
+    host = machine.get('host', '')
+    if host and machine.get('capabilities', {}).get('ollama', False):
+        try:
+            result = _sp.run(
+                ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5',
+                 host, 'ollama list 2>/dev/null'],
+                capture_output=True, text=True, timeout=10
+            )
+            if result.returncode == 0:
+                return jsonify(_parse_ollama_list(result.stdout, machine_id))
+        except Exception:
+            pass
+
+    # Fall back to static capabilities from machines.json
+    static_models = machine.get('capabilities', {}).get('models', [])
+    return jsonify([
+        {
+            'id': f"hetzner/{m}",
+            'name': m,
+            'machine': machine_id,
+            'type': 'ollama',
+        }
+        for m in static_models
+    ])
 
 
 @app.route("/api/agents/<name>/stream")

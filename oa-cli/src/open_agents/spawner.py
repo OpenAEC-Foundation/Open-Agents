@@ -40,6 +40,9 @@ CLAUDE_MODEL_MAP = {
     "claude/haiku": "haiku",
 }
 
+# Default SSH host alias for Hetzner GPU server (configurable via machines.json)
+HETZNER_SSH_HOST = "hetzner-agent"
+
 
 def _detect_ollama_cmd() -> str:
     """Detect the correct ollama command for the current platform.
@@ -109,6 +112,28 @@ def _build_ollama_command(workspace: Path, name: str, ollama_model: str) -> str:
         f"cd {workspace} && "
         f"echo $$ > .oa-pid && "
         f"TERM=dumb cat CLAUDE.md | {OLLAMA_CMD} run {shlex.quote(ollama_model)} "
+        f"2>/dev/null | sed 's/\\x1b\\[[0-9;]*[a-zA-Z]//g' "
+        f"> output/result.md; "
+        f"touch .done; "
+        f"echo '--- Agent {shlex.quote(name)} finished ---'"
+    )
+
+
+def _build_remote_ollama_command(workspace_path: str, name: str, ollama_model: str) -> str:
+    """Build shell command for an Ollama text agent running on a remote host.
+
+    Similar to _build_ollama_command but uses the system ollama installation
+    and operates on a remote workspace path.
+    TERM=dumb prevents ANSI spinner codes from polluting output.
+    """
+    if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9:._-]{0,127}', ollama_model):
+        raise ValueError(f"Invalid Ollama model name: {ollama_model!r}")
+    remote_path = "/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    return (
+        f"export PATH=\"{remote_path}:$PATH\" && "
+        f"cd {workspace_path} && "
+        f"mkdir -p output && "
+        f"TERM=dumb cat CLAUDE.md | ollama run {shlex.quote(ollama_model)} "
         f"2>/dev/null | sed 's/\\x1b\\[[0-9;]*[a-zA-Z]//g' "
         f"> output/result.md; "
         f"touch .done; "
@@ -204,6 +229,13 @@ def spawn_agent(
     window_index = result.stdout.strip()
     send_target = f"{SESSION_NAME}:{window_index}" if window_index else f"{SESSION_NAME}:{shlex.quote(window_name)}"
 
+    # Route hetzner/* models to spawn_remote_agent
+    if model.startswith("hetzner/"):
+        from .config import get_machine_host
+        configured_host = get_machine_host("hetzner")
+        host = configured_host or HETZNER_SSH_HOST
+        return spawn_remote_agent(name, task, host=host, model=model, direct=True)
+
     # Build runtime-specific command
     if model.startswith("ollama/"):
         ollama_model = model.split("/", 1)[1]
@@ -281,19 +313,44 @@ def spawn_remote_agent(
     model: str = "claude/sonnet",
     direct: bool = True,
 ) -> AgentRecord:
-    """Spawn een agent op een remote host via SSH.
+    """Spawn an agent on a remote host via SSH.
 
-    De agent draait op de remote machine als achtergrondproces (nohup).
-    Output wordt opgehaald via 'oa collect' zodra de remote .done-file aanwezig is.
+    The agent runs as a background process on the remote machine.
+    Output is retrieved via 'oa collect' once the remote .done file appears.
+
+    Extended model support:
+    - "claude/sonnet"            → Claude Code CLI (agentic, full tools)
+    - "hetzner/claude/sonnet"    → Claude Code CLI on Hetzner (same as above)
+    - "hetzner/qwen2.5:14b"      → Ollama model on GPU server (text only)
+    - "hetzner/service/*"        → Not handled here; use invoke_hetzner_service()
 
     Args:
-        name:   Unieke agent-naam.
-        task:   Taakomschrijving voor de agent.
-        host:   SSH-host string (bijv. 'user@host' of alias uit ~/.ssh/config).
-        model:  Model-string (bijv. 'claude/sonnet').
-        direct: Ongebruikt voor remote agents, gereserveerd voor toekomstige uitbreiding.
+        name:   Unique agent name.
+        task:   Task description for the agent.
+        host:   SSH host string (e.g. 'user@host' or alias from ~/.ssh/config).
+        model:  Model string (e.g. 'claude/sonnet', 'hetzner/qwen2.5:14b').
+        direct: Reserved for future use.
     """
-    # Valideer agent naam consistent met spawn_agent
+    # Normalize: strip hetzner/ prefix to determine effective model
+    effective_model = model
+    is_hetzner_ollama = False
+    ollama_model_name = None
+
+    if model.startswith("hetzner/"):
+        remainder = model[len("hetzner/"):]
+        if remainder.startswith("claude"):
+            effective_model = remainder if remainder.startswith("claude/") else "claude"
+        elif remainder.startswith("service/"):
+            raise ValueError(
+                f"Service agents ({model}) must use invoke_hetzner_service(), "
+                f"not spawn_remote_agent()"
+            )
+        else:
+            # Hetzner Ollama model: hetzner/qwen2.5:14b -> qwen2.5:14b
+            is_hetzner_ollama = True
+            ollama_model_name = remainder
+
+    # Validate agent name
     if not re.fullmatch(r'[a-z0-9][a-z0-9-]{0,61}', name):
         raise RuntimeError(
             f"Invalid agent name '{name}': must match [a-z0-9-], "
@@ -304,37 +361,46 @@ def spawn_remote_agent(
     if existing and existing.status == "running":
         raise RuntimeError(f"Agent '{name}' is already running.")
 
-    # 1. Maak lokale workspace aan voor state tracking
+    # 1. Create local workspace for state tracking
     local_ws = create_workspace(name, task)
     remote_ws = f"/tmp/oa-agent-{name}"
 
-    # 2. Upload workspace naar remote
+    # 2. Upload workspace to remote
     sync_workspace_to_remote(host, local_ws, remote_ws)
 
-    # 3. Bouw remote commando — zelfde prompt als _build_claude_command
-    from .workspace import _AGENT_PATH
-    claude_model = CLAUDE_MODEL_MAP.get(model)
-    if claude_model is None and "/" in model:
-        claude_model = model.split("/", 1)[1]
-    claude_model = _validate_claude_model(claude_model)
-    model_flag = f" --model {shlex.quote(claude_model)}" if claude_model else ""
-    claude_prompt = shlex.quote(
-        "Lees CLAUDE.md en voer de taak uit. Schrijf al je output naar ./output/ en maak een .done file als je klaar bent."
-    )
-    remote_cmd = (
-        f"export PATH=\"{_AGENT_PATH}:$PATH\" && "
-        f"cd {remote_ws} && "
-        f"unset CLAUDECODE && "
-        f"mkdir -p output && "
-        f"nohup {CLAUDE_CMD}{model_flag} --dangerously-skip-permissions -p {claude_prompt} "
-        f"> output/result.md 2>&1; "
-        f"touch .done &"
-    )
+    # 3. Build remote command based on model type
+    if is_hetzner_ollama:
+        # Ollama text-only agent on GPU server
+        inner_cmd = _build_remote_ollama_command(remote_ws, name, ollama_model_name)
+        # Wrap in subshell to properly background and detach from SSH session
+        remote_cmd = f"({inner_cmd}) > /dev/null 2>&1 &"
+    else:
+        # Claude Code agentic agent on remote host (fix #64: subshell backgrounding)
+        claude_model = CLAUDE_MODEL_MAP.get(effective_model)
+        if claude_model is None and "/" in effective_model:
+            claude_model = effective_model.split("/", 1)[1]
+        claude_model = _validate_claude_model(claude_model)
+        model_flag = f" --model {shlex.quote(claude_model)}" if claude_model else ""
+        claude_prompt = shlex.quote(
+            "Lees CLAUDE.md en voer de taak uit. "
+            "Schrijf al je output naar ./output/ en maak een .done file als je klaar bent."
+        )
+        # FIX #64: Use subshell ( ... ) & to properly background on root servers.
+        # Plain 'nohup ... &' doesn't detach the process group when SSH exits on root.
+        remote_path = "/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        remote_cmd = (
+            f"export PATH=\"{remote_path}:$PATH\" && "
+            f"cd {remote_ws} && "
+            f"unset CLAUDECODE && "
+            f"mkdir -p output && "
+            f"(nohup {CLAUDE_CMD}{model_flag} --dangerously-skip-permissions -p {claude_prompt} "
+            f"> output/result.md 2>&1; touch .done) &"
+        )
 
-    # 4. Voer uit op remote via SSH (BatchMode=yes voorkomt wachtwoord-prompts)
+    # 4. Execute on remote host via SSH (BatchMode=yes prevents password prompts)
     subprocess.run(["ssh", "-o", "BatchMode=yes", host, remote_cmd], check=True)
 
-    # 5. Registreer in lokale state met remote-velden
+    # 5. Register in local state with remote fields
     rec = AgentRecord(
         name=name,
         task=task,
