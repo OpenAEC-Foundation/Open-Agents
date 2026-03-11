@@ -383,15 +383,16 @@ def run(
     # Invocation Quality Gate (#33): score prompt on 5 dimensions
     _quality = InvocationValidator().score(task)
     _total = _quality["total_score"]
-    if _total < 3:  # threshold: < 0.6 of max 5
-        console.print(f"[yellow]Invocation quality score: {_total}/5[/yellow]")
+    _normalized = _total / 5.0
+    if _normalized < 0.5:  # threshold: < 0.5 normalized (< 2.5/5)
+        console.print(f"[yellow]⚠ Lage prompt kwaliteit (score: {_normalized:.1f}). Tip: voeg absolute paden + expliciete scope toe.[/yellow]")
         for w in _quality["warnings"]:
             console.print(f"[yellow]  • {w}[/yellow]")
         if strict:
-            console.print("[red]--strict: invocation quality score too low (< 3/5). Improve your prompt.[/red]")
+            console.print("[red]--strict: invocation quality score too low (< 0.5). Improve your prompt.[/red]")
             raise typer.Exit(1)
     else:
-        console.print(f"[dim]Invocation quality: {_total}/5[/dim]")
+        console.print(f"[dim]Invocation quality: {_normalized:.1f}/1.0 ({_total}/5)[/dim]")
 
     if not name:
         name = generate_agent_name(task)
@@ -406,9 +407,8 @@ def run(
     if not skip_context_check:
         _context_gaps = detect_gaps(task)
         if _context_gaps:
-            console.print("[yellow]Context Gap Detector warnings:[/yellow]")
-            for gap in _context_gaps:
-                console.print(f"[yellow]  • {gap}[/yellow]")
+            gaps_summary = ", ".join(_context_gaps)
+            console.print(f"[yellow]⚠ Context gaps gedetecteerd: {gaps_summary}[/yellow]")
 
     ws = Path(workspace) if workspace else None
     if tmp:

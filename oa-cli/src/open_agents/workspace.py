@@ -121,7 +121,59 @@ def _spawning_instructions(agent_name: str, project_root: str | None = None) -> 
     )
 
 
-def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None, agent_type: str = "", can_spawn: bool = False, honesty: bool = False) -> Path:
+def _identity_section(agent_name: str, task: str, model: str = "", team: str = "") -> str:
+    """Generate the Identity section for the CLAUDE.md."""
+    task_summary = task[:120].replace("\n", " ") + ("..." if len(task) > 120 else "")
+    model_label = model if model else "default"
+    team_label = team if team else "—"
+    return (
+        f"## Identity\n"
+        f"- **Name:** {agent_name}\n"
+        f"- **Model:** {model_label}\n"
+        f"- **Team:** {team_label}\n"
+        f"- **Task:** {task_summary}\n"
+    )
+
+
+def _quality_rules_section() -> str:
+    """Generate the Quality Rules section for the CLAUDE.md."""
+    return (
+        f"\n## Quality Rules\n"
+        f"1. No hallucinations — only state what you know to be true\n"
+        f"2. Write directly — no proposals, no drafts, no intermediary files\n"
+        f"3. Use absolute paths for all file references\n"
+        f"4. Confirm each step by writing progress notes to ./output/\n"
+        f"5. Write result.md and create .done when fully done\n"
+    )
+
+
+def _anti_patterns_section() -> str:
+    """Generate the Anti-patterns section for the CLAUDE.md."""
+    return (
+        f"\n## Anti-patterns\n"
+        f"- Do NOT ask for confirmation — work autonomously\n"
+        f"- Do NOT use relative paths for project file references\n"
+        f"- Do NOT create a proposals/ directory\n"
+        f"- Do NOT use the built-in Agent tool (blocked) — use `oa run` via Bash\n"
+        f"- Do NOT leave .done unset if you finish or encounter an error\n"
+    )
+
+
+def _team_context_section(agent_name: str, team: str) -> str:
+    """Generate the Team Context section when agent belongs to a team."""
+    if not team:
+        return ""
+    return (
+        f"\n## Team Context\n"
+        f"You are part of team: **{team}**\n"
+        f"Coordinate with teammates via messaging:\n"
+        f"- `oa inbox {agent_name}` — check incoming messages\n"
+        f"- `oa send <agent> \"msg\" --from {agent_name}` — send to a teammate\n"
+        f"- Share results and avoid file conflicts with teammates\n"
+    )
+
+
+def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None, agent_type: str = "", can_spawn: bool = False, honesty: bool = False, team: str = "", model: str = "") -> Path:
     """Create a temporary workspace directory with a CLAUDE.md file.
 
     If project_root is provided, agents are instructed to write directly
@@ -146,52 +198,58 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
     settings_file.write_text(json.dumps(_agent_settings(workspace, can_spawn=can_spawn), indent=2) + "\n")
 
     claude_md = workspace / "CLAUDE.md"
+    identity = _identity_section(agent_name, task, model=model, team=team)
+    quality_rules = _quality_rules_section()
+    anti_patterns = _anti_patterns_section()
+    team_context = _team_context_section(agent_name, team)
     messaging = _messaging_instructions(agent_name)
     spawning = _spawning_instructions(agent_name, str(project_root) if project_root else None)
 
     if project_root:
         # Direct write mode — agents write to the real project
         claude_md.write_text(
-            f"# Taak: {task}\n"
+            f"# Agent: {agent_name}\n"
             f"\n"
-            f"## Instructies\n"
+            f"{identity}"
+            f"\n## Task\n"
             f"{task}\n"
-            f"\n"
-            f"## Output\n"
-            f"- Schrijf een ./output/result.md met een samenvatting van wat je hebt gedaan\n"
-            f"- Maak een .done file in de root als je helemaal klaar bent\n"
-            f"\n"
-            f"## DIRECT WRITE MODE\n"
-            f"- Je MOET wijzigingen DIRECT schrijven naar het project in: {project_root}\n"
-            f"- Lees eerst het bestaande bestand, dan Edit of Write naar het doelbestand\n"
-            f"- Schrijf GEEN proposals — schrijf direct naar de echte bestanden\n"
-            f"- Maak GEEN proposals/ directory aan\n"
+            f"\n## Output Location\n"
+            f"- Results: {workspace}/output/result.md\n"
+            f"- Completion signal: {workspace}/.done\n"
+            f"\n## DIRECT WRITE MODE\n"
+            f"- Write changes directly to: {project_root}\n"
+            f"- Read existing files first, then use Edit or Write tools\n"
+            f"- Do NOT write proposals — write directly to real files\n"
+            f"{quality_rules}"
+            f"{anti_patterns}"
+            f"{team_context}"
             f"{messaging}"
             f"{spawning}"
-            f"\n"
-            f"## Constraints\n"
-            f"- Vraag niet om bevestiging, werk zelfstandig\n"
-            f"- Als je vastloopt, schrijf het probleem naar ./output/error.md en maak alsnog .done aan\n"
+            f"\n## Constraints\n"
+            f"- Work autonomously — no confirmation needed\n"
+            f"- On failure: write to ./output/error.md and create .done anyway\n"
         )
     else:
         # Default mode — agents work within their workspace
         claude_md.write_text(
-            f"# Taak: {task}\n"
+            f"# Agent: {agent_name}\n"
             f"\n"
-            f"## Instructies\n"
+            f"{identity}"
+            f"\n## Task\n"
             f"{task}\n"
-            f"\n"
-            f"## Output\n"
-            f"- Schrijf alle resultaten naar ./output/\n"
-            f"- Maak een ./output/result.md met een samenvatting van wat je hebt gedaan\n"
-            f"- Maak een .done file in de root als je helemaal klaar bent\n"
+            f"\n## Output Location\n"
+            f"- Write all results to: {workspace}/output/\n"
+            f"- Summary: {workspace}/output/result.md\n"
+            f"- Completion signal: {workspace}/.done\n"
+            f"{quality_rules}"
+            f"{anti_patterns}"
+            f"{team_context}"
             f"{messaging}"
             f"{spawning}"
-            f"\n"
-            f"## Constraints\n"
-            f"- Werk alleen binnen deze directory\n"
-            f"- Vraag niet om bevestiging, werk zelfstandig\n"
-            f"- Als je vastloopt, schrijf het probleem naar ./output/error.md en maak alsnog .done aan\n"
+            f"\n## Constraints\n"
+            f"- Work only within this directory\n"
+            f"- Work autonomously — no confirmation needed\n"
+            f"- On failure: write to ./output/error.md and create .done anyway\n"
         )
 
     if agent_type:
