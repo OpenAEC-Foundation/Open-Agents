@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Zap, ChevronRight, Clock } from 'lucide-react';
+import { authHeaders } from '../../api/client';
 
 interface PipelineAgent {
   name: string;
@@ -86,7 +87,7 @@ export default function PipelinePanel() {
       const name = `pipe-${Date.now()}`;
       const res = await fetch('/api/agents', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ task: `[PIPELINE] ${task.trim()}`, name, model }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

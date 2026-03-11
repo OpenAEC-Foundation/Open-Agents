@@ -363,6 +363,12 @@ def api_trigger_guardian():
     return jsonify({"triggered": triggered})
 
 
+@app.route("/api/auth/token")
+def api_get_auth_token():
+    """Return the API token for the local web UI (only reachable from localhost)."""
+    return jsonify({"token": API_TOKEN})
+
+
 @app.route("/api/health")
 def api_health():
     """Health check endpoint."""

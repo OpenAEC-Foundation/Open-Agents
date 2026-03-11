@@ -5,6 +5,27 @@ export const API_BASE = IS_TAURI ? 'http://127.0.0.1:5174' : '';
 
 const API = `${API_BASE}/api`;
 
+// --- Auth token ---
+
+let _cachedToken: string | null = null;
+
+async function getToken(): Promise<string> {
+  if (_cachedToken !== null) return _cachedToken;
+  try {
+    const res = await fetch(`${API}/auth/token`);
+    const data = await res.json();
+    _cachedToken = (data.token as string) ?? '';
+  } catch {
+    _cachedToken = '';
+  }
+  return _cachedToken;
+}
+
+export async function authHeaders(): Promise<Record<string, string>> {
+  const token = await getToken();
+  return token ? { 'X-API-Token': token } : {};
+}
+
 export async function fetchAgents(): Promise<Agent[]> {
   const res = await fetch(`${API}/agents`);
   return res.json();
@@ -18,7 +39,7 @@ export async function fetchAgentDetail(name: string): Promise<Agent> {
 export async function spawnAgent(body: SpawnAgentBody): Promise<Agent> {
   const res = await fetch(`${API}/agents`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(body),
   });
   return res.json();
@@ -27,16 +48,17 @@ export async function spawnAgent(body: SpawnAgentBody): Promise<Agent> {
 export async function killAgent(name: string): Promise<void> {
   await fetch(`${API}/agents/${encodeURIComponent(name)}/kill`, {
     method: 'POST',
+    headers: await authHeaders(),
   });
 }
 
 export async function cleanAgents(): Promise<{ cleaned: string[] }> {
-  const res = await fetch(`${API}/clean`, { method: 'POST' });
+  const res = await fetch(`${API}/clean`, { method: 'POST', headers: await authHeaders() });
   return res.json();
 }
 
 export async function startSession(): Promise<void> {
-  await fetch(`${API}/session/start`, { method: 'POST' });
+  await fetch(`${API}/session/start`, { method: 'POST', headers: await authHeaders() });
 }
 
 // --- Messaging ---
@@ -50,7 +72,7 @@ export async function fetchMessages(name: string, unreadOnly = false): Promise<{
 export async function sendMessage(from: string, to: string, content: string): Promise<void> {
   await fetch(`${API}/messages`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify({ from, to, content }),
   });
 }
@@ -58,7 +80,7 @@ export async function sendMessage(from: string, to: string, content: string): Pr
 export async function broadcastMessage(from: string, content: string): Promise<void> {
   await fetch(`${API}/messages/broadcast`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify({ from, content }),
   });
 }
@@ -66,15 +88,16 @@ export async function broadcastMessage(from: string, content: string): Promise<v
 export async function markRead(name: string): Promise<void> {
   await fetch(`${API}/messages/${encodeURIComponent(name)}/read`, {
     method: 'POST',
+    headers: await authHeaders(),
   });
 }
 
 export async function pauseAgent(name: string): Promise<void> {
-  await fetch(`${API}/agents/${encodeURIComponent(name)}/pause`, { method: 'POST' });
+  await fetch(`${API}/agents/${encodeURIComponent(name)}/pause`, { method: 'POST', headers: await authHeaders() });
 }
 
 export async function resumeAgent(name: string): Promise<void> {
-  await fetch(`${API}/agents/${encodeURIComponent(name)}/resume`, { method: 'POST' });
+  await fetch(`${API}/agents/${encodeURIComponent(name)}/resume`, { method: 'POST', headers: await authHeaders() });
 }
 
 export async function fetchPipelines(): Promise<Agent[]> {
@@ -92,20 +115,20 @@ export async function fetchTeams(): Promise<unknown> {
 export async function createTeam(name: string, members: string[]): Promise<unknown> {
   const res = await fetch(`${API}/teams`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify({ name, members }),
   });
   return res.json();
 }
 
 export async function deleteTeam(name: string): Promise<void> {
-  await fetch(`${API}/teams/${encodeURIComponent(name)}`, { method: 'DELETE' });
+  await fetch(`${API}/teams/${encodeURIComponent(name)}`, { method: 'DELETE', headers: await authHeaders() });
 }
 
 export async function addTeamMember(team: string, agent: string): Promise<unknown> {
   const res = await fetch(`${API}/teams/${encodeURIComponent(team)}/members`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify({ agent }),
   });
   return res.json();
@@ -121,7 +144,7 @@ export async function fetchTasks(team: string): Promise<unknown> {
 export async function createTask(team: string, task: object): Promise<unknown> {
   const res = await fetch(`${API}/tasks/${encodeURIComponent(team)}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(task),
   });
   return res.json();
@@ -130,7 +153,7 @@ export async function createTask(team: string, task: object): Promise<unknown> {
 export async function updateTask(team: string, taskId: string, update: object): Promise<unknown> {
   const res = await fetch(`${API}/tasks/${encodeURIComponent(team)}/${encodeURIComponent(taskId)}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(update),
   });
   return res.json();
@@ -144,7 +167,7 @@ export async function fetchCheckpoints(): Promise<unknown> {
 }
 
 export async function resumeFromCheckpoint(agent: string): Promise<unknown> {
-  const res = await fetch(`${API}/resume/${encodeURIComponent(agent)}`, { method: 'POST' });
+  const res = await fetch(`${API}/resume/${encodeURIComponent(agent)}`, { method: 'POST', headers: await authHeaders() });
   return res.json();
 }
 
@@ -158,7 +181,7 @@ export async function fetchGuardians(): Promise<unknown> {
 export async function triggerGuardian(name: string): Promise<{ triggered: string[] }> {
   const res = await fetch(`${API}/guardians/trigger`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify({ event: 'manual_trigger', guardian: name }),
   });
   if (!res.ok) {

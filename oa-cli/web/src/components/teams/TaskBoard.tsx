@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { authHeaders } from '../../api/client';
 
 type TaskStatus = 'todo' | 'in_progress' | 'done';
 
@@ -95,7 +96,7 @@ export default function TaskBoard() {
     try {
       await fetch(`/api/tasks/${encodeURIComponent(selectedTeam)}/${encodeURIComponent(task.id)}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ status: newStatus }),
       });
       setTasks((prev) =>
@@ -113,7 +114,7 @@ export default function TaskBoard() {
     try {
       const res = await fetch(`/api/tasks/${encodeURIComponent(selectedTeam)}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ title: newTitle.trim(), description: newDesc.trim() }),
       });
       const created = (await res.json()) as Task;
