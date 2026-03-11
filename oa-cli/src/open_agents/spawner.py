@@ -85,6 +85,7 @@ def _build_claude_command(workspace: Path, name: str, claude_model: str | None =
     return (
         f"export PATH=\"{_AGENT_PATH}:$PATH\" && "
         f"cd {workspace} && "
+        f"echo $$ > .oa-pid && "
         f"unset CLAUDECODE && "
         f"{CLAUDE_CMD}{model_flag} --dangerously-skip-permissions -p {shlex.quote(claude_prompt)}; "
         f"touch .done; "
@@ -106,6 +107,7 @@ def _build_ollama_command(workspace: Path, name: str, ollama_model: str) -> str:
     return (
         f"export PATH=\"{_AGENT_PATH}:$PATH\" && "
         f"cd {workspace} && "
+        f"echo $$ > .oa-pid && "
         f"TERM=dumb cat CLAUDE.md | {OLLAMA_CMD} run {shlex.quote(ollama_model)} "
         f"2>/dev/null | sed 's/\\x1b\\[[0-9;]*[a-zA-Z]//g' "
         f"> output/result.md; "
@@ -217,6 +219,16 @@ def spawn_agent(
     script.chmod(0o755)
     _tmux(f"send-keys -t {send_target} {shlex.quote(str(script))} Enter")
 
+    # Read agent PID from .oa-pid written by the shell script
+    agent_pid: int | None = None
+    pid_file = workspace / ".oa-pid"
+    time.sleep(0.5)
+    try:
+        if pid_file.exists():
+            agent_pid = int(pid_file.read_text().strip())
+    except (ValueError, OSError):
+        agent_pid = None
+
     # Start telemetry run
     try:
         run_id = telemetry.start_run(
@@ -237,6 +249,7 @@ def spawn_agent(
         tmux_window=window_name,
         model=model,
         status="running",
+        pid=agent_pid,
         created_at=time.time(),
         parent=parent,
         depth=child_depth,

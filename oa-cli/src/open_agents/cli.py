@@ -12,7 +12,7 @@ from rich.panel import Panel
 
 from . import __version__
 from .config import OA_DIR, CONFIG_PATH, DEFAULT_CONFIG, load_config
-from .monitor import print_status, print_status_with_context
+from .monitor import print_status, print_status_verbose, print_status_with_context
 from .utils import format_model_rich, generate_agent_name
 from .lifecycle import attach_agent, check_agent, clean_finished, kill_agent
 from .orchestrator import spawn_with_orchestrator
@@ -619,10 +619,13 @@ def templates_cmd(
 @app.command()
 def status(
     context: bool = typer.Option(False, "--context", "-c", help="Show context window usage per agent"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show CPU/memory usage per agent (requires psutil)"),
 ):
     """Show status of all agents in a rich table."""
     if context:
         print_status_with_context()
+    elif verbose:
+        print_status_verbose()
     else:
         print_status()
 
