@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Docker lifecycle volledig (#68)**: `lifecycle.py` detecteert nu `tmux_window.startswith("docker:")` prefix voor alle drie lifecycle-functies: `check_agent()` pollt `docker inspect --format={{.State.Status}}`, `kill_agent()` roept `docker stop` aan, `capture_agent_output()` haalt output via `docker logs --tail N`. `Dockerfile.agent` aangemaakt in repo root (ubuntu:22.04 + Node 20 + Python 3.11 + claude CLI + oa-cli, non-root user `oa-agent`).
+- **VS Code Bridge tests (#72)**: `test_vscode_bridge.py` — 18 tests voor alle REST endpoints (/health, /agents, /agents/<name>, /agents/spawn, /agents/<name>/kill, /agents/<name>/logs). TypeScript shared types in `packages/shared/src/bridge-types.ts` al actief via `@open-agents/shared` dep in `packages/vscode-extension`.
+- **Terminal backend (#70)**: `packages/backend/src/routes/terminal.ts` — WebSocket PTY route via node-pty (graceful degradation als niet geïnstalleerd). `packages/frontend/src/components/Terminal.tsx` — xterm.js v5 React component met FitAddon, WebLinksAddon, SearchAddon, ResizeObserver-gebaseerde auto-resize.
+- **Local-first Chat UI (#63)**: `bridge.py` — `POST /api/chat`, `POST /api/chat/stream` (SSE), `GET /api/chat/models`. Provider-agnostisch: `claude/*` → Anthropic SDK (lazy import), `ollama/*` → lokale Ollama /api/chat. `ChatPanel.tsx` — React SSE streaming chat in oa-cli web UI, model selector, localStorage history (max 100 msgs). 14 tests in `test_chat_api.py`.
+
 ### Fixed
 - **spawner.py — root-detectie vóór SSH-spawn (#64)**: `spawn_remote_agent()` controleert nu via `ssh id -u` of de remote user root is (UID 0). Als ja: directe `RuntimeError` met concrete fix-instructies i.p.v. silent failure na 1 seconde.
 - **template_loader.py — `_archive/` uitgesloten van scans (#66)**: Active template scans slaan `agents/library/_archive/` over via `EXCLUDED_DIRS`. Gearchiveerde templates verschijnen niet in de UI of via `oa run --template`.

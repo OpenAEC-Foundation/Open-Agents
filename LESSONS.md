@@ -322,4 +322,16 @@
 |---|-----|---------|
 | L-082 | **Schema-validatie moet altijd loggen en skippen, nooit crashen** — `template_loader.py` laadde eerder alles zonder validatie (silent failures). De nieuwe `_validate_template()` logt een warning en slaat de template over. Nooit een exception gooien in een loader — één kapot JSON-bestand mag het hele systeem niet platleggen. | Productie-principe: loaders zijn tolerant, validators zijn strict. `validate_library()` is de strict-mode tool voor CI. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-083, L-084, etc.*
+## Sessie 2026-03-11 — Alle Open Issues Gesloten (0 open)
+
+### Test Coverage als Bewijs van Implementatie
+
+| # | Les | Rationale |
+|---|-----|-----------|
+| L-083 | **Schrijf altijd tests bij het implementeren van een API** — Bij het sluiten van issues #63, #68, #70, #72 zijn in totaal 32 nieuwe tests geschreven (14 chat-api, 18 vscode-bridge). Tests maken de implementatie falsifieerbaar en voorkomen stille regressies. Een issue zonder tests is slechts half-klaar. | TDD-principe: als je het niet kunt testen, is het niet af. |
+| L-084 | **native modules (node-pty) vereisen build tools — graceful degradation is verplicht** — `node-pty` is een native Node.js module die compilatie vereist. De `terminal.ts` route gebruikt `try { require('node-pty') } catch { }` en stuurt een duidelijke error als het niet beschikbaar is, i.p.v. te crashen. Pattern: elke optionele native dep via lazy-load + graceful fallback. | Productie-principe: optional features mogen nooit core functionality blokkeren. |
+| L-085 | **Gebruik lokale type-definitie voor native modules bij TypeScript** — node-pty heeft geen @types package. In plaats van een externe type-bron op te eisen (die de build breekt), definieer je een minimale interface lokaal (`interface IPty { ... }`). Dit maakt de code compile-time correct zonder native install vereist te zijn. | Zelfstandig type contract > externe type-dependency. |
+| L-086 | **Provider-agnostische chat-API met lazy imports** — `_stream_claude()` importeert `anthropic` pas op aanroeptijd (`try: import anthropic`). De bridge start normaal op ook als de anthropic package niet geïnstalleerd is. Hetzelfde patroon voor alle optionele AI-providers. | "Local-first" betekent ook: werkt zonder betaalde API key. |
+| L-087 | **pnpm virtual-store-dir-max-length mismatch blokkeert install in WSL op Windows FS** — Als `node_modules/` aangemaakt was met een andere `virtualStoreDir` max length, faalt `pnpm add`. Workaround: run `pnpm install` vanuit de root van de monorepo, niet vanuit een subpackage. Dit reset de virtual store settings. Symptoom: `ERR_PNPM_VIRTUAL_STORE_DIR_MAX_LENGTH_DIFF`. | WSL-specifiek: `/mnt/c/` paden hebben langere inode-paden. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-088, L-089, etc.*
