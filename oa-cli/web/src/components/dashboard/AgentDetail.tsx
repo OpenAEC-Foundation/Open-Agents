@@ -65,6 +65,14 @@ export function AgentDetail() {
           <span className="text-[15px] font-bold">{detail.name}</span>
           <StatusBadge status={detail.status} />
           <ModelBadge model={detail.model} />
+          {(detail as any).remote_host && (
+            <span
+              className='text-[10px] font-semibold px-2 py-0.5 rounded-full'
+              style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}
+            >
+              {(detail as any).remote_host}
+            </span>
+          )}
           <span className="font-mono text-xs text-oa-text-muted">
             {formatDuration(detail.created_at, detail.finished_at)}
           </span>
@@ -146,6 +154,8 @@ export function AgentDetail() {
                 ['Tmux', detail.tmux_window],
                 ['Created', new Date(detail.created_at * 1000).toLocaleString()],
                 ['Finished', detail.finished_at ? new Date(detail.finished_at * 1000).toLocaleString() : 'running'],
+                ['Machine', (detail as any).remote_host || 'local'],
+                ['Remote WS', (detail as any).remote_workspace || '-'],
               ].map(([k, v]) => (
                 <div key={k} className="flex gap-2">
                   <span className="text-oa-text-muted font-semibold min-w-[80px]">{k}</span>

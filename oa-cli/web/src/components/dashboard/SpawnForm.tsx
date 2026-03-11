@@ -46,6 +46,9 @@ export function SpawnForm() {
   const [feedback, setFeedback] = useState<{ ok: boolean; msg: string } | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [useOllama, setUseOllama] = useState(false);
+  const [machine, setMachine] = useState('');
+  const [machines, setMachines] = useState<{id: string; host: string; description: string}[]>([]);
+  const [customHost, setCustomHost] = useState('');
 
   const spawn = useAgentStore((s) => s.spawnAgent);
   const running = useAgentStore((s) => s.getRunning)();
@@ -65,6 +68,13 @@ export function SpawnForm() {
     }
   }, [prefilledTask, prefilledModel, clearPrefilled]);
 
+  useEffect(() => {
+    fetch('/api/machines', { headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('oa_token') || '') } })
+      .then(r => r.json())
+      .then(data => setMachines(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
   const handleTemplateChange = (label: string) => {
     setTemplate(label);
     const found = TEMPLATES.find((t) => t.label === label);
@@ -80,6 +90,8 @@ export function SpawnForm() {
     };
     if (name.trim()) body.name = name.trim();
     if (parent) body.parent = parent;
+    const machineHost = machine === 'custom' ? customHost.trim() : machines.find(m => m.id === machine)?.host || '';
+    if (machineHost) (body as Record<string,unknown>).machine = machineHost;
     try {
       await spawn(body);
       setTask('');
@@ -202,6 +214,77 @@ export function SpawnForm() {
               <option key={m.value} value={m.value}>{m.label}</option>
             ))}
           </select>
+        )}
+      </div>
+
+      {/* Machine */}
+      <div>
+        <label className='block text-xs font-semibold uppercase tracking-wide mb-1.5' style={{ color: 'var(--color-oa-text-muted)' }}>
+          Machine
+        </label>
+        <div className='flex items-center gap-1.5 flex-wrap'>
+          <button
+            onClick={() => setMachine('')}
+            style={{
+              padding: '3px 12px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: 600,
+              border: `1px solid ${!machine ? 'var(--color-oa-accent)' : 'var(--color-oa-border)'}`,
+              background: !machine ? 'var(--color-oa-accent)' : 'var(--color-oa-surface)',
+              color: !machine ? '#fff' : 'var(--color-oa-text-muted)',
+              cursor: 'pointer',
+              transition: 'all 120ms',
+            }}
+          >
+            Local
+          </button>
+          {machines.filter(m => m.id !== 'local').map(m => {
+            const active = machine === m.id;
+            return (
+              <button
+                key={m.id}
+                onClick={() => setMachine(m.id)}
+                style={{
+                  padding: '3px 12px',
+                  borderRadius: '999px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  border: `1px solid ${active ? '#f59e0b' : 'var(--color-oa-border)'}`,
+                  background: active ? '#f59e0b' : 'var(--color-oa-surface)',
+                  color: active ? '#fff' : 'var(--color-oa-text-muted)',
+                  cursor: 'pointer',
+                  transition: 'all 120ms',
+                }}
+              >
+                {m.description || m.id}
+              </button>
+            );
+          })}
+          <button
+            onClick={() => setMachine(machine === 'custom' ? '' : 'custom')}
+            style={{
+              padding: '3px 12px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: 600,
+              border: `1px solid ${machine === 'custom' ? '#f59e0b' : 'var(--color-oa-border)'}`,
+              background: machine === 'custom' ? '#f59e0b' : 'var(--color-oa-surface)',
+              color: machine === 'custom' ? '#fff' : 'var(--color-oa-text-muted)',
+              cursor: 'pointer',
+              transition: 'all 120ms',
+            }}
+          >
+            Custom SSH
+          </button>
+        </div>
+        {machine === 'custom' && (
+          <input
+            value={customHost}
+            onChange={(e) => setCustomHost(e.target.value)}
+            placeholder='user@host or SSH alias'
+            style={{ ...inputStyle, marginTop: '8px' }}
+          />
         )}
       </div>
 

@@ -42,6 +42,34 @@ def check_agent(name: str) -> str | None:
 
     now = time.time()
 
+    # Remote agent: check via SSH
+    if getattr(rec, "remote_host", None) and getattr(rec, "remote_workspace", None):
+        from .workspace import remote_is_done, sync_output_from_remote
+        if remote_is_done(rec.remote_host, rec.remote_workspace):
+            # Sync output before marking done
+            try:
+                sync_output_from_remote(rec.remote_host, rec.remote_workspace, Path(rec.workspace))
+            except Exception:
+                pass
+            update_agent(name, status="done", finished_at=now, last_activity=now)
+            if rec.shared_results_dir:
+                _write_shared_result(rec)
+            _hook_env = {
+                "OA_AGENT_NAME": name,
+                "OA_RUN_ID": name,
+                "OA_RUN_LOG_PATH": str(Path(rec.workspace) / "output" / "result.md"),
+                "OA_EXIT_STATUS": "done",
+            }
+            _hooks.run_hooks("post-run", _hook_env)
+            _hooks.run_hooks("on-success", _hook_env)
+            return "done"
+        # Remote agent still running — skip tmux window check
+        elapsed_minutes = (now - rec.created_at) / 60
+        if elapsed_minutes > TIMEOUT_MINUTES:
+            update_agent(name, status="timeout", finished_at=now, last_activity=now)
+            return "timeout"
+        return "running"
+
     if workspace_is_done(rec.workspace):
         # Controleer of alle nakomelingen klaar zijn (recursief via lineage check)
         all_agents = list_agents()

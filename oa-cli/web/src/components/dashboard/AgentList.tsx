@@ -130,6 +130,14 @@ export function AgentList() {
                   >
                     {modelLabel(agent.model)}
                   </span>
+                  {(agent as any).remote_host && (
+                    <span
+                      className='text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0'
+                      style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}
+                    >
+                      {(agent as any).remote_host}
+                    </span>
+                  )}
                   <span className="text-xs shrink-0" style={{ color: 'var(--color-oa-text-dim)' }}>
                     {formatDuration(agent.created_at, agent.finished_at)}
                   </span>

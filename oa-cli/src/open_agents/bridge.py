@@ -46,7 +46,7 @@ def require_auth(f):
 
 from .lifecycle import capture_agent_output, check_agent, clean_finished, kill_agent
 from .messaging import broadcast_message, mark_read, read_inbox, send_message, unread_count
-from .spawner import spawn_agent
+from .spawner import spawn_agent, spawn_remote_agent
 from .tmux import session_exists, start_session
 from .state import get_agent, list_agents, update_agent
 from .utils import generate_agent_name
@@ -188,6 +188,7 @@ def api_spawn_agent():
     name = data.get("name", "")
     model = data.get("model", "claude")
     parent = data.get("parent", None)
+    machine = data.get("machine", "")
 
     # Auto-generate name if not provided
     if not name:
@@ -198,10 +199,21 @@ def api_spawn_agent():
         start_session()
 
     try:
-        rec = spawn_agent(name, task, model=model, parent=parent or None)
+        if machine:
+            rec = spawn_remote_agent(name, task, host=machine, model=model, direct=True)
+        else:
+            rec = spawn_agent(name, task, model=model, parent=parent or None)
         return jsonify(_agent_to_dict(rec)), 201
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 400
+
+
+@app.route('/api/machines', methods=['GET'])
+@require_auth
+def api_list_machines():
+    """List available machines for agent spawning."""
+    from .config import load_machines_config
+    return jsonify(load_machines_config())
 
 
 @app.route("/api/agents/<name>/stream")
@@ -750,6 +762,8 @@ def _agent_to_dict(rec) -> dict:
         "last_activity": getattr(rec, "last_activity", 0.0),
         "auto_cleanup_minutes": getattr(rec, "auto_cleanup_minutes", 20),
         "project_root": getattr(rec, "project_root", None),
+        "remote_host": getattr(rec, "remote_host", None),
+        "remote_workspace": getattr(rec, "remote_workspace", None),
     }
 
 

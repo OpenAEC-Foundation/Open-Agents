@@ -23,6 +23,9 @@ export interface Agent {
   auto_cleanup_minutes: number;
   // Workspace origin
   project_root: string | null;
+  // Remote machine fields
+  remote_host: string | null;
+  remote_workspace: string | null;
   // UI-only computed fields (not in Python backend)
   live_output?: string | null;
   result?: string | null;
@@ -62,6 +65,7 @@ export interface SpawnAgentBody {
   name?: string;
   model?: string;
   parent?: string;
+  machine?: string;
 }
 
 // Tab types

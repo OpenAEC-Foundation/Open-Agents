@@ -64,3 +64,42 @@ def get_periodic_checkpoint_minutes() -> int:
     """Return periodic_checkpoint_minutes from config."""
     val = load_config().get("periodic_checkpoint_minutes", DEFAULT_CONFIG["periodic_checkpoint_minutes"])
     return int(val)
+
+
+MACHINES_PATH = OA_DIR / 'machines.json'
+
+DEFAULT_MACHINES = {
+    'machines': [
+        {
+            'id': 'local',
+            'host': '',
+            'description': 'Local (tmux)',
+            'is_default': True,
+        },
+        {
+            'id': 'hetzner',
+            'host': 'hetzner',
+            'description': 'Hetzner RTX 4000',
+            'is_default': False,
+        },
+    ]
+}
+
+
+def load_machines_config() -> list[dict]:
+    """Load machine definitions from ~/.oa/machines.json."""
+    if MACHINES_PATH.exists():
+        try:
+            data = json.loads(MACHINES_PATH.read_text())
+            return data.get('machines', DEFAULT_MACHINES['machines'])
+        except Exception:
+            return list(DEFAULT_MACHINES['machines'])
+    return list(DEFAULT_MACHINES['machines'])
+
+
+def get_machine_host(machine_id: str) -> str | None:
+    """Get SSH host for a machine ID. Returns empty string for local, None if not found."""
+    for m in load_machines_config():
+        if m['id'] == machine_id:
+            return m.get('host', '')
+    return None
