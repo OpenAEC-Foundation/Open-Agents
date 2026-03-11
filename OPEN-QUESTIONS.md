@@ -154,4 +154,34 @@
 ### 🔵 Volgende batch-ronde (als we naar 1200+ willen)
 Ontbrekende domeinen: bioinformatics, space-tech, nuclear-energy, maritime, mining, textiles, food-tech, urban-planning, archaeology, linguistics
 
-*Laatste update: 2026-03-10*
+---
+
+## Architecturele Open Vragen (Sprint 26+)
+
+> *Toegevoegd 2026-03-11 — beantwoord via Sprint 26 Fase 26.0 research*
+
+### Q-001: Kan oa-cli werken zonder tmux?
+
+tmux is nu de enige runtime voor agents. Maar tmux vereist een Unix-omgeving (WSL op Windows), en brengt complexiteit mee (sessie-management, scrollback-buffers, pane-addressing). **Open vraag**: zou een asyncio-first architectuur (`asyncio.create_subprocess_exec` + streaming via queues) een beter fundament zijn? Wat verlies je (interactieve attach, `oa watch`), wat win je (Windows-native, minder overhead, simpeler state)?
+
+→ **Wordt onderzocht in**: Sprint 26 Fase 26.0 (sectie 5: Async Runtime)
+
+### Q-002: Is watchdog WSL2-compatible voor agents.json?
+
+watchdog gebruikt inotify op Linux, maar WSL2 heeft beperkingen: inotify werkt niet op Windows-filesystem mounts (`/mnt/c/`). Als `~/.oa/agents.json` op `/mnt/c/` staat (Windows home), werkt watchdog niet. **Open vraag**: waar slaan we agent state op — Linux filesystem (`~/.oa/`) of Windows (`/mnt/c/`)? En wat is de fallback als inotify niet beschikbaar is?
+
+→ **Wordt onderzocht in**: Sprint 26 Fase 26.0 (sectie 2: File Watching)
+
+### Q-003: Tauri of iets anders voor de desktop app?
+
+Sprint 20 gaat uit van Tauri (Rust). Maar Tauri vereist Rust toolchain, heeft een steilere leercurve, en de PTY-integratie is nog experimenteel. Alternatieven: Electron (meer overhead, bewezen), PyWebView (Python-native, past bij oa-cli stack), Neutralinojs (licht), of gewoon een PWA (geen installatie nodig). **Open vraag**: wat past het beste bij een Python CLI + React web UI combinatie?
+
+→ **Wordt onderzocht in**: Sprint 26 Fase 26.0 (sectie 6: Desktop/Web Delivery)
+
+### Q-004: Moeten packages/ en oa-cli samensmelten of splitsen?
+
+We hebben twee parallelle systemen: `packages/` (TypeScript monorepo, visueel canvas) en `oa-cli/` (Python CLI, tmux orchestrator). Ze convergeren in Sprint 15, maar de vraag is: is convergentie het eindpunt, of zijn het permanent twee producten met een gedeelde API? **Open vraag**: wat is de gewenste relatie op de lange termijn?
+
+→ **Status**: Open — geen sprint gepland voor definitief antwoord
+
+*Laatste update: 2026-03-11*

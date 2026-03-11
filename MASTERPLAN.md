@@ -2143,9 +2143,13 @@ Zie de uitgebreide fasering (F1/F2/F3 taken) in de sectie **Web UI Sprint Plan (
 
 **Status**: Planned
 
-> **Doel**: Eén React codebase die zowel als hosted web app als Tauri desktop app werkt, met echte terminal emulatie (xterm.js + node-pty) zodat Claude Code, oa-cli en tmux erin draaien.
+> **Kernfilosofie**: oa-cli moet zowel als **webapplicatie** (hosted, in de browser) als als **native applicatie** (desktop, geïnstalleerd) kunnen draaien. Beide hebben dezelfde React codebase. De gebruiker kiest hoe hij deployt — wij zorgen dat beide werken.
 >
-> **Afhankelijk van**: Sprint 12 (oa-cli), Sprint 15 (convergentie)
+> **Doel**: Eén React codebase die zowel als hosted web app als native desktop app werkt, met echte terminal emulatie (xterm.js + node-pty) zodat Claude Code, oa-cli en tmux erin draaien.
+>
+> **Afhankelijk van**: Sprint 12 (oa-cli), Sprint 15 (convergentie), Sprint 26 Fase 26.0 (desktop-technologie vergelijking)
+>
+> **Open vraag**: Tauri (Rust-based) is de huidige aanname voor desktop. Sprint 26 Fase 26.0 vergelijkt Tauri vs Electron vs PyWebView vs PWA. Pas dit sprint aan als de research een andere keuze oplevert.
 >
 > **Beslissingen**: D-057, D-058, D-059
 
@@ -2800,11 +2804,78 @@ Zonder telemetrie is het systeem een black box. Sprint 22 bouwt de 'boekhouding'
 
 oa-cli gebruikt nu overal `subprocess.run(["tmux", ...])` — fragiel, niet type-safe, geen foutafhandeling. `psutil` wordt niet gebruikt voor process monitoring. Output polling via sleep-loops in plaats van filesystem events. Dit is technische schuld die groeit naarmate het systeem complexer wordt.
 
-Sprint 26 maakt schoon schip: betere packages, betere architectuur, én skills zodat agents weten hoe ze deze tools moeten gebruiken.
+Sprint 26 start met een **research-fase** die de keuzes onderbouwt vóór implementatie begint. We zijn niet vooringenomen over welke packages de beste zijn — dat bepaalt Fase 26.0.
 
 ---
 
-### Fase 26.1: libtmux Adapter — Type-safe Tmux Bindings `[SEQ]`
+### Fase 26.0: Research & Vergelijking — Kies de Juiste Tools `[SEQ, EERST]`
+
+> **Filosofie**: Geen package adopteren zonder vergelijking. Fase 26.0 is het fundament voor alle andere fasen. Als de research een andere keuze oplevert dan verwacht, passen we Fase 26.1–26.4 aan.
+
+> **Prompt**:
+> ```
+> Je bent een CLI-infrastructure researcher voor oa-cli.
+> Lees: /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/oa-cli/src/open_agents/tmux.py
+> Lees: /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/oa-cli/src/open_agents/lifecycle.py
+> Lees: /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/oa-cli/src/open_agents/monitor.py
+> Lees: /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/oa-cli/src/open_agents/bridge.py
+>
+> Schrijf een vergelijkend onderzoeksrapport naar:
+> /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/docs/research/cli-infrastructure-boost.md
+>
+> Scope — beantwoord per categorie: wat zijn de opties, wat zijn de trade-offs, wat is onze aanbeveling en waarom:
+>
+> 1. TMUX BINDINGS
+>    Opties: libtmux, tmuxp, direct subprocess, asyncio subprocessen
+>    Kernvragen: maintenance status, API stabiliteit, Windows/WSL compatibiliteit,
+>    type-safety, hoe ver wijkt het af van onze huidige code?
+>    Open vraag: kan oa-cli überhaupt werken ZONDER tmux? Wat winnen we dan?
+>    Alternatieven: screen, zellij, gewone subprocess + PTY, asyncio streams
+>
+> 2. FILE WATCHING
+>    Opties: watchdog, inotify-simple, asyncio inotify, polling (huidig), fsevents
+>    Kernvragen: cross-platform, WSL2 compatibility (inotify werkt anders in WSL!),
+>    event debounce, overhead bij hoge frequentie
+>
+> 3. PROCESS MONITORING
+>    Opties: psutil, /proc parsing (Linux only), subprocess ps, resource module
+>    Kernvragen: wat hebben we écht nodig? CPU/mem of alleen alive-check?
+>    Is psutil overkill voor onze use case?
+>
+> 4. TMUX LAYOUT MANAGEMENT
+>    Opties: libtmux layouts, tmuxp YAML config, tmuxinator, custom subprocess
+>    Kernvragen: is een layout-library nodig of is `tmux split-window` via subprocess genoeg?
+>    Wat doet n8n/Langflow/Dify hier anders?
+>
+> 5. ASYNC RUNTIME
+>    Open vraag: zou oa-cli beter af zijn met een asyncio-first architectuur
+>    in plaats van tmux-subprocessen? Wat zijn de voor- en nadelen?
+>    Vergelijk: huidige tmux model vs asyncio.create_subprocess_exec model
+>
+> 6. DESKTOP/WEB DELIVERY (voor Sprint 20)
+>    Opties: Tauri, Electron, PyWebView, Neutralinojs, gewone web app + PWA
+>    Kernvragen: wat past bij Python CLI + React web UI combinatie?
+>    Is Tauri de juiste keuze of zitten we vast aan Rust?
+>
+> Format: per categorie een tabel (Optie | Voordelen | Nadelen | WSL2-ready | Maintenance)
+> + een aanbeveling met rationale
+> + een open vraag als de beste keuze afhankelijk is van iets wat we nog niet weten
+>
+> Regels:
+> - Geen anekdotisch bewijs — onderbouw elke claim
+> - Wees expliciet over WSL2-specifieke beperkingen (inotify, Windows interop)
+> - Maximaal 600 regels
+> - Engels
+> ```
+
+**Taken:**
+- [ ] `[SEQ]` Research rapport schrijven → `docs/research/cli-infrastructure-boost.md`
+- [ ] `[SEQ]` Op basis van rapport: update Fase 26.1–26.4 (pas aan indien nodig)
+- [ ] `[SEQ]` Nieuwe beslissingen toevoegen aan DECISIONS.md (D-072+)
+
+---
+
+### Fase 26.1: Tmux Adapter — Type-safe Bindings `[SEQ na 26.0]`
 
 > **Prompt**:
 > ```
