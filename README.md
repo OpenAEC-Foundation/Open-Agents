@@ -1,8 +1,7 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/OpenAEC-Foundation/Open-Agents/main/docs/assets/readme-header.svg" width="100%" alt="Open-Agents — Spawn AI agents. Orchestrate anything. Build free."/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f0400,25:7c2d12,55:b45309,80:EA580C,100:f97316&height=280&section=header&text=Open-Agents&fontSize=85&fontColor=ffffff&fontAlignY=38&animation=fadeIn&desc=Spawn%20AI%20agents.%20Orchestrate%20anything.%20Build%20free.&descAlignY=56&descSize=22&descFontColor=ffffff" width="100%"/>
 
-<br/>
 
 <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1200&color=D97706&center=true&vCenter=true&width=720&height=60&lines=Spawn+hundreds+of+AI+agents+in+parallel.;No+API+key.+Powered+by+your+Claude+subscription.;1612%2B+agent+templates+across+112+categories.;Pipeline%3A+Planner+%E2%86%92+Workers+%E2%86%92+Combiner.;Multi-model%3A+Opus+%C2%B7+Sonnet+%C2%B7+Haiku+%C2%B7+Ollama.;From+AEC+to+DevOps+%E2%80%94+orchestrate+anything.;Open-source.+Zero+lock-in.+Built+free." alt="Typing animation"/>
 
