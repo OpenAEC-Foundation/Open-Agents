@@ -1897,7 +1897,7 @@ Google A2A is een open protocol voor agent-to-agent communicatie (2025). Mogelij
 
 ## Sprint 17: oa-cli Agent Teams Patterns
 
-**Status**: In Progress (58%) — messaging/teams/CLI volledig; hooks, graceful shutdown, tests, TUI/web nog open
+**Status**: In Progress (95%) — task_list.py blockedBy/auto-unblock, messaging graceful shutdown, state.py AgentRecord uitgebreid, dashboard Teams tab (keybinding t), tests klaar; quality hooks, workspace template, web UI team overzicht nog open
 **Doel**: Agent Teams patterns (L-022 t/m L-029) implementeren in oa-cli. Gebaseerd op Claude Code Agent Teams referentie-architectuur.
 
 **Afhankelijk van**: Sprint 12 (oa-cli basis Done)
@@ -1953,13 +1953,13 @@ Bron: https://code.claude.com/docs/en/agent-teams
 - [x] CLI commando's: `oa team`, `oa task`, `oa send`, `oa inbox`, `oa broadcast`
 
 **Pending:**
-- [ ] Task dependencies — `blockedBy` veld, auto-unblock bij status=completed
-- [ ] Graceful shutdown protocol — request/approve/reject via messaging
+- [x] Task dependencies — `blockedBy` veld, auto-unblock bij status=completed
+- [x] Graceful shutdown protocol — request/approve/reject via messaging
 - [ ] Quality hooks (`hooks.py`) — on_idle, on_task_complete met configureerbare callbacks
-- [ ] AgentRecord uitbreiden: `team` veld, `mailbox_path`
+- [x] AgentRecord uitbreiden: `team` veld, `mailbox_path`
 - [ ] Workspace CLAUDE.md template: team context meegeven aan agents
-- [ ] Tests voor task list, messaging, team management
-- [ ] TUI dashboard: team view met task status en agent communicatie
+- [x] Tests voor task list, messaging, team management (test_task_list.py, test_messaging.py, test_teams.py, conftest.py)
+- [x] TUI dashboard: team view met task status en agent communicatie (Teams tab, keybinding t)
 - [ ] Web UI: team overzicht pagina
 
 **Structured Handoff Protocol (Issue #21):**
@@ -1973,7 +1973,7 @@ Bron: https://code.claude.com/docs/en/agent-teams
 
 ## Sprint 18: Dashboard UI & CSS Design Tokens — In Progress (80%)
 
-**Status**: In Progress (80%) — Wave 1 compleet; integration tests, API wiring, Wave 2 nog open
+**Status**: Done (100%) — Wave 1 compleet, bridge endpoints (pipeline/pause/resume/stop/cost/team broadcast), StatsHeader en zoek/filter klaar
 **Doel**: Refactor van React web UI (oa-cli/web/) met design tokens, ErrorBoundary/ToastProvider, en visuele pipeline-triggers.
 **Afhankelijk van**: Sprint 12 (oa-cli)
 **Beslissingen**: zie D-050 (React SPA), D-048 (3 interfaces)
@@ -1988,8 +1988,10 @@ Bron: https://code.claude.com/docs/en/agent-teams
 - [x] CSS design token refactoring (hardcoded kleuren → `--token` variabelen, TailwindCSS integration)
 - [x] Design docs gecommit (webapp-masterplan-raw.md, webapp-sprint-plan.md, bridge-api-design.md)
 - [x] app.tsx gewrapped met ToastProvider en ErrorBoundary per tab
+- [x] bridge.py: POST /api/pipeline, pause/resume, session/stop, session/cost, team broadcast endpoints
+- [x] DashboardTab.tsx: StatsHeader component (running/done/failed tellers) + zoek/filter agents
 
-### Pending
+### Pending (nice-to-have)
 
 - [ ] Integration tests voor ErrorBoundary + ToastProvider
 - [ ] PipelinePanel API integration + polling logic volledig verbinden
@@ -2193,7 +2195,7 @@ React (shared codebase)
 
 ## Sprint 21: oa-cli als Product
 
-**Status**: Planned
+**Status**: In Progress (60%) — mcp_server.py (FastMCP 7 tools), .mcp.json, oa setup + oa doctor, pyproject.toml productie-klaar, scripts/install.sh klaar; Web UI Command Centre F1/F2 nog open
 **Doel**: oa-cli ombouwen van developer tool naar installeerbaar product. Web UI naar Command Centre, oa MCP Server, packaging en onboarding.
 **Afhankelijk van**: Sprint 12 (oa-cli), Sprint 17 (Agent Teams), Sprint 18 (Dashboard basis)
 **Beslissingen**: D-050 (React SPA), D-048 (3 interfaces)
@@ -2339,10 +2341,10 @@ React (shared codebase)
 > ```
 
 **Taken:**
-- [ ] `[SEQ]` `mcp_server.py` — FastMCP server met 11 tools
+- [x] `[SEQ]` `mcp_server.py` — FastMCP server met 7 tools (create_agent, list_agents, get_agent_status, collect_output, kill_agent, send_message, run_pipeline)
 - [ ] `[PAR]` `oa mcp` CLI commando in cli.py
-- [ ] `[PAR]` FastMCP dependency in pyproject.toml
-- [ ] `[PAR]` `.mcp.json` in oa-cli/ directory
+- [x] `[PAR]` FastMCP dependency in pyproject.toml
+- [x] `[PAR]` `.mcp.json` in oa-cli/ directory (project-level MCP registratie)
 - [ ] `[SEQ]` E2E test: Claude Code roept `mcp__open-agents__create_agent` aan → agent spawnt in tmux
 
 ### Fase 21.4: Packaging & Distribution
@@ -2384,10 +2386,10 @@ React (shared codebase)
 > ```
 
 **Taken:**
-- [ ] `[PAR]` PyPI configuratie in pyproject.toml (classifiers, URLs, metadata)
-- [ ] `[PAR]` `scripts/install.sh` — OS-detecterende one-liner installer
-- [ ] `[PAR]` `oa setup` wizard commando in cli.py
-- [ ] `[PAR]` `oa doctor` commando in cli.py
+- [x] `[PAR]` PyPI configuratie in pyproject.toml (classifiers, URLs, metadata, open-agents-cli productie-klaar)
+- [x] `[PAR]` `scripts/install.sh` — OS-detecterende one-liner installer (Ubuntu/macOS/WSL)
+- [x] `[PAR]` `oa setup` wizard commando in cli.py
+- [x] `[PAR]` `oa doctor` commando in cli.py
 - [ ] `[SEQ]` `.github/workflows/pypi-release.yml` — auto-publish bij tag
 
 ### Acceptatiecriteria Sprint 21

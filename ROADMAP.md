@@ -4,7 +4,7 @@
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
 > **Laatste update**: 2026-03-11
-> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 13 (Docker Isolation) Done — Sprint 14 (Agent Library) Done — Sprint 17 (Agent Teams) Done — Sprint 18 (Dashboard UI) Done — Sprint 19 (Session Persistence) Done — Sprint 22 (Quality Gates) In Progress — Sprint 21 (oa-cli als Product) Planned — Agent Library: 454 templates (32 categories) — 22 skills gebouwd
+> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 13 (Docker Isolation) Done — Sprint 14 (Agent Library) Done — Sprint 17 (Agent Teams) 95% — Sprint 18 (Dashboard UI) Done — Sprint 19 (Session Persistence) Done — Sprint 22 (Quality Gates) In Progress — Sprint 21 (oa-cli als Product) In Progress (60%) — Agent Library: 454 templates (32 categories) — 22 skills gebouwd
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -50,10 +50,10 @@
 **Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond), v0.2.0 released 2026-03-02
 **Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 21+ commando's, Textual TUI, pipeline orchestrator, React web UI; checkpoints en resume geïmplementeerd
 **Fase 10 (VS Code Bridge)**: ████████████████░░░░ **80%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator, package migratie, launch config werkend; shared types mergen, test-workspace, CLI tool integreren bij agent sprint11-finisher
-**Fase 11 (Agent Teams Patterns)**: ████████████████████ **100%** - Sprint 17 Done: task_list.py, teams.py, messaging.py (send/inbox/broadcast werkend), CLI commando's volledig geïmplementeerd
+**Fase 11 (Agent Teams Patterns)**: ███████████████████░ **95%** - Sprint 17 In Progress (95%): task_list.py (blockedBy/auto-unblock), teams.py, messaging.py (graceful shutdown), state.py (AgentRecord team+mailbox_path), dashboard Teams tab, tests klaar; quality hooks + workspace template + web UI nog open
 **Fase 12 (Dashboard & UI Refactor)**: ████████████████████ **100%** - Sprint 18 Done: ErrorBoundary + ToastProvider componenten, PipelinePanel, TaskBoard, 11 dashboard componenten refactored met CSS design tokens
 **Fase 13 (Session Persistence)**: ████████████████████ **100%** - session store, guardian daemon, resume flow, notifications
-**Fase 15 (oa-cli als Product)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - Web UI Command Centre (F1/F2/F3), oa MCP Server, PyPI packaging, oa setup wizard
+**Fase 15 (oa-cli als Product)**: ████████████░░░░░░░░ **60%** - Sprint 21 In Progress (60%): mcp_server.py (FastMCP 7 tools), .mcp.json, oa setup wizard, oa doctor, pyproject.toml productie-klaar, scripts/install.sh; Web UI Command Centre F1/F2 nog open
 **Sprint 22 (Quality Gates)**: ██████████░░░░░░░░░░ **50%** - context-gap, honesty, invocation, budget, backlog, reviewer klaar; auto-compaction nog bezig
 **Fase 14 (Desktop + Web App)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - Web-first architectuur: xterm.js terminal, Tauri desktop wrapper, gedeelde React codebase
 
@@ -565,7 +565,7 @@
 
 ---
 
-## Sprint 21: oa-cli als Product — Planned
+## Sprint 21: oa-cli als Product — In Progress (60%)
 
 **Doel**: oa-cli ombouwen van developer tool naar installeerbaar product met Web Command Centre, MCP Server en packaging.
 **Afhankelijk van**: Sprint 12, Sprint 17, Sprint 18
@@ -592,16 +592,16 @@
 - [ ] Alle ontbrekende bridge API endpoints
 
 **oa MCP Server:**
-- [ ] `mcp_server.py` (FastMCP) met 11 tools
+- [x] `mcp_server.py` (FastMCP) met 7 tools (create_agent, list_agents, get_agent_status, collect_output, kill_agent, send_message, run_pipeline)
 - [ ] `oa mcp` CLI commando
-- [ ] `.mcp.json` project-level registratie
+- [x] `.mcp.json` project-level registratie
 - [ ] E2E: Claude Code → MCP → oa-cli → agent in tmux
 
 **Packaging & Distribution:**
-- [ ] PyPI `open-agents-cli` package
-- [ ] `scripts/install.sh` one-liner installer
-- [ ] `oa setup` wizard commando
-- [ ] `oa doctor` dependency checker
+- [x] PyPI `open-agents-cli` package (pyproject.toml productie-klaar)
+- [x] `scripts/install.sh` one-liner installer (OS-detectie: Ubuntu/macOS/WSL)
+- [x] `oa setup` wizard commando
+- [x] `oa doctor` dependency checker
 - [ ] GitHub Actions PyPI release workflow
 
 ---

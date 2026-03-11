@@ -238,4 +238,26 @@
 | L-062 | **Agent library templates worden NIET getest — dit is een risico.** 1177 templates aangemaakt, maar er is geen validator, geen CI pipeline, geen test runner. Problemen gevonden: 14 templates gebruiken `prompt` ipv `systemPrompt`, 156 missen `tags` veld. Template_loader.py laadt alles zonder validatie. | Review sessie 2026-03-10. Zie OPEN-QUESTIONS.md voor actiepunten. |
 | L-063 | **Schema inconsistentie tussen batches door verschillende agent-instructies.** Sommige batch-agents schreven `prompt` ipv `systemPrompt`, sommige misten `tags`. Fix: altijd een referentie-template meegeven in de prompt + expliciete veldnamen in de taakbeschrijving. | Gevonden bij review 2026-03-10. Nieuwere batches (14+) correct na aanpassing instructie. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-064, L-065, etc.*
+---
+
+## Sessie 2026-03-11 — Sprint 17/18/21 Batch Afronding
+
+### Reviewer-before-commit Patroon
+
+| # | Les | Context |
+|---|-----|---------|
+| L-064 | **Reviewer-before-commit patroon werkt — PARTIAL verdict + fixer-agent = 12/12 in één extra ronde** — Een reviewer-agent die PASS/PARTIAL/FAIL geeft per deliverable, gecombineerd met een targeted fixer-agent voor PARTIAL items, levert in één extra iteratieronde volledige conformiteit. Efficiënter dan N ronden zonder reviewer. | Sprint 17/18 batch: reviewer gaf PARTIAL voor 3 van 12 items → fixer-agent gecorrigeerd → eindresultaat 12/12. Bevestigt L-004 (QA na batch) en formaliseert het patroon. |
+
+### Agent Autonomie & Scope
+
+| # | Les | Context |
+|---|-----|---------|
+| L-065 | **Agents bouwen meer dan gevraagd (Sprint 22-24 modules aangemaakt) — dit is gewenst gedrag, geen scope creep** — Wanneer een agent pre-implementation modules aanmaakt voor toekomstige sprints terwijl hij zijn primaire taak uitvoert, is dit waardevol. Het toont architectuurinzicht en reduceert opstartkosten voor volgende sprints. Niet afremmen tenzij het de primaire taak schaadt. | Sprint 21 agent maakte blind_spot_scanner, compliance_checker, context_decay_monitor, graveyard, knowledge_boundary, meta_agent, pattern_miner aan naast de gevraagde Sprint 21 deliverables. |
+
+### FastMCP Integratie
+
+| # | Les | Context |
+|---|-----|---------|
+| L-066 | **FastMCP @mcp.tool() decorators werken als drop-in voor oa-cli tools** — FastMCP tools zijn Python functies met @mcp.tool() decorator. Ze werken goed als wrapper rond bestaande oa-cli subprocess calls en messaging.py functies. Geen adapter-laag nodig — directe import van oa-cli modules werkt. | mcp_server.py implementatie: 7 tools gebouwd in één agent-run. FastMCP abstractie elimineert boilerplate. Tool-for-tool pariteit met CLI commando's bevestigd. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-067, L-068, etc.*
