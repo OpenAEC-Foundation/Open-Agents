@@ -321,9 +321,12 @@ def run(
     tmp: bool = typer.Option(False, "--tmp", help="Write output to /tmp instead of project dir (old default)"),
     template: str = typer.Option("", "--template", "-t", help="Agent template ID from agents/library/"),
     context_skills: str = typer.Option("", "--context-skills", "-cs", help="Comma-separated skill IDs to inject as context (e.g. 'sverchok-errors-common,sverchok-syntax-scripting')"),
+    agent_type: str = typer.Option("", "--type", help="Agent type for skill loading (researcher/code-worker/planner/reviewer/orchestrator)"),
     guardians: bool = typer.Option(False, "--guardians/--no-guardians", help="Trigger batch_complete guardians after spawning"),
     remote: str = typer.Option("", "--remote", "-r", help="Remote SSH host voor remote execution (bijv. 'hetzner' of 'user@host')"),
     strict: bool = typer.Option(False, "--strict", help="Fail if prompt is missing L-010 elements (absolute paths, scope, output)"),
+    can_spawn: bool = typer.Option(False, "--can-spawn", help="Configure agent as orchestrator that can spawn child agents via oa run"),
+    docker: bool = typer.Option(False, "--docker", help="Run agent in Docker container (requires Docker)"),
 ):
     """Spawn an agent with a task in a new tmux window."""
     if not remote and not session_exists():
@@ -374,11 +377,73 @@ def run(
     else:
         proj_root = str(Path.cwd()) if direct else None
 
+    # Docker runtime: opt-in via --docker flag with graceful fallback
+    use_docker = False
+    if docker:
+        from .docker_runtime import DockerAgentRuntime
+        docker_rt = DockerAgentRuntime()
+        if docker_rt.is_available() and docker_rt.image_exists():
+            use_docker = True
+        else:
+            if not docker_rt.is_available():
+                console.print("[yellow]Docker not available, falling back to tmux.[/yellow]")
+            elif not docker_rt.image_exists():
+                console.print("[yellow]Docker image 'oa-agent:latest' not found. Build with: docker build -f Dockerfile.agent -t oa-agent:latest .[/yellow]")
+                console.print("[yellow]Falling back to tmux.[/yellow]")
+
     try:
         if remote:
             rec = spawn_remote_agent(name, task, host=remote, model=model, direct=direct)
+        elif use_docker:
+            from .workspace import create_workspace, _AGENT_PATH
+            from .spawner import CLAUDE_MODEL_MAP, _validate_claude_model, CLAUDE_CMD
+            import shlex as _shlex
+            import time as _time
+            from .state import AgentRecord, add_agent
+
+            agent_ws = ws if ws else create_workspace(name, task, project_root=proj_root)
+            agent_ws = Path(agent_ws)
+
+            if model.startswith("claude/"):
+                claude_model = CLAUDE_MODEL_MAP.get(model)
+                if claude_model is None:
+                    claude_model = model.split("/", 1)[1]
+                claude_model = _validate_claude_model(claude_model)
+            else:
+                claude_model = None
+
+            model_flag = f" --model {_shlex.quote(claude_model)}" if claude_model else ""
+            claude_prompt = "Lees CLAUDE.md en voer de taak uit. Schrijf al je output naar ./output/ en maak een .done file als je klaar bent."
+            docker_cmd = (
+                f"export PATH=\"{_AGENT_PATH}:$PATH\" && "
+                f"cd /workspace && "
+                f"unset CLAUDECODE && "
+                f"{CLAUDE_CMD}{model_flag} --dangerously-skip-permissions -p {_shlex.quote(claude_prompt)}; "
+                f"touch .done; "
+                f"echo '--- Agent {_shlex.quote(name)} finished ---'"
+            )
+
+            container_id = docker_rt.spawn_agent(
+                workspace=agent_ws,
+                project_root=Path(proj_root) if proj_root else None,
+                command=docker_cmd,
+                name=name,
+            )
+
+            rec = AgentRecord(
+                name=name,
+                task=task,
+                workspace=str(agent_ws),
+                tmux_window=f"docker:{container_id[:12]}",
+                model=model,
+                status="running",
+                created_at=_time.time(),
+                parent=parent or None,
+                project_root=proj_root,
+            )
+            add_agent(rec)
         else:
-            rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None, project_root=proj_root)
+            rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None, project_root=proj_root, agent_type=agent_type, can_spawn=can_spawn)
     except RuntimeError as e:
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1)
@@ -386,7 +451,8 @@ def run(
     model_label = format_model_rich(rec.model)
     parent_label = f"  (child of [bold]{rec.parent}[/bold])" if rec.parent else ""
     remote_label = f"  [dim](remote: {remote})[/dim]" if remote else ""
-    console.print(f"[green]Agent '{rec.name}' spawned[/green]  ({model_label}){parent_label}{remote_label}")
+    docker_label = "  [dim](docker)[/dim]" if use_docker else ""
+    console.print(f"[green]Agent '{rec.name}' spawned[/green]  ({model_label}){parent_label}{remote_label}{docker_label}")
     console.print(f"  Task: {rec.task}")
     console.print(f"  Workspace: {rec.workspace}")
     console.print(f"  Window: {rec.tmux_window}")

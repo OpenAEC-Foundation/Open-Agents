@@ -30,10 +30,16 @@ exit 2
 """
 
 # Settings.json template — hook path is filled in by create_workspace()
-def _agent_settings(workspace: Path) -> dict:
-    """Build settings.json with absolute hook path for the given workspace."""
+def _agent_settings(workspace: Path, can_spawn: bool = False) -> dict:
+    """Build settings.json with absolute hook path for the given workspace.
+
+    When can_spawn=False (default), the Agent tool is blocked via both a
+    PreToolUse hook and a permissions deny entry (Issue #9/#11).
+    When can_spawn=True, the deny entry is omitted so orchestrator agents
+    can use the Agent tool to spawn child agents.
+    """
     hook_path = workspace / ".claude" / "hooks" / "block-agent-tool.sh"
-    return {
+    settings: dict = {
         "permissions": {
             "defaultMode": "bypassPermissions",
         },
@@ -46,6 +52,9 @@ def _agent_settings(workspace: Path) -> dict:
             ],
         },
     }
+    if not can_spawn:
+        settings["permissions"]["deny"] = ["Agent"]
+    return settings
 
 
 def _messaging_instructions(agent_name: str) -> str:
@@ -109,7 +118,7 @@ def _spawning_instructions(agent_name: str, project_root: str | None = None) -> 
     )
 
 
-def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None) -> Path:
+def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None, agent_type: str = "", can_spawn: bool = False) -> Path:
     """Create a temporary workspace directory with a CLAUDE.md file.
 
     If project_root is provided, agents are instructed to write directly
@@ -131,7 +140,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
 
     # Write .claude/settings.json with hook config + bypass permissions
     settings_file = workspace / ".claude" / "settings.json"
-    settings_file.write_text(json.dumps(_agent_settings(workspace), indent=2) + "\n")
+    settings_file.write_text(json.dumps(_agent_settings(workspace, can_spawn=can_spawn), indent=2) + "\n")
 
     claude_md = workspace / "CLAUDE.md"
     messaging = _messaging_instructions(agent_name)
@@ -181,6 +190,13 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"- Vraag niet om bevestiging, werk zelfstandig\n"
             f"- Als je vastloopt, schrijf het probleem naar ./output/error.md en maak alsnog .done aan\n"
         )
+
+    if agent_type:
+        from .skill_loader import load_skills_for_type
+        skill_content = load_skills_for_type(agent_type)
+        if skill_content:
+            existing = claude_md.read_text()
+            claude_md.write_text(existing + "\n\n---\n\n# Skills\n\n" + skill_content)
 
     return workspace
 

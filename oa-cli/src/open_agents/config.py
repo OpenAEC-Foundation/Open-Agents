@@ -25,6 +25,12 @@ DEFAULT_CONFIG = {
     },
     "periodic_checkpoint_minutes": 5,
     "session_log_max_mb": 50,
+    # Docker isolation (D-040) — opt-in via --docker flag
+    "docker_enabled": False,
+    "docker_image": "oa-agent:latest",
+    "docker_memory_default": "2g",
+    "docker_cpu_default": 1.0,
+    "docker_timeout_default": 300,
 }
 
 

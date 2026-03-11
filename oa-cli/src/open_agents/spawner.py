@@ -122,6 +122,8 @@ def spawn_agent(
     max_depth: int = MAX_DEPTH,
     shared_results_dir: str | None = None,
     project_root: str | Path | None = None,
+    agent_type: str = "",
+    can_spawn: bool = False,
 ) -> AgentRecord:
     """Spawn an agent in a tmux window.
 
@@ -181,7 +183,7 @@ def spawn_agent(
 
     # Create workspace (or use provided one)
     if workspace is None:
-        workspace = create_workspace(name, task, project_root=project_root)
+        workspace = create_workspace(name, task, project_root=project_root, agent_type=agent_type, can_spawn=can_spawn)
     else:
         workspace = Path(workspace)
 
