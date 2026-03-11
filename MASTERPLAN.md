@@ -45,6 +45,7 @@
 | 23 | Self-Improvement Automation | Kennisaccumulatie automatiseren op basis van telemetrie | Sprint 22 | Planned |
 | 24 | Iteration Control & Meta-Agent | Zelf-regulerend systeem, skill evolver, meta-agent | Sprint 22, Sprint 23 | Planned |
 | 25 | Periodic Analytics & Observability | Diepe analyse agent-ecosysteem op historische data | Sprint 22, Sprint 23 | Planned |
+| 26 | CLI Infrastructure Boost | Vervang primitieve subprocess calls door libtmux, watchdog, psutil. Bouw skills die agents en de CLI zelf powertools geven. Slimme tmux-architecturen. | Sprint 12, Sprint 21 | Planned |
 
 ```
 Sprint 0 ──→ Sprint 1 ──→ Sprint 1.2a ──→ Sprint 1.5
@@ -69,7 +70,8 @@ Sprint 12 (oa-cli) ──→ Sprint 17 (Agent Teams) ──→ Sprint 19 (Sessio
                    ├──→ Sprint 11 (VS Code Bridge, packages/ tak)
                    └──→ Sprint 22 (Self-Improvement) ──→ Sprint 23 (Automation) ──→ Sprint 24 (Meta-Agent)
                         ├──→ Sprint 21 (MCP Server)                └──→ Sprint 25 (Analytics)
-                        └──→ Sprint 22b (Remote Execution)
+                        ├──→ Sprint 22b (Remote Execution)
+                        └──→ Sprint 26 (CLI Infrastructure Boost) [parallel met Sprint 21/22]
 
 Sprint 6a-6c is de Semantische Laag (packages/):
   6a: Knowledge Base (FR-16) — kennisbibliotheek + snippet engine
@@ -2782,6 +2784,288 @@ Zonder telemetrie is het systeem een black box. Sprint 22 bouwt de 'boekhouding'
 | [#57](https://github.com/OpenAEC-Foundation/Open-Agents/issues/57) | A2A Protocol Compatibiliteit | Open onderzoek → Sprint 16. |
 | [#58](https://github.com/OpenAEC-Foundation/Open-Agents/issues/58) | Context Engineering Agent Workspaces | Open onderzoek → Sprint 22. |
 | [#59](https://github.com/OpenAEC-Foundation/Open-Agents/issues/59) | Security Model Autonome Agent Communicatie | Open onderzoek → Sprint 16/22. |
+
+---
+
+## Sprint 26: CLI Infrastructure Boost
+
+**Status**: Planned
+**Doel**: De oa-cli van een set losse subprocess-aanroepen omzetten naar een professionele Python-applicatie die de juiste packages gebruikt. Tegelijkertijd skills bouwen die zowel de CLI zelf als agents die de CLI gebruiken sterker maken. Slimme tmux-architecturen die agent-trees visueel en functioneel rijker maken.
+**Afhankelijk van**: Sprint 12 (oa-cli basis), Sprint 21 (product-ready CLI)
+**Filosofie**: We bouwen de infrastructuur van onze eigen tool net zo goed als de tool zelf. Goede packages vervangen fragiele subprocess strings. Skills maken kennis herbruikbaar voor elk agent dat ooit met oa werkt.
+
+---
+
+### Context
+
+oa-cli gebruikt nu overal `subprocess.run(["tmux", ...])` — fragiel, niet type-safe, geen foutafhandeling. `psutil` wordt niet gebruikt voor process monitoring. Output polling via sleep-loops in plaats van filesystem events. Dit is technische schuld die groeit naarmate het systeem complexer wordt.
+
+Sprint 26 maakt schoon schip: betere packages, betere architectuur, én skills zodat agents weten hoe ze deze tools moeten gebruiken.
+
+---
+
+### Fase 26.1: libtmux Adapter — Type-safe Tmux Bindings `[SEQ]`
+
+> **Prompt**:
+> ```
+> Je bent de CLI-engineer van oa-cli.
+> Lees: /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/oa-cli/src/open_agents/tmux.py
+> Lees: /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/oa-cli/src/open_agents/lifecycle.py
+>
+> Vervang alle subprocess tmux-aanroepen door libtmux bindings.
+>
+> Scope:
+> - Installeer libtmux in requirements.txt (>=0.28)
+> - Maak oa-cli/src/open_agents/tmux_adapter.py:
+>   - TmuxAdapter class met session/window/pane object-model
+>   - create_window(), kill_window(), capture_output(lines=200), send_keys()
+>   - list_windows(), get_window(name), window_exists(name)
+>   - Foutafhandeling: TmuxNotRunning, WindowNotFound, SessionBroken
+> - Migreer tmux.py en lifecycle.py naar TmuxAdapter
+> - Behoud backward compatibility: alle publieke functies blijven bestaan
+>
+> Schrijf naar:
+> - oa-cli/src/open_agents/tmux_adapter.py (nieuw)
+> - oa-cli/src/open_agents/tmux.py (migreer)
+> - oa-cli/src/open_agents/lifecycle.py (migreer)
+> - oa-cli/requirements.txt (voeg libtmux toe)
+>
+> Regels:
+> - Geen breaking changes in publieke API
+> - Alle exceptions type-safe (niet bare except)
+> - Minimaal 1 unit test per publieke methode in oa-cli/tests/test_tmux_adapter.py
+> ```
+
+**Taken:**
+- [ ] `[SEQ]` `tmux_adapter.py` bouwen met libtmux objectmodel
+- [ ] `[SEQ]` `tmux.py` migreren naar TmuxAdapter
+- [ ] `[SEQ]` `lifecycle.py` migreren naar TmuxAdapter
+- [ ] `[PAR]` `tests/test_tmux_adapter.py` schrijven
+- [ ] `[PAR]` requirements.txt bijwerken
+
+---
+
+### Fase 26.2: watchdog File Watcher — Vervang Polling `[PAR met 26.1]`
+
+> **Prompt**:
+> ```
+> Je bent de CLI-engineer van oa-cli.
+> Lees: /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/oa-cli/src/open_agents/state.py
+> Lees: /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/oa-cli/src/open_agents/monitor.py
+>
+> Vervang de polling-loop voor agents.json door een watchdog FileSystemEventHandler.
+>
+> Scope:
+> - Installeer watchdog in requirements.txt (>=4.0)
+> - Maak oa-cli/src/open_agents/file_watcher.py:
+>   - AgentsJsonWatcher class op basis van watchdog.observers.Observer
+>   - Callback-patroon: on_change(callback: Callable) → wordt aangeroepen bij elke wijziging agents.json
+>   - start() / stop() lifecycle
+>   - Debounce: maximaal 1 callback per 200ms (voorkom burst)
+>   - Fallback: als watchdog niet beschikbaar → automatisch terug naar polling (5s interval)
+> - Integreer in dashboard.py: verwijder set_interval(2.0) voor agents, gebruik watcher
+> - Integreer in bridge.py: SSE events direct bij wijziging agents.json (geen 2s delay)
+>
+> Schrijf naar:
+> - oa-cli/src/open_agents/file_watcher.py (nieuw)
+> - oa-cli/src/open_agents/dashboard.py (integreer watcher)
+> - oa-cli/src/open_agents/bridge.py (integreer watcher in SSE)
+> - oa-cli/requirements.txt (voeg watchdog toe)
+> ```
+
+**Taken:**
+- [ ] `[PAR]` `file_watcher.py` bouwen met debounce + fallback
+- [ ] `[SEQ]` `dashboard.py` — verwijder polling, gebruik AgentsJsonWatcher
+- [ ] `[SEQ]` `bridge.py` — SSE reageert direct op file-events
+- [ ] `[PAR]` requirements.txt bijwerken
+
+---
+
+### Fase 26.3: psutil Process Monitor — Echte Process Metrics `[PAR met 26.1]`
+
+> **Prompt**:
+> ```
+> Je bent de CLI-engineer van oa-cli.
+> Lees: /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/oa-cli/src/open_agents/state.py
+> Lees: /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/oa-cli/src/open_agents/lifecycle.py
+>
+> Voeg psutil-gebaseerde process monitoring toe aan oa-cli.
+>
+> Scope:
+> - Installeer psutil in requirements.txt (>=5.9)
+> - Maak oa-cli/src/open_agents/process_monitor.py:
+>   - ProcessSnapshot dataclass: pid, cpu_percent, memory_mb, num_threads, open_files, create_time
+>   - get_snapshot(pid) → ProcessSnapshot | None
+>   - get_agent_process_tree(pid) → list[ProcessSnapshot]  (parent + all children)
+>   - is_alive(pid) → bool
+>   - kill_tree(pid) → bool  (kill process + alle children)
+> - Integreer in lifecycle.py: gebruik is_alive() voor status checks
+> - Integreer in dashboard.py stats-panel: toon CPU/mem voor actieve agent
+> - Voeg `oa status --verbose` toe: toon process metrics per agent
+>
+> Schrijf naar:
+> - oa-cli/src/open_agents/process_monitor.py (nieuw)
+> - oa-cli/src/open_agents/lifecycle.py (gebruik is_alive, kill_tree)
+> - oa-cli/src/open_agents/dashboard.py (stats-panel uitbreiden)
+> - oa-cli/src/open_agents/cli.py (--verbose flag)
+> ```
+
+**Taken:**
+- [ ] `[PAR]` `process_monitor.py` bouwen
+- [ ] `[SEQ]` `lifecycle.py` integreren
+- [ ] `[SEQ]` `dashboard.py` stats-panel uitbreiden met CPU/mem
+- [ ] `[PAR]` `oa status --verbose` commando
+
+---
+
+### Fase 26.4: Slimme Tmux-Architecturen `[SEQ na 26.1]`
+
+> **Prompt**:
+> ```
+> Je bent de CLI-architect van oa-cli.
+> Lees: /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/oa-cli/src/open_agents/tmux_adapter.py
+> Lees: /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/oa-cli/src/open_agents/teams.py
+>
+> Bouw slimme tmux-layout architecturen voor agent-teams.
+>
+> Scope:
+> - Maak oa-cli/src/open_agents/tmux_layouts.py:
+>   - Layout presets: SOLO, PAIR, QUAD (2×2), HEX (2×3), TREE (sidebar + main)
+>   - apply_layout(session, layout, agents: list[str]) → dict[str, pane]
+>   - TmuxLayout.TREE: links 30% = agent-tree pane, rechts 70% = actieve agent output pane
+>   - TmuxLayout.QUAD: 4-pane grid — ideaal voor 4-worker teams
+>   - auto_layout(n_agents) → beste layout voor N agents
+> - Commando: `oa layout <team> [--preset QUAD|TREE|auto]`
+>   — opent tmux window met gekozen layout, alle agents tegelijk zichtbaar
+> - Commando: `oa watch-tree` — opent TREE layout voor alle actieve agents (live updates)
+>
+> Schrijf naar:
+> - oa-cli/src/open_agents/tmux_layouts.py (nieuw)
+> - oa-cli/src/open_agents/cli.py (oa layout + oa watch-tree commando's)
+> ```
+
+**Taken:**
+- [ ] `[SEQ]` `tmux_layouts.py` bouwen met layout presets
+- [ ] `[SEQ]` `oa layout` commando implementeren
+- [ ] `[SEQ]` `oa watch-tree` commando implementeren
+
+---
+
+### Fase 26.5: Skills Bouwen voor CLI Packages `[PAR met 26.1-26.4]`
+
+Elke package krijgt een skill die agents (en deze Claude-sessie) precies weten hoe ze hem moeten gebruiken.
+
+> **Prompt**:
+> ```
+> Je bent een skill-architect voor Open-Agents.
+> Lees: /home/freek/.claude/skills/ (bestaande skills als format-referentie)
+>
+> Bouw 4 skills voor de CLI-infrastructure packages:
+>
+> Skill 1: ~/.claude/skills/libtmux/SKILL.md
+>   - Wat is libtmux, wanneer gebruiken vs subprocess
+>   - Server/Session/Window/Pane objecthiërarchie
+>   - Meest gebruikte patronen: create_window, capture_pane, send_keys, kill_window
+>   - Foutafhandeling: LibTmuxException, sessie disconnected
+>   - Oa-cli specifiek: TmuxAdapter API reference
+>
+> Skill 2: ~/.claude/skills/watchdog/SKILL.md
+>   - Wat is watchdog, wanneer gebruiken (file events vs polling)
+>   - Observer/Handler/Event patroon
+>   - Debounce implementatie
+>   - Platform-specifiek: inotify (Linux), kqueue (macOS), ReadDirectoryChanges (Windows)
+>   - Oa-cli specifiek: AgentsJsonWatcher API
+>
+> Skill 3: ~/.claude/skills/psutil/SKILL.md
+>   - Wat is psutil, process tree navigatie
+>   - Meest gebruikte: Process, cpu_percent, memory_info, children(), kill()
+>   - Process tree kill patroon (veilig)
+>   - Oa-cli specifiek: ProcessMonitor API
+>
+> Skill 4: ~/.claude/skills/tmux-architectures/SKILL.md
+>   - Tmux layout concepten: sessions, windows, panes, split-window
+>   - Layout presets in oa-cli (SOLO/PAIR/QUAD/HEX/TREE)
+>   - `oa layout` en `oa watch-tree` commando's
+>   - Wanneer welke layout kiezen (N agents → beste layout)
+>
+> Regels:
+> - Elke skill: maximaal 150 regels
+> - Praktische code-voorbeelden (geen abstracte uitleg)
+> - user-invocable: false (auto-laadt als context)
+> - Verwijs naar oa-cli source bestanden
+> ```
+
+**Taken:**
+- [ ] `[PAR]` `~/.claude/skills/libtmux/SKILL.md` schrijven
+- [ ] `[PAR]` `~/.claude/skills/watchdog/SKILL.md` schrijven
+- [ ] `[PAR]` `~/.claude/skills/psutil/SKILL.md` schrijven
+- [ ] `[PAR]` `~/.claude/skills/tmux-architectures/SKILL.md` schrijven
+
+---
+
+### Fase 26.6: Agent Skills voor CLI-gebruik `[PAR met 26.5]`
+
+Skills die agents zelf kunnen gebruiken wanneer ze oa-cli aanroepen of inspectie doen.
+
+> **Prompt**:
+> ```
+> Je bent een agent-skill-architect.
+> Lees: /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/CLAUDE.md (hoe agents worden opgezet)
+>
+> Bouw 2 agent-skills die in agent-prompts worden opgenomen:
+>
+> Skill 1: agents/skills/oa-cli-usage/SKILL.md
+>   - Hoe een agent `oa status`, `oa collect`, `oa send` aanroept vanuit zijn workspace
+>   - Wanneer spawn je sub-agents vs doe je het zelf
+>   - Flat spawning patroon (L-004)
+>   - Output-locaties: /tmp/oa-agent-*/output/ vs --direct
+>
+> Skill 2: agents/skills/tmux-environment/SKILL.md
+>   - Hoe een agent zijn eigen tmux-pane detecteert ($TMUX, $TMUX_PANE)
+>   - Hoe hij zijn workspace-pad vindt ($OA_WORKSPACE of via agents.json)
+>   - Hoe hij output schrijft zodat `oa collect` hem vindt
+>   - Hoe hij andere agents bereikt via oa send/oa inbox
+>
+> Regels:
+> - Maximaal 100 regels per skill
+> - Alleen feiten — geen speculatie
+> - Schrijf naar: /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/agents/skills/
+> ```
+
+**Taken:**
+- [ ] `[PAR]` `agents/skills/oa-cli-usage/SKILL.md` schrijven
+- [ ] `[PAR]` `agents/skills/tmux-environment/SKILL.md` schrijven
+
+---
+
+### Fase 26.7: Architectuurbeslissing Documenteren `[SEQ na 26.1-26.4]`
+
+- [ ] `DECISIONS.md` — D-065: libtmux als primaire tmux-binding (vervangt subprocess)
+- [ ] `DECISIONS.md` — D-066: watchdog als primaire file-event mechanisme
+- [ ] `DECISIONS.md` — D-067: tmux layout presets voor agent-team visualisatie
+- [ ] `LESSONS.md` — nieuwe lessen uit sprint 26
+
+---
+
+### Acceptatiecriteria Sprint 26
+
+- `oa start` gebruikt TmuxAdapter (geen subprocess strings meer in tmux.py)
+- Dashboard reageert binnen 500ms op agents.json wijziging (was: 2s polling)
+- `oa status --verbose` toont CPU% en memory MB per actieve agent
+- `oa layout team-naam --preset QUAD` opent 4-pane tmux layout in één commando
+- `oa watch-tree` toont alle actieve agents in TREE layout (live updates)
+- 4 CLI-package skills beschikbaar in `~/.claude/skills/`
+- 2 agent-skills beschikbaar in `agents/skills/`
+
+---
+
+**Sprint 26 issues mapping:**
+
+| Issue | Titel | Fase |
+|-------|-------|------|
+| [#47](https://github.com/OpenAEC-Foundation/Open-Agents/issues/47) | CLI Toolchain Evaluatie | Fase 26.1 (libtmux implementatie) |
+| [#51](https://github.com/OpenAEC-Foundation/Open-Agents/issues/51) | Tmux als Agent Container Runtime | Fase 26.1 + 26.4 (upgrade) |
+| [#56](https://github.com/OpenAEC-Foundation/Open-Agents/issues/56) | Observability & Logging | Fase 26.3 (psutil metrics) |
 
 ---
 
