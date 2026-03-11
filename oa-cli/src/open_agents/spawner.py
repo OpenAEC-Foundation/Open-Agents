@@ -44,6 +44,50 @@ CLAUDE_MODEL_MAP = {
 HETZNER_SSH_HOST = "hetzner-agent"
 
 
+def is_oss_model(model: str) -> bool:
+    """True for text-only OSS models that need minimal context: ollama/* and hetzner/* (excluding hetzner/claude/*)."""
+    if model.startswith("ollama/"):
+        return True
+    if model.startswith("hetzner/"):
+        remainder = model[len("hetzner/"):]
+        return not remainder.startswith("claude")
+    return False
+
+
+# VRAM requirements per model (MB) for pre-spawn guard
+HETZNER_VRAM_MB = {
+    "mistral:7b": 5000,
+    "mistral:latest": 5000,
+    "mistral-nemo:latest": 8000,
+    "mixtral:8x7b": 26000,
+    "olmo2:7b": 6000,
+}
+
+
+def check_hetzner_vram(host: str, model_id: str) -> tuple[bool, str]:
+    """Check if Hetzner server has enough free VRAM for model_id.
+    Returns (ok, message). ok=True means safe to spawn."""
+    import subprocess as _sp
+    model_name = model_id.replace("hetzner/", "")
+    required = HETZNER_VRAM_MB.get(model_name, 6000)
+    try:
+        result = _sp.run(
+            ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
+             host, "nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=10,
+        )
+        free_mb = int(result.stdout.strip().splitlines()[0])
+        if free_mb < required:
+            return False, (
+                f"Onvoldoende VRAM op {host}: {free_mb}MB vrij, "
+                f"{required}MB nodig voor {model_name}. "
+                f"Wacht tot een andere Hetzner agent klaar is."
+            )
+        return True, f"{free_mb}MB VRAM beschikbaar"
+    except Exception:
+        return True, "VRAM-check niet beschikbaar, doorgaan"
+
+
 def _detect_ollama_cmd() -> str:
     """Detect the correct ollama command for the current platform.
 

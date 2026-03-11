@@ -16,7 +16,7 @@ from .monitor import print_status, print_status_verbose, print_status_with_conte
 from .utils import format_model_rich, generate_agent_name
 from .lifecycle import attach_agent, check_agent, clean_finished, kill_agent
 from .orchestrator import spawn_with_orchestrator
-from .spawner import spawn_agent, spawn_remote_agent
+from .spawner import spawn_agent, spawn_remote_agent, is_oss_model
 from .tmux import session_exists, start_session
 from .state import get_agent, list_agents, update_agent
 from .messaging import broadcast_message, mark_read, poll_shutdown_response, read_inbox, send_message, shutdown_request, unread_count
@@ -642,10 +642,8 @@ def run(
 
     # Auto-inject context based on task keywords (non-blocking, opt-out via --no-context-inject)
     # Skip for Ollama models: they receive task.txt directly — injected context bloats/confuses them (L-089)
-    _is_ollama = model.startswith("ollama/") or model.startswith("hetzner/") and not any(
-        model.startswith(f"hetzner/{p}") for p in ("claude/", "service/")
-    )
-    if not no_context_inject and task and not _is_ollama:
+    _is_oss = is_oss_model(model)
+    if not no_context_inject and task and not _is_oss:
         try:
             from .context_injector import inject as _inject_context
             enriched = _inject_context(task)
