@@ -158,6 +158,22 @@ Schrijf naar: /mnt/c/project/docs/research/topic.md
 | Schrijven, coderen, implementatie | `claude/sonnet` (DEFAULT) |
 | Architectuur, deep reasoning | `claude/opus` |
 | Review, QA, validatie | `claude/sonnet` |
+| Privacy-gevoelig / geen API-kosten | `hetzner/mistral:7b` of `ollama/mistral:7b` |
+| Zware lokale inferentie | `hetzner/mixtral:8x7b` |
+
+### Goedgekeurde open-source modellen (D-028)
+
+Alleen Europees of écht open-source non-profit — zie docs/MODEL-BENCHMARK.md voor rationale.
+
+| Model | oa run prefix | Draait op | Wanneer |
+|-------|--------------|-----------|---------|
+| `mistral:7b` | `hetzner/mistral:7b` | Hetzner GPU (RTX 4000, 20GB) | Snel, privacy-first |
+| `mistral-nemo` | `hetzner/mistral-nemo` | Hetzner GPU | Lange context (128k) |
+| `mixtral:8x7b` | `hetzner/mixtral:8x7b` | Hetzner GPU | Sterkste lokale optie |
+| `olmo2:7b` | `hetzner/olmo2:7b` | Hetzner GPU | Non-profit, fully open |
+| `mistral:7b` | `ollama/mistral:7b` | Lokaal Windows | Offline, geen SSH |
+
+**Niet gebruiken**: Qwen, Llama, Gemma, Phi, DeepSeek — niet conform herkomstbeleid.
 
 ---
 

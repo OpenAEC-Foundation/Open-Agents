@@ -174,9 +174,32 @@ oa run "Implement OAuth2 middleware" --model claude/sonnet --direct
 # Architectuur / strategisch
 oa run "Design the agent state machine" --model claude/opus --direct
 
-# Privacy-first, offline
-oa run "Summarize this internal memo" --model ollama/llama3.2 --direct
+# Privacy-first, lokale inferentie via Hetzner GPU server
+oa run "Summarize this internal memo" --model hetzner/mistral:7b --direct
+
+# Zware lokale taak (beste open-source kwaliteit)
+oa run "Deep code review of entire module" --model hetzner/mixtral:8x7b --direct
+
+# Lokaal offline (geen SSH, Windows Ollama)
+oa run "Quick format check" --model ollama/mistral:7b --direct
 ```
+
+---
+
+## Goedgekeurde open-source modelpool (D-028)
+
+Beleid: alleen **Europees** of **écht open-source non-profit** — zie Hetzner-project D-027/D-028.
+
+| Model | Maker | Land | Licentie | GPU VRAM | Status |
+|-------|-------|------|----------|----------|--------|
+| `mistral:7b` | Mistral AI | 🇫🇷 EU | Apache 2.0 | ~4 GB | ✅ Hetzner + lokaal |
+| `mistral-nemo` | Mistral AI | 🇫🇷 EU | Apache 2.0 | ~7 GB | ✅ Hetzner |
+| `mixtral:8x7b` | Mistral AI | 🇫🇷 EU | Apache 2.0 | ~26 GB* | ✅ Hetzner |
+| `olmo2:7b` | Allen Institute | 🇺🇸 non-profit | Apache 2.0 | ~5 GB | ✅ Hetzner |
+
+*mixtral offloadt gedeeltelijk naar RAM op de Hetzner server (64GB RAM beschikbaar)
+
+**Niet toegestaan**: Gemma (Google), Llama (Meta), Phi (Microsoft), Qwen (Alibaba), DeepSeek
 
 ---
 
