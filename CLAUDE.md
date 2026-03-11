@@ -145,6 +145,22 @@ oa pipeline "taak"  # pipeline mode: planner -> subtasks -> combiner
 oa config           # configuratie bekijken/aanpassen
 ```
 
+### Web UI bouwen na wijzigingen (VERPLICHT)
+
+Elke agent die `oa-cli/web/src/` aanpast MOET daarna builden en bridge herstarten:
+
+```bash
+# 1. Bouwen
+cd /mnt/c/Users/Freek\ Heijting/Documents/GitHub/Open-Agents/oa-cli/web
+npx vite build
+
+# 2. Bridge herstarten (serveert de nieuwe build)
+lsof -ti:5174 | xargs kill -9 2>/dev/null; sleep 1
+oa web &>/dev/null &
+```
+
+Zonder dit ziet de gebruiker de oude versie in de browser.
+
 ### Advanced: Visual Canvas (packages/)
 
 ```bash
