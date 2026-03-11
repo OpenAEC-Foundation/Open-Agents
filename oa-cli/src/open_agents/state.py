@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-import fcntl
 import hashlib
 import json
 import time
+
+from ._filelock import lock_ex, lock_sh, lock_un
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Optional
@@ -124,11 +125,11 @@ def load_agents() -> dict[str, AgentRecord]:
         _cache_mtime = 0.0
         return {}
     with open(STATE_FILE, "r") as f:
-        fcntl.flock(f, fcntl.LOCK_SH)
+        lock_sh(f)
         try:
             raw = json.load(f)
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
     result = {}
     for name, data in raw.items():
         # Backwards compatibility: vul ontbrekende velden aan

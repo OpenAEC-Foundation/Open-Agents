@@ -1,11 +1,12 @@
-"""Shared task list for agent teams — CRUD with fcntl locking."""
+"""Shared task list for agent teams — CRUD with cross-platform file locking."""
 
 from __future__ import annotations
 
-import fcntl
 import json
 import time
 import uuid
+
+from ._filelock import lock_ex, lock_sh, lock_un
 from pathlib import Path
 from typing import Optional
 
@@ -27,22 +28,22 @@ def _task_path(team: str, task_id: str) -> Path:
 
 def _read_task(path: Path) -> dict:
     with open(path, "r") as f:
-        fcntl.flock(f, fcntl.LOCK_SH)
+        lock_sh(f)
         try:
             return json.load(f)
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
 
 
 def _write_task(path: Path, data: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
+        lock_ex(f)
         try:
             json.dump(data, f, indent=2)
             f.write("\n")
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
 
 
 def create_task(
@@ -117,7 +118,7 @@ def claim_task(team: str, task_id: str, agent_name: str) -> dict:
         raise FileNotFoundError(f"Task '{task_id}' not found in team '{team}'")
 
     with open(path, "r+") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
+        lock_ex(f)
         try:
             task = json.load(f)
             if task["status"] != "pending":
@@ -132,7 +133,7 @@ def claim_task(team: str, task_id: str, agent_name: str) -> dict:
             json.dump(task, f, indent=2)
             f.write("\n")
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
     return task
 
 

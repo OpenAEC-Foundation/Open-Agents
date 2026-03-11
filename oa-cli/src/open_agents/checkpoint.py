@@ -5,9 +5,10 @@ Storage: ~/.oa/checkpoints/<agent_name>.json
 
 from __future__ import annotations
 
-import fcntl
 import json
 from datetime import datetime, timezone
+
+from ._filelock import lock_ex, lock_sh, lock_un
 from pathlib import Path
 
 from .config import OA_DIR
@@ -25,21 +26,21 @@ def _now() -> str:
 
 def _read_locked(path: Path) -> dict:
     with path.open("r") as f:
-        fcntl.flock(f, fcntl.LOCK_SH)
+        lock_sh(f)
         try:
             return json.load(f)
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
 
 
 def _write_locked(path: Path, data: dict) -> None:
     CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
     with path.open("w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
+        lock_ex(f)
         try:
             json.dump(data, f, indent=2)
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
 
 
 def save_checkpoint(agent_name: str, data: dict) -> None:

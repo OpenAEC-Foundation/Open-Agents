@@ -7,12 +7,12 @@ Uses file locking for safe concurrent access.
 
 from __future__ import annotations
 
-import fcntl
 import json
 import time
 from pathlib import Path
 from typing import Optional
 
+from ._filelock import lock_ex, lock_sh, lock_un
 from .config import OA_DIR
 
 MESSAGES_DIR = OA_DIR / "messages"
@@ -61,11 +61,11 @@ def send_message(
 
     msg_path = inbox / _msg_filename(sender)
     with open(msg_path, "w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
+        lock_ex(f)
         try:
             json.dump(msg, f, indent=2)
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
     return msg_path
 
 
@@ -95,11 +95,11 @@ def broadcast_message(
     }
     bcast_path = bcast_dir / _msg_filename(sender)
     with open(bcast_path, "w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
+        lock_ex(f)
         try:
             json.dump(msg, f, indent=2)
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
     paths.append(bcast_path)
 
     # Deliver to each running agent's inbox
@@ -130,11 +130,11 @@ def read_inbox(
         for msg_file in inbox.glob("*.json"):
             try:
                 with open(msg_file, "r") as f:
-                    fcntl.flock(f, fcntl.LOCK_SH)
+                    lock_sh(f)
                     try:
                         msg = json.load(f)
                     finally:
-                        fcntl.flock(f, fcntl.LOCK_UN)
+                        lock_un(f)
                 msg["_file"] = str(msg_file)
                 if not unread_only or not msg.get("read", False):
                     messages.append(msg)
@@ -147,11 +147,11 @@ def read_inbox(
         for msg_file in BROADCAST_DIR.glob("*.json"):
             try:
                 with open(msg_file, "r") as f:
-                    fcntl.flock(f, fcntl.LOCK_SH)
+                    lock_sh(f)
                     try:
                         msg = json.load(f)
                     finally:
-                        fcntl.flock(f, fcntl.LOCK_UN)
+                        lock_un(f)
                 # Skip if sender is the agent itself
                 if msg.get("from") == agent_name:
                     continue
@@ -187,19 +187,19 @@ def mark_read(agent_name: str, msg_file: Optional[str] = None) -> int:
             continue
         try:
             with open(f_path, "r") as f:
-                fcntl.flock(f, fcntl.LOCK_SH)
+                lock_sh(f)
                 try:
                     msg = json.load(f)
                 finally:
-                    fcntl.flock(f, fcntl.LOCK_UN)
+                    lock_un(f)
             if not msg.get("read", False):
                 msg["read"] = True
                 with open(f_path, "w") as f:
-                    fcntl.flock(f, fcntl.LOCK_EX)
+                    lock_ex(f)
                     try:
                         json.dump(msg, f, indent=2)
                     finally:
-                        fcntl.flock(f, fcntl.LOCK_UN)
+                        lock_un(f)
                 count += 1
         except (json.JSONDecodeError, OSError):
             continue

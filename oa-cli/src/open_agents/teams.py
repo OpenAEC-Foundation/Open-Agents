@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-import fcntl
 import json
 import shutil
 import time
+
+from ._filelock import lock_ex, lock_sh, lock_un
 import uuid
 from pathlib import Path
 from typing import Optional
@@ -20,22 +21,22 @@ def _team_config_path(name: str) -> Path:
 
 def _read_config(path: Path) -> dict:
     with open(path, "r") as f:
-        fcntl.flock(f, fcntl.LOCK_SH)
+        lock_sh(f)
         try:
             return json.load(f)
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
 
 
 def _write_config(path: Path, data: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
+        lock_ex(f)
         try:
             json.dump(data, f, indent=2)
             f.write("\n")
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
 
 
 def create_team(name: str, members: list[str] | None = None) -> dict:
@@ -118,22 +119,22 @@ def _task_path(team: str, task_id: str) -> Path:
 
 def _read_task(path: Path) -> dict:
     with open(path, "r") as f:
-        fcntl.flock(f, fcntl.LOCK_SH)
+        lock_sh(f)
         try:
             return json.load(f)
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
 
 
 def _write_task(path: Path, data: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
+        lock_ex(f)
         try:
             json.dump(data, f, indent=2)
             f.write("\n")
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
 
 
 def create_task(team: str, description: str, depends_on: list[str] | None = None) -> dict:
@@ -196,7 +197,7 @@ def claim_task(task_id: str, agent_name: str) -> dict:
         raise FileNotFoundError(f"Task '{task_id}' not found")
     path = matches[0]
     with open(path, "r+") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
+        lock_ex(f)
         try:
             task = json.load(f)
             if task["status"] == "claimed":
@@ -214,7 +215,7 @@ def claim_task(task_id: str, agent_name: str) -> dict:
             json.dump(task, f, indent=2)
             f.write("\n")
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
     return task
 
 
@@ -227,7 +228,7 @@ def complete_task(task_id: str) -> dict:
         raise FileNotFoundError(f"Task '{task_id}' not found")
     path = matches[0]
     with open(path, "r+") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
+        lock_ex(f)
         try:
             task = json.load(f)
             task["status"] = "done"
@@ -237,7 +238,7 @@ def complete_task(task_id: str) -> dict:
             json.dump(task, f, indent=2)
             f.write("\n")
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
 
     # Unblock tasks that depended on this task
     for candidate_file in TASKS_DIR.glob("*/*.json"):
@@ -245,7 +246,7 @@ def complete_task(task_id: str) -> dict:
             continue
         try:
             with open(candidate_file, "r+") as f:
-                fcntl.flock(f, fcntl.LOCK_EX)
+                lock_ex(f)
                 try:
                     candidate = json.load(f)
                     if (
@@ -263,7 +264,7 @@ def complete_task(task_id: str) -> dict:
                         json.dump(candidate, f, indent=2)
                         f.write("\n")
                 finally:
-                    fcntl.flock(f, fcntl.LOCK_UN)
+                    lock_un(f)
         except Exception:
             continue
 
@@ -283,22 +284,22 @@ def _message_path(to_agent: str, message_id: str) -> Path:
 
 def _read_message(path: Path) -> dict:
     with open(path, "r") as f:
-        fcntl.flock(f, fcntl.LOCK_SH)
+        lock_sh(f)
         try:
             return json.load(f)
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
 
 
 def _write_message(path: Path, data: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
+        lock_ex(f)
         try:
             json.dump(data, f, indent=2)
             f.write("\n")
         finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
+            lock_un(f)
 
 
 def send_message(to_agent: str, from_agent: str, content: str) -> dict:
@@ -332,7 +333,7 @@ def get_messages(agent_name: str, unread_only: bool = True) -> list[dict]:
         if not unread_only and not msg.get("read"):
             # Mark as read
             with open(msg_file, "r+") as f:
-                fcntl.flock(f, fcntl.LOCK_EX)
+                lock_ex(f)
                 try:
                     data = json.load(f)
                     data["read"] = True
@@ -341,7 +342,7 @@ def get_messages(agent_name: str, unread_only: bool = True) -> list[dict]:
                     json.dump(data, f, indent=2)
                     f.write("\n")
                 finally:
-                    fcntl.flock(f, fcntl.LOCK_UN)
+                    lock_un(f)
     return messages
 
 
