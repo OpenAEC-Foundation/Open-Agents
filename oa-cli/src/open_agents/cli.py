@@ -3681,13 +3681,14 @@ def suggest(
     if agents:
         console.print("[bold]Agent Suggestions:[/bold]")
         for match in agents:
+            from rich.markup import escape as _escape
             rank_label = f"[bold green]#{match.ai_rank}[/bold green] " if match.ai_rank else ""
-            style = "green" if match.ai_rank == 1 else "dim" if match.ai_rank and match.ai_rank > 2 else ""
+            style = "green" if match.ai_rank == 1 else "dim" if match.ai_rank and match.ai_rank > 2 else "white"
             model_hint = f" [dim]({match.model_hint.split('/')[-1]})[/dim]" if match.model_hint else ""
-            rationale = f"\n    [italic dim]{match.rationale}[/italic dim]" if match.rationale else ""
+            rationale = f"\n    [italic dim]{_escape(match.rationale)}[/italic dim]" if match.rationale else ""
             score_label = f" [dim]score={match.score:.2f}[/dim]" if not match.ai_rank else ""
             console.print(
-                f"  {rank_label}[{style}]{match.name}[/{style}]  [cyan]{match.agent_id}[/cyan]"
+                f"  {rank_label}[{style}]{_escape(match.name)}[/{style}]  [cyan]{match.agent_id}[/cyan]"
                 f"{model_hint}{score_label}{rationale}"
             )
         console.print()
