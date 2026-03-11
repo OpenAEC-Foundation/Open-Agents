@@ -3,7 +3,6 @@ import { useAgentStore } from './stores/agentStore';
 import { useUIStore } from './stores/uiStore';
 import { Sidebar } from './components/layout/Sidebar';
 import { DashboardTab } from './components/dashboard/DashboardTab';
-import { DashboardTab2 } from './components/dashboard/DashboardTab2';
 import { BuilderTab } from './components/builder/BuilderTab';
 import { TemplatesTab } from './components/templates/TemplatesTab';
 import { ContextTab } from './components/context/ContextTab';
@@ -85,11 +84,6 @@ export default function App() {
           {activeMainTab === 'dashboard' && (
             <ErrorBoundary>
               <DashboardTab />
-            </ErrorBoundary>
-          )}
-          {activeMainTab === 'dashboard2' && (
-            <ErrorBoundary>
-              <DashboardTab2 />
             </ErrorBoundary>
           )}
           {activeMainTab === 'builder' && (

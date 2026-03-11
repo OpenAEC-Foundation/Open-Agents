@@ -232,7 +232,7 @@ function SectionHeader({ label, count, color }: { label: string; count: number; 
       }}
     >
       <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: color }} />
-      <span className="text-[10px] font-bold tracking-[0.15em] uppercase" style={{ color: 'var(--color-oa-text-dim)' }}>
+      <span className="text-[10px] font-bold tracking-[0.15em] uppercase" style={{ color: 'var(--color-oa-text-dim)', fontFamily: 'var(--font-display)' }}>
         {label}
       </span>
       <span

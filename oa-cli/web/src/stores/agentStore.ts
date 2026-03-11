@@ -6,12 +6,12 @@ import * as api from '../api/client';
 
 export function statusColor(status: string): string {
   switch (status) {
-    case 'running': return '#00ff88';
-    case 'done': return '#4ade80';
+    case 'running': return 'var(--color-oa-terminal, #00ff88)';
+    case 'done': return 'var(--color-status-done, #16A34A)';
     case 'error':
-    case 'failed': return '#f87171';
-    case 'timeout': return '#fbbf24';
-    case 'killed': return '#9ca3af';
+    case 'failed': return 'var(--color-status-failed, #dc3545)';
+    case 'timeout': return '#f59e0b';
+    case 'killed': return '#6b7280';
     default: return '#8b95a5';
   }
 }
@@ -134,7 +134,7 @@ export const useAgentStore = create<AgentStore>((set, get) => ({
             id: ++counter,
             time: Date.now() / 1000,
             text: `${a.name} spawned (${modelLabel(a.model)})`,
-            color: '#22d3ee',
+            color: 'var(--color-oa-terminal, #22d3ee)',
           });
         } else if (prev !== a.status) {
           newEvents.push({

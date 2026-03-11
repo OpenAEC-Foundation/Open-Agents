@@ -27,25 +27,25 @@
 | 6c | AI Assembly Assistant | Sidebar kennispartner + pattern library | Sprint 6b | Done |
 | 7 | VS Code Extension | Canvas als VS Code webview + MCP | Sprint 1 | Done |
 | 8 | Frappe App | Frappe wrapper + ERPNext templates | Sprint 1 | Done |
-| 9 | Agent Library | 1015+ atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | In Progress (454/1015) |
+| 9 | Agent Library | 1015+ atomaire agents bouwen + Anthropic Agent Teams model | Sprint 2 | In Progress (714/1015) |
 | 10 | Refactor & Consolidatie | Refactor van alles uit eerste Scrum iteratie | Sprint 1-9 | Done |
 | 11 | VS Code Bridge & Terminal Agents | Echte Claude CLI agents via VS Code bridge. Gemigreerd van Open-VSCode-Controller | Sprint 1 | In Progress (90%) |
 | 12 | CLI Agentic Layer (oa-cli) | Tmux-based multi-agent orchestrator op subscription. Python CLI + Textual TUI + Pipeline | -- | Done |
-| 13 | Docker Isolation + Non-Claude Tool Use | Container isolatie per agent (D-040) + non-Claude runtime tool use fix (D-032) | Sprint 10 | Planned |
-| 14 | Agent Library Scale-up | 900+ agents bouwen in 10 resterende categorieën (doel: 1000+) | Sprint 9 | Planned |
-| 15 | oa-cli × packages/ Convergentie | oa-cli als alternatieve execution backend voor het visuele platform | Sprint 12 | Planned |
-| 16 | Google A2A Protocol Evaluatie | Agent-to-Agent protocol evaluatie en eventuele integratie | Sprint 13 | Planned |
-| 17 | oa-cli Agent Teams Patterns | Shared task list, inter-agent messaging, graceful shutdown, quality hooks (D-052) | Sprint 12 | In Progress (58%) |
-| 18 | Dashboard UI & CSS Design Tokens | React web UI refactor: design tokens, ErrorBoundary, ToastProvider, PipelinePanel, TaskBoard | Sprint 12 | In Progress (80%) |
+| 13 | Docker Isolation + Non-Claude Tool Use | Container isolatie per agent (D-040) + non-Claude runtime tool use fix (D-032) | Sprint 10 | Done |
+| 14 | Agent Library Scale-up | 900+ agents bouwen in 10 resterende categorieën (doel: 1000+) | Sprint 9 | Done |
+| 15 | oa-cli × packages/ Convergentie | oa-cli als alternatieve execution backend voor het visuele platform | Sprint 12 | Done |
+| 16 | Google A2A Protocol Evaluatie | Agent-to-Agent protocol evaluatie en eventuele integratie | Sprint 13 | In Progress |
+| 17 | oa-cli Agent Teams Patterns | Shared task list, inter-agent messaging, graceful shutdown, quality hooks (D-052) | Sprint 12 | Done |
+| 18 | Dashboard UI & CSS Design Tokens | React web UI refactor: design tokens, ErrorBoundary, ToastProvider, PipelinePanel, TaskBoard | Sprint 12 | Done |
 | 19 | Session Persistence | Automatische sessie-herstel: session store, guardian daemon, resume flow, notifications | Sprint 12, 17 | Done |
-| 20 | Desktop + Web App | Web-first: xterm.js terminal, Tauri desktop wrapper, shared codebase | Sprint 12, Sprint 15 | Planned |
-| 21 | oa-cli als Product | Web UI Command Centre (F1/F2/F3), oa MCP Server, packaging, onboarding | Sprint 12, 17, 18 | Planned |
-| 22 | Self-Improvement Foundation | Telemetrie, hooks, context tracking, kwaliteits-gates | Sprint 12 | Planned |
+| 20 | Desktop + Web App | Web-first: xterm.js terminal, Tauri desktop wrapper, shared codebase | Sprint 12, Sprint 15 | In Progress |
+| 21 | oa-cli als Product | Web UI Command Centre (F1/F2/F3), oa MCP Server, packaging, onboarding | Sprint 12, 17, 18 | Done |
+| 22 | Self-Improvement Foundation | Telemetrie, hooks, context tracking, kwaliteits-gates | Sprint 12 | Done |
 | 22b | Remote Execution (LOW PRIO) | Agents op remote GPU servers (Ollama) | Sprint 22, Sprint 12 | Planned |
-| 23 | Self-Improvement Automation | Kennisaccumulatie automatiseren op basis van telemetrie | Sprint 22 | Planned |
-| 24 | Iteration Control & Meta-Agent | Zelf-regulerend systeem, skill evolver, meta-agent | Sprint 22, Sprint 23 | Planned |
-| 25 | Periodic Analytics & Observability | Diepe analyse agent-ecosysteem op historische data | Sprint 22, Sprint 23 | Planned |
-| 26 | CLI Infrastructure Boost | Vervang primitieve subprocess calls door libtmux, watchdog, psutil. Bouw skills die agents en de CLI zelf powertools geven. Slimme tmux-architecturen. | Sprint 12, Sprint 21 | Planned |
+| 23 | Self-Improvement Automation | Kennisaccumulatie automatiseren op basis van telemetrie | Sprint 22 | Done |
+| 24 | Iteration Control & Meta-Agent | Zelf-regulerend systeem, skill evolver, meta-agent | Sprint 22, Sprint 23 | Done |
+| 25 | Periodic Analytics & Observability | Diepe analyse agent-ecosysteem op historische data | Sprint 22, Sprint 23 | Done |
+| 26 | CLI Infrastructure Boost | Vervang primitieve subprocess calls door libtmux, watchdog, psutil. Bouw skills die agents en de CLI zelf powertools geven. Slimme tmux-architecturen. | Sprint 12, Sprint 21 | Done |
 
 ```
 Sprint 0 ──→ Sprint 1 ──→ Sprint 1.2a ──→ Sprint 1.5

@@ -4,7 +4,7 @@
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
 > **Laatste update**: 2026-03-11
-> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 13 (Docker Isolation) Done — Sprint 14 (Agent Library) Done — Sprint 17 (Agent Teams) 95% — Sprint 18 (Dashboard UI) Done — Sprint 19 (Session Persistence) Done — Sprint 22 (Quality Gates) Done — Sprint 21 (oa-cli als Product) Done — Agent Library: 454 templates (32 categories) — 22 skills gebouwd
+> **Status**: v0.2.0 released — Sprint 13-15 Done — Sprint 16 (A2A) In Progress — Sprint 17 (Agent Teams) Done — Sprint 18 (Dashboard UI) Done — Sprint 19 (Session Persistence) Done — Sprint 20 (Desktop+Web) In Progress — Sprint 21 (oa-cli Product) Done — Sprint 22 (Quality Gates) Done — Sprint 23-26 Done — Agent Library: 714+ templates (32 categories) — 22 skills gebouwd
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -27,7 +27,7 @@
 | Frappe App | 1 | 1 |
 | Library Ecosystem (10 types) | 0 | 10 |
 | LLM Asset Generation (Factory) | 1 | 1 |
-| Agent Library (doel: 1015+) | 454 | 1015 |
+| Agent Library (doel: 1015+) | 714 | 1015 |
 | CLI Agentic Layer (oa-cli) | 1 | 1 |
 | VS Code Bridge (Sprint 11) | 0 | 1 |
 | Agent Teams Patterns (Sprint 17) | 12 | 12 |
@@ -46,16 +46,16 @@
 **Fase 4c (Assistant)**: ████████████████████ **100%** - AI assembly assistant sidebar (Sprint 6c)
 **Fase 5 (Deployment)**: ████████████████████ **100%** - VS Code extension (Sprint 7) + Frappe app (Sprint 8)
 **Fase 6 (Scale)**: ░░░░░░░░░░░░░░░░░░░░ **0%**
-**Fase 7 (Agent Library)**: ███████████░░░░░░░░░ **45%** - 454/1015 agents geïmplementeerd (32 directory-categorieën: aec-blender/bonsai/cross/ifcopenshell/sverchok, code-dev, communication, core, data-transform, erpnext, file-system, git-versioning, research, review-quality, text-language, analytics, blockchain, healthcare, iot, audio, video, image-processing, legal, marketing, product-management, security, devops, mobile, physics, education, finance, logistics)
+**Fase 7 (Agent Library)**: ██████████████░░░░░░ **70%** - 714/1015 agents geïmplementeerd (32 directory-categorieën: aec-blender/bonsai/cross/ifcopenshell/sverchok, code-dev, communication, core, data-transform, erpnext, file-system, git-versioning, research, review-quality, text-language, analytics, blockchain, healthcare, iot, audio, video, image-processing, legal, marketing, product-management, security, devops, mobile, physics, education, finance, logistics)
 **Fase 8 (Refactor)**: ████████████████████ **100%** - v0.1.0 released (14 taken afgerond), v0.2.0 released 2026-03-02
 **Fase 9 (CLI Agentic Layer)**: ████████████████████ **100%** - oa-cli werkend: 21+ commando's, Textual TUI, pipeline orchestrator, React web UI; checkpoints en resume geïmplementeerd
 **Fase 10 (VS Code Bridge)**: ████████████████░░░░ **80%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator, package migratie, launch config werkend; shared types mergen, test-workspace, CLI tool integreren bij agent sprint11-finisher
-**Fase 11 (Agent Teams Patterns)**: ███████████████████░ **95%** - Sprint 17 In Progress (95%): task_list.py (blockedBy/auto-unblock), teams.py, messaging.py (graceful shutdown), state.py (AgentRecord team+mailbox_path), dashboard Teams tab, tests klaar; quality hooks + workspace template + web UI nog open
+**Fase 11 (Agent Teams Patterns)**: ████████████████████ **100%** - Sprint 17 Done: task_list.py, teams.py, messaging.py, state.py, CLI commando's werkend, inter-agent messaging volledig functioneel
 **Fase 12 (Dashboard & UI Refactor)**: ████████████████████ **100%** - Sprint 18 Done: ErrorBoundary + ToastProvider componenten, PipelinePanel, TaskBoard, 11 dashboard componenten refactored met CSS design tokens
 **Fase 13 (Session Persistence)**: ████████████████████ **100%** - session store, guardian daemon, resume flow, notifications
 **Fase 15 (oa-cli als Product)**: ████████████████████ **100%** - Sprint 21 Done: mcp_server.py (FastMCP 8 tools), .mcp.json, oa setup wizard, oa doctor, pyproject.toml productie-klaar, scripts/install.sh, Web UI Command Centre F1/F2 complete
 **Sprint 22 (Quality Gates)**: ████████████████████ **100%** - context-gap, honesty, invocation, budget, backlog, reviewer, auto-compaction klaar
-**Fase 14 (Desktop + Web App)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - Web-first architectuur: xterm.js terminal, Tauri desktop wrapper, gedeelde React codebase
+**Fase 14 (Desktop + Web App)**: ████░░░░░░░░░░░░░░░░ **20%** - Sprint 20 In Progress: xterm.js terminal component geïmplementeerd, Tauri wrapper in aanbouw
 
 ---
 
@@ -467,7 +467,7 @@
 
 ---
 
-### Sprint 15: oa-cli × packages/ Convergentie — Planned
+### Sprint 15: oa-cli × packages/ Convergentie — Done
 
 **Doel**: oa-cli als derde execution runtime naast API en VS Code bridge
 **Afhankelijk van**: Sprint 12 (oa-cli Done), Sprint 11 (VS Code bridge)
@@ -481,7 +481,7 @@
 
 ---
 
-### Sprint 16: Google A2A Protocol Evaluatie — Planned
+### Sprint 16: Google A2A Protocol Evaluatie — In Progress
 
 **Doel**: Evalueer Google A2A als interoperabiliteitsstandaard
 **Afhankelijk van**: Sprint 13 (Docker isolation stabiel)
@@ -493,26 +493,26 @@
 
 ---
 
-### Sprint 17: oa-cli Agent Teams Patterns — Complete
+### Sprint 17: oa-cli Agent Teams Patterns — Done
 
 **Doel**: Agent Teams patterns (D-052, L-022 t/m L-029) implementeren in oa-cli
 **Afhankelijk van**: Sprint 12 (oa-cli basis Done)
 **Bron**: Claude Code Agent Teams referentie-architectuur
 
-**Status**: Foundation gestart, items gedelegeerd:
+**Status**: 100% — Done
 
-- [x] Shared task list (`task_list.py`) — CRUD, file locking, JSON storage in `~/.oa/tasks/<team>/` — delegate: sprint17-teams
-- [ ] Task dependencies — `blockedBy` veld, auto-unblock bij status=completed
+- [x] Shared task list (`task_list.py`) — CRUD, file locking, JSON storage in `~/.oa/tasks/<team>/`
+- [x] Task dependencies — `blockedBy` veld, auto-unblock bij status=completed
 - [x] Inter-agent messaging (`messaging.py`) — mailbox per agent, DM + broadcast — werkend (send/inbox/broadcast volledig functioneel)
-- [x] Team config (`teams.py`) — create/list/delete, members array, `~/.oa/teams/<team>/config.json` — delegate: sprint17-teams
-- [ ] Graceful shutdown protocol — request/approve/reject via messaging — delegate: sprint17-messaging
-- [ ] Quality hooks (`hooks.py`) — on_idle, on_task_complete callbacks — delegate: sprint17-messaging
-- [x] CLI commando's: `oa team`, `oa task`, `oa send`, `oa inbox`, `oa broadcast` — delegate: sprint17-teams + sprint17-messaging
-- [ ] AgentRecord uitbreiden: `team` veld, `mailbox_path`
-- [ ] Workspace CLAUDE.md template: team context meegeven aan agents
-- [ ] Tests voor task list, messaging, team management
-- [ ] TUI dashboard: team view met task status
-- [ ] Web UI: team overzicht pagina
+- [x] Team config (`teams.py`) — create/list/delete, members array, `~/.oa/teams/<team>/config.json`
+- [x] Graceful shutdown protocol — request/approve/reject via messaging
+- [x] Quality hooks (`hooks.py`) — on_idle, on_task_complete callbacks
+- [x] CLI commando's: `oa team`, `oa task`, `oa send`, `oa inbox`, `oa broadcast`
+- [x] AgentRecord uitbreiden: `team` veld, `mailbox_path`
+- [x] Workspace CLAUDE.md template: team context meegeven aan agents
+- [x] Tests voor task list, messaging, team management
+- [x] TUI dashboard: team view met task status
+- [x] Web UI: team overzicht pagina
 
 ---
 
@@ -543,7 +543,7 @@
 
 ---
 
-## Sprint 20 — Desktop + Web App (Planned)
+## Sprint 20 — Desktop + Web App (In Progress)
 
 > Web-first architectuur: één React codebase voor hosted web app én Tauri desktop app
 
@@ -628,36 +628,48 @@
 
 ---
 
-## Sprint 23: Self-Improvement Automation — Planned
+## Sprint 23: Self-Improvement Automation — Done
 
 **Doel**: Kennisaccumulatie automatiseren op basis van Sprint 22 telemetrie.
 **Afhankelijk van**: Sprint 22 (telemetrie + hooks beschikbaar)
 
-- [ ] Lesson extractor: automatisch LESSONS.md updaten na agent runs
-- [ ] Pattern detector: terugkerende faalpatronen signaleren
-- [ ] Skill evolver: skills aanpassen op basis van gebruik
+- [x] Lesson extractor: automatisch LESSONS.md updaten na agent runs
+- [x] Pattern detector: terugkerende faalpatronen signaleren
+- [x] Skill evolver: skills aanpassen op basis van gebruik
 
 ---
 
-## Sprint 24: Iteration Control & Meta-Agent — Planned
+## Sprint 24: Iteration Control & Meta-Agent — Done
 
 **Doel**: Zelf-regulerend systeem, skill evolver, meta-agent
 **Afhankelijk van**: Sprint 22 + Sprint 23
 
-- [ ] Meta-agent die andere agents bewaakt en bijstuurt
-- [ ] Iteratiecontrole: automatisch herspawnen bij failure
-- [ ] Self-improvement loop volledig gesloten
+- [x] Meta-agent die andere agents bewaakt en bijstuurt (commit ca23556)
+- [x] Iteratiecontrole: automatisch herspawnen bij failure — regression guard
+- [x] Self-improvement loop volledig gesloten
 
 ---
 
-## Sprint 25: Periodic Analytics & Observability — Planned
+## Sprint 25: Periodic Analytics & Observability — Done
 
 **Doel**: Diepe analyse agent-ecosysteem op historische data
 **Afhankelijk van**: Sprint 22 + 23 (minimaal 2-3 sprints productiedata)
 
-- [ ] Periodieke rapporten (dagelijks/wekelijks) over agent performance
-- [ ] Observability dashboard (success rate, cost, duration trends)
-- [ ] Anomaly detection op run-logs
+- [x] Periodieke rapporten (dagelijks/wekelijks) over agent performance (commit 01ba50b)
+- [x] Observability dashboard (success rate, cost, duration trends)
+- [x] Anomaly detection op run-logs
+
+---
+
+## Sprint 26: CLI Infrastructure Boost — Done
+
+**Doel**: Vervang primitieve subprocess calls door libtmux, watchdog, psutil. Bouw skills die agents en de CLI zelf powertools geven. Slimme tmux-architecturen.
+**Afhankelijk van**: Sprint 12, Sprint 21
+**Status**: Done (commit 8f09f95)
+
+- [x] Research: libtmux/watchdog/psutil analyse
+- [x] Diagnostics tooling voor oa-cli
+- [x] Skills voor CLI power-gebruik
 
 ---
 
