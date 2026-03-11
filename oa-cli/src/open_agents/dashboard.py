@@ -375,12 +375,12 @@ class OADashboard(App):
                 with Horizontal(id="agents-pane"):
                     with Vertical(id="left-panel"):
                         yield Static(" AGENT TREE", id="tree-header")
-                        yield RichLog(id="agent-tree", highlight=False, markup=True, wrap=False, can_focus=False)
+                        yield RichLog(id="agent-tree", highlight=False, markup=True, wrap=False)
                         yield Static("[#333355]─" * 30 + "[/#333355]", id="stats-separator")
                         yield Static("", id="stats-panel")
                     with Vertical(id="right-panel"):
                         yield Static(" LIVE OUTPUT", id="output-header")
-                        yield RichLog(id="live-log", highlight=True, markup=True, wrap=True, can_focus=False)
+                        yield RichLog(id="live-log", highlight=True, markup=True, wrap=True)
             with TabPane("Teams [2]", id="tab-teams"):
                 yield TeamsPanel(id="teams-panel")
         yield Footer()
