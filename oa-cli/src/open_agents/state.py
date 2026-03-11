@@ -105,6 +105,10 @@ class AgentRecord:
     # --- Auto-compaction ---
     no_autocompact: bool = False            # disable auto-compaction for this agent
 
+    # --- Team membership ---
+    team: str = ""                          # team this agent belongs to (empty = no team)
+    mailbox_path: str = ""                  # path to agent's mailbox directory
+
     def __post_init__(self) -> None:
         """Bereken task_hash als nog niet ingesteld."""
         if not self.task_hash and self.task:
@@ -154,6 +158,9 @@ def load_agents() -> dict[str, AgentRecord]:
         data.setdefault("remote_host", None)
         data.setdefault("remote_workspace", None)
         data.setdefault("run_id", None)
+        data.setdefault("no_autocompact", False)
+        data.setdefault("team", "")
+        data.setdefault("mailbox_path", "")
         result[name] = AgentRecord(**data)
     # PERF: Store in cache keyed by current mtime
     _cache = result
