@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   LayersIcon,
   Library,
+  MessageSquare,
   Settings,
   Sparkles,
   Users,
@@ -22,6 +23,7 @@ const TABS: { id: MainTab; label: string; icon: React.ReactNode; highlight?: boo
   { id: 'templates', label: 'Templates', icon: <Library size={15} /> },
   { id: 'context', label: 'Context', icon: <LayersIcon size={15} /> },
   { id: 'teams', label: 'Teams', icon: <Users size={15} /> },
+  { id: 'chat', label: 'Chat', icon: <MessageSquare size={15} /> },
   { id: 'settings', label: 'Settings', icon: <Settings size={15} /> },
   { id: 'demo', label: 'Playground', icon: <Sparkles size={15} />, highlight: true },
 ];

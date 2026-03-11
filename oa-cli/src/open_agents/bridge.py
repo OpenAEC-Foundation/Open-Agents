@@ -915,6 +915,189 @@ def api_trigger_compaction():
     return jsonify({"compacted": len(compacted), "results": results})
 
 
+# ---------------------------------------------------------------------------
+# Chat API — local-first, provider-agnostic  (issue #63)
+# ---------------------------------------------------------------------------
+# Supported model prefixes:
+#   claude/*     → Anthropic API (requires ANTHROPIC_API_KEY)
+#   ollama/*     → Local Ollama (/api/chat on localhost:11434 or custom host)
+# ---------------------------------------------------------------------------
+
+@app.route("/api/chat", methods=["POST"])
+def api_chat():
+    """Non-streaming chat completion.
+
+    Body: {model, messages: [{role, content}], system?}
+    Returns: {role, content, model, provider}
+    """
+    data = request.get_json()
+    if not data or "messages" not in data:
+        return jsonify({"error": "Missing 'messages' field"}), 400
+
+    model: str = data.get("model", "ollama/llama3.2")
+    messages: list[dict] = data["messages"]
+    system: str = data.get("system", "")
+
+    try:
+        reply = _chat_complete(model, messages, system, stream=False)
+        return jsonify({"role": "assistant", "content": reply, "model": model})
+    except RuntimeError as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route("/api/chat/stream", methods=["POST"])
+def api_chat_stream():
+    """Streaming chat via SSE.
+
+    Body: {model, messages: [{role, content}], system?}
+    SSE events:
+        data: {"delta": "<chunk>"}   — content chunk
+        data: {"done": true}         — stream finished
+        data: {"error": "<msg>"}     — error
+    """
+    data = request.get_json()
+    if not data or "messages" not in data:
+        return jsonify({"error": "Missing 'messages' field"}), 400
+
+    model: str = data.get("model", "ollama/llama3.2")
+    messages: list[dict] = data["messages"]
+    system: str = data.get("system", "")
+
+    def generate():
+        try:
+            for chunk in _chat_stream(model, messages, system):
+                payload = json.dumps({"delta": chunk})
+                yield f"data: {payload}\n\n"
+            yield f"data: {json.dumps({'done': True})}\n\n"
+        except RuntimeError as exc:
+            yield f"data: {json.dumps({'error': str(exc)})}\n\n"
+
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Access-Control-Allow-Origin": "*",
+        },
+    )
+
+
+@app.route("/api/chat/models", methods=["GET"])
+def api_chat_models():
+    """List available chat models (Ollama + Claude/*)."""
+    models = []
+
+    # Claude models (always available if API key is set)
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        models += [
+            {"id": "claude/claude-opus-4-6", "provider": "claude", "name": "Claude Opus 4.6"},
+            {"id": "claude/claude-sonnet-4-6", "provider": "claude", "name": "Claude Sonnet 4.6"},
+            {"id": "claude/claude-haiku-4-5", "provider": "claude", "name": "Claude Haiku 4.5"},
+        ]
+
+    # Local Ollama models
+    ollama_host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+    try:
+        import urllib.request as _req
+        with _req.urlopen(f"{ollama_host}/api/tags", timeout=2) as resp:
+            tags = json.loads(resp.read())
+            for m in tags.get("models", []):
+                name = m.get("name", "")
+                if name:
+                    models.append({
+                        "id": f"ollama/{name}",
+                        "provider": "ollama",
+                        "name": name,
+                        "size": m.get("size", 0),
+                    })
+    except Exception:
+        pass
+
+    return jsonify(models)
+
+
+def _chat_complete(model: str, messages: list[dict], system: str, stream: bool) -> str:
+    """Non-streaming completion — returns full reply string."""
+    if stream:
+        return "".join(_chat_stream(model, messages, system))
+    return "".join(_chat_stream(model, messages, system))
+
+
+def _chat_stream(model: str, messages: list[dict], system: str):
+    """Yield content chunks from the appropriate provider."""
+    if model.startswith("claude/"):
+        yield from _stream_claude(model[len("claude/"):], messages, system)
+    elif model.startswith("ollama/"):
+        yield from _stream_ollama(model[len("ollama/"):], messages, system)
+    else:
+        raise RuntimeError(f"Unknown model prefix '{model}'. Use 'claude/*' or 'ollama/*'.")
+
+
+def _stream_claude(model_id: str, messages: list[dict], system: str):
+    """Stream from Anthropic API via subprocess (avoids SDK import at module load)."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY not set.")
+
+    try:
+        import anthropic
+    except ImportError:
+        raise RuntimeError("anthropic package not installed. Run: pip install anthropic")
+
+    client = anthropic.Anthropic(api_key=api_key)
+    kwargs: dict = {
+        "model": model_id,
+        "max_tokens": 8096,
+        "messages": messages,
+    }
+    if system:
+        kwargs["system"] = system
+
+    with client.messages.stream(**kwargs) as stream:
+        for text in stream.text_stream:
+            yield text
+
+
+def _stream_ollama(model_id: str, messages: list[dict], system: str):
+    """Stream from local Ollama /api/chat endpoint."""
+    import urllib.request as _req
+
+    ollama_host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+    payload = {
+        "model": model_id,
+        "messages": messages,
+        "stream": True,
+    }
+    if system:
+        # Prepend system message for Ollama
+        payload["messages"] = [{"role": "system", "content": system}] + list(messages)
+
+    body = json.dumps(payload).encode()
+    req = _req.Request(
+        f"{ollama_host}/api/chat",
+        data=body,
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with _req.urlopen(req, timeout=120) as resp:
+            for raw_line in resp:
+                line = raw_line.decode("utf-8").strip()
+                if not line:
+                    continue
+                try:
+                    chunk = json.loads(line)
+                    delta = chunk.get("message", {}).get("content", "")
+                    if delta:
+                        yield delta
+                    if chunk.get("done", False):
+                        break
+                except json.JSONDecodeError:
+                    continue
+    except OSError as exc:
+        raise RuntimeError(f"Ollama not reachable at {ollama_host}: {exc}") from exc
+
+
 def run_bridge(port: int = 5174) -> None:
     """Start the bridge server."""
     import os as _os

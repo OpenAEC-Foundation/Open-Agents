@@ -8,6 +8,7 @@ import { TemplatesTab } from './components/templates/TemplatesTab';
 import { ContextTab } from './components/context/ContextTab';
 import { SettingsTab } from './components/settings/SettingsTab';
 import { TeamsTab } from './components/teams/TeamsTab';
+import { ChatPanel } from './components/chat/ChatPanel';
 import Onboarding from './components/Onboarding';
 import { DemoTab } from './components/demo/DemoTab';
 import { applyTheme, getThemeById } from './themes';
@@ -104,6 +105,11 @@ export default function App() {
           {activeMainTab === 'teams' && (
             <ErrorBoundary>
               <TeamsTab />
+            </ErrorBoundary>
+          )}
+          {activeMainTab === 'chat' && (
+            <ErrorBoundary>
+              <ChatPanel />
             </ErrorBoundary>
           )}
           {activeMainTab === 'settings' && (
