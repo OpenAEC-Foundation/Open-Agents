@@ -1,0 +1,263 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://open-agents.dev/schemas/agent-card.json",
+  "title": "AgentCard",
+  "description": "Open-Agents Agent Card — describes a registered agent's identity, capabilities, and endpoint",
+  "type": "object",
+  "required": ["id", "name", "description", "model", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique agent identifier (slug format: lowercase, hyphens)",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+      "minLength": 3,
+      "maxLength": 64,
+      "examples": ["research-agent-registry", "code-reviewer", "doc-writer"]
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable display name",
+      "minLength": 1,
+      "maxLength": 128,
+      "examples": ["Research Agent: Registry", "Code Reviewer", "Doc Writer"]
+    },
+    "description": {
+      "type": "string",
+      "description": "What this agent does — used for discovery matching and routing decisions",
+      "minLength": 10,
+      "maxLength": 512
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of this agent card",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "default": "1.0.0"
+    },
+    "model": {
+      "type": "object",
+      "description": "LLM configuration for this agent",
+      "required": ["provider", "id"],
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": ["anthropic", "openai", "openrouter", "ollama", "local"],
+          "description": "Model provider"
+        },
+        "id": {
+          "type": "string",
+          "description": "Model identifier as used by the provider",
+          "examples": ["claude-sonnet-4-6", "claude-haiku-4-5-20251001", "gpt-4o", "llama3.3"]
+        },
+        "hint": {
+          "type": "string",
+          "enum": ["haiku", "sonnet", "opus"],
+          "description": "Capability tier hint for routing — independent of exact model version"
+        },
+        "contextWindow": {
+          "type": "integer",
+          "description": "Maximum context window in tokens",
+          "minimum": 1024
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "description": "Declared capabilities of the agent",
+      "additionalProperties": false,
+      "properties": {
+        "domains": {
+          "type": "array",
+          "description": "High-level domain tags for discovery (e.g., 'research', 'code', 'data')",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          },
+          "uniqueItems": true,
+          "examples": [["research", "documentation"], ["code", "review", "security"]]
+        },
+        "inputTypes": {
+          "type": "array",
+          "description": "Accepted input media types",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["text/plain", "text/markdown", "application/json"]]
+        },
+        "outputTypes": {
+          "type": "array",
+          "description": "Produced output media types",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["text/markdown", "application/json"]]
+        },
+        "maxConcurrency": {
+          "type": "integer",
+          "description": "Maximum parallel tasks this agent can handle",
+          "minimum": 1,
+          "default": 1
+        },
+        "streaming": {
+          "type": "boolean",
+          "description": "Whether the agent supports streaming responses",
+          "default": false
+        },
+        "async": {
+          "type": "boolean",
+          "description": "Whether the agent supports fire-and-forget async invocation",
+          "default": true
+        }
+      }
+    },
+    "tools": {
+      "type": "array",
+      "description": "MCP tools or built-in tools this agent has access to",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Tool identifier",
+            "examples": ["bash", "read", "write", "web_search", "mcp_playwright"]
+          },
+          "type": {
+            "type": "string",
+            "enum": ["builtin", "mcp", "function"],
+            "description": "Tool origin type",
+            "default": "builtin"
+          },
+          "mcpServer": {
+            "type": "string",
+            "description": "MCP server name if tool type is 'mcp'"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description of what this tool does for this agent"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["idle", "running", "busy", "error", "offline", "terminated"],
+      "description": "Current runtime status of the agent",
+      "default": "idle"
+    },
+    "endpoint": {
+      "type": "object",
+      "description": "How to reach or invoke this agent",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["tmux", "http", "sse", "stdio", "queue"],
+          "description": "Transport protocol for agent communication"
+        },
+        "address": {
+          "type": "string",
+          "description": "Connection address — tmux session name, URL, queue name, etc.",
+          "examples": ["oa-research-agent-registry", "http://localhost:3100/agent", "agent-queue-001"]
+        },
+        "pid": {
+          "type": "integer",
+          "description": "OS process ID (for local agents)",
+          "minimum": 1
+        },
+        "workdir": {
+          "type": "string",
+          "description": "Absolute path to agent working directory"
+        }
+      }
+    },
+    "parent": {
+      "type": "string",
+      "description": "ID of the parent agent that spawned this agent (for hierarchy tracking)",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+    },
+    "tags": {
+      "type": "array",
+      "description": "Arbitrary metadata tags for filtering and grouping",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Extensible key-value metadata (arbitrary provider-specific data)",
+      "additionalProperties": true
+    },
+    "timestamps": {
+      "type": "object",
+      "description": "Lifecycle timestamps (ISO 8601)",
+      "additionalProperties": false,
+      "properties": {
+        "registered": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the agent was registered"
+        },
+        "started": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the agent started running"
+        },
+        "lastSeen": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last heartbeat or activity timestamp"
+        },
+        "terminated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the agent terminated"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "id": "research-agent-registry",
+      "name": "Research Agent: Agent Registry",
+      "description": "Researches and documents Agent Registry & Discovery patterns for Open-Agents #50",
+      "version": "1.0.0",
+      "model": {
+        "provider": "anthropic",
+        "id": "claude-sonnet-4-6",
+        "hint": "sonnet",
+        "contextWindow": 200000
+      },
+      "capabilities": {
+        "domains": ["research", "documentation"],
+        "inputTypes": ["text/plain"],
+        "outputTypes": ["text/markdown", "application/json"],
+        "maxConcurrency": 1,
+        "streaming": false,
+        "async": true
+      },
+      "tools": [
+        { "name": "bash", "type": "builtin" },
+        { "name": "read", "type": "builtin" },
+        { "name": "write", "type": "builtin" },
+        { "name": "web_search", "type": "builtin" }
+      ],
+      "status": "running",
+      "endpoint": {
+        "type": "tmux",
+        "address": "oa-research-agent-registry",
+        "workdir": "/tmp/oa-agent-thurgyhc"
+      },
+      "parent": "orchestrator",
+      "tags": ["issue-50", "research", "2026-03"],
+      "timestamps": {
+        "registered": "2026-03-11T09:00:00Z",
+        "started": "2026-03-11T09:00:05Z",
+        "lastSeen": "2026-03-11T09:05:00Z"
+      }
+    }
+  ]
+}

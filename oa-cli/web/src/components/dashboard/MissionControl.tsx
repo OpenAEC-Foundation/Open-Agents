@@ -246,8 +246,9 @@ function SectionHeader({ label, count, color }: { label: string; count: number; 
 }
 
 // --- Main ---
-export function MissionControl() {
-  const agents = useAgentStore((s) => s.agents);
+export function MissionControl({ filteredAgents }: { filteredAgents?: { name: string; status: string; model: string; task: string; created_at: number; finished_at: number | null; parent: string | null; depth: number; unread_messages?: number }[] }) {
+  const allAgents = useAgentStore((s) => s.agents);
+  const agents = filteredAgents ?? allAgents;
   const selectedAgent = useAgentStore((s) => s.selectedAgent);
   const selectAgent = useAgentStore((s) => s.selectAgent);
   const sessionStart = useUIStore((s) => s.sessionStart);

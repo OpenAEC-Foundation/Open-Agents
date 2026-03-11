@@ -125,6 +125,15 @@ def claim_task(team: str, task_id: str, agent_name: str) -> dict:
                 raise ValueError(
                     f"Task '{task_id}' cannot be claimed (status: {task['status']})"
                 )
+            # Reject if any blocker is not completed
+            for blocker_id in task.get("blocked_by", []):
+                blocker_path = _task_path(team, blocker_id)
+                if blocker_path.exists():
+                    blocker = _read_task(blocker_path)
+                    if blocker.get("status") != "completed":
+                        raise ValueError(
+                            f"Task '{task_id}' is blocked by '{blocker_id}' (status: {blocker.get('status', 'unknown')})"
+                        )
             task["status"] = "in_progress"
             task["assigned_to"] = agent_name
             task["updated_at"] = time.time()
@@ -159,6 +168,7 @@ def complete_task(team: str, task_id: str) -> dict:
                     dep_task["updated_at"] = time.time()
                     if not dep_task["blocked_by"] and dep_task["status"] == "blocked":
                         dep_task["status"] = "pending"
+                        print(f"Task {dep_task['id']} unblocked")
                     _write_task(json_file, dep_task)
             except Exception:
                 continue

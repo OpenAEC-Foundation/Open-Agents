@@ -316,6 +316,26 @@ def api_session_status():
     return jsonify({"exists": session_exists()})
 
 
+@app.route("/api/session/stop", methods=["POST"])
+@require_auth
+def api_stop_session():
+    """Stop the oa session."""
+    result = subprocess.run(
+        ["oa", "stop"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return jsonify({"error": result.stderr.strip() or "oa stop failed"}), 500
+    return jsonify({"status": "stopped"})
+
+
+@app.route("/api/session/cost")
+def api_session_cost():
+    """Return session cost (telemetry placeholder — sprint 22)."""
+    return jsonify({"tokens_used": 0, "cost_usd": 0.0})
+
+
 # --- Guardians endpoint ---
 
 
@@ -385,6 +405,45 @@ def api_list_pipelines():
         if rec.name.startswith("pipe-")
     ]
     return jsonify(pipeline_agents)
+
+
+@app.route("/api/pipeline", methods=["POST"])
+@require_auth
+def api_start_pipeline():
+    """Start an oa pipeline via subprocess, return {pipeline_id, status}."""
+    data = request.get_json()
+    if not data or "task" not in data:
+        return jsonify({"error": "Missing 'task' field"}), 400
+    task = data["task"]
+    pipeline_id = f"pipe-{int(time.time())}"
+    try:
+        subprocess.Popen(
+            ["oa", "pipeline", task, "--name", pipeline_id],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        return jsonify({"pipeline_id": pipeline_id, "status": "started"}), 201
+    except FileNotFoundError:
+        return jsonify({"error": "oa CLI not found in PATH"}), 500
+
+
+@app.route("/api/pipeline/<pipeline_id>/status")
+def api_pipeline_status(pipeline_id: str):
+    """Return the status of all agents belonging to a pipeline."""
+    agents = list_agents()
+    related = [
+        _agent_to_dict(rec)
+        for rec in agents
+        if rec.name.startswith(pipeline_id) or rec.name.startswith("pipe-")
+    ]
+    statuses = [a["status"] for a in related]
+    overall = (
+        "running" if "running" in statuses
+        else "done" if statuses and all(s == "done" for s in statuses)
+        else "failed" if "failed" in statuses or "error" in statuses
+        else "unknown"
+    )
+    return jsonify({"pipeline_id": pipeline_id, "status": overall, "agents": related})
 
 
 @app.route("/api/run", methods=["POST"])
@@ -541,6 +600,29 @@ def api_delete_team(name: str):
     if not deleted:
         return jsonify({"error": f"Team '{name}' not found"}), 404
     return jsonify({"deleted": name})
+
+
+@app.route("/api/teams/<name>/broadcast", methods=["POST"])
+@require_auth
+def api_team_broadcast(name: str):
+    """Broadcast a message to all agents in a team via oa broadcast."""
+    if not _teams_ok:
+        return jsonify({"error": "teams module not available"}), 501
+    if get_team(name) is None:
+        return jsonify({"error": f"Team '{name}' not found"}), 404
+    data = request.get_json() or {}
+    content = data.get("content")
+    if not content:
+        return jsonify({"error": "Missing 'content' field"}), 400
+    sender = data.get("from", f"team-{name}")
+    result = subprocess.run(
+        ["oa", "broadcast", content, "--from", sender],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return jsonify({"error": result.stderr.strip() or "broadcast failed"}), 500
+    return jsonify({"status": "broadcast", "team": name, "from": sender})
 
 
 @app.route("/api/teams/<name>/tasks")

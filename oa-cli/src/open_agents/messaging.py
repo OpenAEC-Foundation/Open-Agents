@@ -276,6 +276,38 @@ def shutdown_reject(agent_name: str, sender: str = "system", reason: str = "") -
     )
 
 
+def request_shutdown(agent_name: str, reason: str, sender: str = "system") -> Path:
+    """Send a graceful shutdown request to an agent with an explicit reason."""
+    content = f"Shutdown requested. Reason: {reason}" if reason else "Shutdown requested."
+    return send_message(
+        sender=sender,
+        recipient=agent_name,
+        content=content,
+        metadata={"type": "shutdown_request", "reason": reason},
+    )
+
+
+def approve_shutdown(agent_name: str, sender: str = "system") -> Path:
+    """Send a shutdown approval — agent agrees to shut down gracefully."""
+    return send_message(
+        sender=sender,
+        recipient=agent_name,
+        content="Shutdown approved. Agent will exit gracefully.",
+        metadata={"type": "shutdown_approved"},
+    )
+
+
+def reject_shutdown(agent_name: str, reason: str, sender: str = "system") -> Path:
+    """Send a shutdown rejection — agent refuses to stop right now."""
+    content = f"Shutdown rejected. Reason: {reason}" if reason else "Shutdown rejected."
+    return send_message(
+        sender=sender,
+        recipient=agent_name,
+        content=content,
+        metadata={"type": "shutdown_rejected", "reason": reason},
+    )
+
+
 def poll_shutdown_response(
     agent_name: str,
     timeout: float = 30.0,
@@ -298,9 +330,9 @@ def poll_shutdown_response(
         messages = read_inbox(agent_name, unread_only=True)
         for msg in messages:
             msg_type = (msg.get("metadata") or {}).get("type", "")
-            if msg_type == "shutdown_approve":
+            if msg_type in ("shutdown_approve", "shutdown_approved"):
                 return "approve"
-            if msg_type == "shutdown_reject":
+            if msg_type in ("shutdown_reject", "shutdown_rejected"):
                 return "reject"
         time.sleep(poll_interval)
     return None
