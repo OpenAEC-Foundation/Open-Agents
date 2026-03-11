@@ -83,6 +83,12 @@ try:
 except ImportError:
     _terminal_available = False
 
+try:
+    from .a2a_adapter import a2a_bp
+    _a2a_available = True
+except ImportError:
+    _a2a_available = False
+
 # Resolve the web/dist directory (built React SPA)
 WEB_DIR = Path(__file__).parent.parent.parent / "web" / "dist"
 
@@ -91,6 +97,10 @@ app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path="")
 # Register WebSocket terminal routes (requires flask-sock + ptyprocess)
 if _terminal_available:
     register_terminal_routes(app)
+
+# Register A2A protocol adapter routes (/a2a/*)
+if _a2a_available:
+    app.register_blueprint(a2a_bp)
 
 CORS(app,
      origins=["http://localhost:5173", "http://127.0.0.1:5173",
@@ -416,6 +426,18 @@ def api_get_auth_token():
 def api_health():
     """Health check endpoint."""
     return jsonify({"status": "ok"})
+
+
+# --- A2A well-known endpoint (spec requires /.well-known/agent.json) ---
+
+
+@app.route("/.well-known/agent.json")
+def well_known_agent_card():
+    """Serve the A2A Agent Card at the spec-required well-known URL."""
+    if _a2a_available:
+        from .a2a_adapter import _build_agent_card
+        return jsonify(_build_agent_card())
+    return jsonify({"error": "A2A adapter not available"}), 501
 
 
 @app.route("/api/pipeline")
