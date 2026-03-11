@@ -201,6 +201,18 @@ export function AgentPanel() {
             <div className="text-xs uppercase font-semibold tracking-wider mb-1" style={{ color: 'var(--color-oa-text-dim)' }}>Task</div>
             <div className="text-xs leading-relaxed" style={{ color: 'var(--color-oa-text)' }}>{agent.task}</div>
           </div>
+          {agent.remote_host && (
+            <div>
+              <div className="text-xs uppercase font-semibold tracking-wider mb-1" style={{ color: '#f59e0b' }}>Machine</div>
+              <div
+                className="text-[11px] font-mono px-2 py-1 rounded inline-flex items-center gap-1.5"
+                style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.25)' }}
+              >
+                <span>⬡</span>
+                <span>{agent.remote_host}</span>
+              </div>
+            </div>
+          )}
           <div>
             <div className="text-xs uppercase font-semibold tracking-wider mb-1" style={{ color: 'var(--color-oa-text-dim)' }}>Workspace</div>
             <div className="text-[10px] font-mono break-all" style={{ color: 'var(--color-oa-text-muted)' }}>{agent.workspace}</div>

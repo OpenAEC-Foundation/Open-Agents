@@ -94,7 +94,7 @@ function TableHeader() {
     <div
       className="grid items-center px-4 py-2 sticky top-0 z-10"
       style={{
-        gridTemplateColumns: '8px 1fr 80px 64px 260px 56px',
+        gridTemplateColumns: '8px 1fr 80px 64px 80px 200px 56px',
         gap: '12px',
         background: 'var(--color-oa-bg)',
         borderBottom: '1px solid var(--color-oa-border)',
@@ -110,6 +110,9 @@ function TableHeader() {
       <span className="text-[9px] font-bold tracking-[0.18em] uppercase" style={{ color: 'var(--color-oa-text-dim)' }}>
         Duration
       </span>
+      <span className="text-[9px] font-bold tracking-[0.18em] uppercase" style={{ color: '#f59e0b' }}>
+        Machine
+      </span>
       <span className="text-[9px] font-bold tracking-[0.18em] uppercase hidden sm:block" style={{ color: 'var(--color-oa-text-dim)' }}>
         Task
       </span>
@@ -124,7 +127,7 @@ function AgentRow({
   selected,
   onSelect,
 }: {
-  agent: { name: string; status: string; model: string; task: string; created_at: number; finished_at: number | null; parent: string | null; depth: number; unread_messages?: number };
+  agent: { name: string; status: string; model: string; task: string; created_at: number; finished_at: number | null; parent: string | null; depth: number; unread_messages?: number; remote_host?: string | null };
   selected: boolean;
   onSelect: (name: string) => void;
 }) {
@@ -157,7 +160,7 @@ function AgentRow({
       onKeyDown={(e) => e.key === 'Enter' && onSelect(agent.name)}
       className="grid items-center px-4 py-2.5 cursor-pointer transition-all"
       style={{
-        gridTemplateColumns: '8px 1fr 80px 64px 260px 56px',
+        gridTemplateColumns: '8px 1fr 80px 64px 80px 200px 56px',
         gap: '12px',
         background: selected ? 'color-mix(in srgb, var(--color-oa-accent) 8%, transparent)' : 'transparent',
         borderLeft: `3px solid ${selected ? 'var(--color-oa-accent)' : 'transparent'}`,
@@ -211,6 +214,24 @@ function AgentRow({
         {duration}
       </span>
 
+      {/* Machine */}
+      {agent.remote_host ? (
+        <span
+          className="text-[9px] font-mono px-1.5 py-0.5 rounded truncate"
+          style={{ background: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.25)' }}
+          title={agent.remote_host}
+        >
+          ⬡ {agent.remote_host}
+        </span>
+      ) : (
+        <span
+          className="text-[9px] font-mono px-1.5 py-0.5 rounded"
+          style={{ color: 'var(--color-oa-text-dim)', background: 'var(--color-oa-border)' }}
+        >
+          local
+        </span>
+      )}
+
       {/* Task */}
       <span
         className="text-[11px] truncate hidden sm:block"
@@ -256,7 +277,7 @@ function SectionHeader({ label, count, color }: { label: string; count: number; 
 }
 
 // --- Main ---
-type AgentRow = { name: string; status: string; model: string; task: string; created_at: number; finished_at: number | null; parent: string | null; depth: number; unread_messages?: number };
+type AgentRow = { name: string; status: string; model: string; task: string; created_at: number; finished_at: number | null; parent: string | null; depth: number; unread_messages?: number; remote_host?: string | null };
 
 export function MissionControl({ filteredAgents }: { filteredAgents?: AgentRow[] }) {
   const allAgents = useAgentStore((s) => s.agents);

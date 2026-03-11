@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-11
-> **Status**: v0.2.0 released — Sprint 13-15 Done — Sprint 16 (A2A) In Progress — Sprint 17 (Agent Teams) Done — Sprint 18 (Dashboard UI) Done — Sprint 19 (Session Persistence) Done — Sprint 20 (Desktop+Web) In Progress — Sprint 21 (oa-cli Product) Done — Sprint 22 (Quality Gates) Done — Sprint 23-26 Done — Agent Library: 1580+ templates (106 categories) — 22 skills gebouwd
+> **Laatste update**: 2026-03-11 (session-guardian)
+> **Status**: v0.3.1 released — Sprint 13-15 Done — Sprint 16-26 Done — Feedback Loop Live — Doc Guardian Ready — MkDocs Site Ready — Agent Library: 1612+ templates (109 categories) — 22 skills gebouwd
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -233,7 +233,7 @@
 - [ ] MCP tool auto-generatie pipeline verbinden met VS Code extension (D-031) → v0.2.0
 - [ ] Non-Claude runtime tool use support (D-032 PoC beperking opheffen) → v0.2.0
 - [ ] Test suite verdere uitbreiding (execution engine state machine, frontend components) → v0.2.0
-- [ ] API documentatie (OpenAPI/Swagger) → v0.2.0
+- [x] API documentatie (OpenAPI/Swagger) → v0.2.0
 
 ---
 

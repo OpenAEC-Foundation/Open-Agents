@@ -275,4 +275,9 @@
 |---|-----|---------|
 | L-069 | **LiteLLM is de unified model gateway voor gemengde agent-bomen — niet alleen een provider-mixer** — Initiële inschatting was dat LiteLLM weinig waarde toevoegt in een 100% lokale setup. Correctie: LiteLLM is essentieel zodra oa-cli agents draaien op lokale modellen naast Claude-agents. Het normaliseert Ollama, Groq, OpenAI en lokale backends naar één OpenAI-compatibel endpoint op :4000. Agents hoeven geen provider-specifiek formaat te kennen. | 2026-03-11: gebruiker wees op oa-cli tmux-architectuur — agents kunnen op elk model draaien. LiteLLM maakt mixed-provider agent-bomen mogelijk: claude/opus voor redenering, local/qwen14b voor batch, groq/mixtral voor snelheid — allemaal via dezelfde orchestratielaag. |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-070, L-071, etc.*
+
+| L-070 | **Feedback loop werkt via `oa send meta` — agents rapporteren terug naar spawner.** | Session-guardian agents gebruiken `oa send meta` om status updates te sturen. Meta-orchestrator ontvangen deze via `oa inbox meta`. Dit sluit de feedback loop tussen spawner en child-agents. |
+| L-071 | **Doc Guardian pattern: dedicated agent voor alle publieke docs + release notes.** | Een aparte agent (doc-guardian.json template) is verantwoordelijk voor LESSONS.md, HANDOFF, ROADMAP updates en release notes generatie. Trigger: `oa guardian release --tag vX.Y.Z`. Decouples doc-writing van andere werk. |
+| L-072 | **GitHub Pages via MkDocs Material — deploy via gh-pages branch, workflow via CI/CD.** | Docs site (11 pagina's, amber theme) gehost op GitHub Pages. Workflow (.github/workflows/docs.yml) auto-triggers op push/release/dispatch. OpenAPI 3.1.0 spec + Markdown API reference inbegrepen. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-073, L-074, etc.*
