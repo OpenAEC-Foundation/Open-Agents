@@ -422,9 +422,65 @@ def start(
     except Exception:
         pass
 
+    # Auto-update skill packages in background (non-blocking)
+    try:
+        _skill_update_background()
+    except Exception:
+        pass  # Non-critical
+
     if chat:
         from .chat import ChatSession
         ChatSession().start()
+
+
+def _skill_update_background() -> None:
+    """Run oa skill update in background at session start.
+
+    Uses threading so it never blocks the session start flow.
+    Only runs if ~/.oa/skill-registry.json has git-backed packages.
+    Respects a cooldown: skips if last update was <6 hours ago.
+    """
+    import threading
+    import time
+    import json as _json
+    from .skill_registry import REGISTRY_PATH
+
+    if not REGISTRY_PATH.exists():
+        return
+
+    cooldown_file = Path.home() / ".oa" / ".skill-update-ts"
+    now = time.time()
+    if cooldown_file.exists():
+        try:
+            last = float(cooldown_file.read_text().strip())
+            if now - last < 6 * 3600:  # 6 hour cooldown
+                return
+        except Exception:
+            pass
+
+    def _run():
+        import subprocess
+        import shutil
+        try:
+            registry = _json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+            packages = registry.get("packages", [])
+            updated = 0
+            for pkg in packages:
+                pkg_path = Path(pkg.get("path", ""))
+                if pkg_path.exists() and (pkg_path / ".git").exists() and shutil.which("git"):
+                    result = subprocess.run(
+                        ["git", "pull", "--ff-only", "-q"],
+                        cwd=pkg_path, capture_output=True, text=True,
+                    )
+                    if result.returncode == 0:
+                        updated += 1
+            cooldown_file.write_text(str(now))
+        except Exception:
+            pass
+
+    thread = threading.Thread(target=_run, daemon=True)
+    thread.start()
+    thread.join(timeout=0.1)  # Don't block — fire and forget
 
 
 def _format_resume_banner(latest, info: dict) -> str:
