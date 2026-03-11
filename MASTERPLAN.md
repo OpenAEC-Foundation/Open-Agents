@@ -39,6 +39,7 @@
 | 18 | Dashboard UI & CSS Design Tokens | React web UI refactor: design tokens, ErrorBoundary, ToastProvider, PipelinePanel, TaskBoard | Sprint 12 | In Progress (80%) |
 | 19 | Session Persistence | Automatische sessie-herstel: session store, guardian daemon, resume flow, notifications | Sprint 12, 17 | Done |
 | 20 | Desktop + Web App | Web-first: xterm.js terminal, Tauri desktop wrapper, shared codebase | Sprint 12, Sprint 15 | Planned |
+| 21 | oa-cli als Product | Web UI Command Centre (F1/F2/F3), oa MCP Server, packaging, onboarding | Sprint 12, 17, 18 | Planned |
 | 22 | Self-Improvement Foundation | Telemetrie, hooks, context tracking, kwaliteits-gates | Sprint 12 | Planned |
 | 22b | Remote Execution (LOW PRIO) | Agents op remote GPU servers (Ollama) | Sprint 22, Sprint 12 | Planned |
 | 23 | Self-Improvement Automation | Kennisaccumulatie automatiseren op basis van telemetrie | Sprint 22 | Planned |
@@ -63,11 +64,12 @@ Sprint 10 (Refactor) start NA voltooiing van Sprint 1-9
 
 ── oa-cli tak (parallel aan packages/ tak) ──────────────────────────────────
 Sprint 12 (oa-cli) ──→ Sprint 17 (Agent Teams) ──→ Sprint 19 (Session Persistence) ✅
-                   ├──→ Sprint 18 (Dashboard UI)
+                   ├──→ Sprint 18 (Dashboard UI) ──→ Sprint 21 (oa-cli als Product)
                    ├──→ Sprint 15 (packages/ convergentie) ──→ Sprint 20 (Desktop+Web)
                    ├──→ Sprint 11 (VS Code Bridge, packages/ tak)
                    └──→ Sprint 22 (Self-Improvement) ──→ Sprint 23 (Automation) ──→ Sprint 24 (Meta-Agent)
-                        ├──→ Sprint 22b (Remote Execution)         └──→ Sprint 25 (Analytics)
+                        ├──→ Sprint 21 (MCP Server)                └──→ Sprint 25 (Analytics)
+                        └──→ Sprint 22b (Remote Execution)
 
 Sprint 6a-6c is de Semantische Laag (packages/):
   6a: Knowledge Base (FR-16) — kennisbibliotheek + snippet engine
@@ -100,6 +102,39 @@ Sprint 6a-6c is de Semantische Laag (packages/):
 - Elke sprint heeft een **GitHub afsluiting** subsectie bij de relevante fase
 - Bij meerdere issues in één fix: sluit ze samen met cross-referentie
 - Bij gedeeltelijke implementatie: comment met voortgang, laat open
+
+---
+
+## Product North Star
+
+> **Definitie**: Wat is Open-Agents als product wanneer het "klaar" is?
+
+Open-Agents is een **installeerbaar, zelflerend multi-agent platform** dat je via drie interfaces aanstuurt:
+
+| Interface | Beschrijving | Sprint |
+|-----------|-------------|--------|
+| **CLI** | `oa run`, `oa pipeline`, `oa status` — razendsnel via terminal | Done (Sprint 12) |
+| **Web UI** | Command Centre op `localhost:5174` — visueel overzicht + management | Sprint 18/21 |
+| **MCP** | Directe aansturing vanuit Claude Code via `mcp__open-agents__*` tools | Sprint 21 |
+| **Desktop** | Tauri wrapper rond web UI — native app, geen browser nodig | Sprint 20 |
+
+### Versie-mijlpalen
+
+| Versie | Wanneer klaar | Wat is erin |
+|--------|:-------------:|-------------|
+| **v0.2.x** | Nu | oa-cli werkend, Agent Teams, Session Persistence, Dashboard basis |
+| **v0.3.0** | Sprint 18/21 Done | Web Command Centre volledig, oa MCP Server, PyPI packaging |
+| **v0.4.0** | Sprint 22 Done | Telemetrie, hooks, kwaliteits-gates, self-improvement fundament |
+| **v1.0.0** | Sprint 23-24 Done | Volledig zelflerend platform met meta-agent |
+
+### Definitie van "applicatie" (oa-cli)
+
+De oa-cli web UI (`oa-cli/web/`) is de primaire grafische interface. Een gebruiker kan:
+1. `pip install open-agents-cli` of `curl -sSf https://get.open-agents.dev | sh`
+2. `oa setup` (wizard: API keys, tmux check, eerste agent)
+3. `oa web` → browser opent op `localhost:5174` → Command Centre
+
+De web UI is **feature-pariteit met CLI** (Sprint 18/21 F1) + **UI-exclusieve features** (Sprint 21 F2/F3).
 
 ---
 
@@ -2147,6 +2182,226 @@ React (shared codebase)
 - [ ] `[SEQ]` T20.7 — Agent dashboard embedded als React componenten (na T20.6)
 - [ ] `[PAR]` T20.8 — Hosted deployment via Docker Compose
 - [ ] `[PAR]` T20.9 — Desktop CI/CD builds (Windows/macOS/Linux)
+
+---
+
+## Sprint 21: oa-cli als Product
+
+**Status**: Planned
+**Doel**: oa-cli ombouwen van developer tool naar installeerbaar product. Web UI naar Command Centre, oa MCP Server, packaging en onboarding.
+**Afhankelijk van**: Sprint 12 (oa-cli), Sprint 17 (Agent Teams), Sprint 18 (Dashboard basis)
+**Beslissingen**: D-050 (React SPA), D-048 (3 interfaces)
+
+### Fase 21.1: Web UI Command Centre — F1 Must-Have MVP
+
+> **Prompt**:
+> ```
+> Je bent de React-developer van oa-cli web UI (oa-cli/web/).
+> Lees de bestaande componenten in oa-cli/web/src/ en de bridge API in oa-cli/src/open_agents/bridge.py.
+>
+> Implementeer de F1 must-have MVP features (Web UI Sprint Plan fase 1):
+>
+> F1-01: Error boundaries + error state in agentStore (Zustand)
+> F1-02: Toast notificaties via sonner package
+> F1-03: Type-safe API client (vervang alle `unknown` types door proper interfaces)
+> F1-04: Pause/Resume knoppen in AgentDetail panel + /api/agents/<name>/pause + /resume endpoints
+> F1-05: Broadcast UI — BroadcastButton + modal → POST /api/broadcast
+> F1-06: Mark-read bij messages openen in MessagesTab
+> F1-07: Terminal output via xterm.js (@xterm/xterm) — embed tmux pane output
+> F1-08: Hover action bar op KanbanBoard (kill, collect, attach knoppen)
+> F1-09: StatsHeader component (running/done/failed/error tellers bovenaan dashboard)
+> F1-10: Zoek/filter agents in Dashboard (zoekbalk, status filter dropdown)
+> F1-11: SpawnForm uitbreiden met max_children en --guardians flag
+> F1-12: messagingStore aanmaken (Zustand) — laadt inbox/messages voor actieve agent
+>
+> Schrijf naar: oa-cli/web/src/
+> Voeg nieuwe npm packages toe aan oa-cli/web/package.json: sonner, @xterm/xterm, @xterm/addon-fit, @xterm/addon-web-links
+> Voeg bridge endpoints toe aan oa-cli/src/open_agents/bridge.py waar nodig.
+> Alle nieuwe TypeScript types in oa-cli/web/src/api/types.ts
+> ```
+
+**Taken F1:**
+- [ ] `[PAR]` F1-01 — ErrorBoundary.tsx + error state in agentStore
+- [ ] `[PAR]` F1-02 — sonner toast notificaties (vervang ad-hoc alerts)
+- [ ] `[PAR]` F1-03 — Type-safe API client (oa-cli/web/src/api/client.ts)
+- [ ] `[PAR]` F1-04 — Pause/Resume in AgentDetail + bridge endpoints
+- [ ] `[PAR]` F1-05 — BroadcastButton + modal component
+- [ ] `[PAR]` F1-06 — Mark-read logica in MessagesTab
+- [ ] `[SEQ]` F1-07 — xterm.js Terminal component (na F1-03 types)
+- [ ] `[PAR]` F1-08 — KanbanBoard hover action bar
+- [ ] `[PAR]` F1-09 — StatsHeader component
+- [ ] `[PAR]` F1-10 — Zoek/filter agents in DashboardTab
+- [ ] `[PAR]` F1-11 — SpawnForm uitbreiden
+- [ ] `[PAR]` F1-12 — messagingStore (Zustand)
+
+### Fase 21.2: Web UI Command Centre — F2 Power Features
+
+> **Prompt**:
+> ```
+> Bouw de F2 power features die de web UI superieur maken aan de CLI.
+>
+> F2-01: Command Palette (Ctrl+K) via cmdk package — alle oa commando's als fuzzy search
+> F2-02: Keyboard shortcuts overlay (? toets) + react-hotkeys-hook
+> F2-03: Pipeline tab — visuele trigger UI + live status polling via /api/pipeline/<id>/status
+> F2-04: TaskBoard in Teams tab — 4-koloms kanban (todo/claimed/in_progress/done) + /api/tasks/<team>/<id>/claim
+> F2-05: Checkpoint panel + oa resume UI — /api/checkpoint + /api/session/resume
+> F2-06: Messages tab — centraal berichtenoverzicht alle agents
+> F2-07: Template create/edit modal in Templates tab
+> F2-08: Resizable panels (react-resizable-panels) voor detail/main split
+> F2-09: Session status indicator in StatsHeader (actieve sessie, uptime)
+> F2-10: GuardianPanel — polling + register guardian UI (/api/guardians/register)
+> F2-11: Team member remove + team broadcast (/api/teams/<name>/members/<agent> DELETE)
+> F2-12: SSE reconnect met exponential backoff
+>
+> Voeg bridge endpoints toe: /api/pipeline (POST), /api/pipeline/<id>/status (GET),
+> /api/session/stop (POST), /api/agents/<name>/retry (POST), /api/tasks/<team>/<id>/claim (POST),
+> /api/tasks/<team>/<id>/complete (POST), /api/session/cost (GET),
+> /api/teams/<name>/members/<agent> (DELETE), /api/teams/<name>/broadcast (POST),
+> /api/guardians/register (POST), /api/delegate (POST)
+> ```
+
+**Taken F2:**
+- [ ] `[SEQ]` F2-01 — Command Palette (cmdk) + alle oa acties als commands
+- [ ] `[PAR]` F2-02 — Keyboard shortcuts + help overlay
+- [ ] `[SEQ]` F2-03 — Pipeline tab: trigger + live status (na bridge endpoints)
+- [ ] `[SEQ]` F2-04 — TaskBoard teams tab (na F2-03 bridge)
+- [ ] `[PAR]` F2-05 — Checkpoint panel + resume UI
+- [ ] `[PAR]` F2-06 — Messages tab centraal overzicht
+- [ ] `[PAR]` F2-07 — Template create/edit modal
+- [ ] `[PAR]` F2-08 — Resizable panels
+- [ ] `[PAR]` F2-09 — Session indicator in StatsHeader
+- [ ] `[PAR]` F2-10 — GuardianPanel
+- [ ] `[PAR]` F2-11 — Team member management
+- [ ] `[PAR]` F2-12 — SSE reconnect logica
+- [ ] `[SEQ]` Bridge endpoints toevoegen in bridge.py (alle F2 endpoints)
+
+### Fase 21.3: oa MCP Server
+
+**Doel**: Claude Code kan oa-cli direct aansturen via MCP tools. Dit sluit de loop: meta-orchestrator (Claude) → MCP → oa-cli → agents.
+
+> **Prompt**:
+> ```
+> Bouw een MCP server voor oa-cli die Claude Code native toegang geeft tot agent management.
+>
+> Locatie: oa-cli/src/open_agents/mcp_server.py (FastMCP)
+> Registratie: oa-cli/.mcp.json (project-level MCP config)
+>
+> MCP tools implementeren:
+>
+> 1. create_agent(task: str, name: str, model: str, direct: bool) → AgentRecord
+>    - Roept oa run aan via subprocess
+>    - Returns: agent_id, status, workspace_path
+>
+> 2. list_agents(status_filter: str | None) → list[AgentRecord]
+>    - Leest ~/.oa/agents.json
+>    - Filter op status: running/done/failed/all
+>
+> 3. get_agent_status(name: str) → AgentRecord
+>    - Details van één agent
+>
+> 4. collect_output(name: str) → str
+>    - Leest output/result.md uit agent workspace
+>    - Returns: volledige tekst content
+>
+> 5. kill_agent(name: str) → bool
+>    - Stop agent via oa kill
+>
+> 6. send_message(to: str, message: str, from_agent: str) → bool
+>    - Inter-agent messaging via messaging.py
+>
+> 7. run_pipeline(task: str, name: str) → PipelineRecord
+>    - Start oa pipeline
+>
+> 8. get_canvas_state() → CanvasState
+>    - Overzicht van alle actieve agents als canvas-achtige structuur
+>
+> 9. update_canvas(agent_configs: list[AgentConfig]) → bool
+>    - Spawn meerdere agents tegelijk vanuit canvas config
+>
+> 10. list_templates() → list[Template]
+>     - Geeft alle agent templates terug uit agents/library/
+>
+> 11. run_flow(flow_name: str, input: str) → FlowResult
+>     - Voert een gedefinieerde flow template uit
+>
+> Gebruik FastMCP (Python). Start server via: uvicorn open_agents.mcp_server:app
+> Voeg `oa mcp` CLI commando toe dat de MCP server start.
+> Registreer in /mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents/oa-cli/.mcp.json
+>
+> Schrijf naar: oa-cli/src/open_agents/mcp_server.py
+> Update: oa-cli/pyproject.toml (FastMCP dependency), oa-cli/src/open_agents/cli.py (oa mcp commando)
+> ```
+
+**Taken:**
+- [ ] `[SEQ]` `mcp_server.py` — FastMCP server met 11 tools
+- [ ] `[PAR]` `oa mcp` CLI commando in cli.py
+- [ ] `[PAR]` FastMCP dependency in pyproject.toml
+- [ ] `[PAR]` `.mcp.json` in oa-cli/ directory
+- [ ] `[SEQ]` E2E test: Claude Code roept `mcp__open-agents__create_agent` aan → agent spawnt in tmux
+
+### Fase 21.4: Packaging & Distribution
+
+**Doel**: oa-cli installeerbaar maken voor eindgebruikers zonder Python-kennis.
+
+> **Prompt**:
+> ```
+> Maak oa-cli distribueerbaar als productkwaliteit Python package.
+>
+> 1. PyPI package configuratie:
+>    - Hernoem project naar `open-agents-cli` in pyproject.toml
+>    - Voeg classifiers, keywords, project.urls toe
+>    - README.md als long_description
+>    - GitHub Actions workflow: .github/workflows/pypi-release.yml
+>      (trigger: tag push vX.X.X → build → twine upload)
+>
+> 2. One-liner install script: scripts/install.sh
+>    - Detecteert OS (Ubuntu, macOS, WSL)
+>    - Installeert Python 3.10+ als niet aanwezig
+>    - Installeert tmux als niet aanwezig
+>    - pip install open-agents-cli
+>    - Toont `oa setup` instructie
+>
+> 3. `oa setup` wizard (cli.py commando):
+>    - Stap 1: Check tmux aanwezig
+>    - Stap 2: Check claude CLI aanwezig (vraagt om handmatige installatie als niet)
+>    - Stap 3: Configureer ~/.oa/config.yaml (default model, timeout, max_agents)
+>    - Stap 4: `oa start` uitvoeren
+>    - Stap 5: Toon "Getting Started" tips
+>
+> 4. `oa doctor` commando:
+>    - Check: tmux, claude CLI, Python 3.10+, ~/.oa/ aanwezig
+>    - Toont ✅/❌ per check met fix instructie
+>
+> Schrijf naar: oa-cli/pyproject.toml (update), oa-cli/scripts/install.sh (nieuw),
+> oa-cli/src/open_agents/cli.py (setup + doctor commando's toevoegen)
+> .github/workflows/pypi-release.yml (nieuw)
+> ```
+
+**Taken:**
+- [ ] `[PAR]` PyPI configuratie in pyproject.toml (classifiers, URLs, metadata)
+- [ ] `[PAR]` `scripts/install.sh` — OS-detecterende one-liner installer
+- [ ] `[PAR]` `oa setup` wizard commando in cli.py
+- [ ] `[PAR]` `oa doctor` commando in cli.py
+- [ ] `[SEQ]` `.github/workflows/pypi-release.yml` — auto-publish bij tag
+
+### Acceptatiecriteria Sprint 21
+
+- [ ] `pip install open-agents-cli` werkt vanaf PyPI
+- [ ] `oa setup` begeleidt nieuwe gebruiker in < 2 minuten naar eerste agent
+- [ ] `oa doctor` geeft duidelijke ✅/❌ per dependency check
+- [ ] `oa web` toont Command Centre met StatsHeader, zoekbalk, toast notificaties
+- [ ] Ctrl+K opent command palette met alle oa acties
+- [ ] Pipeline tab toont visuele trigger + live status
+- [ ] Teams tab toont TaskBoard kanban
+- [ ] `oa mcp` start MCP server; Claude Code kan `mcp__open-agents__create_agent` aanroepen
+- [ ] `.mcp.json` in project root → MCP auto-geladen in Claude Code sessie
+
+### GitHub Issues (Sprint 21)
+
+| Issue | Titel | Fase |
+|-------|-------|------|
+| [#55](https://github.com/OpenAEC-Foundation/Open-Agents/issues/55) | Emergent Agent Gedrag & Dispatcher Architectuur | Fase 21.3 (MCP dispatcher) |
+| [#56](https://github.com/OpenAEC-Foundation/Open-Agents/issues/56) | Observability & Logging Multi-Agent | Fase 21.1 (StatsHeader, xterm.js) |
 
 ---
 

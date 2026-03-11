@@ -4,7 +4,7 @@
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
 > **Laatste update**: 2026-03-11
-> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 19 (Session Persistence) Done — Sprint 11 (VS Code Bridge) In Progress — Sprint 17 (Agent Teams) In Progress — Sprint 18 (Dashboard UI) In Progress — Agent Library: 454 templates (32 categories) — 22 skills gebouwd
+> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 19 (Session Persistence) Done — Sprint 11 (VS Code Bridge) In Progress — Sprint 17 (Agent Teams) In Progress — Sprint 18 (Dashboard UI) In Progress — Sprint 21 (oa-cli als Product) Planned — Agent Library: 454 templates (32 categories) — 22 skills gebouwd
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -32,6 +32,7 @@
 | VS Code Bridge (Sprint 11) | 0 | 1 |
 | Agent Teams Patterns (Sprint 17) | 0 | 12 |
 | Session Persistence (Sprint 19) | 1 | 1 |
+| oa-cli als Product (Sprint 21) | 0 | 1 |
 | Desktop + Web App (Sprint 20) | 0 | 1 |
 
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
@@ -51,6 +52,7 @@
 **Fase 11 (Agent Teams Patterns)**: ████████████░░░░░░░░ **58%** - Sprint 17 in progress: task_list.py, teams.py, messaging.py (send/inbox/broadcast werkend), CLI commando's volledig; hooks.py, graceful shutdown, tests, TUI/web views nog open
 **Fase 12 (Dashboard & UI Refactor)**: ████████████████░░░░ **80%** - Sprint 18 in progress: ErrorBoundary + ToastProvider componenten, PipelinePanel (visual trigger + live status), TaskBoard (kanban per team), 11 dashboard componenten refactored met CSS design tokens
 **Fase 13 (Session Persistence)**: ████████████████████ **100%** - session store, guardian daemon, resume flow, notifications
+**Fase 15 (oa-cli als Product)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - Web UI Command Centre (F1/F2/F3), oa MCP Server, PyPI packaging, oa setup wizard
 **Fase 14 (Desktop + Web App)**: ░░░░░░░░░░░░░░░░░░░░ **0%** - Web-first architectuur: xterm.js terminal, Tauri desktop wrapper, gedeelde React codebase
 
 ---
@@ -558,6 +560,47 @@
 - [ ] Agent dashboard in-app: oa status/logs/attach embedded
 - [ ] Hosted deployment: Docker compose voor web versie
 - [ ] Desktop builds: CI/CD voor Windows/macOS/Linux binaries
+
+---
+
+## Sprint 21: oa-cli als Product — Planned
+
+**Doel**: oa-cli ombouwen van developer tool naar installeerbaar product met Web Command Centre, MCP Server en packaging.
+**Afhankelijk van**: Sprint 12, Sprint 17, Sprint 18
+
+**Web UI F1 — Must-Have MVP:**
+- [ ] Error boundaries + error state in agentStore
+- [ ] Toast notificaties (sonner)
+- [ ] Type-safe API client
+- [ ] Pause/Resume knoppen + bridge endpoints
+- [ ] Broadcast UI
+- [ ] xterm.js Terminal component
+- [ ] StatsHeader (running/done/failed tellers)
+- [ ] Zoek/filter agents
+- [ ] messagingStore (Zustand)
+
+**Web UI F2 — Power Features:**
+- [ ] Command Palette (Ctrl+K, cmdk)
+- [ ] Keyboard shortcuts overlay (?)
+- [ ] Pipeline tab + trigger API
+- [ ] TaskBoard in Teams tab
+- [ ] Checkpoint panel + resume UI
+- [ ] Messages tab centraal
+- [ ] SSE reconnect met exponential backoff
+- [ ] Alle ontbrekende bridge API endpoints
+
+**oa MCP Server:**
+- [ ] `mcp_server.py` (FastMCP) met 11 tools
+- [ ] `oa mcp` CLI commando
+- [ ] `.mcp.json` project-level registratie
+- [ ] E2E: Claude Code → MCP → oa-cli → agent in tmux
+
+**Packaging & Distribution:**
+- [ ] PyPI `open-agents-cli` package
+- [ ] `scripts/install.sh` one-liner installer
+- [ ] `oa setup` wizard commando
+- [ ] `oa doctor` dependency checker
+- [ ] GitHub Actions PyPI release workflow
 
 ---
 
