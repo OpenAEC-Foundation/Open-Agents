@@ -148,7 +148,7 @@ class AgentDetailPanel(Vertical):
         yield Static(" OUTPUT", id="detail-output-header")
         yield RichLog(id="detail-log", highlight=True, markup=True, wrap=True)
 
-    def update_agent(self, rec: AgentRecord | None) -> None:
+    def update_agent(self, rec: AgentRecord | None, auto: bool = False) -> None:
         header_widget = self.query_one("#detail-header", Static)
         status_widget = self.query_one("#detail-status-row", Static)
         meta_widget = self.query_one("#detail-meta", Static)
@@ -156,16 +156,15 @@ class AgentDetailPanel(Vertical):
         log.clear()
 
         if rec is None:
-            header_widget.update("[italic #9999bb]  No agent selected — use arrow keys to navigate[/italic #9999bb]")
+            header_widget.update("[italic #9999bb]  No agent selected[/italic #9999bb]")
             status_widget.update("")
             meta_widget.update("")
-            log.write("[#8888aa]  Waiting for selection...[/#8888aa]")
+            log.write("[#8888aa]  ↑↓ arrow keys to navigate agents[/#8888aa]")
             return
 
         # Agent name as prominent header
-        header_widget.update(
-            "[bold white]  " + rec.name + "[/bold white]"
-        )
+        auto_tag = "  [#667788](auto)[/#667788]" if auto else ""
+        header_widget.update("[bold white]  " + rec.name + "[/bold white]" + auto_tag)
 
         # Status — most important, shown prominently
         status_widget.update("  " + _status_markup(rec.status))
@@ -491,6 +490,7 @@ class OADashboard(App):
         Binding("r", "refresh", "Refresh"),
         Binding("k", "kill_agent", "Kill agent"),
         Binding("c", "collect", "Collect output"),
+        Binding("f", "toggle_follow", "Auto-follow"),
         Binding("enter", "select_agent", "View detail", show=False),
         Binding("up", "move_up", "Up", show=False),
         Binding("down", "move_down", "Down", show=False),
@@ -501,6 +501,7 @@ class OADashboard(App):
     def __init__(self) -> None:
         super().__init__()
         self._agents: dict[str, AgentRecord] = {}
+        self._pinned_agent: str | None = None  # explicitly selected by user
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -607,11 +608,35 @@ class OADashboard(App):
         except Exception:
             return None
 
+    def _auto_agent(self) -> AgentRecord | None:
+        """Return best agent to show when nothing is pinned: latest running, else latest."""
+        agents = list(self._agents.values())
+        if not agents:
+            return None
+        running = [a for a in agents if a.status == "running"]
+        if running:
+            return max(running, key=lambda a: a.created_at)
+        return max(agents, key=lambda a: a.created_at)
+
     def _update_detail(self) -> None:
         detail = self.query_one("#detail", AgentDetailPanel)
-        detail.update_agent(self._get_selected_agent())
+        if self._pinned_agent and self._pinned_agent in self._agents:
+            detail.update_agent(self._agents[self._pinned_agent], auto=False)
+        else:
+            explicit = self._get_selected_agent()
+            auto = self._auto_agent()
+            if explicit:
+                detail.update_agent(explicit, auto=False)
+            elif auto:
+                detail.update_agent(auto, auto=True)
+            else:
+                detail.update_agent(None)
 
     def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
+        # User moved cursor — pin that agent
+        rec = self._get_selected_agent()
+        if rec:
+            self._pinned_agent = rec.name
         self._update_detail()
 
     def action_move_up(self) -> None:
@@ -629,6 +654,21 @@ class OADashboard(App):
     # ------------------------------------------------------------------
 
     def action_select_agent(self) -> None:
+        rec = self._get_selected_agent()
+        if rec:
+            self._pinned_agent = rec.name
+        self._update_detail()
+
+    def action_toggle_follow(self) -> None:
+        """Toggle auto-follow mode (unpin)."""
+        if self._pinned_agent:
+            self._pinned_agent = None
+            self.notify("Auto-follow ON — tracking latest running agent", timeout=2)
+        else:
+            rec = self._get_selected_agent() or self._auto_agent()
+            if rec:
+                self._pinned_agent = rec.name
+                self.notify("Pinned: " + rec.name, timeout=2)
         self._update_detail()
 
     def action_kill_agent(self) -> None:
