@@ -2,11 +2,17 @@
 
 Register callables to be triggered on specific agent lifecycle events.
 Supports decorator-based registration for ergonomic usage.
+
+Also provides a file-system hook system: executable shell scripts placed
+in ~/.oa/hooks/<event>/ are run automatically after agent lifecycle events.
 """
 
 from __future__ import annotations
 
 import logging
+import os
+import stat
+import subprocess
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -294,3 +300,86 @@ def apply_hooks_config(config_path: Optional[Path] = None) -> None:
                 register_hook(event, fn)
             except Exception as exc:
                 logger.warning("Could not register hook '%s' for event '%s': %s", dotted_path, event, exc)
+
+
+# --- File-system hook system ---
+
+HOOK_DIRS: dict[str, Path] = {
+    "post-run":      Path.home() / ".oa" / "hooks" / "post-run",
+    "post-pipeline": Path.home() / ".oa" / "hooks" / "post-pipeline",
+    "on-success":    Path.home() / ".oa" / "hooks" / "on-success",
+    "on-failure":    Path.home() / ".oa" / "hooks" / "on-failure",
+}
+
+
+def run_hooks(event: str, env: dict) -> list[str]:
+    """Run all executable scripts in HOOK_DIRS[event]. Returns list of outputs.
+
+    Scripts are sorted by name so e.g. 01-foo.sh runs before 02-bar.sh.
+    Env vars available to scripts: OA_RUN_ID, OA_AGENT_NAME, OA_RUN_LOG_PATH,
+    OA_EXIT_STATUS. Errors in individual scripts are logged but do not stop
+    subsequent scripts or the calling agent (fire-and-forget).
+    """
+    hook_dir = HOOK_DIRS.get(event)
+    if hook_dir is None:
+        logger.warning("run_hooks: unknown event '%s'", event)
+        return []
+
+    if not hook_dir.exists():
+        return []
+
+    scripts = sorted(
+        p for p in hook_dir.iterdir()
+        if p.is_file() and os.access(p, os.X_OK)
+    )
+
+    merged_env = {**os.environ, **{str(k): str(v) for k, v in env.items()}}
+    outputs: list[str] = []
+
+    for script in scripts:
+        try:
+            result = subprocess.run(
+                [str(script)],
+                env=merged_env,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            output = result.stdout.strip()
+            if result.stderr.strip():
+                logger.warning("Hook %s stderr: %s", script.name, result.stderr.strip())
+            outputs.append(output)
+        except Exception as exc:
+            logger.error("Hook '%s' for event '%s' failed: %s", script.name, event, exc)
+
+    return outputs
+
+
+def ensure_hook_dirs() -> None:
+    """Create hook directories if they don't exist."""
+    for hook_dir in HOOK_DIRS.values():
+        hook_dir.mkdir(parents=True, exist_ok=True)
+
+
+def install_default_hooks() -> None:
+    """Write default hooks: 01-log-to-index.sh and 02-check-success.sh."""
+    ensure_hook_dirs()
+
+    post_run_dir = HOOK_DIRS["post-run"]
+
+    log_hook = post_run_dir / "01-log-to-index.sh"
+    if not log_hook.exists():
+        log_hook.write_text(
+            '#!/bin/bash\n'
+            'echo "$(date -Iseconds) | $OA_AGENT_NAME | $OA_EXIT_STATUS" >> ~/.oa/run-history.log\n'
+        )
+        log_hook.chmod(log_hook.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+
+    check_hook = post_run_dir / "02-check-success.sh"
+    if not check_hook.exists():
+        check_hook.write_text(
+            '#!/bin/bash\n'
+            '[ "$OA_EXIT_STATUS" = "error" ] && echo "\u26a0\ufe0f  Agent $OA_AGENT_NAME failed" >&2\n'
+            'exit 0\n'
+        )
+        check_hook.chmod(check_hook.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)

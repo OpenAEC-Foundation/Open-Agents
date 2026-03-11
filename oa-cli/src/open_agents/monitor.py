@@ -120,3 +120,88 @@ def print_status() -> None:
 
     table = render_status_table(agents)
     console.print(table)
+
+
+def render_status_table_with_context(agents: list[AgentRecord] | None = None) -> Table:
+    """Build a rich Table with current agent statuses plus context window columns."""
+    from .context_tracker import get_context_status, HEALTH_ICONS
+
+    if agents is None:
+        agents = list_agents()
+
+    table = Table(title="Open Agents", show_lines=True)
+    table.add_column("Name", style="bold")
+    table.add_column("Model")
+    table.add_column("Status")
+    table.add_column("Msgs", justify="center")
+    table.add_column("Task", max_width=50)
+    table.add_column("Duration", justify="right")
+    table.add_column("Tokens", justify="right")
+    table.add_column("Window%", justify="right")
+    table.add_column("Health", justify="center")
+
+    hierarchy = _build_hierarchy(agents)
+
+    for rec, depth in hierarchy:
+        style = STATUS_COLORS.get(rec.status, "white")
+        duration = format_duration(rec.created_at, rec.finished_at)
+
+        model_str = getattr(rec, "model", "claude")
+        model_label = format_model_label(model_str)
+        model_style = model_rich_color(model_str)
+
+        if depth == 0:
+            prefix = ""
+        else:
+            prefix = "  " * (depth - 1) + "└─ "
+        name_display = f"{prefix}{rec.name}"
+
+        unreads = unread_count(rec.name)
+        msg_display = f"[bold yellow]{unreads}[/bold yellow]" if unreads > 0 else "[dim]0[/dim]"
+
+        # Context window data (only meaningful for running agents)
+        if rec.status == "running":
+            ctx = get_context_status(rec.name, rec.tmux_window)
+            tokens_str = f"{ctx['tokens']:,}"
+            pct_str = f"{ctx['pct']}%"
+            health_icon = HEALTH_ICONS.get(ctx["health"], "?")
+            trend = ctx["trend"]
+            health_display = f"{health_icon} {trend}"
+        else:
+            tokens_str = "[dim]—[/dim]"
+            pct_str = "[dim]—[/dim]"
+            health_display = "[dim]—[/dim]"
+
+        table.add_row(
+            name_display,
+            f"[{model_style}]{model_label}[/{model_style}]",
+            f"[{style}]{rec.status}[/{style}]",
+            msg_display,
+            rec.task[:50] + ("..." if len(rec.task) > 50 else ""),
+            duration,
+            tokens_str,
+            pct_str,
+            health_display,
+        )
+
+    return table
+
+
+def print_status_with_context() -> None:
+    """Print the agent status table with context window usage columns."""
+    from .lifecycle import check_agent
+
+    agents = list_agents()
+
+    for rec in agents:
+        if rec.status == "running":
+            check_agent(rec.name)
+
+    agents = list_agents()
+
+    if not agents:
+        console.print("[bright_black]No agents registered. Use 'oa run' to start one.[/bright_black]")
+        return
+
+    table = render_status_table_with_context(agents)
+    console.print(table)

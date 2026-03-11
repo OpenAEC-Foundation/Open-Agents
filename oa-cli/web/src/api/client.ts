@@ -212,17 +212,105 @@ export async function fetchTemplates(): Promise<BackendTemplate[]> {
 
 // --- SSE Streaming ---
 
-export function streamAgentOutput(name: string, onData: (output: string, status: string) => void): () => void {
-  const es = new EventSource(`${API}/agents/${encodeURIComponent(name)}/stream`);
-  es.onmessage = (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      onData(data.output ?? '', data.status ?? '');
-    } catch {
-      // ignore parse errors
-    }
+export interface SSEStreamHandle {
+  close: () => void;
+  getReconnectStatus: () => SSEReconnectStatus;
+}
+
+export interface SSEReconnectStatus {
+  connected: boolean;
+  retryCount: number;
+  nextRetryMs: number | null;
+}
+
+const SSE_MAX_RETRIES = 10;
+const SSE_BASE_DELAY_MS = 1000;
+const SSE_MAX_DELAY_MS = 30_000;
+
+export function streamAgentOutput(
+  name: string,
+  onData: (output: string, status: string) => void,
+  onReconnectStatusChange?: (status: SSEReconnectStatus) => void
+): SSEStreamHandle {
+  let es: EventSource | null = null;
+  let retryCount = 0;
+  let retryTimer: ReturnType<typeof setTimeout> | null = null;
+  let closed = false;
+  let connected = false;
+
+  function getStatus(): SSEReconnectStatus {
+    const delay =
+      retryTimer !== null
+        ? Math.min(SSE_BASE_DELAY_MS * Math.pow(2, retryCount - 1), SSE_MAX_DELAY_MS)
+        : null;
+    return { connected, retryCount, nextRetryMs: delay };
+  }
+
+  function notifyStatus() {
+    onReconnectStatusChange?.(getStatus());
+  }
+
+  function connect() {
+    if (closed) return;
+    es = new EventSource(`${API}/agents/${encodeURIComponent(name)}/stream`);
+
+    es.onopen = () => {
+      connected = true;
+      retryCount = 0;
+      notifyStatus();
+    };
+
+    es.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        onData(data.output ?? '', data.status ?? '');
+      } catch {
+        // ignore parse errors
+      }
+    };
+
+    es.onerror = () => {
+      connected = false;
+      es?.close();
+      es = null;
+
+      if (closed) return;
+
+      if (retryCount >= SSE_MAX_RETRIES) {
+        notifyStatus();
+        return;
+      }
+
+      const delay = Math.min(
+        SSE_BASE_DELAY_MS * Math.pow(2, retryCount),
+        SSE_MAX_DELAY_MS
+      );
+      retryCount++;
+      notifyStatus();
+
+      retryTimer = setTimeout(() => {
+        retryTimer = null;
+        connect();
+      }, delay);
+    };
+  }
+
+  connect();
+
+  return {
+    close: () => {
+      closed = true;
+      if (retryTimer !== null) {
+        clearTimeout(retryTimer);
+        retryTimer = null;
+      }
+      es?.close();
+      es = null;
+      connected = false;
+      notifyStatus();
+    },
+    getReconnectStatus: getStatus,
   };
-  return () => es.close();
 }
 
 // --- Session ---

@@ -13,12 +13,22 @@ import { DemoTab } from './components/demo/DemoTab';
 import { applyTheme, getThemeById } from './themes';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './components/ToastProvider';
+import { KeyboardHelpOverlay } from './components/KeyboardHelpOverlay';
+import { CommandPalette } from './components/CommandPalette';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 export default function App() {
   const [onboarded, setOnboarded] = useState(() => !!localStorage.getItem('oa_onboarded'));
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const activeMainTab = useUIStore((s) => s.activeMainTab);
   const themeId = useUIStore((s) => s.themeId);
   const fetchAgents = useAgentStore((s) => s.fetchAgents);
+
+  useKeyboardShortcuts({
+    onToggleHelp: () => setShowKeyboardHelp((v) => !v),
+    onToggleCommandPalette: () => setShowCommandPalette((v) => !v),
+  });
 
   // Apply theme whenever it changes
   useEffect(() => {
@@ -105,6 +115,14 @@ export default function App() {
           )}
         </div>
       </div>
+
+      {/* Global overlays */}
+      {showKeyboardHelp && (
+        <KeyboardHelpOverlay onClose={() => setShowKeyboardHelp(false)} />
+      )}
+      {showCommandPalette && (
+        <CommandPalette onClose={() => setShowCommandPalette(false)} />
+      )}
     </ToastProvider>
   );
 }

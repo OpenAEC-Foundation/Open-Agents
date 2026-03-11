@@ -16,6 +16,7 @@ from .state import (
 from .config import load_config
 from .tmux import SESSION_NAME, _tmux
 from .workspace import cleanup_workspace, workspace_is_done
+from . import hooks as _hooks
 
 _config = load_config()
 TIMEOUT_MINUTES = _config.get("timeout_minutes", 60)
@@ -59,6 +60,15 @@ def check_agent(name: str) -> str | None:
         if rec.shared_results_dir:
             _write_shared_result(rec)
 
+        _hook_env = {
+            "OA_AGENT_NAME": name,
+            "OA_RUN_ID": name,
+            "OA_RUN_LOG_PATH": str(Path(rec.workspace) / "output" / "result.md"),
+            "OA_EXIT_STATUS": "done",
+        }
+        _hooks.run_hooks("post-run", _hook_env)
+        _hooks.run_hooks("on-success", _hook_env)
+
         return "done"
 
     # Check if tmux window still exists
@@ -67,12 +77,28 @@ def check_agent(name: str) -> str | None:
     )
     if result.returncode != 0:
         update_agent(name, status="failed", finished_at=now, last_activity=now)
+        _hook_env = {
+            "OA_AGENT_NAME": name,
+            "OA_RUN_ID": name,
+            "OA_RUN_LOG_PATH": str(Path(rec.workspace) / "output" / "result.md"),
+            "OA_EXIT_STATUS": "failed",
+        }
+        _hooks.run_hooks("post-run", _hook_env)
+        _hooks.run_hooks("on-failure", _hook_env)
         return "failed"
 
     windows = result.stdout.strip().split("\n")
     if rec.tmux_window not in windows:
         # Window gone but no .done — agent crashed or was killed externally
         update_agent(name, status="error", finished_at=now, last_activity=now)
+        _hook_env = {
+            "OA_AGENT_NAME": name,
+            "OA_RUN_ID": name,
+            "OA_RUN_LOG_PATH": str(Path(rec.workspace) / "output" / "result.md"),
+            "OA_EXIT_STATUS": "error",
+        }
+        _hooks.run_hooks("post-run", _hook_env)
+        _hooks.run_hooks("on-failure", _hook_env)
         return "error"
 
     # Check for timeout
@@ -84,6 +110,14 @@ def check_agent(name: str) -> str | None:
             check=False,
         )
         update_agent(name, status="timeout", finished_at=now, last_activity=now)
+        _hook_env = {
+            "OA_AGENT_NAME": name,
+            "OA_RUN_ID": name,
+            "OA_RUN_LOG_PATH": str(Path(rec.workspace) / "output" / "result.md"),
+            "OA_EXIT_STATUS": "timeout",
+        }
+        _hooks.run_hooks("post-run", _hook_env)
+        _hooks.run_hooks("on-failure", _hook_env)
         return "timeout"
 
     return "running"

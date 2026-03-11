@@ -12,6 +12,7 @@ from pathlib import Path
 
 from .checkpoint import save_checkpoint
 from .config import load_config
+from . import telemetry
 from .state import (
     AgentRecord,
     add_agent,
@@ -215,6 +216,18 @@ def spawn_agent(
     script.chmod(0o755)
     _tmux(f"send-keys -t {send_target} {shlex.quote(str(script))} Enter")
 
+    # Start telemetry run
+    try:
+        run_id = telemetry.start_run(
+            agent_name=name,
+            task=task,
+            model=model,
+            workspace=str(workspace),
+            project_root=str(project_root) if project_root else None,
+        )
+    except Exception:
+        run_id = None
+
     # Record state
     rec = AgentRecord(
         name=name,
@@ -229,6 +242,7 @@ def spawn_agent(
         lineage=child_lineage,
         shared_results_dir=shared_results_dir,
         project_root=str(project_root) if project_root else None,
+        run_id=run_id,
     )
     add_agent(rec)
 

@@ -12,7 +12,7 @@ from rich.panel import Panel
 
 from . import __version__
 from .config import OA_DIR, CONFIG_PATH, DEFAULT_CONFIG, load_config
-from .monitor import print_status
+from .monitor import print_status, print_status_with_context
 from .utils import format_model_rich, generate_agent_name
 from .lifecycle import attach_agent, check_agent, clean_finished, kill_agent
 from .orchestrator import spawn_with_orchestrator
@@ -23,6 +23,7 @@ from .messaging import broadcast_message, mark_read, poll_shutdown_response, rea
 from .workspace import read_output, remote_is_done, sync_output_from_remote
 from .prompt_templates import L010_TEMPLATE_NAMES, apply_template, validate_prompt
 from .guardians import list_guardians, log_event, register_guardian, trigger_guardian
+from .hooks import HOOK_DIRS, ensure_hook_dirs, install_default_hooks, run_hooks
 from .session import detect_previous_shutdown, ShutdownMode
 from .session_store import get_latest_session, list_sessions, cleanup_sessions
 from .session_cleanup import session_cleanup
@@ -193,6 +194,11 @@ def setup():
 
     CONFIG_PATH.write_text(json.dumps(merged, indent=2))
     console.print(f"\n[green]Config written to {CONFIG_PATH}[/green]")
+
+    # Create hook directories and install default hooks
+    ensure_hook_dirs()
+    install_default_hooks()
+    console.print(f"[green]Hook directories created in ~/.oa/hooks/[/green]")
 
 
 @app.command()
@@ -512,9 +518,14 @@ def templates_cmd(
 
 
 @app.command()
-def status():
+def status(
+    context: bool = typer.Option(False, "--context", "-c", help="Show context window usage per agent"),
+):
     """Show status of all agents in a rich table."""
-    print_status()
+    if context:
+        print_status_with_context()
+    else:
+        print_status()
 
 
 @app.command()
@@ -1262,6 +1273,51 @@ def resume(name: str = typer.Argument(..., help="Agent name to resume from check
     console.print(f"  Workspace: {rec.workspace}")
 
 
+@app.command()
+def hooks(
+    action: str = typer.Argument("list", help="Action: list | run <event> | install"),
+    event: str = typer.Argument(None, help="Event name for 'run' action"),
+):
+    """Manage post-run hooks. Actions: list, run <event>, install."""
+    if action == "list":
+        console.print("[bold]Hook directories:[/bold]")
+        for ev, path in HOOK_DIRS.items():
+            scripts = []
+            if path.exists():
+                scripts = sorted(p.name for p in path.iterdir() if p.is_file())
+            status = f"[green]{len(scripts)} script(s)[/green]" if scripts else "[dim]empty[/dim]"
+            console.print(f"  [cyan]{ev}[/cyan]  {path}  {status}")
+            for s in scripts:
+                console.print(f"    • {s}")
+
+    elif action == "run":
+        if not event:
+            console.print("[red]Specify an event name: oa hooks run <event>[/red]")
+            raise typer.Exit(1)
+        if event not in HOOK_DIRS:
+            console.print(f"[red]Unknown event '{event}'. Valid: {list(HOOK_DIRS.keys())}[/red]")
+            raise typer.Exit(1)
+        env = {
+            "OA_AGENT_NAME": "manual",
+            "OA_RUN_ID": "manual",
+            "OA_RUN_LOG_PATH": "",
+            "OA_EXIT_STATUS": "manual",
+        }
+        outputs = run_hooks(event, env)
+        console.print(f"[green]Ran {len(outputs)} hook(s) for event '{event}'.[/green]")
+        for i, out in enumerate(outputs, 1):
+            if out:
+                console.print(f"  [{i}] {out}")
+
+    elif action == "install":
+        install_default_hooks()
+        console.print("[green]Default hooks installed in ~/.oa/hooks/post-run/[/green]")
+
+    else:
+        console.print(f"[red]Unknown action '{action}'. Use: list | run <event> | install[/red]")
+        raise typer.Exit(1)
+
+
 # --- Session commands ---
 
 session_app = typer.Typer(name="session", help="View and manage session records.", invoke_without_command=True)
@@ -1388,6 +1444,66 @@ def session_clean_cmd(
         console.print(f"[green]Deleted {deleted} session record(s) older than {days} days.[/green]")
     else:
         console.print("[dim]No old session records to clean up.[/dim]")
+
+
+@app.command()
+def logs(
+    name: str = typer.Argument(None, help="Agent name to filter logs for"),
+    limit: int = typer.Option(10, "--limit", "-n", help="Number of runs to show"),
+):
+    """Show run logs. If name given: logs for that agent. Else: recent runs."""
+    from rich.table import Table
+    from . import telemetry
+
+    runs = telemetry.list_runs(limit=limit, agent_name=name or None)
+    if not runs:
+        if name:
+            console.print(f"[dim]No run logs found for agent '{name}'.[/dim]")
+        else:
+            console.print("[dim]No run logs found.[/dim]")
+        return
+
+    title = f"Run logs for '{name}'" if name else f"Recent runs ({len(runs)})"
+    table = Table(title=title)
+    table.add_column("Run ID", style="dim", max_width=12)
+    table.add_column("Agent", style="cyan")
+    table.add_column("Model", style="yellow")
+    table.add_column("Status", style="bold")
+    table.add_column("Duration", style="green", justify="right")
+    table.add_column("Started", style="dim")
+    table.add_column("Task", max_width=50)
+
+    status_colors = {"success": "green", "error": "red", "unknown": "yellow"}
+
+    for run in runs:
+        run_id = run.get("run_id", "")
+        agent = run.get("agent_name", "")
+        model = run.get("model", "")
+        status = run.get("exit_status", "unknown")
+        color = status_colors.get(status, "yellow")
+        duration = run.get("duration_seconds")
+        duration_str = f"{duration:.1f}s" if duration is not None else "—"
+        started_at = run.get("started_at", "")
+        if started_at:
+            try:
+                dt = datetime.fromisoformat(started_at)
+                started_at = dt.strftime("%Y-%m-%d %H:%M")
+            except (ValueError, TypeError):
+                pass
+        task = run.get("task", "")
+        if len(task) > 48:
+            task = task[:45] + "..."
+        table.add_row(
+            run_id[:8],
+            agent,
+            model,
+            f"[{color}]{status}[/{color}]",
+            duration_str,
+            started_at,
+            task,
+        )
+
+    console.print(table)
 
 
 if __name__ == "__main__":

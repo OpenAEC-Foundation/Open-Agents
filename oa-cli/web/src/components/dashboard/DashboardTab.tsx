@@ -1,5 +1,5 @@
 import { MissionControl } from './MissionControl';
-import { AgentPanel } from './AgentPanel';
+import { TerminalPanel } from './TerminalPanel';
 import { SpawnForm } from './SpawnForm';
 import { ActivityFeed } from './ActivityFeed';
 import { GuardianPanel } from './GuardianPanel';
@@ -23,10 +23,8 @@ export function DashboardTab() {
         <MissionControl />
       </div>
 
-      {/* Right: Agent detail panel */}
-      <div style={{ borderLeft: '1px solid var(--color-oa-border)', background: 'var(--color-oa-surface)' }}>
-        <AgentPanel />
-      </div>
+      {/* Right: Terminal viewport with agent tabs */}
+      <TerminalPanel />
     </div>
   );
 }

@@ -1,10 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAgentStore, formatDuration } from '../../stores/agentStore';
 import { useUIStore } from '../../stores/uiStore';
 import { StatusBadge } from '../shared/StatusBadge';
 import { ModelBadge } from '../shared/ModelBadge';
 import { Terminal } from '../shared/Terminal';
 import { EmptyState } from '../shared/EmptyState';
+import { streamAgentOutput } from '../../api/client';
+import type { SSEReconnectStatus, SSEStreamHandle } from '../../api/client';
 import type { DetailTab } from '../../types';
 
 const DETAIL_TABS: DetailTab[] = ['session', 'output', 'info'];
@@ -18,12 +20,38 @@ export function AgentDetail() {
   const activeTab = useUIStore((s) => s.activeDetailTab);
   const setTab = useUIStore((s) => s.setDetailTab);
 
+  const [sseStatus, setSseStatus] = useState<SSEReconnectStatus | null>(null);
+  const sseHandleRef = useRef<SSEStreamHandle | null>(null);
+
   useEffect(() => {
     if (!selectedAgent) return;
     fetchDetail(selectedAgent);
     const interval = setInterval(() => fetchDetail(selectedAgent), 1500);
     return () => clearInterval(interval);
   }, [selectedAgent, fetchDetail]);
+
+  // SSE stream for live output with reconnect
+  useEffect(() => {
+    if (!selectedAgent) return;
+
+    // Close any existing stream
+    sseHandleRef.current?.close();
+
+    const handle = streamAgentOutput(
+      selectedAgent,
+      (_output, _status) => {
+        // Data is refreshed via polling in fetchDetail; SSE is for status tracking
+      },
+      (status) => setSseStatus(status)
+    );
+    sseHandleRef.current = handle;
+
+    return () => {
+      handle.close();
+      sseHandleRef.current = null;
+      setSseStatus(null);
+    };
+  }, [selectedAgent]);
 
   if (!selectedAgent || !detail) {
     return <EmptyState message="Select an agent to view details" />;
@@ -40,6 +68,29 @@ export function AgentDetail() {
           <span className="font-mono text-xs text-oa-text-muted">
             {formatDuration(detail.created_at, detail.finished_at)}
           </span>
+          {/* SSE reconnect status indicator */}
+          {sseStatus && !sseStatus.connected && sseStatus.retryCount > 0 && (
+            <span
+              className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold"
+              style={{ background: 'rgba(251,191,36,0.12)', color: '#fbbf24' }}
+              title={`SSE reconnecting (attempt ${sseStatus.retryCount}/${10})`}
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full bg-yellow-400"
+                style={{ animation: 'ccPulse 1s infinite' }}
+              />
+              reconnecting…
+            </span>
+          )}
+          {sseStatus && sseStatus.retryCount >= 10 && !sseStatus.connected && (
+            <span
+              className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold"
+              style={{ background: 'rgba(248,113,113,0.12)', color: '#f87171' }}
+              title="SSE stream disconnected after max retries"
+            >
+              stream offline
+            </span>
+          )}
         </div>
         {detail.status === 'running' && (
           <button
