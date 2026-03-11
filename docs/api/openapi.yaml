@@ -1,0 +1,1555 @@
+openapi: 3.1.0
+info:
+  title: Open-Agents Bridge API
+  description: |
+    Local REST API served by the Open-Agents bridge server (Flask).
+    Default port: **5174**. The bridge also serves the React SPA at `/`.
+
+    ## Authentication
+    State-changing endpoints (POST, DELETE, PUT) require a `X-API-Token` header.
+    Retrieve the token from `GET /api/auth/token` (localhost only).
+
+    ## Base URL
+    `http://localhost:5174`
+  version: "0.2.0"
+  contact:
+    name: Open-Agents
+    url: https://github.com/freek1/open-agents
+
+servers:
+  - url: http://localhost:5174
+    description: Local bridge server (default port)
+
+components:
+  securitySchemes:
+    ApiToken:
+      type: apiKey
+      in: header
+      name: X-API-Token
+
+  schemas:
+    Agent:
+      type: object
+      description: Full agent record returned by the API
+      properties:
+        name:
+          type: string
+          example: "research-abc123"
+        task:
+          type: string
+          example: "Summarise the latest AI papers"
+        workspace:
+          type: string
+          example: "/tmp/oa-agent-abc123"
+        tmux_window:
+          type: string
+          example: "oa:research-abc123"
+        model:
+          type: string
+          example: "claude/sonnet"
+        parent:
+          type: string
+          nullable: true
+          example: "orchestrator"
+        status:
+          type: string
+          enum: [running, done, error, killed, paused]
+          example: "running"
+        created_at:
+          type: number
+          format: float
+          description: Unix timestamp
+        finished_at:
+          type: number
+          format: float
+          nullable: true
+        unread_messages:
+          type: integer
+          example: 0
+        pid:
+          type: integer
+          nullable: true
+        output_file:
+          type: string
+          nullable: true
+        depth:
+          type: integer
+          example: 0
+        lineage:
+          type: array
+          items:
+            type: string
+        task_hash:
+          type: string
+        max_children:
+          type: integer
+          example: 10
+        shared_results_dir:
+          type: string
+          nullable: true
+        last_activity:
+          type: number
+          format: float
+        auto_cleanup_minutes:
+          type: integer
+          example: 20
+        project_root:
+          type: string
+          nullable: true
+        remote_host:
+          type: string
+          nullable: true
+        remote_workspace:
+          type: string
+          nullable: true
+        live_output:
+          type: string
+          nullable: true
+          description: Terminal output (running) or result file (done)
+        result:
+          type: string
+          nullable: true
+          description: Final output (only present when status is not running)
+
+    AgentSummary:
+      allOf:
+        - $ref: "#/components/schemas/Agent"
+
+    Message:
+      type: object
+      properties:
+        from:
+          type: string
+          example: "orchestrator"
+        to:
+          type: string
+          example: "worker-1"
+        content:
+          type: string
+          example: "Task completed"
+        timestamp:
+          type: number
+          format: float
+        read:
+          type: boolean
+
+    Team:
+      type: object
+      properties:
+        name:
+          type: string
+        members:
+          type: array
+          items:
+            type: string
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [pending, in_progress, done]
+        team:
+          type: string
+
+    Template:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        systemPrompt:
+          type: string
+        modelHint:
+          type: string
+
+    Guardian:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        last_triggered:
+          type: number
+          nullable: true
+          format: float
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Agent 'foo' not found"
+
+paths:
+
+  # ─── Health & Auth ──────────────────────────────────────────────────────────
+
+  /api/health:
+    get:
+      tags: [System]
+      summary: Health check
+      operationId: healthCheck
+      responses:
+        "200":
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+
+  /api/auth/token:
+    get:
+      tags: [System]
+      summary: Get API token
+      description: Returns the local API token. Only reachable from localhost.
+      operationId: getAuthToken
+      responses:
+        "200":
+          description: Token returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "abc123deadbeef..."
+
+  # ─── Agents ─────────────────────────────────────────────────────────────────
+
+  /api/agents:
+    get:
+      tags: [Agents]
+      summary: List all agents
+      description: Returns all known agents with refreshed statuses and (for running agents) live terminal output.
+      operationId: listAgents
+      responses:
+        "200":
+          description: Array of agent records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentSummary"
+
+    post:
+      tags: [Agents]
+      summary: Spawn a new agent
+      operationId: spawnAgent
+      security:
+        - ApiToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [task]
+              properties:
+                task:
+                  type: string
+                  description: The task description / prompt for the agent
+                  example: "Research the latest Claude models and write a summary"
+                name:
+                  type: string
+                  description: Agent name (auto-generated if omitted)
+                  example: "my-researcher"
+                model:
+                  type: string
+                  description: Model identifier
+                  default: "claude"
+                  example: "claude/sonnet"
+                parent:
+                  type: string
+                  description: Name of the parent agent
+                  nullable: true
+                machine:
+                  type: string
+                  description: Remote machine hostname for remote spawning
+                  default: ""
+      responses:
+        "201":
+          description: Agent spawned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+        "400":
+          description: Missing required field or spawn error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/agents/{name}:
+    get:
+      tags: [Agents]
+      summary: Get agent details
+      operationId: getAgent
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "my-researcher"
+      responses:
+        "200":
+          description: Agent detail record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+        "404":
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      tags: [Agents]
+      summary: Kill/delete an agent
+      operationId: deleteAgent
+      security:
+        - ApiToken: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Agent killed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "killed"
+                  name:
+                    type: string
+        "404":
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+
+  /api/agents/{name}/output:
+    get:
+      tags: [Agents]
+      summary: Get agent output
+      description: Returns live terminal output for running agents, or the result file for finished agents.
+      operationId: getAgentOutput
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: lines
+          in: query
+          schema:
+            type: integer
+            default: 50
+          description: Number of terminal lines to return (running agents only)
+      responses:
+        "200":
+          description: Output object
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  status:
+                    type: string
+                  output:
+                    type: string
+                    nullable: true
+        "404":
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/agents/{name}/stream:
+    get:
+      tags: [Agents]
+      summary: Stream agent output (SSE)
+      description: Server-Sent Events stream that pushes output every second until the agent finishes.
+      operationId: streamAgentOutput
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: |
+                  Each event is a JSON object:
+                  `{"output": "...", "status": "running|done|error|..."}`
+
+  /api/agents/{name}/kill:
+    post:
+      tags: [Agents]
+      summary: Kill a running agent
+      operationId: killAgent
+      security:
+        - ApiToken: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Agent killed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "killed"
+                  name:
+                    type: string
+        "404":
+          description: Agent not found
+        "401":
+          description: Unauthorized
+
+  /api/agents/{name}/pause:
+    post:
+      tags: [Agents]
+      summary: Pause a running agent
+      description: Suspends the agent's tmux pane. Status changes to `paused`.
+      operationId: pauseAgent
+      security:
+        - ApiToken: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Agent paused
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "paused"
+                  name:
+                    type: string
+        "400":
+          description: Agent is not running
+        "404":
+          description: Agent not found
+        "401":
+          description: Unauthorized
+
+  /api/agents/{name}/resume:
+    post:
+      tags: [Agents]
+      summary: Resume a paused agent
+      description: Unpauses the agent's tmux pane. Status changes back to `running`.
+      operationId: resumeAgentPane
+      security:
+        - ApiToken: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Agent resumed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "running"
+                  name:
+                    type: string
+        "400":
+          description: Agent is not paused
+        "404":
+          description: Agent not found
+        "401":
+          description: Unauthorized
+
+  /api/agents/{name}/messages:
+    get:
+      tags: [Agents, Messaging]
+      summary: Get messages for an agent
+      operationId: getAgentMessages
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: unread
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Return only unread messages
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agent:
+                    type: string
+                  messages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Message"
+                  unread:
+                    type: integer
+
+    post:
+      tags: [Agents, Messaging]
+      summary: Send a message to an agent
+      operationId: sendAgentMessage
+      security:
+        - ApiToken: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                from:
+                  type: string
+                  default: "user"
+                content:
+                  type: string
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "sent"
+                  from:
+                    type: string
+                  to:
+                    type: string
+        "400":
+          description: Missing fields
+        "401":
+          description: Unauthorized
+
+  # ─── Aliases ────────────────────────────────────────────────────────────────
+
+  /api/run:
+    post:
+      tags: [Agents]
+      summary: Spawn agent (alias for POST /api/agents)
+      operationId: runAgent
+      security:
+        - ApiToken: []
+      requestBody:
+        $ref: "#/components/requestBodies/SpawnAgent"
+      responses:
+        "201":
+          description: Agent spawned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+        "400":
+          description: Missing required field
+
+  /api/spawn:
+    post:
+      tags: [Agents]
+      summary: Spawn agent (alias for POST /api/agents)
+      operationId: spawnAgentAlias
+      security:
+        - ApiToken: []
+      requestBody:
+        $ref: "#/components/requestBodies/SpawnAgent"
+      responses:
+        "201":
+          description: Agent spawned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+        "400":
+          description: Missing required field
+
+  # ─── Messaging ───────────────────────────────────────────────────────────────
+
+  /api/messages/{name}:
+    get:
+      tags: [Messaging]
+      summary: Get agent inbox
+      operationId: getMessages
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: unread
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agent:
+                    type: string
+                  messages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Message"
+                  unread:
+                    type: integer
+
+  /api/messages/{name}/read:
+    post:
+      tags: [Messaging]
+      summary: Mark messages as read
+      operationId: markMessagesRead
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  marked_read:
+                    type: integer
+
+  /api/messages:
+    post:
+      tags: [Messaging]
+      summary: Send a message between agents
+      operationId: sendMessage
+      security:
+        - ApiToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to, content]
+              properties:
+                from:
+                  type: string
+                  default: "user"
+                to:
+                  type: string
+                content:
+                  type: string
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  from:
+                    type: string
+                  to:
+                    type: string
+        "400":
+          description: Missing fields
+        "401":
+          description: Unauthorized
+
+  /api/messages/broadcast:
+    post:
+      tags: [Messaging]
+      summary: Broadcast to all running agents
+      operationId: broadcastMessage
+      security:
+        - ApiToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                from:
+                  type: string
+                  default: "user"
+                content:
+                  type: string
+      responses:
+        "201":
+          description: Broadcast delivered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "broadcast"
+                  from:
+                    type: string
+                  delivered_to:
+                    type: integer
+        "400":
+          description: Missing fields
+        "401":
+          description: Unauthorized
+
+  /api/broadcast:
+    post:
+      tags: [Messaging]
+      summary: Broadcast (alias for POST /api/messages/broadcast)
+      operationId: broadcastAlias
+      security:
+        - ApiToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                from:
+                  type: string
+                content:
+                  type: string
+      responses:
+        "201":
+          description: Broadcast delivered
+
+  # ─── Session ─────────────────────────────────────────────────────────────────
+
+  /api/session/status:
+    get:
+      tags: [Session]
+      summary: Check if tmux session exists
+      operationId: sessionStatus
+      responses:
+        "200":
+          description: Session status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exists:
+                    type: boolean
+
+  /api/session/start:
+    post:
+      tags: [Session]
+      summary: Start the tmux session
+      operationId: startSession
+      security:
+        - ApiToken: []
+      responses:
+        "200":
+          description: Session started or already running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created:
+                    type: boolean
+
+  /api/session/stop:
+    post:
+      tags: [Session]
+      summary: Stop the oa session
+      operationId: stopSession
+      security:
+        - ApiToken: []
+      responses:
+        "200":
+          description: Session stopped
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "stopped"
+        "500":
+          description: oa stop failed
+
+  /api/session/cost:
+    get:
+      tags: [Session]
+      summary: Get session cost (placeholder)
+      operationId: sessionCost
+      responses:
+        "200":
+          description: Cost telemetry
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokens_used:
+                    type: integer
+                    example: 0
+                  cost_usd:
+                    type: number
+                    example: 0.0
+
+  /api/clean:
+    post:
+      tags: [Session]
+      summary: Clean finished agent workspaces
+      operationId: clean
+      security:
+        - ApiToken: []
+      responses:
+        "200":
+          description: Cleaned workspaces
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cleaned:
+                    type: integer
+
+  # ─── Pipeline ────────────────────────────────────────────────────────────────
+
+  /api/pipeline:
+    get:
+      tags: [Pipeline]
+      summary: List active pipeline agents
+      description: Returns agents whose name starts with `pipe-`.
+      operationId: listPipelines
+      responses:
+        "200":
+          description: Pipeline agents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Agent"
+
+    post:
+      tags: [Pipeline]
+      summary: Start a pipeline
+      description: Spawns an `oa pipeline` subprocess. Returns a `pipeline_id`.
+      operationId: startPipeline
+      security:
+        - ApiToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [task]
+              properties:
+                task:
+                  type: string
+      responses:
+        "201":
+          description: Pipeline started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pipeline_id:
+                    type: string
+                    example: "pipe-1710000000"
+                  status:
+                    type: string
+                    example: "started"
+        "400":
+          description: Missing task
+        "401":
+          description: Unauthorized
+        "500":
+          description: oa CLI not found in PATH
+
+  /api/pipeline/{pipeline_id}/status:
+    get:
+      tags: [Pipeline]
+      summary: Get pipeline status
+      operationId: getPipelineStatus
+      parameters:
+        - name: pipeline_id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "pipe-1710000000"
+      responses:
+        "200":
+          description: Pipeline status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pipeline_id:
+                    type: string
+                  status:
+                    type: string
+                    enum: [running, done, failed, unknown]
+                  agents:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Agent"
+
+  # ─── Teams ───────────────────────────────────────────────────────────────────
+
+  /api/teams:
+    get:
+      tags: [Teams]
+      summary: List all teams
+      operationId: listTeams
+      responses:
+        "200":
+          description: Teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+        "501":
+          description: Teams module not available
+
+    post:
+      tags: [Teams]
+      summary: Create a team
+      operationId: createTeam
+      security:
+        - ApiToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                members:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "201":
+          description: Team created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "400":
+          description: Missing name
+        "401":
+          description: Unauthorized
+
+  /api/teams/{name}:
+    get:
+      tags: [Teams]
+      summary: Get team details
+      operationId: getTeam
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "404":
+          description: Team not found
+
+    delete:
+      tags: [Teams]
+      summary: Delete a team
+      operationId: deleteTeam
+      security:
+        - ApiToken: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: string
+        "404":
+          description: Team not found
+        "401":
+          description: Unauthorized
+
+  /api/teams/{name}/members:
+    post:
+      tags: [Teams]
+      summary: Add member to team
+      operationId: addTeamMember
+      security:
+        - ApiToken: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [agent]
+              properties:
+                agent:
+                  type: string
+      responses:
+        "200":
+          description: Member added
+        "400":
+          description: Missing agent name
+        "404":
+          description: Team not found
+        "401":
+          description: Unauthorized
+
+  /api/teams/{name}/broadcast:
+    post:
+      tags: [Teams]
+      summary: Broadcast to all agents in a team
+      operationId: broadcastToTeam
+      security:
+        - ApiToken: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content:
+                  type: string
+                from:
+                  type: string
+      responses:
+        "200":
+          description: Broadcast sent
+        "400":
+          description: Missing content
+        "404":
+          description: Team not found
+        "401":
+          description: Unauthorized
+
+  /api/teams/{name}/tasks:
+    get:
+      tags: [Teams, Tasks]
+      summary: List tasks for a team
+      operationId: getTeamTasks
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+
+  # ─── Tasks ───────────────────────────────────────────────────────────────────
+
+  /api/tasks/{team}:
+    get:
+      tags: [Tasks]
+      summary: List tasks for a team
+      operationId: listTasks
+      parameters:
+        - name: team
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+
+    post:
+      tags: [Tasks]
+      summary: Create a task
+      operationId: createTask
+      security:
+        - ApiToken: []
+      parameters:
+        - name: team
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                  default: ""
+      responses:
+        "201":
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          description: Missing title
+        "401":
+          description: Unauthorized
+
+  /api/tasks/{team}/{task_id}:
+    put:
+      tags: [Tasks]
+      summary: Update task status
+      operationId: updateTask
+      security:
+        - ApiToken: []
+      parameters:
+        - name: team
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [pending, in_progress, done]
+      responses:
+        "200":
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          description: Missing status
+        "401":
+          description: Unauthorized
+
+  # ─── Templates ───────────────────────────────────────────────────────────────
+
+  /api/templates:
+    get:
+      tags: [Templates]
+      summary: List agent templates
+      operationId: listTemplates
+      responses:
+        "200":
+          description: Templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Template"
+        "501":
+          description: Templates module not available
+
+  /api/templates/{template_id}:
+    get:
+      tags: [Templates]
+      summary: Load a template
+      operationId: loadTemplate
+      parameters:
+        - name: template_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+        "404":
+          description: Template not found
+
+  # ─── Checkpoints ─────────────────────────────────────────────────────────────
+
+  /api/checkpoints:
+    get:
+      tags: [Checkpoints]
+      summary: List incomplete checkpoints
+      operationId: listCheckpoints
+      responses:
+        "200":
+          description: Incomplete checkpoints
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        "501":
+          description: Checkpoint module not available
+
+  /api/resume/{agent}:
+    post:
+      tags: [Checkpoints]
+      summary: Resume agent from checkpoint
+      operationId: resumeFromCheckpoint
+      security:
+        - ApiToken: []
+      parameters:
+        - name: agent
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Resume result
+          content:
+            application/json:
+              schema:
+                type: object
+        "401":
+          description: Unauthorized
+
+  # ─── Guardians ───────────────────────────────────────────────────────────────
+
+  /api/guardians:
+    get:
+      tags: [Guardians]
+      summary: List all guardians
+      description: Returns configured guardians with last-triggered timestamps from the session log.
+      operationId: listGuardians
+      responses:
+        "200":
+          description: Guardians
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Guardian"
+
+  /api/guardians/trigger:
+    post:
+      tags: [Guardians]
+      summary: Manually trigger a guardian
+      operationId: triggerGuardian
+      security:
+        - ApiToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guardian]
+              properties:
+                guardian:
+                  type: string
+                event:
+                  type: string
+                  default: "manual_trigger"
+      responses:
+        "200":
+          description: Guardian triggered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  triggered:
+                    type: array
+                    items:
+                      type: string
+        "400":
+          description: Missing guardian field
+        "404":
+          description: Guardian not found
+        "401":
+          description: Unauthorized
+
+  # ─── Machines ────────────────────────────────────────────────────────────────
+
+  /api/machines:
+    get:
+      tags: [System]
+      summary: List available machines
+      description: Returns machines configured for remote agent spawning.
+      operationId: listMachines
+      security:
+        - ApiToken: []
+      responses:
+        "200":
+          description: Machines config
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        "401":
+          description: Unauthorized
+
+  # ─── Compaction ──────────────────────────────────────────────────────────────
+
+  /api/compaction/status:
+    get:
+      tags: [System]
+      summary: Get compaction status for all agents
+      operationId: compactionStatus
+      responses:
+        "200":
+          description: Compaction status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agents:
+                    type: array
+                    items:
+                      type: object
+                  history:
+                    type: array
+                    items:
+                      type: object
+
+  /api/compaction/trigger:
+    post:
+      tags: [System]
+      summary: Trigger compaction for agents above threshold
+      operationId: triggerCompaction
+      responses:
+        "200":
+          description: Compaction results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  compacted:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      type: object
+
+  # ─── A2A Protocol ────────────────────────────────────────────────────────────
+
+  /.well-known/agent.json:
+    get:
+      tags: [A2A]
+      summary: A2A Agent Card
+      description: Returns the Agent Card per the A2A v0.3.0 spec for external agent discovery.
+      operationId: agentCard
+      responses:
+        "200":
+          description: Agent Card
+          content:
+            application/json:
+              schema:
+                type: object
+        "501":
+          description: A2A adapter not available
+
+components:
+  requestBodies:
+    SpawnAgent:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [task]
+            properties:
+              task:
+                type: string
+              name:
+                type: string
+              model:
+                type: string
+                default: "claude"
+              parent:
+                type: string
+                nullable: true
+              machine:
+                type: string
+                default: ""
+
+tags:
+  - name: System
+    description: Health, auth, session management, compaction
+  - name: Agents
+    description: Spawn, list, inspect, kill, pause, and stream agents
+  - name: Messaging
+    description: Agent-to-agent messaging and inbox management
+  - name: Pipeline
+    description: Multi-agent pipeline orchestration
+  - name: Teams
+    description: Logical groupings of agents
+  - name: Tasks
+    description: Task tracking per team
+  - name: Templates
+    description: Agent prompt templates from the library
+  - name: Checkpoints
+    description: Resume incomplete agent runs
+  - name: Guardians
+    description: Automated guardian agents and event triggers
+  - name: A2A
+    description: Agent-to-Agent (A2A) protocol compatibility
