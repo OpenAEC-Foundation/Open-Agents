@@ -7,6 +7,7 @@ import subprocess
 import time
 from pathlib import Path
 
+from rich.text import Text
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, Center
@@ -389,7 +390,7 @@ class OADashboard(App):
                         yield Static("", id="stats-panel")
                     with Vertical(id="right-panel"):
                         yield Static(" LIVE OUTPUT", id="output-header")
-                        yield RichLog(id="live-log", highlight=True, markup=True, wrap=True)
+                        yield RichLog(id="live-log", highlight=False, markup=False, wrap=True)
             with TabPane("Teams [2]", id="tab-teams"):
                 yield TeamsPanel(id="teams-panel")
         yield Footer()
@@ -525,7 +526,7 @@ class OADashboard(App):
 
         log.clear()
         for line in output_text.splitlines()[-100:]:
-            log.write(line)
+            log.write(Text.from_ansi(line))
         log.scroll_end(animate=False)
 
     # ------------------------------------------------------------------

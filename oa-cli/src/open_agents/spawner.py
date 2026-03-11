@@ -193,7 +193,7 @@ def spawn_agent(
     # duplicate-name ambiguity when send-keys targets by name.
     window_name = f"agent-{name}"
     result = _tmux(
-        f"new-window -t {SESSION_NAME} -n {shlex.quote(window_name)} -P -F '#{{window_index}}'"
+        f"new-window -t {SESSION_NAME}: -n {shlex.quote(window_name)} -P -F '#{{window_index}}'"
     )
     window_index = result.stdout.strip()
     send_target = f"{SESSION_NAME}:{window_index}" if window_index else f"{SESSION_NAME}:{shlex.quote(window_name)}"
