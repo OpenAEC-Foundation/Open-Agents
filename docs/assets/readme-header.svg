@@ -1,7 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 280" width="100%">
   <defs>
 
-    <!-- 5-stop fire gradient: near-black → deep brown → amber → orange → bright orange -->
     <linearGradient id="grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="900" y2="0">
       <stop offset="0%"   stop-color="#0f0400"/>
       <stop offset="25%"  stop-color="#7c2d12"/>
@@ -10,111 +9,27 @@
       <stop offset="100%" stop-color="#f97316"/>
     </linearGradient>
 
-    <!-- Soft glow filter for symbol -->
-    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-
-    <!-- Subtle pulse animation on symbol -->
-    <style>
-      @keyframes symbolPulse {
-        0%, 100% { opacity: 0.82; }
-        50%       { opacity: 1.0;  }
-      }
-      .sym { animation: symbolPulse 4s ease-in-out infinite; }
-    </style>
-
   </defs>
 
-  <!-- ═══ WAVE BACKGROUND ═══ -->
-  <!-- Single wave cycle: crests at left and right, troughs between -->
+  <!-- Wave-clipped gradient banner -->
   <path d="M0,0 L900,0 L900,192 C700,228 550,156 450,192 C350,228 200,156 0,192 Z"
         fill="url(#grad)"/>
 
-  <!-- ═══ TITLE ═══ -->
-  <text x="420" y="118"
+  <!-- Title -->
+  <text x="450" y="116"
         text-anchor="middle"
         font-family="'Segoe UI','Helvetica Neue',Arial,system-ui,sans-serif"
         font-weight="800"
-        font-size="72"
+        font-size="80"
         fill="#ffffff"
         letter-spacing="-1">Open-Agents</text>
 
-  <!-- ═══ TAGLINE ═══ -->
-  <text x="420" y="156"
+  <!-- Tagline -->
+  <text x="450" y="156"
         text-anchor="middle"
         font-family="'Segoe UI',Arial,system-ui,sans-serif"
-        font-size="19"
-        fill="#FDE68A"
-        letter-spacing="0.3">Spawn AI agents. Orchestrate anything. Build free.</text>
-
-  <!-- ═══ OPENAEC SYMBOL — top-right ═══ -->
-  <!--
-    Source: openaec-symbol-transparent.svg (viewBox 140×170, symbol centered at 70,82)
-    At scale(0.60): content 84×102px
-    translate(798,61): symbol center lands at (840, 110)
-    Fits within x:801–879, y:75–160 — safely within wave area
-  -->
-
-  <!-- Subtle amber halo behind symbol -->
-  <ellipse cx="843" cy="108" rx="58" ry="54"
-           fill="#b45309" fill-opacity="0.20"/>
-
-  <g class="sym" transform="translate(798,61) scale(0.60)" filter="url(#glow)">
-    <g transform="translate(70,82)">
-
-      <!-- Left face (filled, darker) -->
-      <polygon points="-65,-23 0,15 0,82 -65,45"
-               fill="#D97706" fill-opacity="0.30"
-               stroke="#D97706" stroke-width="2.8" stroke-linejoin="round"/>
-
-      <!-- Top face (filled, lightest) -->
-      <polygon points="0,-58 65,-23 0,15 -65,-23"
-               fill="#D97706" fill-opacity="0.18"
-               stroke="#D97706" stroke-width="2.8" stroke-linejoin="round"/>
-
-      <!-- Right face — open (only edges, no fill) -->
-      <line x1="65"  y1="-23" x2="65" y2="45"  stroke="#D97706" stroke-width="2.8" stroke-linecap="round"/>
-      <line x1="0"   y1="82"  x2="65" y2="45"  stroke="#D97706" stroke-width="2.8" stroke-linecap="round"/>
-      <line x1="-65" y1="45"  x2="0"  y2="82"  stroke="#D97706" stroke-width="2.8" stroke-linecap="round"/>
-
-      <!-- Wall above opening -->
-      <polygon points="65,-23 0,15 0,35 65,0"
-               fill="#D97706" fill-opacity="0.12"/>
-      <line x1="0" y1="15" x2="0"  y2="35" stroke="#D97706" stroke-width="2.8" stroke-linecap="round"/>
-
-      <!-- Opening lintel — warm gold accent -->
-      <line x1="0"  y1="35" x2="65" y2="0"  stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
-
-      <!-- Interior depth lines through opening -->
-      <line x1="0"   y1="35" x2="-30" y2="52" stroke="#F59E0B" stroke-width="1.2" opacity="0.35"/>
-      <line x1="65"  y1="0"  x2="35"  y2="17" stroke="#F59E0B" stroke-width="1.2" opacity="0.35"/>
-      <line x1="-30" y1="52" x2="35"  y2="17" stroke="#F59E0B" stroke-width="1.2" opacity="0.25"/>
-
-      <!-- Windows row 1 -->
-      <polygon points="-45,-4  -35,-10 -35,-3  -45,3"   fill="none" stroke="#D97706" stroke-width="1.3" opacity="0.7"/>
-      <polygon points="-30,-12 -20,-18 -20,-11 -30,-5"  fill="none" stroke="#D97706" stroke-width="1.3" opacity="0.7"/>
-      <!-- Windows row 2 -->
-      <polygon points="-45,14  -35,8   -35,15  -45,21"  fill="none" stroke="#D97706" stroke-width="1.3" opacity="0.7"/>
-      <polygon points="-30,6   -20,0   -20,7   -30,13"  fill="none" stroke="#D97706" stroke-width="1.3" opacity="0.7"/>
-      <!-- Windows row 3 -->
-      <polygon points="-45,32  -35,26  -35,33  -45,39"  fill="none" stroke="#D97706" stroke-width="1.3" opacity="0.7"/>
-      <polygon points="-30,24  -20,18  -20,25  -30,31"  fill="none" stroke="#D97706" stroke-width="1.3" opacity="0.7"/>
-
-    </g>
-  </g>
-
-  <!-- "OpenAEC Foundation" label under symbol -->
-  <text x="843" y="182"
-        text-anchor="middle"
-        font-family="'Segoe UI',Arial,system-ui,sans-serif"
-        font-size="10.5"
-        fill="#FDE68A"
-        opacity="0.80"
-        letter-spacing="0.8">OpenAEC Foundation</text>
+        font-size="21"
+        fill="#ffffff"
+        opacity="0.85">Spawn AI agents. Orchestrate anything. Build free.</text>
 
 </svg>
