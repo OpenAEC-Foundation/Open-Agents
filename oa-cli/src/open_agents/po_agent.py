@@ -30,6 +30,7 @@ _REPO_ROOT = Path(
 
 # Context files consulted per evaluation (fragment only — keep prompt manageable)
 _CONTEXT_FILES = {
+    "CLAUDE_MD": _REPO_ROOT / "CLAUDE.md",          # primary: full workspace definition
     "ROADMAP": _REPO_ROOT / "docs" / "ROADMAP.md",
     "REQUIREMENTS": _REPO_ROOT / "REQUIREMENTS.md",
     "DECISIONS": _REPO_ROOT / "DECISIONS.md",
@@ -41,12 +42,16 @@ _FALLBACK_CONTEXT_FILES = {
 }
 
 _EVAL_PROMPT = """\
-Je bent de Product Owner van het Open-Agents project. Jouw rol is om te bewaken dat \
-wijzigingen aansluiten bij de projectvisie, requirements, en genomen beslissingen.
+Je bent de Product Owner van het Open-Agents project. Je hebt volledige kennis van \
+de architectuur, werkwijze en doelen van het systeem — inclusief hoe het zichzelf \
+gebruikt om zichzelf te bouwen.
 
-## Project context (fragmenten)
+## Project context
 
-### ROADMAP
+### CLAUDE.md — werkwijze & architectuur (primaire bron)
+{claude_md}
+
+### ROADMAP (fragment)
 {roadmap}
 
 ### REQUIREMENTS (fragment)
@@ -66,11 +71,12 @@ wijzigingen aansluiten bij de projectvisie, requirements, en genomen beslissinge
 ## Jouw taak
 
 Beoordeel of deze wijziging:
-1. Aansluit bij de roadmap en projectdoelen
-2. Voldoet aan de requirements (geen scope-creep)
-3. Geen conflicten heeft met genomen beslissingen (DECISIONS.md)
-4. Voldoet aan de design principles (PRINCIPLES.md)
-5. Geen onnodige complexiteit of technische schuld introduceert
+1. Past bij de architectuur en werkwijze zoals beschreven in CLAUDE.md
+2. Aansluit bij de roadmap en projectdoelen
+3. Voldoet aan de requirements — geen scope-creep
+4. Geen conflicten heeft met genomen beslissingen (DECISIONS.md)
+5. Voldoet aan de design principles (PRINCIPLES.md)
+6. Geen onnodige complexiteit of technische schuld introduceert
 
 ## Antwoordformaat
 
@@ -79,11 +85,11 @@ Begin je antwoord met exact één van deze drie woorden op een eigen regel:
   WARN
   BLOCK
 
-Gevolgd door 2-4 zinnen concrete uitleg. Wees direct en specifiek — geen algemeenheden.
+Gevolgd door 2-4 zinnen concrete uitleg. Wees direct en specifiek.
 
 APPROVE = prima, past goed bij het project
-WARN    = kleine zorgen, maar niet blokkerend (ga door, maar let op)
-BLOCK   = sterk afraden — conflicteert met projectdoelen of beslissingen
+WARN    = kleine zorgen, maar niet blokkerend
+BLOCK   = sterk afraden — conflicteert met architectuur of beslissingen
 """
 
 
@@ -171,6 +177,7 @@ def evaluate(
     )
 
     prompt = _EVAL_PROMPT.format(
+        claude_md=_read_fragment(_CONTEXT_FILES["CLAUDE_MD"], max_lines=120),
         roadmap=_read_fragment(
             _CONTEXT_FILES["ROADMAP"],
             fallback_path=_FALLBACK_CONTEXT_FILES.get("ROADMAP"),
