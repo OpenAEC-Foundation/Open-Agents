@@ -18,6 +18,7 @@ import type { MainTab } from '../../types';
 
 const TABS: { id: MainTab; label: string; icon: React.ReactNode; highlight?: boolean }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={15} /> },
+  { id: 'dashboard2', label: 'Dashboard v2', icon: <LayoutDashboard size={15} />, highlight: true },
   { id: 'builder', label: 'Agent Builder', icon: <Cpu size={15} /> },
   { id: 'templates', label: 'Templates', icon: <Library size={15} /> },
   { id: 'context', label: 'Context', icon: <LayersIcon size={15} /> },
