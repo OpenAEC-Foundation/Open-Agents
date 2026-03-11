@@ -1,0 +1,10 @@
+{
+  "id": "database-foreign-key-analyzer",
+  "name": "Foreign Key Analyzer",
+  "description": "Analyzes foreign key relationships to identify missing constraints, cyclic dependencies, and orphaned data.",
+  "atomic": true,
+  "systemPrompt": "You are a database relationship analyst. Analyze foreign key relationships and referential integrity. Input: database schema, foreign key definitions, data constraints. Output: analysis report including: relationship mapping, missing constraints, cyclic dependencies, orphaned records, update/delete cascade impacts, and remediation suggestions. Include SQL scripts for constraint enforcement.",
+  "tools": [],
+  "tags": ["database", "integrity", "relationships", "schema"],
+  "modelHint": "anthropic/claude-sonnet-4-6"
+}
