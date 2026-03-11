@@ -195,6 +195,53 @@ def _run_preflight_gate() -> bool:
     return False
 
 
+def _setup_anthropic_skills() -> None:
+    """Clone and register the official Anthropic skills repo during oa setup.
+
+    Idempotent — skips if already registered or if git is unavailable.
+    """
+    import subprocess
+    import json as _json
+    from .skill_registry import REGISTRY_PATH, install_package
+
+    ANTHROPIC_SKILLS_URL = "https://github.com/anthropics/skills.git"
+    skills_dir = Path.home() / ".oa" / "anthropics-skills"
+
+    # Check if already registered
+    if REGISTRY_PATH.exists():
+        try:
+            registry = _json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+            registered_paths = {p.get("path", "") for p in registry.get("packages", [])}
+            if str(skills_dir) in registered_paths:
+                console.print("[dim]Anthropic official skills: already registered[/dim]")
+                return
+        except Exception:
+            pass
+
+    # Clone if not on disk
+    if not skills_dir.exists():
+        if not _which("git"):
+            console.print("[yellow]git not found — skipping Anthropic skills auto-install[/yellow]")
+            return
+        console.print("[cyan]Downloading Anthropic official skills...[/cyan]")
+        result = subprocess.run(
+            ["git", "clone", "--depth=1", ANTHROPIC_SKILLS_URL, str(skills_dir)],
+            capture_output=True, text=True,
+        )
+        if result.returncode != 0:
+            console.print(f"[yellow]Could not clone Anthropic skills: {result.stderr.strip()[:80]}[/yellow]")
+            return
+
+    # Register
+    result = install_package(skills_dir)
+    console.print(f"[green]✓ Anthropic official skills: {result['installed']} skills registered[/green]")
+
+
+def _which(cmd: str) -> bool:
+    import shutil
+    return shutil.which(cmd) is not None
+
+
 @app.command()
 def setup():
     """Run preflight checks and initialise the ~/.oa/ directory."""
@@ -224,12 +271,15 @@ def setup():
     install_default_hooks()
     console.print(f"[green]Hook directories created in ~/.oa/hooks/[/green]")
 
+    # Auto-install Anthropic official skills if not already registered
+    _setup_anthropic_skills()
+
     failed = [r for r in results if not r.ok]
     if failed:
         console.print("\n[yellow]Setup complete with warnings. Fix the issues above before running 'oa start'.[/yellow]")
     else:
         console.print(Panel(
-            "Setup complete!\n\nNext steps:\n  1. Run [bold]oa start[/bold] to launch the tmux session\n  2. Run [bold]oa run \"<task>\"[/bold] to spawn your first agent\n  3. Run [bold]oa doctor[/bold] anytime to verify your environment",
+            "Setup complete!\n\nNext steps:\n  1. Run [bold]oa start[/bold] to launch the tmux session\n  2. Run [bold]oa run \"<task>\"[/bold] to spawn your first agent\n  3. Run [bold]oa doctor[/bold] anytime to verify your environment\n  4. Run [bold]oa skill update[/bold] to keep skills current",
             title="[green bold]Open Agents Ready[/green bold]",
             border_style="green",
         ))
@@ -358,6 +408,19 @@ def start(
             console.print("[dim]PO pre-commit hook auto-installed.[/dim]")
     except Exception:
         pass  # Non-critical — don't block session start
+
+    # Show latest HANDOFF summary at session start
+    try:
+        from .core_files import read_handoff_summary, get_stale_files
+        summary = read_handoff_summary()
+        if summary and "niet gevonden" not in summary:
+            console.print(Panel(summary, title="[bold]Laatste HANDOFF[/bold]", border_style="dim", padding=(0, 1)))
+        stale = get_stale_files()
+        if stale:
+            names = ", ".join(s["name"] for s in stale)
+            console.print(f"[yellow]⚠ Stale core files: {names}[/yellow]")
+    except Exception:
+        pass
 
     if chat:
         from .chat import ChatSession
@@ -2460,6 +2523,52 @@ def skill_install(package_path: str = typer.Argument(..., help="Pad naar skill p
         typer.echo(f"  - {s}")
 
 
+@skill_app.command(name="update")
+def skill_update():
+    """Update alle geregistreerde skill packages via git pull."""
+    import subprocess
+    from .skill_registry import REGISTRY_PATH
+    import json
+
+    if not REGISTRY_PATH.exists():
+        typer.echo("Geen skill registry gevonden. Gebruik 'oa skill install <pad>' eerst.")
+        raise typer.Exit(1)
+
+    registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+    packages = registry.get("packages", [])
+    if not packages:
+        typer.echo("Geen packages geregistreerd.")
+        raise typer.Exit(0)
+
+    updated = 0
+    skipped = 0
+    for pkg in packages:
+        pkg_path = Path(pkg.get("path", ""))
+        if not pkg_path.exists():
+            console.print(f"[yellow]⚠ Pad niet gevonden: {pkg_path}[/yellow]")
+            skipped += 1
+            continue
+        if not (pkg_path / ".git").exists():
+            console.print(f"[dim]Geen git repo: {pkg_path.name} — overgeslagen[/dim]")
+            skipped += 1
+            continue
+        result = subprocess.run(
+            ["git", "pull", "--ff-only"],
+            cwd=pkg_path,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            msg = result.stdout.strip().split("\n")[0]
+            console.print(f"[green]✓[/green] {pkg_path.name}: {msg}")
+            updated += 1
+        else:
+            console.print(f"[red]✗[/red] {pkg_path.name}: {result.stderr.strip()[:80]}")
+            skipped += 1
+
+    console.print(f"\n{updated} packages bijgewerkt, {skipped} overgeslagen.")
+
+
 @skill_app.command(name="assign")
 def skill_assign(
     agent_name: str = typer.Argument(..., help="Agent naam"),
@@ -2921,6 +3030,55 @@ def po_log(
         )
 
     console.print(table)
+
+
+# --- Core Files ---
+core_app = typer.Typer(name="core", help="Core file awareness and health.")
+app.add_typer(core_app)
+
+
+@core_app.command("status")
+def core_status():
+    """Show status of all core files — staleness, last updated."""
+    from .core_files import get_status
+    from rich.table import Table
+
+    statuses = get_status()
+    table = Table(title="Core Files Status", show_lines=False)
+    table.add_column("Name", style="bold")
+    table.add_column("Role", style="dim")
+    table.add_column("Exists", justify="center")
+    table.add_column("Last Updated", justify="right")
+    table.add_column("Status", justify="center")
+
+    for s in statuses:
+        exists_icon = "[green]✓[/green]" if s["exists"] else "[red]✗[/red]"
+        if not s["exists"]:
+            last_updated = "[dim]—[/dim]"
+            status_icon = "[red]❌ missing[/red]"
+        elif s["is_stale"]:
+            days = s["days_since_update"]
+            last_updated = f"{days}d ago"
+            status_icon = "[yellow]⚠ stale[/yellow]"
+        else:
+            days = s["days_since_update"]
+            last_updated = f"{days}d ago" if days is not None else "—"
+            status_icon = "[green]✅ fresh[/green]"
+
+        table.add_row(s["name"], s["role"], exists_icon, last_updated, status_icon)
+
+    console.print(table)
+
+
+@core_app.command("handoff")
+def core_handoff():
+    """Show summary of the most recent HANDOFF document."""
+    from .core_files import read_handoff_summary, get_latest_handoff
+
+    path = get_latest_handoff()
+    title = f"[bold]Laatste HANDOFF[/bold]" + (f" — [dim]{path.name}[/dim]" if path else "")
+    summary = read_handoff_summary()
+    console.print(Panel(summary, title=title, border_style="cyan", padding=(0, 1)))
 
 
 if __name__ == "__main__":

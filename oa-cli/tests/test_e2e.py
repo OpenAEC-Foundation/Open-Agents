@@ -38,6 +38,8 @@ def isolated_state(tmp_path, monkeypatch):
     monkeypatch.setattr(state_module, "STATE_FILE", state_file)
     state_module._cache = None
     state_module._cache_mtime = 0.0
+    # Disable GPU routing so ollama/* models don't get re-routed to remote hosts
+    monkeypatch.setattr(spawner_module, "load_config", lambda: {"timeout_minutes": 60, "prefer_gpu": False})
     return oa_dir
 
 

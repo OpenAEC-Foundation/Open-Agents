@@ -189,9 +189,12 @@ class TestSpawnAgentMocked:
     @pytest.fixture()
     def isolated_state(self, tmp_path, monkeypatch):
         import open_agents.state as state_module
+        import open_agents.spawner as spawner_module
         oa_dir = tmp_path / ".oa"
         monkeypatch.setattr(state_module, "OA_DIR", oa_dir)
         monkeypatch.setattr(state_module, "STATE_FILE", oa_dir / "agents.json")
+        # Disable GPU routing so ollama/* models are not re-routed to remote hosts
+        monkeypatch.setattr(spawner_module, "load_config", lambda: {"timeout_minutes": 60, "prefer_gpu": False})
 
     def test_spawn_raises_when_no_session(self, mock_subprocess, isolated_state):
         """spawn_agent raises if the oa session doesn't exist."""
