@@ -347,6 +347,18 @@ def start(
     except Exception:
         pass  # Non-critical — don't block session start
 
+    # Auto-install PO pre-commit hook if not present
+    try:
+        from .po_agent import install_git_hook
+        import subprocess
+        repo_root = Path(__file__).parents[3]
+        hook_path = repo_root / ".git" / "hooks" / "pre-commit"
+        if not hook_path.exists() or "Open-Agents Product Owner" not in hook_path.read_text():
+            install_git_hook(repo_root)
+            console.print("[dim]PO pre-commit hook auto-installed.[/dim]")
+    except Exception:
+        pass  # Non-critical — don't block session start
+
     if chat:
         from .chat import ChatSession
         ChatSession().start()
