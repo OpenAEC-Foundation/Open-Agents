@@ -1,4 +1,12 @@
 {
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{"type": "command", "command": "bash /mnt/c/Users/Freek\\ Heijting/Documents/GitHub/Open-Agents/.claude/hooks/check-delegation.sh"}]
+      }
+    ]
+  },
   "permissions": {
     "defaultMode": "bypassPermissions",
     "allow": [

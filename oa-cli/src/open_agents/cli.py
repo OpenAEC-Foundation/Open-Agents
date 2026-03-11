@@ -1291,6 +1291,37 @@ def stop(
     console.print("[yellow]Session 'oa' stopped.[/yellow]")
 
 
+@app.command(name="session-start")
+def session_start():
+    """Spawn een persistent session-orchestrator die taken aanneemt via oa inbox."""
+    task = """Je bent de SESSION-ORCHESTRATOR voor deze werk-sessie.
+
+## Je rol
+Je bent een persistent agent. Je taak eindigt NIET — je blijft actief.
+
+## Loop (herhaal elke 30 seconden)
+1. Check inbox: lees ~/.oa/messages/session-orch/ op nieuwe berichten
+2. Voor elk nieuw bericht: spawn een worker via bash:
+   oa run "<taak uit bericht>" --name worker-$(date +%s) --model claude/sonnet --direct
+3. Stuur bevestiging terug: oa send meta "Worker gespawnd voor: <taak>" --from session-orch
+4. Sleep 30 seconden
+5. Herhaal
+
+## Hoe inbox te lezen
+Lees bestanden in ~/.oa/messages/session-orch/ — elk bestand is een bericht.
+Markeer gelezen door het bestand te hernoemen naar <naam>.read
+
+## Stop criteria
+Stop alleen als je een bericht ontvangt met inhoud "STOP" of "SHUTDOWN".
+
+Start nu met de loop."""
+
+    from .spawner import spawn_agent
+    rec = spawn_agent("session-orch", task, model="claude/sonnet")
+    console.print(f"[green]Session orchestrator gestart: {rec.name}[/green]")
+    console.print("[dim]Stuur taken via: oa send session-orch \"<taak>\" --from meta[/dim]")
+
+
 @app.command(name="guardians")
 def guardians_cmd(
     register: bool = typer.Option(False, "--register", help="Register a new guardian (interactive)"),
@@ -2987,7 +3018,7 @@ def benchmark(
     import subprocess
     from pathlib import Path
 
-    repo_root = Path(__file__).parent.parent.parent.parent.parent
+    repo_root = Path(__file__).parent.parent.parent.parent
     tools_dir = repo_root / "tools"
 
     env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
