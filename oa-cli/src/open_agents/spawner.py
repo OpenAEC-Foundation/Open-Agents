@@ -185,9 +185,12 @@ def spawn_agent(
         shared_results_dir = str(Path(tempfile.mkdtemp(prefix="oa-results-")) / "results")
         Path(shared_results_dir).mkdir(parents=True, exist_ok=True)
 
+    # Determine parent_name for feedback loop instructions
+    parent_name = parent if parent is not None else "meta"
+
     # Create workspace (or use provided one)
     if workspace is None:
-        workspace = create_workspace(name, task, project_root=project_root, agent_type=agent_type, can_spawn=can_spawn, team=team, model=model)
+        workspace = create_workspace(name, task, project_root=project_root, agent_type=agent_type, can_spawn=can_spawn, team=team, model=model, parent_name=parent_name)
     else:
         workspace = Path(workspace)
 

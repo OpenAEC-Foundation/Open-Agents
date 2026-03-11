@@ -182,6 +182,20 @@ def print_status() -> None:
         console.print("[bright_black]No agents registered. Use 'oa run' to start one.[/bright_black]")
         return
 
+    # Show meta inbox unread count
+    meta_unreads = unread_count("meta")
+    if meta_unreads > 0:
+        console.print(f"[bold yellow]\U0001f4ec meta inbox: {meta_unreads} unread message(s)[/bold yellow]")
+        from .messaging import read_inbox as _read_inbox
+        recent = _read_inbox("meta", unread_only=True, limit=5)
+        for msg in recent:
+            sender = msg.get("from", "?")
+            content = msg.get("content", "")
+            if len(content) > 80:
+                content = content[:77] + "..."
+            console.print(f"  [cyan]{sender}[/cyan]: {content}")
+        console.print()
+
     table = render_status_table(agents)
     console.print(table)
 

@@ -938,6 +938,52 @@ def broadcast(
     console.print(f"[green]Broadcast sent to {len(paths) - 1} agent(s)[/green]")
 
 
+@app.command(name="watch-inbox")
+def watch_inbox(
+    name: str = typer.Argument("meta", help="Inbox naam om te monitoren"),
+    follow: bool = typer.Option(True, "--follow/--no-follow", "-f/-F", help="Blijf pollen voor nieuwe berichten"),
+):
+    """Watch inbox real-time voor binnenkomende berichten."""
+    from datetime import datetime
+    from .notification import notify_tmux
+
+    seen_timestamps: set[float] = set()
+
+    console.print(f"[bold]Watching inbox: {name}[/bold] (Ctrl+C to stop)\n")
+
+    try:
+        while True:
+            messages = read_inbox(name, unread_only=True)
+            for msg in reversed(messages):  # oldest first
+                ts = msg.get("timestamp", 0)
+                if ts in seen_timestamps:
+                    continue
+                seen_timestamps.add(ts)
+
+                sender = msg.get("from", "unknown")
+                content = msg.get("content", "")
+                time_str = datetime.fromtimestamp(ts).strftime("%H:%M:%S")
+
+                # Color based on emoji prefix
+                if content.startswith("\u274c") or content.startswith("\U0001f534"):
+                    style = "red"
+                elif content.startswith("\u2705") or content.startswith("\U0001f680"):
+                    style = "green"
+                else:
+                    style = "white"
+
+                console.print(f"[dim]{time_str}[/dim] [cyan]{sender}[/cyan] [{style}]{content}[/{style}]")
+
+                # Also send tmux notification
+                notify_tmux(content, sender)
+
+            if not follow:
+                break
+            time.sleep(2)
+    except KeyboardInterrupt:
+        console.print("\n[dim]Stopped watching.[/dim]")
+
+
 @app.command(name="shutdown-request")
 def shutdown_request_cmd(
     name: str = typer.Argument(..., help="Agent name to send shutdown request to"),

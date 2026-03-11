@@ -1,47 +1,76 @@
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=JetBrains+Mono&size=20&pause=1000&color=D97706&width=600&lines=Spawn+AI+agents+in+parallel;No+API+key+required;Works+with+Claude+Code+subscription)](https://git.io/typing-svg)
+<div align="center">
+  <img src="https://raw.githubusercontent.com/OpenAEC-Foundation/Open-Agents/main/oa-cli/web/public/assets/logos/openaec/openaec-logo-amber-on-dark.svg" alt="OpenAEC Foundation" width="280"/>
 
-# Open-Agents
+  # Open-Agents
 
-![version](https://img.shields.io/badge/version-v0.3.0-D97706?style=flat-square)
-![python](https://img.shields.io/badge/python-3.11+-blue?style=flat-square&logo=python)
-![license](https://img.shields.io/badge/license-Apache--2.0-green?style=flat-square)
-![agents](https://img.shields.io/badge/agents-1440%2B-EA580C?style=flat-square)
-![platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20WSL2-lightgrey?style=flat-square)
+  **Spawn AI agents. Orchestrate anything. Build free.**
+
+  [![version](https://img.shields.io/badge/version-v0.3.1-D97706?style=flat-square)](https://github.com/OpenAEC-Foundation/Open-Agents/releases)
+  [![agents](https://img.shields.io/badge/agents-1612-16A34A?style=flat-square)](https://github.com/OpenAEC-Foundation/Open-Agents/tree/main/agents/library)
+  [![python](https://img.shields.io/badge/python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+  [![license](https://img.shields.io/badge/license-MIT-D97706?style=flat-square)](LICENSE)
+  [![OpenAEC](https://img.shields.io/badge/OpenAEC-Foundation-EA580C?style=flat-square)](https://github.com/OpenAEC-Foundation)
+
+</div>
 
 **Multi-agent orchestrator for Claude Code.** Spawn and coordinate hundreds of AI agents in parallel via a single CLI — no API key required, powered by your Claude Code subscription. Ideal for developers, teams, and anyone who wants to multiply their AI coding capacity.
 
 ---
 
+## Demo
+
+```bash
+# Spawn 4 parallel agents in seconds
+oa run "Research React 19 new features" --name researcher --model claude/sonnet --direct
+oa run "Write unit tests for auth module" --name tester --model claude/sonnet --direct
+oa run "Generate OpenAPI docs from bridge.py" --name documenter --model claude/haiku --direct
+oa run "Review PR #42 for security issues" --name reviewer --model claude/opus --direct
+
+# Watch them work
+oa status
+```
+
+```
+┌─────────────┬────────┬─────────┬──────────────────────────────┐
+│ NAME        │ MODEL  │ STATUS  │ TASK                         │
+├─────────────┼────────┼─────────┼──────────────────────────────┤
+│ researcher  │ sonnet │ running │ Research React 19 new...     │
+│ tester      │ sonnet │ running │ Write unit tests for auth... │
+│ documenter  │ haiku  │  done   │ Generate OpenAPI docs...     │
+│ reviewer    │ opus   │ running │ Review PR #42 for security.. │
+└─────────────┴────────┴─────────┴──────────────────────────────┘
+```
+
+---
+
 ## Features
 
-- ⚡ **Zero API key setup** — runs directly on your Claude Code subscription
-- 🔀 **Parallel agent execution** — spawn multiple agents simultaneously, each in its own tmux window
-- 🏗️ **Pipeline orchestration** — automatic Planner → parallel Workers → Combiner flow
-- 🤖 **Delegate mode** — spawn an orchestrator that autonomously manages its own workers
-- 👥 **Agent Teams** — shared task lists, inter-agent messaging, coordinated workflows
-- 🛡️ **Proposal mode** — agents write proposals; you review and apply with `oa apply`
-- 🖥️ **Three interfaces** — Terminal CLI, Textual TUI dashboard, React web UI
-- 📦 **1440+ agent templates** — 112 categories from code-dev to AEC to healthcare
-- 🔌 **MCP Server** — integrate with any MCP-compatible client
-- 🧬 **Nested spawning** — agents create child agents with parent/child hierarchy
-- 🏥 **Guardian agents** — automatic reflexes on session end (lessons, roadmap, handoff)
-- 🌐 **Multi-model** — Claude Opus/Sonnet/Haiku + local Ollama models
+| | |
+|---|---|
+| 🤖 **1612+ Agent Templates** | 112 categories from code-dev to AEC to healthcare |
+| ⚡ **Parallel Execution** | Spawn hundreds of agents simultaneously in tmux |
+| 🔄 **Bidirectional Feedback Loop** | Agents report back; orchestrator iterates |
+| 🐳 **Pipeline Orchestration** | Planner → parallel Workers → Combiner, automated |
+| 📊 **Three Interfaces** | Terminal CLI, Textual TUI dashboard, React web UI |
+| 🔌 **MCP + Agent Messaging** | Integrate with any MCP client; inter-agent DMs |
+| 🧬 **Nested Spawning** | Agents create child agents up to 6 levels deep |
+| 🌐 **Multi-model** | Claude Opus / Sonnet / Haiku + local Ollama models |
 
 ---
 
 ## Quick Start
 
 ```bash
-# 1. Install
+# Install
 ./install.sh            # Linux / macOS / WSL2
 
-# 2. Start a session
+# Start a session
 oa start
 
-# 3. Spawn your first agent
-oa run "Write a Python function that validates email addresses" --model claude/sonnet
+# Spawn your first agent
+oa run "Write a Python web scraper" --model claude/sonnet --direct
 
-# 4. Check status
+# Check status
 oa status
 ```
 
@@ -60,7 +89,7 @@ oa status
 │              Claude Code CLI (subscription)          │
 │         Claude Opus · Sonnet · Haiku · Ollama        │
 ├─────────────────────────────────────────────────────┤
-│  1440+ Agent Templates  │  22 Skills  │  Guardians  │
+│  1612+ Agent Templates  │  22 Skills  │  Guardians  │
 │  112 categories          │  7 domains  │  auto-run   │
 └─────────────────────────────────────────────────────┘
 ```
@@ -135,7 +164,7 @@ Planner (5 min) → plan.json → Subtask agents (parallel, 30 min each) → Com
 
 ## Agent Library
 
-**1440+ templates** across **112 categories**, including:
+**1612+ templates** across **112 categories**, including:
 
 | Domain | Categories | Examples |
 |--------|-----------|----------|
@@ -166,7 +195,7 @@ oa doctor     # Check all dependencies
 
 | Dependency | Version |
 |------------|---------|
-| Python | >= 3.11 |
+| Python | >= 3.10 |
 | tmux | any recent |
 | Claude Code CLI | latest (active subscription) |
 
@@ -203,8 +232,12 @@ Contributions welcome! Open an issue or submit a PR.
 
 ## License
 
-[Apache-2.0](LICENSE)
+[MIT](LICENSE)
 
 ---
 
+<div align="center">
+
 *Build free. Build together.*
+
+</div>

@@ -1,0 +1,73 @@
+site_name: Open-Agents
+site_description: Multi-agent orchestrator for Claude Code — spawn, coordinate, and automate hundreds of AI agents in parallel.
+site_url: https://openaec-foundation.github.io/Open-Agents/
+repo_url: https://github.com/OpenAEC-Foundation/Open-Agents
+repo_name: OpenAEC-Foundation/Open-Agents
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  custom_dir: docs/overrides
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+    - content.code.annotate
+    - search.suggest
+    - search.highlight
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+    - Your First Agent: getting-started/first-agent.md
+  - User Guide:
+    - Spawning Agents: guide/spawning.md
+    - Agent Templates: guide/templates.md
+    - Multi-Agent Workflows: guide/workflows.md
+    - Feedback Loop: guide/feedback-loop.md
+    - Models: guide/models.md
+  - CLI Reference: reference/cli.md
+  - Agent Library: library/overview.md
+  - API Reference: api/README.md

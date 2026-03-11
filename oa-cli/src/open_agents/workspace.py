@@ -60,6 +60,28 @@ def _agent_settings(workspace: Path, can_spawn: bool = False) -> dict:
     return settings
 
 
+def _feedback_loop_instructions(agent_name: str, parent_name: str) -> str:
+    """Generate mandatory feedback loop instructions for an agent's CLAUDE.md.
+
+    These instructions ensure agents automatically report status back to their
+    spawner (parent) via oa send messages at key lifecycle moments.
+    """
+    return (
+        f"\n"
+        f"## Communicatie met je spawner\n"
+        f"Je spawner heet: **{parent_name}**\n"
+        f"\n"
+        f"Verplichte statusupdates via oa CLI:\n"
+        f"1. Bij START: `oa send {parent_name} \"\U0001f680 Gestart: <korte taakbeschrijving>\" --from {agent_name}`\n"
+        f"2. Bij MILESTONE (elke grote stap klaar): `oa send {parent_name} \"\u2705 Milestone: <beschrijving>\" --from {agent_name}`\n"
+        f"3. Bij BLOKKADE: `oa send {parent_name} \"\U0001f534 Geblokkeerd: <reden> — wacht op input\" --from {agent_name}`\n"
+        f"4. Bij DONE: `oa send {parent_name} \"\u2705 KLAAR: <samenvatting van output>\" --from {agent_name}`\n"
+        f"5. Bij FOUT: `oa send {parent_name} \"\u274c FOUT: <beschrijving>\" --from {agent_name}`\n"
+        f"\n"
+        f"Als je sub-agents spawnt: geef hen `--name {agent_name}-<subtaak>` zodat de hiërarchie zichtbaar is.\n"
+    )
+
+
 def _messaging_instructions(agent_name: str) -> str:
     """Generate messaging instructions for an agent's CLAUDE.md."""
     return (
@@ -173,7 +195,7 @@ def _team_context_section(agent_name: str, team: str) -> str:
     )
 
 
-def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None, agent_type: str = "", can_spawn: bool = False, honesty: bool = False, team: str = "", model: str = "") -> Path:
+def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None, agent_type: str = "", can_spawn: bool = False, honesty: bool = False, team: str = "", model: str = "", parent_name: str = "meta") -> Path:
     """Create a temporary workspace directory with a CLAUDE.md file.
 
     If project_root is provided, agents are instructed to write directly
@@ -202,6 +224,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
     quality_rules = _quality_rules_section()
     anti_patterns = _anti_patterns_section()
     team_context = _team_context_section(agent_name, team)
+    feedback_loop = _feedback_loop_instructions(agent_name, parent_name)
     messaging = _messaging_instructions(agent_name)
     spawning = _spawning_instructions(agent_name, str(project_root) if project_root else None)
 
@@ -223,6 +246,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"{quality_rules}"
             f"{anti_patterns}"
             f"{team_context}"
+            f"{feedback_loop}"
             f"{messaging}"
             f"{spawning}"
             f"\n## Constraints\n"
@@ -244,6 +268,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"{quality_rules}"
             f"{anti_patterns}"
             f"{team_context}"
+            f"{feedback_loop}"
             f"{messaging}"
             f"{spawning}"
             f"\n## Constraints\n"
