@@ -11,8 +11,9 @@ from pathlib import Path
 WORKSPACE_PREFIX = "oa-agent-"
 
 # Full PATH so agents (and their sub-agents) can find oa-cli (Issue #9/#11)
+# Uses $HOME so it works for any user (expanded at shell runtime)
 _AGENT_PATH = (
-    "/home/freek/.local/bin:"
+    "$HOME/.local/bin:"
     "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:"
     "/usr/games:/usr/local/games:/usr/lib/wsl/lib"
 )
@@ -28,20 +29,23 @@ echo "De Agent tool maakt onzichtbare sub-agents. Alleen oa run registreert agen
 exit 2
 """
 
-# Settings.json for agent workspaces — hooks into PreToolUse to block Agent tool
-_AGENT_SETTINGS = {
-    "permissions": {
-        "defaultMode": "bypassPermissions",
-    },
-    "hooks": {
-        "PreToolUse": [
-            {
-                "matcher": "Agent",
-                "hooks": ["bash .claude/hooks/block-agent-tool.sh"],
-            }
-        ],
-    },
-}
+# Settings.json template — hook path is filled in by create_workspace()
+def _agent_settings(workspace: Path) -> dict:
+    """Build settings.json with absolute hook path for the given workspace."""
+    hook_path = workspace / ".claude" / "hooks" / "block-agent-tool.sh"
+    return {
+        "permissions": {
+            "defaultMode": "bypassPermissions",
+        },
+        "hooks": {
+            "PreToolUse": [
+                {
+                    "matcher": "Agent",
+                    "hooks": [f"bash {hook_path}"],
+                }
+            ],
+        },
+    }
 
 
 def _messaging_instructions(agent_name: str) -> str:
@@ -88,7 +92,7 @@ def _spawning_instructions(agent_name: str, project_root: str | None = None) -> 
         f"```bash\n"
         f"export PATH=\"{_AGENT_PATH}:$PATH\"\n"
         f"oa run \"<taakomschrijving>\" --name <agent-naam> --model claude/sonnet "
-        f"--parent {agent_name}{direct_flag} --direct\n"
+        f"--parent {agent_name}{direct_flag}\n"
         f"```\n"
         f"\n"
         f"### Monitoring\n"
@@ -101,6 +105,7 @@ def _spawning_instructions(agent_name: str, project_root: str | None = None) -> 
         f"- Gebruik `--model claude/sonnet` (of haiku/opus) — nooit bare `claude`\n"
         f"- Gebruik `--direct` als de sub-agent naar het project moet schrijven\n"
         f"- Wacht op sub-agents met polling: `oa status` of `oa collect <naam>`\n"
+        f"- Als `oa` niet gevonden wordt: schrijf fout naar ./output/error.md en maak .done aan\n"
     )
 
 
@@ -126,7 +131,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
 
     # Write .claude/settings.json with hook config + bypass permissions
     settings_file = workspace / ".claude" / "settings.json"
-    settings_file.write_text(json.dumps(_AGENT_SETTINGS, indent=2) + "\n")
+    settings_file.write_text(json.dumps(_agent_settings(workspace), indent=2) + "\n")
 
     claude_md = workspace / "CLAUDE.md"
     messaging = _messaging_instructions(agent_name)
@@ -181,9 +186,13 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
 
 
 def sync_workspace_to_remote(host: str, local_ws: Path, remote_ws: str) -> None:
-    """Upload CLAUDE.md naar remote workspace via SSH/SCP."""
-    subprocess.run(["ssh", "-o", "BatchMode=yes", host, f"mkdir -p {remote_ws}/output"], check=True)
+    """Upload workspace (CLAUDE.md + .claude/) naar remote via SSH/SCP."""
+    subprocess.run(["ssh", "-o", "BatchMode=yes", host, f"mkdir -p {remote_ws}/output {remote_ws}/.claude/hooks"], check=True)
     subprocess.run(["scp", "-o", "BatchMode=yes", str(local_ws / "CLAUDE.md"), f"{host}:{remote_ws}/CLAUDE.md"], check=True)
+    # Sync delegation hooks and settings so remote agents also block the Agent tool
+    claude_dir = local_ws / ".claude"
+    if claude_dir.exists():
+        subprocess.run(["scp", "-r", "-o", "BatchMode=yes", str(claude_dir), f"{host}:{remote_ws}/"], check=True)
 
 
 def sync_output_from_remote(host: str, remote_ws: str, local_ws: Path) -> None:

@@ -75,6 +75,8 @@
 | D-050 | React SPA met lokale Python bridge (geen API) | React SPA op localhost praat met een Flask bridge server die de oa-cli Python functies wrapt. Bridge serveert agent state + live tmux output. Geen cloud endpoints, geen token kosten. Bridge start via `oa web`. Later wrappable in Tauri voor native desktop. | 2026-03-02 |
 | D-054 | Open-Agents bouwen als Tauri 2 desktop applicatie | React frontend (ongewijzigd) + Rust shell + Python sidecar via HTTP. Cross-platform installatie (Win/Mac/Linux/Android), native performance, kleine installer (~50MB), geen Electron overhead. Referentie: Open PDF Studio als bewezen Tauri 2 patroon. Fases: MVP (Tauri wrapper) → native integratie → auto-update → bundled Python → Android | 2026-03-08 |
 | D-053 | Multi-provider auth via CLI browser login | Geen API keys in de app — elke provider heeft een CLI tool met browser-based login. Providers: Claude Code (claude login), OpenAI/Codex (codex login), Mistral CLI, Ollama (geen login). App detecteert welke CLI tools geïnstalleerd zijn, start login flow via Tauri shell plugin. | 2026-03-08 |
+| D-055 | Session Persistence Architecture | Aparte session records in ~/.oa/sessions/<ts>.json, 3 shutdown modes (stop/detach/crash), tmux hook + periodic checkpoints als dual safety net | Eliminates concurrent write conflicts, crash-safe (corrupteert alleen 1 file), periodic checkpoints als primary safety (tmux hook unreliable op Windows Terminal) | 2026-03-11 |
+| D-056 | Session Resume UX | Automatische resume met non-blocking banner, --fresh flag voor opt-out, 4 zichtbare config opties | Volgt patronen van tmux-continuum, Zellij en VS Code. Geen interactief menu — CLI tools blokkeren niet bij startup | 2026-03-11 |
 
 ---
 

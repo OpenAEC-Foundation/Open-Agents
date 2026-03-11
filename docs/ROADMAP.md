@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-10
-> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 11 (VS Code Bridge) In Progress — Sprint 17 (Agent Teams) In Progress — Sprint 18 (Dashboard UI) In Progress — Agent Library: 454 templates (32 categories) — 22 skills gebouwd
+> **Laatste update**: 2026-03-11
+> **Status**: v0.2.0 released — Sprint 12 (oa-cli) Done — Sprint 19 (Session Persistence) Done — Sprint 11 (VS Code Bridge) In Progress — Sprint 17 (Agent Teams) In Progress — Sprint 18 (Dashboard UI) In Progress — Agent Library: 454 templates (32 categories) — 22 skills gebouwd
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -31,6 +31,7 @@
 | CLI Agentic Layer (oa-cli) | 1 | 1 |
 | VS Code Bridge (Sprint 11) | 0 | 1 |
 | Agent Teams Patterns (Sprint 17) | 0 | 12 |
+| Session Persistence (Sprint 19) | 1 | 1 |
 
 **Fase 0 (Foundation)**: ████████████████████ **100%** - documenten, visie, research
 **Fase 1 (PoC)**: ████████████████████ **100%** - canvas UI, backend API, e2e wiring, theming, BYOK
@@ -48,6 +49,7 @@
 **Fase 10 (VS Code Bridge)**: ████████████████░░░░ **80%** - Sprint 11 in progress: ClaudeCLIRuntime, bridgeService, ConnectionIndicator, package migratie, launch config werkend; shared types mergen, test-workspace, CLI tool integreren bij agent sprint11-finisher
 **Fase 11 (Agent Teams Patterns)**: ████████████░░░░░░░░ **58%** - Sprint 17 in progress: task_list.py, teams.py, messaging.py (send/inbox/broadcast werkend), CLI commando's volledig; hooks.py, graceful shutdown, tests, TUI/web views nog open
 **Fase 12 (Dashboard & UI Refactor)**: ████████████████░░░░ **80%** - Sprint 18 in progress: ErrorBoundary + ToastProvider componenten, PipelinePanel (visual trigger + live status), TaskBoard (kanban per team), 11 dashboard componenten refactored met CSS design tokens
+**Fase 13 (Session Persistence)**: ████████████████████ **100%** - session store, guardian daemon, resume flow, notifications
 
 ---
 
@@ -390,6 +392,25 @@
 - [ ] TaskBoard API endpoints en dataflow
 - [ ] CSS token audit (zorgen dat alle 11 componenten consistent zijn)
 - [ ] Agent library Wave 2 (overige 300+ agents naar 1015)
+
+---
+
+## Sprint 19: Session Persistence — Complete (2026-03-11)
+
+**Doel**: Automatische sessie-herstel na crash, detach of intentionele stop. Dual safety net: tmux hook + periodic guardian.
+**Beslissingen**: D-055 (Session Persistence Architecture), D-056 (Session Resume UX)
+
+- [x] session.py — lock file, heartbeat, shutdown detection
+- [x] session_store.py — session records CRUD (~/.oa/sessions/)
+- [x] session_cleanup.py — tmux hook entry point
+- [x] session_guardian.py — periodic checkpoint daemon
+- [x] notify.py — cross-platform desktop notifications
+- [x] config.py — on_disconnect settings
+- [x] hooks.py — 3 new events
+- [x] tmux.py — guardian window, detach hook
+- [x] cli.py — oa start resume, oa stop 5-phase, oa session commands
+- [ ] Integration tests
+- [ ] Delegation fix testing
 
 ---
 

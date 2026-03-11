@@ -82,8 +82,9 @@ def _build_ollama_command(workspace: Path, name: str, ollama_model: str) -> str:
     We pipe CLAUDE.md as prompt and capture output to result.md.
     TERM=dumb prevents ollama from writing spinner/progress ANSI codes.
     """
+    from .workspace import _AGENT_PATH
     return (
-        f"export PATH=\"$HOME/.local/bin:$PATH\" && "
+        f"export PATH=\"{_AGENT_PATH}:$PATH\" && "
         f"cd {workspace} && "
         f"TERM=dumb cat CLAUDE.md | {OLLAMA_CMD} run {shlex.quote(ollama_model)} "
         f"2>/dev/null | sed 's/\\x1b\\[[0-9;]*[a-zA-Z]//g' "
@@ -258,6 +259,7 @@ def spawn_remote_agent(
     sync_workspace_to_remote(host, local_ws, remote_ws)
 
     # 3. Bouw remote commando — zelfde prompt als _build_claude_command
+    from .workspace import _AGENT_PATH
     claude_model = CLAUDE_MODEL_MAP.get(model)
     if claude_model is None and "/" in model:
         claude_model = model.split("/", 1)[1]
@@ -266,7 +268,7 @@ def spawn_remote_agent(
         "Lees CLAUDE.md en voer de taak uit. Schrijf al je output naar ./output/ en maak een .done file als je klaar bent."
     )
     remote_cmd = (
-        f"export PATH=\"$HOME/.local/bin:$PATH\" && "
+        f"export PATH=\"{_AGENT_PATH}:$PATH\" && "
         f"cd {remote_ws} && "
         f"unset CLAUDECODE && "
         f"mkdir -p output && "
