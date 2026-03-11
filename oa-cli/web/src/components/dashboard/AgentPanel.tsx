@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { ClipboardCopy, ChevronRight } from 'lucide-react';
+import { ClipboardCopy, ChevronRight, Terminal, FileText } from 'lucide-react';
 import { useAgentStore, modelColor, formatDuration, modelLabel } from '../../stores/agentStore';
 import type { Agent, Message } from '../../types';
 import * as api from '../../api/client';
 import { XtermTerminal } from './XtermTerminal';
+import { MarkdownOutput } from './MarkdownOutput';
 
 function statusBadgeStyle(status: string) {
   const s = status === 'error' ? 'failed' : ['running', 'done', 'failed', 'timeout', 'killed'].includes(status) ? status : 'killed';
@@ -22,6 +23,7 @@ export function AgentPanel() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [msgInput, setMsgInput] = useState('');
   const [tab, setTab] = useState<'info' | 'messages' | 'output'>('output');
+  const [viewMode, setViewMode] = useState<'rendered' | 'raw'>('rendered');
   const [copied, setCopied] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
 
@@ -266,11 +268,8 @@ export function AgentPanel() {
                   </span>
                 )}
               </div>
-              <div
-                className="leading-relaxed whitespace-pre-wrap"
-                style={{ color: msg.from === selectedAgent ? 'var(--color-oa-accent)' : 'var(--color-oa-text-muted)' }}
-              >
-                {msg.content}
+              <div style={{ color: msg.from === selectedAgent ? 'var(--color-oa-accent)' : 'var(--color-oa-text-muted)' }}>
+                <MarkdownOutput content={msg.content} compact />
               </div>
             </div>
           ))}
@@ -281,11 +280,39 @@ export function AgentPanel() {
       {tab === 'output' && (
         <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'var(--color-oa-bg)' }}>
           <div
-            className="flex items-center justify-between px-3 py-2 border-b"
+            className="flex items-center justify-between px-3 py-2 border-b shrink-0"
             style={{ borderColor: 'var(--color-oa-border)', background: 'var(--color-oa-surface)' }}
           >
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: 'var(--color-oa-text-dim)' }}>output</span>
+              {/* View mode toggle — only for done agents with output */}
+              {outputLines.length > 0 && agent.status !== 'running' && (
+                <div className="flex items-center gap-0.5 rounded overflow-hidden" style={{ border: '1px solid var(--color-oa-border)' }}>
+                  <button
+                    onClick={() => setViewMode('rendered')}
+                    title="Rendered markdown"
+                    className="flex items-center gap-1 px-2 py-1 text-[10px] cursor-pointer transition-colors"
+                    style={{
+                      background: viewMode === 'rendered' ? 'var(--color-oa-accent)' : 'transparent',
+                      color: viewMode === 'rendered' ? '#fff' : 'var(--color-oa-text-dim)',
+                    }}
+                  >
+                    <FileText size={10} />
+                    MD
+                  </button>
+                  <button
+                    onClick={() => setViewMode('raw')}
+                    title="Raw terminal"
+                    className="flex items-center gap-1 px-2 py-1 text-[10px] cursor-pointer transition-colors"
+                    style={{
+                      background: viewMode === 'raw' ? 'var(--color-oa-accent)' : 'transparent',
+                      color: viewMode === 'raw' ? '#fff' : 'var(--color-oa-text-dim)',
+                    }}
+                  >
+                    <Terminal size={10} />
+                    Raw
+                  </button>
+                </div>
+              )}
               {outputLines.length > 0 && (
                 <span className="text-[10px]" style={{ color: 'var(--color-oa-text-dim)' }}>{outputLines.length} lines</span>
               )}
@@ -302,9 +329,11 @@ export function AgentPanel() {
               {copied ? 'Copied!' : 'Copy'}
             </button>
           </div>
-          <div className="flex-1 overflow-hidden" style={{ background: '#0a0a0a' }}>
+          <div className="flex-1 overflow-hidden" style={{ background: agent.status !== 'running' && viewMode === 'rendered' ? 'var(--color-oa-bg)' : '#0a0a0a' }}>
             {outputLines.length === 0 ? (
               <div className="flex items-center justify-center h-full text-xs" style={{ color: 'var(--color-oa-text-dim)' }}>No output yet...</div>
+            ) : agent.status !== 'running' && viewMode === 'rendered' ? (
+              <MarkdownOutput content={outputText} />
             ) : (
               <XtermTerminal
                 output={outputText}
