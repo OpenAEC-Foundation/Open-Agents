@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a1a2e;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+        .header {
+            background: #16213e;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 1px solid #0f3460;
+        }
+        .header h1 {
+            font-size: 18px;
+            color: #e94560;
+        }
+        .header label {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header input[type="range"] {
+            width: 150px;
+        }
+        #count-display {
+            color: #e94560;
+            font-weight: bold;
+            min-width: 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+            gap: 8px;
+            padding: 8px;
+        }
+        .terminal-card {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 12px;
+            background: #0f3460;
+            font-size: 13px;
+        }
+        .terminal-title {
+            font-weight: 600;
+        }
+        .terminal-buttons {
+            display: flex;
+            gap: 6px;
+        }
+        .terminal-buttons button {
+            padding: 3px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .btn-bash { background: #533483; color: white; }
+        .btn-claude { background: #e94560; color: white; }
+        .btn-kill { background: #c0392b; color: white; }
+        .btn-bash:hover { background: #6a4c9c; }
+        .btn-claude:hover { background: #ff6b81; }
+        .btn-kill:hover { background: #e74c3c; }
+        .terminal-body {
+            height: 350px;
+            padding: 4px;
+        }
+        .terminal-body.disconnected {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 14px;
+        }
+        .status-badge {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .status-connected { background: #2ecc71; }
+        .status-disconnected { background: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Terminal Dashboard</h1>
+        <label>
+            Terminals:
+            <input type="range" id="term-count" min="1" max="20" value="4">
+            <span id="count-display">4</span>
+        </label>
+    </div>
+    <div class="grid" id="grid"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script>
+    const grid = document.getElementById('grid');
+    const slider = document.getElementById('term-count');
+    const countDisplay = document.getElementById('count-display');
+
+    // Track active terminals: { slotIndex -> { id, ws, xterm, type, element } }
+    const slots = {};
+
+    const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsBase = `${wsProto}//${location.host}/ws/`;
+
+    slider.addEventListener('input', () => {
+        countDisplay.textContent = slider.value;
+        syncGrid(parseInt(slider.value));
+    });
+
+    async function apiPost(url) {
+        const res = await fetch(url, { method: 'POST' });
+        return res.json();
+    }
+
+    async function apiDelete(url) {
+        const res = await fetch(url, { method: 'DELETE' });
+        return res.json();
+    }
+
+    function createTerminalCard(index) {
+        const card = document.createElement('div');
+        card.className = 'terminal-card';
+        card.innerHTML = `
+            <div class="terminal-header">
+                <span class="terminal-title">
+                    <span class="status-badge status-disconnected" id="status-${index}"></span>
+                    Terminal ${index + 1} — <span id="type-${index}">idle</span>
+                </span>
+                <div class="terminal-buttons">
+                    <button class="btn-bash" onclick="startTerminal(${index}, 'bash')">bash</button>
+                    <button class="btn-claude" onclick="startTerminal(${index}, 'claude')">claude</button>
+                    <button class="btn-kill" onclick="killTerminal(${index})">kill</button>
+                </div>
+            </div>
+            <div class="terminal-body" id="tbody-${index}"></div>
+        `;
+        return card;
+    }
+
+    function connectWS(index, terminalId) {
+        const slot = slots[index];
+        if (!slot) return;
+
+        const ws = new WebSocket(wsBase + terminalId);
+        slot.ws = ws;
+
+        ws.onopen = () => {
+            const badge = document.getElementById(`status-${index}`);
+            if (badge) badge.className = 'status-badge status-connected';
+        };
+
+        ws.onmessage = (event) => {
+            const msg = JSON.parse(event.data);
+            if (msg.type === 'output' && slot.xterm) {
+                slot.xterm.reset();
+                slot.xterm.write(msg.data);
+            }
+        };
+
+        ws.onclose = () => {
+            const badge = document.getElementById(`status-${index}`);
+            if (badge) badge.className = 'status-badge status-disconnected';
+        };
+
+        ws.onerror = () => {
+            ws.close();
+        };
+
+        // Send keyboard input to server
+        slot.xterm.onData((data) => {
+            if (ws.readyState === WebSocket.OPEN) {
+                // Map special keys
+                if (data === '\r') {
+                    ws.send(JSON.stringify({ type: 'special', key: 'Enter' }));
+                } else if (data === '\x03') {
+                    ws.send(JSON.stringify({ type: 'special', key: 'C-c' }));
+                } else if (data === '\x04') {
+                    ws.send(JSON.stringify({ type: 'special', key: 'C-d' }));
+                } else if (data === '\x1b[A') {
+                    ws.send(JSON.stringify({ type: 'special', key: 'Up' }));
+                } else if (data === '\x1b[B') {
+                    ws.send(JSON.stringify({ type: 'special', key: 'Down' }));
+                } else if (data === '\x1b[C') {
+                    ws.send(JSON.stringify({ type: 'special', key: 'Right' }));
+                } else if (data === '\x1b[D') {
+                    ws.send(JSON.stringify({ type: 'special', key: 'Left' }));
+                } else if (data === '\x7f') {
+                    ws.send(JSON.stringify({ type: 'special', key: 'BSpace' }));
+                } else if (data === '\t') {
+                    ws.send(JSON.stringify({ type: 'special', key: 'Tab' }));
+                } else {
+                    ws.send(JSON.stringify({ type: 'input', data: data }));
+                }
+            }
+        });
+    }
+
+    async function startTerminal(index, cmdType) {
+        // Kill existing if any
+        await killTerminal(index);
+
+        const data = await apiPost(`/api/terminals?cmd_type=${cmdType}`);
+        const body = document.getElementById(`tbody-${index}`);
+        body.innerHTML = '';
+        body.classList.remove('disconnected');
+
+        const xterm = new Terminal({
+            theme: {
+                background: '#1a1a2e',
+                foreground: '#e0e0e0',
+                cursor: '#e94560',
+            },
+            fontSize: 13,
+            fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+            cursorBlink: true,
+            scrollback: 1000,
+        });
+        xterm.open(body);
+
+        slots[index] = { id: data.id, xterm, type: cmdType, element: body };
+
+        const typeSpan = document.getElementById(`type-${index}`);
+        if (typeSpan) typeSpan.textContent = cmdType;
+
+        connectWS(index, data.id);
+    }
+
+    async function killTerminal(index) {
+        const slot = slots[index];
+        if (!slot) return;
+
+        if (slot.ws) slot.ws.close();
+        if (slot.xterm) slot.xterm.dispose();
+        if (slot.id) await apiDelete(`/api/terminals/${slot.id}`);
+
+        delete slots[index];
+
+        const body = document.getElementById(`tbody-${index}`);
+        if (body) {
+            body.innerHTML = 'No terminal — click bash or claude to start';
+            body.classList.add('disconnected');
+        }
+        const typeSpan = document.getElementById(`type-${index}`);
+        if (typeSpan) typeSpan.textContent = 'idle';
+        const badge = document.getElementById(`status-${index}`);
+        if (badge) badge.className = 'status-badge status-disconnected';
+    }
+
+    function syncGrid(count) {
+        // Kill terminals beyond new count
+        for (const idx of Object.keys(slots)) {
+            if (parseInt(idx) >= count) {
+                killTerminal(parseInt(idx));
+            }
+        }
+
+        grid.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+            const card = createTerminalCard(i);
+            grid.appendChild(card);
+
+            // Re-attach existing terminal if it exists
+            if (slots[i] && slots[i].xterm) {
+                const body = document.getElementById(`tbody-${i}`);
+                body.classList.remove('disconnected');
+                body.innerHTML = '';
+                slots[i].xterm.open(body);
+
+                const typeSpan = document.getElementById(`type-${i}`);
+                if (typeSpan) typeSpan.textContent = slots[i].type;
+
+                const badge = document.getElementById(`status-${i}`);
+                if (badge && slots[i].ws && slots[i].ws.readyState === WebSocket.OPEN) {
+                    badge.className = 'status-badge status-connected';
+                }
+            } else {
+                const body = document.getElementById(`tbody-${i}`);
+                body.innerHTML = 'No terminal — click bash or claude to start';
+                body.classList.add('disconnected');
+            }
+        }
+    }
+
+    // Initialize grid
+    syncGrid(4);
+    </script>
+</body>
+</html>
