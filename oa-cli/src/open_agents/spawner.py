@@ -316,25 +316,47 @@ class GpuQueue:
 _gpu_queue = GpuQueue()
 
 
-def _build_remote_ollama_command(workspace_path: str, name: str, ollama_model: str) -> str:
+def _build_remote_ollama_command(workspace_path: str, name: str, ollama_model: str, max_iterations: int = 3) -> str:
     """Build shell command for an Ollama text agent running on a remote host.
 
-    Similar to _build_ollama_command but uses the system ollama installation
-    and operates on a remote workspace path.
+    Supports multi-turn quality improvement (L-025): after the initial run the
+    agent polls its inbox/ directory for feedback messages. Each feedback round
+    re-runs the model with the accumulated context (task + previous output +
+    feedback). Repeats up to max_iterations feedback rounds.
+
+    Messages are SCP'd into {workspace}/inbox/ by send_message() when it
+    detects a remote agent in the state store.
+
     TERM=dumb prevents ANSI spinner codes from polluting output.
     """
     if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9:._-]{0,127}', ollama_model):
         raise ValueError(f"Invalid Ollama model name: {ollama_model!r}")
+    safe_name = shlex.quote(name)
+    safe_model = shlex.quote(ollama_model)
     remote_path = "/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    strip_ansi = "sed 's/\\x1b\\[[0-9;]*[a-zA-Z]//g'"
     return (
         f"export PATH=\"{remote_path}:$PATH\" && "
         f"cd {workspace_path} && "
-        f"mkdir -p output && "
-        f"TERM=dumb cat task.txt | ollama run {shlex.quote(ollama_model)} "
-        f"2>/dev/null | sed 's/\\x1b\\[[0-9;]*[a-zA-Z]//g' "
-        f"> output/result.md; "
+        f"mkdir -p output inbox && "
+        # Initial run
+        f"TERM=dumb cat task.txt | ollama run {safe_model} 2>/dev/null | {strip_ansi} > output/result.md && "
+        # Multi-turn feedback loop
+        f"for _oa_i in $(seq 1 {max_iterations}); do "
+        f"  sleep 3; "
+        f"  _OA_MSG=$(ls inbox/*.json 2>/dev/null | sort | python3 -c \"import sys; lines=sys.stdin.read().split(); print(lines[0] if lines else '')\" 2>/dev/null); "
+        f"  [ -z \"$_OA_MSG\" ] && break; "
+        f"  _OA_FEEDBACK=$(python3 -c \"import json,sys; d=json.load(open(sys.argv[1])); print(d.get('content',''))\" \"$_OA_MSG\" 2>/dev/null); "
+        f"  rm -f \"$_OA_MSG\"; "
+        f"  {{ cat task.txt; "
+        f"    echo ''; echo '=== VORIGE OUTPUT ==='; cat output/result.md; "
+        f"    echo ''; echo '=== VERBETERFEEDBACK ==='; echo \"$_OA_FEEDBACK\"; "
+        f"    echo ''; echo 'Verbeter de output volledig op basis van bovenstaande feedback.'; "
+        f"  }} | TERM=dumb ollama run {safe_model} 2>/dev/null | {strip_ansi} > output/result_iter_$_oa_i.md && "
+        f"  cp output/result_iter_$_oa_i.md output/result.md; "
+        f"done; "
         f"touch .done; "
-        f"echo '--- Agent {shlex.quote(name)} finished ---'"
+        f"echo '--- Agent {safe_name} finished ---'"
     )
 
 
@@ -449,7 +471,7 @@ def spawn_agent(
         from .config import get_machine_host
         configured_host = get_machine_host("hetzner")
         host = configured_host or HETZNER_SSH_HOST
-        return spawn_remote_agent(name, task, host=host, model=model, direct=True)
+        return spawn_remote_agent(name, task, host=host, model=model, direct=True, max_iterations=max_iterations)
 
     # Build runtime-specific command
     if model.startswith("ollama/"):
@@ -528,6 +550,7 @@ def spawn_remote_agent(
     host: str,
     model: str = "claude/sonnet",
     direct: bool = True,
+    max_iterations: int = 3,
 ) -> AgentRecord:
     """Spawn an agent on a remote host via SSH.
 
@@ -616,7 +639,7 @@ def spawn_remote_agent(
         # Wait for VRAM before spawning (L-088, issue #79)
         _gpu_queue.wait_for_vram(host, ollama_model_name)
         # Ollama text-only agent on GPU server
-        inner_cmd = _build_remote_ollama_command(remote_ws, name, ollama_model_name)
+        inner_cmd = _build_remote_ollama_command(remote_ws, name, ollama_model_name, max_iterations=max_iterations)
         # Wrap in subshell to properly background and detach from SSH session
         remote_cmd = f"({inner_cmd}) > /dev/null 2>&1 &"
     else:

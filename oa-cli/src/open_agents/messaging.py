@@ -8,6 +8,8 @@ Uses file locking for safe concurrent access.
 from __future__ import annotations
 
 import json
+import subprocess
+import tempfile
 import time
 from pathlib import Path
 from typing import Optional
@@ -38,6 +40,42 @@ def _msg_filename(sender: str) -> str:
     return f"{ts}-{sender}.json"
 
 
+def _deliver_to_remote(msg: dict, recipient: str) -> bool:
+    """Try to deliver a message to a remote agent's inbox via SCP.
+
+    Returns True if delivery succeeded, False otherwise.
+    Remote agents (hetzner/* models) store their inbox at
+    {remote_workspace}/inbox/ on the SSH host.
+    """
+    try:
+        from .state import get_agent
+        rec = get_agent(recipient)
+        if not rec or not rec.remote_host or not rec.remote_workspace:
+            return False
+
+        filename = _msg_filename(msg["from"])
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(msg, f, indent=2)
+            tmp_path = f.name
+
+        remote_inbox = f"{rec.remote_host}:{rec.remote_workspace}/inbox/{filename}"
+        # Ensure remote inbox dir exists, then SCP the file
+        subprocess.run(
+            ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
+             rec.remote_host, f"mkdir -p {rec.remote_workspace}/inbox"],
+            capture_output=True, timeout=10,
+        )
+        result = subprocess.run(
+            ["scp", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
+             tmp_path, remote_inbox],
+            capture_output=True, timeout=15,
+        )
+        Path(tmp_path).unlink(missing_ok=True)
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
 def send_message(
     sender: str,
     recipient: str,
@@ -46,7 +84,10 @@ def send_message(
 ) -> Path:
     """Send a direct message from one agent to another.
 
-    Returns the path of the written message file.
+    For remote agents (hetzner/* models) the message is also delivered
+    via SCP to {remote_workspace}/inbox/ so Ollama agents can poll it.
+
+    Returns the path of the locally written message file.
     """
     inbox = _ensure_inbox(recipient)
     msg = {
@@ -66,6 +107,10 @@ def send_message(
             json.dump(msg, f, indent=2)
         finally:
             lock_un(f)
+
+    # Also deliver to remote workspace if recipient is a remote agent
+    _deliver_to_remote(msg, recipient)
+
     return msg_path
 
 
