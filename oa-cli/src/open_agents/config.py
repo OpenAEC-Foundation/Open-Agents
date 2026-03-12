@@ -35,6 +35,8 @@ DEFAULT_CONFIG = {
         "ollama/qwen3:8b":       "hetzner/qwen2.5:14b",
         "ollama/llama3.2:3b":    "hetzner/llama3.1:8b",
     },
+    # A1 leerloop — automatisch les toevoegen aan LESSONS.md bij fout in agent-output
+    "auto_lessons": True,
     # Docker isolation (D-040) — opt-in via --docker flag
     "docker_enabled": False,
     "docker_image": "oa-agent:latest",

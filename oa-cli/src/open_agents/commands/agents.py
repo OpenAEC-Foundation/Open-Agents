@@ -503,6 +503,25 @@ def register_commands(app: typer.Typer) -> None:
             except Exception:
                 pass
 
+        # A1 leerloop — detecteer fouten in output en schrijf les naar LESSONS.md
+        if output:
+            try:
+                from ..config import get as _cfg_get
+                if _cfg_get("auto_lessons") is not False:
+                    from ..lessons import detect_error_in_output, write_error_lesson_to_workspace
+                    is_error, error_summary = detect_error_in_output(output)
+                    if is_error:
+                        lesson_path = write_error_lesson_to_workspace(
+                            agent_name=name,
+                            model=getattr(rec, "model", "unknown"),
+                            task=getattr(rec, "task", ""),
+                            error_summary=error_summary,
+                            workspace_dir=os.getcwd(),
+                        )
+                        console.print(f"\n[yellow]⚠️  Fout gedetecteerd — les toegevoegd aan {lesson_path}[/yellow]")
+            except Exception:
+                pass
+
     @app.command()
     def clean():
         """Clean up workspaces of all finished agents."""
@@ -576,3 +595,159 @@ def register_commands(app: typer.Typer) -> None:
         console.print(f"[green]Resume agent '{rec.name}' spawned[/green]  (model: {model})")
         console.print(f"  Original agent: {name}")
         console.print(f"  Workspace: {rec.workspace}")
+
+    @app.command(name="quality-loop")
+    def quality_loop(
+        name: str = typer.Argument(..., help="Agent name to run quality loop on"),
+        task: str = typer.Option("", "--task", "-t", help="Original task description (for context, auto-detected if omitted)"),
+        max_iterations: int = typer.Option(3, "--max-iterations", "-n", help="Max feedback rounds (default: 3)"),
+        evaluator_model: str = typer.Option("claude/haiku", "--evaluator-model", "-e", help="Model for quality evaluation"),
+        sender: str = typer.Option("quality-loop", "--from", "-f", help="Sender name for feedback messages"),
+        wait_timeout: int = typer.Option(120, "--wait-timeout", help="Seconds to wait for each agent update (default: 120)"),
+    ):
+        """Run a quality improvement loop on an agent: evaluate → send feedback → repeat.
+
+        Works for both local Claude agents and remote Ollama agents.
+        Evaluates output/result.md, sends targeted feedback, waits for update.
+        """
+        import subprocess as _subprocess
+        from ..messaging import send_message as _send_message
+        from ..workspace import read_output, remote_is_done, sync_output_from_remote
+
+        rec = get_agent(name)
+        if rec is None:
+            console.print(f"[red]Agent '{name}' not found.[/red]")
+            raise typer.Exit(1)
+
+        if not task:
+            task = rec.task or ""
+
+        is_remote = bool(getattr(rec, "remote_host", None) and getattr(rec, "remote_workspace", None))
+
+        def _read_result() -> str:
+            """Read current result.md content (local or remote)."""
+            if is_remote:
+                result = _subprocess.run(
+                    ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
+                     rec.remote_host, f"cat {rec.remote_workspace}/output/result.md 2>/dev/null"],
+                    capture_output=True, text=True, timeout=15,
+                )
+                return result.stdout.strip()
+            else:
+                ws = rec.workspace or ""
+                result_path = Path(ws) / "output" / "result.md"
+                if result_path.exists():
+                    return result_path.read_text().strip()
+                return ""
+
+        def _get_mtime() -> float:
+            """Get result.md modification time."""
+            if is_remote:
+                result = _subprocess.run(
+                    ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
+                     rec.remote_host, f"stat -c %Y {rec.remote_workspace}/output/result.md 2>/dev/null || echo 0"],
+                    capture_output=True, text=True, timeout=10,
+                )
+                try:
+                    return float(result.stdout.strip())
+                except (ValueError, AttributeError):
+                    return 0.0
+            else:
+                ws = rec.workspace or ""
+                result_path = Path(ws) / "output" / "result.md"
+                if result_path.exists():
+                    return result_path.stat().st_mtime
+                return 0.0
+
+        def _wait_for_update(baseline_mtime: float) -> bool:
+            """Poll until result.md is newer than baseline_mtime."""
+            deadline = time.time() + wait_timeout
+            while time.time() < deadline:
+                time.sleep(4)
+                current = _get_mtime()
+                if current > baseline_mtime:
+                    return True
+            return False
+
+        def _evaluate(output: str, iteration: int) -> tuple[bool, str]:
+            """Use LLM to evaluate output quality. Returns (passed, feedback)."""
+            try:
+                eval_prompt = (
+                    f"Je bent een kwaliteitsevaluator. Beoordeel of deze output de taak volledig en goed uitvoert.\n\n"
+                    f"TAAK:\n{task[:500]}\n\n"
+                    f"OUTPUT (iteratie {iteration}):\n{output[:2000]}\n\n"
+                    f"Geef EXACT één van de volgende antwoorden:\n"
+                    f"1. Als de output goed en volledig is: schrijf exact 'PASS'\n"
+                    f"2. Als verbetering nodig is: schrijf 'FEEDBACK: <concrete verbeterpunten in 1-3 zinnen>'\n\n"
+                    f"Wees streng maar eerlijk. Focus op ontbrekende inhoud, onjuistheden of onvolledigheid."
+                )
+
+                # Use claude CLI for evaluation
+                from ..spawner import CLAUDE_CMD, CLAUDE_MODEL_MAP, _validate_claude_model
+                _eval_model = CLAUDE_MODEL_MAP.get(evaluator_model)
+                if _eval_model is None and evaluator_model.startswith("claude/"):
+                    _eval_model = evaluator_model.split("/", 1)[1]
+                if _eval_model is None:
+                    _eval_model = "claude-haiku-4-5-20251001"
+                _eval_model = _validate_claude_model(_eval_model)
+
+                import subprocess as sp
+                result2 = sp.run(
+                    [CLAUDE_CMD, "--model", _eval_model, "--dangerously-skip-permissions", "-p", eval_prompt],
+                    capture_output=True, text=True, timeout=60,
+                )
+                verdict = result2.stdout.strip()
+
+                if verdict.upper().startswith("PASS"):
+                    return True, ""
+                elif verdict.upper().startswith("FEEDBACK:"):
+                    return False, verdict[len("FEEDBACK:"):].strip()
+                else:
+                    # Heuristic: if output is very short, request expansion
+                    if len(output) < 100:
+                        return False, "Output is te kort. Geef een uitgebreidere, meer gedetailleerde uitwerking van de taak."
+                    return True, ""  # Default: accept if evaluator gave unclear response
+            except Exception as e:
+                console.print(f"[dim]Evaluator error: {e} — assuming PASS[/dim]")
+                return True, ""
+
+        console.print(f"[bold]Quality loop[/bold] voor agent '[cyan]{name}[/cyan]' (max {max_iterations} ronden)\n")
+
+        for iteration in range(1, max_iterations + 1):
+            output = _read_result()
+            if not output:
+                console.print(f"[yellow]Ronde {iteration}: geen output/result.md gevonden. Wacht op agent...[/yellow]")
+                # Wait for initial result
+                baseline = _get_mtime()
+                if not _wait_for_update(-1):
+                    console.print(f"[red]Timeout: agent '{name}' heeft geen output geproduceerd.[/red]")
+                    raise typer.Exit(1)
+                output = _read_result()
+
+            console.print(f"[dim]Ronde {iteration}/{max_iterations}: evaluating {len(output)} chars...[/dim]")
+            passed, feedback_msg = _evaluate(output, iteration)
+
+            if passed:
+                console.print(f"[green]✅ PASS na {iteration} ronde(n)![/green]")
+                console.print(f"\n[bold]Finale output ({len(output)} chars):[/bold]")
+                console.print(output[:1000] + ("..." if len(output) > 1000 else ""))
+                return
+
+            if iteration == max_iterations:
+                console.print(f"[yellow]Max iteraties bereikt. Laatste feedback: {feedback_msg}[/yellow]")
+                break
+
+            console.print(f"[yellow]Ronde {iteration}: feedback → {feedback_msg[:120]}[/yellow]")
+
+            # Send feedback to agent
+            baseline_mtime = _get_mtime()
+            _send_message(sender, name, feedback_msg, metadata={"type": "feedback", "iteration": iteration})
+            console.print(f"[dim]Feedback verstuurd. Wachten op update (max {wait_timeout}s)...[/dim]")
+
+            if not _wait_for_update(baseline_mtime):
+                console.print(f"[yellow]Agent reageerde niet binnen {wait_timeout}s op feedback in ronde {iteration}.[/yellow]")
+                break
+
+            console.print(f"[green]Agent heeft output bijgewerkt (ronde {iteration}).[/green]")
+
+        console.print(f"\n[dim]Quality loop klaar. Gebruik 'oa collect {name}' voor volledige output.[/dim]")

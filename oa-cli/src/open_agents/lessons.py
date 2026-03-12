@@ -230,6 +230,93 @@ def extract_lessons_from_run(workspace: "str | Path", task: str, run_id: "str | 
     return len(candidates)
 
 
+ERROR_INDICATORS = [
+    "Error",
+    "FAILED",
+    "Exception",
+    "Traceback",
+    "❌",
+    "error:",
+    "ERROR",
+    "fatal:",
+    "FATAL",
+]
+
+
+def detect_error_in_output(output: str) -> tuple[bool, str]:
+    """Scan agent output for error indicators.
+
+    Returns (is_error, extracted_summary) where extracted_summary is the
+    first 3-5 lines surrounding the first error hit (max 300 chars).
+    """
+    lines = output.splitlines()
+    for i, line in enumerate(lines):
+        for indicator in ERROR_INDICATORS:
+            if indicator in line:
+                # Collect up to 5 lines starting from the matching line
+                snippet_lines = lines[i : i + 5]
+                snippet = "\n".join(snippet_lines).strip()[:300]
+                return True, snippet
+    return False, ""
+
+
+def write_error_lesson_to_workspace(
+    agent_name: str,
+    model: str,
+    task: str,
+    error_summary: str,
+    workspace_dir: "str | Path | None" = None,
+) -> Path:
+    """Write a formatted error lesson to LESSONS.md in *workspace_dir*.
+
+    Falls back to /tmp/LESSONS.md if workspace_dir is None or unwritable.
+    Returns the path where the lesson was written.
+    """
+    from datetime import datetime as _dt
+
+    timestamp = _dt.now().strftime("%Y%m%d%H%M%S")
+    date_str = _dt.now().strftime("%Y-%m-%d")
+    first_error_line = error_summary.splitlines()[0][:100] if error_summary else "unknown"
+    task_preview = (task or "")[:100]
+
+    lesson_block = (
+        f"\n## L-AUTO-{timestamp} — Agent fout: {agent_name}\n"
+        f"**Datum**: {date_str}\n"
+        f"**Agent**: {agent_name}\n"
+        f"**Model**: {model}\n"
+        f"**Fout**: {first_error_line}\n"
+        f"**Taak**: {task_preview}\n"
+        f"**Les**: Controleer agent output na collect — automatisch gelogd door A1 leerloop.\n"
+    )
+
+    target: Path | None = None
+    if workspace_dir:
+        candidate = Path(workspace_dir) / "LESSONS.md"
+        try:
+            candidate.parent.mkdir(parents=True, exist_ok=True)
+            # Touch / create if it doesn't exist yet
+            if not candidate.exists():
+                candidate.write_text(
+                    "# Lessons Learned\n\n"
+                    "> Automatisch aangemaakt door A1 leerloop.\n\n---\n"
+                )
+            target = candidate
+        except OSError:
+            target = None
+
+    if target is None:
+        target = Path("/tmp/LESSONS.md")
+        if not target.exists():
+            target.write_text(
+                "# Lessons Learned (fallback — workspace onbereikbaar)\n\n---\n"
+            )
+
+    with open(target, "a", encoding="utf-8") as f:
+        f.write(lesson_block)
+
+    return target
+
+
 if __name__ == "__main__":
     """CLI entry point for hook invocation: python -m open_agents.lessons --run-id <id>"""
     import argparse
