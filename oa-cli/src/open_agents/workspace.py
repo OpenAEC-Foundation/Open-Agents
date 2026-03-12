@@ -21,6 +21,95 @@ CONTEXT_PROFILES: dict[str, dict] = {
     "guardian":     {"skills": ["oa-quality-guardians"], "extra_sections": ["## Guardian\n- Update LESSONS.md, ROADMAP.md, DECISIONS.md\n- Be conservative — only add facts you are certain of\n"]},
 }
 
+TASK_TYPES: dict[str, dict] = {
+    "researcher": {
+        "role": "Je bent een RESEARCHER. Je verzamelt, verifieert en structureert informatie.",
+        "input_contract": "- `input_path`: pad naar bronbestanden of URL-lijst\n- `scope`: wat moet onderzocht worden",
+        "output_schema": {
+            "required_sections": ["## Samenvatting", "## Bevindingen", "## Bronnen"],
+            "output_file": "result.md",
+        },
+        "rules": [
+            "Citeer ELKE claim met bron (URL, bestandspad, of regelnummer)",
+            "Schrijf GEEN productiecode — alleen research output",
+            "Bij onzekerheid: markeer met [ONZEKER] tag",
+        ],
+        "skills": ["oa-prompting-5element", "oa-prompting-scope"],
+    },
+    "builder": {
+        "role": "Je bent een BUILDER. Je implementeert code, configuratie of documentatie.",
+        "input_contract": "- `input_path`: pad naar te wijzigen bestanden\n- `spec`: wat moet gebouwd worden",
+        "output_schema": {
+            "required_sections": ["## Wijzigingen", "## Bestanden"],
+            "output_file": "result.md",
+        },
+        "rules": [
+            "Lees ALTIJD bestaande code vóór je schrijft",
+            "Schrijf direct naar productie-bestanden (geen proposals/)",
+            "Geen backwards-compatibility hacks of ongebruikte code",
+            "Elke wijziging moet in ## Bestanden staan met absoluut pad",
+        ],
+        "skills": ["oa-quality-gates"],
+    },
+    "reviewer": {
+        "role": "Je bent een REVIEWER. Je beoordeelt code/output op correctheid en kwaliteit. NOOIT schrijven naar productie-bestanden.",
+        "input_contract": "- `input_path`: pad naar te reviewen bestanden of output\n- `criteria`: waar moet op gelet worden",
+        "output_schema": {
+            "required_sections": ["## Verdict", "## Issues", "## Suggesties"],
+            "output_file": "result.md",
+        },
+        "rules": [
+            "NOOIT schrijven naar bronbestanden — alleen naar ./output/",
+            "Elk issue: bestandsnaam + regelnummer + ernst (CRITICAL/WARNING/INFO)",
+            "Verdict is APPROVE, REJECT, of WARN — altijd op eerste regel van ## Verdict",
+        ],
+        "skills": ["oa-quality-gates", "oa-prompting-scope"],
+    },
+    "transformer": {
+        "role": "Je bent een TRANSFORMER. Je converteert input van formaat A naar formaat B.",
+        "input_contract": "- `input_path`: pad naar bronbestand(en)\n- `target_format`: gewenst outputformaat",
+        "output_schema": {
+            "required_sections": ["## Conversie", "## Resultaat"],
+            "output_file": "result.md",
+        },
+        "rules": [
+            "Input NOOIT wijzigen — alleen lezen",
+            "Output schrijven naar ./output/ (geconverteerde bestanden + result.md)",
+            "Bij data-verlies: documenteer wat verloren gaat in ## Conversie",
+        ],
+        "skills": [],
+    },
+    "orchestrator": {
+        "role": "Je bent een ORCHESTRATOR. Je decomposeert taken en coördineert sub-agents via oa run.",
+        "input_contract": "- `task`: hoofd-opdracht om te decomposeren\n- `constraints`: tijds-/kwaliteitseisen",
+        "output_schema": {
+            "required_sections": ["## Plan", "## Agents", "## Resultaat"],
+            "output_file": "result.md",
+        },
+        "rules": [
+            "Spawn sub-agents via `oa run` — NOOIT zelf multi-file werk doen",
+            "Elke sub-agent krijgt --parent en --model",
+            "Wacht op alle agents en valideer hun output vóór je result.md schrijft",
+            "Documenteer elke gespawnde agent in ## Agents (naam, taak, status)",
+        ],
+        "skills": ["oa-orchestration-patterns", "oa-orchestration-communication"],
+    },
+    "validator": {
+        "role": "Je bent een VALIDATOR. Je controleert of output voldoet aan een contract/schema.",
+        "input_contract": "- `input_path`: pad naar te valideren output\n- `contract`: verwacht schema of regels",
+        "output_schema": {
+            "required_sections": ["## Checks", "## Verdict"],
+            "output_file": "result.md",
+        },
+        "rules": [
+            "NOOIT de input wijzigen",
+            "Elke check: naam, verwacht, gevonden, PASS/FAIL",
+            "Verdict: PASS (alle checks OK) of FAIL (minstens 1 FAIL) — op eerste regel van ## Verdict",
+        ],
+        "skills": [],
+    },
+}
+
 # Full PATH so agents (and their sub-agents) can find oa-cli (Issue #9/#11)
 # Uses $HOME so it works for any user (expanded at shell runtime)
 _AGENT_PATH = (
@@ -108,6 +197,41 @@ def _messaging_instructions(agent_name: str) -> str:
         f"- Vragen stellen aan specialisten\n"
         f"- Conflicten voorkomen (check wie aan welk bestand werkt)\n"
         f"- Status updates aan je parent/orchestrator\n"
+    )
+
+
+def _feedback_improvement_instructions(agent_name: str, parent_name: str, max_iterations: int = 3) -> str:
+    """Generate inbox polling instructions so agents stay alive for quality improvement.
+
+    After completing their primary task, agents poll their inbox for feedback
+    from the orchestrator and update their output accordingly. This enables
+    multi-turn quality improvement loops (L-025).
+    """
+    return (
+        f"\n"
+        f"## Kwaliteitsverbetering Loop (na taakvoltooiing)\n"
+        f"Na het schrijven van je `output/result.md`, doe NIET direct `.done` aanmaken.\n"
+        f"Poll eerst je inbox op verbeterfeedback van je spawner, max {max_iterations} rondes:\n"
+        f"\n"
+        f"```bash\n"
+        f"export PATH=\"{_AGENT_PATH}:$PATH\"\n"
+        f"for i in $(seq 1 {max_iterations}); do\n"
+        f"    sleep 8\n"
+        f"    MSGS=$(oa inbox {agent_name} --unread --mark-read 2>/dev/null)\n"
+        f"    if [ -z \"$MSGS\" ]; then\n"
+        f"        break  # Geen feedback — klaar\n"
+        f"    fi\n"
+        f"    # Verwerk feedback: update output/result.md op basis van MSGS\n"
+        f"    # Rapporteer terug zodra update klaar is:\n"
+        f"    oa send {parent_name} \"\\u2705 Verbeterd (ronde $i): <samenvatting wijzigingen>\" --from {agent_name}\n"
+        f"done\n"
+        f"```\n"
+        f"\n"
+        f"**Regels:**\n"
+        f"- Verwerk ALLE feedback punten — sla niets over\n"
+        f"- Update `output/result.md` in-place met de verbeteringen\n"
+        f"- Rapporteer altijd terug met wat je verbeterd hebt\n"
+        f"- Na max {max_iterations} rondes of geen berichten meer: maak `.done` aan\n"
     )
 
 
@@ -203,7 +327,27 @@ def _team_context_section(agent_name: str, team: str) -> str:
     )
 
 
-def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None, agent_type: str = "", can_spawn: bool = False, honesty: bool = False, team: str = "", model: str = "", parent_name: str = "meta", skills: list[str] | None = None, skill_refs: list[str] | None = None, profile: str = "") -> Path:
+def _task_type_section(task_type: str) -> str:
+    """Generate the task-type-specific CLAUDE.md section."""
+    tt = TASK_TYPES.get(task_type)
+    if not tt:
+        return ""
+
+    rules_list = "\n".join(f"- {r}" for r in tt["rules"])
+    required = ", ".join(f"`{s}`" for s in tt["output_schema"]["required_sections"])
+
+    return (
+        f"\n## Role\n{tt['role']}\n"
+        f"\n## Input Contract\n{tt['input_contract']}\n"
+        f"\n## Output Contract\n"
+        f"- Output file: `./output/{tt['output_schema']['output_file']}`\n"
+        f"- Required sections: {required}\n"
+        f"- Missing sections = contract violation (will be flagged)\n"
+        f"\n## Rules\n{rules_list}\n"
+    )
+
+
+def create_workspace(agent_name: str, task: str, project_root: str | Path | None = None, agent_type: str = "", can_spawn: bool = False, honesty: bool = False, team: str = "", model: str = "", parent_name: str = "meta", skills: list[str] | None = None, skill_refs: list[str] | None = None, profile: str = "", task_type: str = "", max_iterations: int = 3) -> Path:
     """Create a temporary workspace directory with a CLAUDE.md file.
 
     If project_root is provided, agents are instructed to write directly
@@ -212,6 +356,15 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
     Returns the workspace path.
     """
     workspace = Path(tempfile.mkdtemp(prefix=WORKSPACE_PREFIX))
+
+    # Apply task_type: merge task-type skills (task_type wins over profile for skills)
+    if task_type and task_type in TASK_TYPES:
+        tt_skills = TASK_TYPES[task_type].get("skills", [])
+        existing_skills = list(skills) if skills else []
+        for s in tt_skills:
+            if s not in existing_skills:
+                existing_skills.append(s)
+        skills = existing_skills
 
     # Apply context profile: merge profile skills and collect extra sections
     profile_extra_sections: list[str] = []
@@ -242,10 +395,12 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
 
     claude_md = workspace / "CLAUDE.md"
     identity = _identity_section(agent_name, task, model=model, team=team)
+    task_type_section = _task_type_section(task_type) if task_type else ""
     quality_rules = _quality_rules_section()
     anti_patterns = _anti_patterns_section()
     team_context = _team_context_section(agent_name, team)
     feedback_loop = _feedback_loop_instructions(agent_name, parent_name)
+    feedback_improvement = _feedback_improvement_instructions(agent_name, parent_name, max_iterations)
     messaging = _messaging_instructions(agent_name)
     spawning = _spawning_instructions(agent_name, str(project_root) if project_root else None)
 
@@ -260,6 +415,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"# Agent: {agent_name}\n"
             f"\n"
             f"{identity}"
+            f"{task_type_section}"
             f"\n## Task\n"
             f"{task}\n"
             f"\n## Output Location\n"
@@ -273,6 +429,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"{anti_patterns}"
             f"{team_context}"
             f"{feedback_loop}"
+            f"{feedback_improvement}"
             f"{messaging}"
             f"{spawning}"
             f"\n## Constraints\n"
@@ -285,6 +442,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"# Agent: {agent_name}\n"
             f"\n"
             f"{identity}"
+            f"{task_type_section}"
             f"\n## Task\n"
             f"{task}\n"
             f"\n## Output Location\n"
@@ -295,6 +453,7 @@ def create_workspace(agent_name: str, task: str, project_root: str | Path | None
             f"{anti_patterns}"
             f"{team_context}"
             f"{feedback_loop}"
+            f"{feedback_improvement}"
             f"{messaging}"
             f"{spawning}"
             f"\n## Constraints\n"

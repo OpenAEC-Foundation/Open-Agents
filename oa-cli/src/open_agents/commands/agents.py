@@ -54,6 +54,7 @@ def register_commands(app: typer.Typer) -> None:
         prompt_file: str = typer.Option("", "--prompt-file", "-pf", help="Read task prompt from a file (avoids shell escaping issues with special characters)"),
         skills: str = typer.Option("", "--skills", help="Komma-gescheiden skill namen om te laden via skill_registry (bijv. 'api-design,oa-quality-gates')"),
         no_context_inject: bool = typer.Option(False, "--no-context-inject", help="Skip automatic context injection"),
+        max_iterations: int = typer.Option(3, "--max-iterations", "-mi", help="Max quality improvement rounds the orchestrator sends feedback to this agent (default: 3)"),
     ):
         """Spawn an agent with a task in a new tmux window."""
         if prompt_file:
@@ -263,7 +264,7 @@ def register_commands(app: typer.Typer) -> None:
                 add_agent(rec)
             else:
                 skills_list = [s.strip() for s in skills.split(",") if s.strip()] if skills else []
-                rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None, project_root=proj_root, agent_type=agent_type, can_spawn=can_spawn, skills=skills_list, profile=profile)
+                rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None, project_root=proj_root, agent_type=agent_type, can_spawn=can_spawn, skills=skills_list, profile=profile, max_iterations=max_iterations)
         except RuntimeError as e:
             console.print(f"[red]{e}[/red]")
             raise typer.Exit(1)

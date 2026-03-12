@@ -38,6 +38,7 @@ def spawn_with_orchestrator(
     orchestrator_model: str = "claude/opus",
     max_workers: int = 5,
     max_depth: int = MAX_DEPTH,
+    max_iterations: int = 3,
 ) -> "AgentRecord":  # noqa: F821 — forward ref
     """Spawn an orchestrator that delegates work to sub-agents (D-051).
 
@@ -63,6 +64,7 @@ def spawn_with_orchestrator(
     workspace = _create_orchestrator_workspace(
         orch_name, task, worker_model, max_workers,
         depth=0, max_depth=max_depth, shared_results_dir=shared_results_dir,
+        max_iterations=max_iterations,
     )
 
     # Spawn the orchestrator agent
@@ -83,6 +85,7 @@ def _create_orchestrator_workspace(
     depth: int = 0,
     max_depth: int = MAX_DEPTH,
     shared_results_dir: str | None = None,
+    max_iterations: int = 3,
 ) -> Path:
     """Create a workspace with orchestrator-specific CLAUDE.md.
 
@@ -126,12 +129,43 @@ def _create_orchestrator_workspace(
             f"Gebruik alleen directe workers voor alle subtaken.\n\n"
         )
 
+    quality_loop_section = (
+        f"## KWALITEITSVERBETERING LOOP (max {max_iterations} rondes per worker)\n"
+        f"Na het ophalen van worker output, evalueer de kwaliteit en stuur gerichte feedback.\n"
+        f"Herhaal dit tot de kwaliteit voldoende is of het maximum bereikt is:\n"
+        f"\n"
+        f"```bash\n"
+        f"export PATH=\"/home/freek/.local/bin:$PATH\"\n"
+        f"for i in $(seq 1 {max_iterations}); do\n"
+        f"    OUTPUT=$(oa collect <worker-naam> 2>/dev/null)\n"
+        f"    # Beoordeel: is de output compleet? Zijn alle secties aanwezig?\n"
+        f"    # Zijn de bevindingen diepgaand genoeg? Is de kwaliteit voldoende?\n"
+        f"    # Als JA: break\n"
+        f"    # Als NEE: stuur specifieke feedback\n"
+        f"    oa send <worker-naam> \"Verbeter ronde $i: <specifiek verbeterpunt>\" --from {orch_name}\n"
+        f"    # Wacht op bevestiging van de worker\n"
+        f"    sleep 15\n"
+        f"    REPLY=$(oa inbox {orch_name} --unread --mark-read 2>/dev/null)\n"
+        f"    if echo \"$REPLY\" | grep -q 'Verbeterd'; then\n"
+        f"        continue  # Worker heeft verbeterd, herhaal evaluatie\n"
+        f"    fi\n"
+        f"done\n"
+        f"```\n"
+        f"\n"
+        f"**Evaluatiecriteria (pas aan op de taak):**\n"
+        f"- Is de output compleet? Ontbreken er secties?\n"
+        f"- Is de diepgang voldoende? Zijn claims onderbouwd?\n"
+        f"- Is het formaat correct? Volgt het de verwachte structuur?\n"
+        f"- Is de lengte adequaat? Niet te kort, niet te lang?\n"
+        f"- Als iets ontbreekt: stuur SPECIFIEKE feedback, niet vaag\n\n"
+    )
+
     claude_md = (
         f"# Orchestrator: {orch_name} (depth={depth})\n\n"
         f"## JE ROL\n"
         f"Je bent een ORCHESTRATOR op diepte {depth} van {max_depth}.\n"
         f"Je voert NOOIT zelf werk uit.\n"
-        f"Je enige taken: analyseren, delegeren, monitoren, en reviewen.\n\n"
+        f"Je enige taken: analyseren, delegeren, monitoren, reviewen, en verbeteren.\n\n"
         f"## DE TAAK\n{task}\n\n"
         f"## REGELS (STRIKT)\n"
         f"1. Je SCHRIJFT GEEN CODE. Je WIJZIGT GEEN BESTANDEN buiten je workspace.\n"
@@ -140,9 +174,11 @@ def _create_orchestrator_workspace(
         f"4. Workers schrijven resultaat direct naar `./output/result.md` in hun workspace.\n"
         f"5. Je spawnt maximaal {max_workers} workers tegelijk per batch.\n"
         f"6. Na elke batch wacht je tot alle workers klaar zijn (`oa status`).\n"
-        f"7. Je reviewt worker output via `oa collect <worker-naam>`.\n\n"
+        f"7. Je reviewt worker output via `oa collect <worker-naam>`.\n"
+        f"8. Als output onvoldoende is: stuur feedback via `oa send` en herhaal (L-025).\n\n"
         f"{sub_orch_section}"
         f"{results_section}"
+        f"{quality_loop_section}"
         f"## WORKER MODEL\n"
         f"Gebruik `--model {worker_model}` bij het spawnen van workers.\n\n"
         f"## STAPPEN\n"
@@ -155,9 +191,10 @@ def _create_orchestrator_workspace(
         f'   ```\n'
         f"4. Monitor: `oa status`\n"
         f"5. Collect output: `oa collect <naam>`\n"
-        f"6. Aggregeer resultaten van workers via shared results dir\n"
-        f"7. Schrijf samenvatting naar ./output/result.md\n"
-        f"8. Maak .done als je klaar bent\n\n"
+        f"6. **Kwaliteitscheck**: evalueer en stuur verbeterfeedback indien nodig (max {max_iterations}×)\n"
+        f"7. Aggregeer definitieve resultaten van workers via shared results dir\n"
+        f"8. Schrijf samenvatting naar ./output/result.md\n"
+        f"9. Maak .done als je klaar bent\n\n"
         f"## GELEERDE LESSEN\n"
         f"- L-001: Blijf draaien tot alle workers klaar zijn\n"
         f"- L-002: ALLE workers krijgen --parent flag\n"
@@ -166,6 +203,7 @@ def _create_orchestrator_workspace(
         f"- L-010: Jij delegeert, jij doet zelf NIKS\n"
         f"- L-011: Controleer je diepte voordat je sub-orchestrators spawnt\n"
         f"- L-012: Schrijf altijd naar shared_results_dir na voltooiing\n"
+        f"- L-025: Multi-turn kwaliteitsverbetering via oa send feedback — gebruik het!\n"
     )
 
     (workspace / "CLAUDE.md").write_text(claude_md)
