@@ -628,6 +628,21 @@
 
 ---
 
+## Sprint 22b: Remote-First Execution — IN PROGRESS
+
+**Doel**: Alle `oa run` spawns standaard naar Hetzner sturen — ook claude/haiku/sonnet/opus. Lokale WSL machine niet belasten met agent processen.
+**Beslissingen**: D-061 (Remote-first default), D-076 (Hetzner GPU Stack IN PROGRESS)
+**Status**: IN PROGRESS — remote-first default geïmplementeerd (D-061), Claude CLI auth opgelost
+
+- [x] Claude CLI geauthenticeerd op Hetzner (was I-006 blocker)
+- [x] machines.json: hetzner is_default=true
+- [x] `--local` flag toegevoegd aan `oa run` (opt-out voor lokale uitvoering)
+- [ ] Remote tmux sessions (agents zichtbaar in tmux op server)
+- [ ] `oa status` local/remote split
+- [ ] Nested remote sub-agent spawning
+
+---
+
 ## Sprint 23: Self-Improvement Automation — Done
 
 **Doel**: Kennisaccumulatie automatiseren op basis van Sprint 22 telemetrie.
