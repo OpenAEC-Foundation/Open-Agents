@@ -355,4 +355,45 @@
 
 | L-096 | **A1 leerloop — fouten in agent-output worden automatisch gelogd bij `oa collect`** — `detect_error_in_output()` scant de output op foutindicatoren (Error, FAILED, Exception, Traceback, ❌ etc.) en schrijft een geformatteerde les naar LESSONS.md in de huidige werkdirectory. Uitschakelbaar via `"auto_lessons": false` in `~/.oa/config.json`. Fallback naar `/tmp/LESSONS.md` als de werkdirectory onbereikbaar is. | Geïmplementeerd in A1 taak 2026-03-12: `lessons.py` (2 nieuwe functies), `agents.py` collect() hook, `config.py` default, `tests/test_a1_error_hook.py` (15 tests). |
 
-*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-097, L-098, etc.*
+## Sessie 2026-03-12 — Sprint 28: Reproducible Foundation + Architectuurrichting
+
+| # | Les | Context |
+|---|-----|---------|
+| L-097 | **Twee-laags architectuur als bouwprincipe: deterministische CLI-laag + AI-intelligentielaag** — oa-cli is het reproduceerbare fundament: tmux, workspaces, state, messaging, checkpoints zijn hardcoded en werken altijd hetzelfde. AI-agents opereren daarboven met maximale vrijheid BINNEN vaste contracten. Grensregel: alles wat deterministisch kan, in code. Alles wat oordeel vereist, naar een agent. | Sessie 2026-03-12: principe bewust uitgewerkt als Sprint 28. Bouwt voort op L-076. |
+| L-098 | **Task-types + output contracts maken agent-output reproduceerbaar zonder intelligentie te beperken** — `oa run --type researcher` injecteert altijd dezelfde rolbeschrijving, input-contract en output-regels. `oa collect` verifieert automatisch (3 checks: present/sections/format). De AI heeft volledige vrijheid in hoe ze de taak oplost, maar de in/output-interface is hardcoded. | Sprint 28: contract.py, TASK_TYPES in workspace.py, --type flag. 307 tests groen. |
+| L-099 | **Orchestrators hebben een verify+retry loop nodig — niet stoppen na één ronde** — Correct patroon: spawn → collect → validate → fix-agent bij FAIL → herhaal tot PASS of MAX_RETRIES=3. Template: `oa-cli/src/open_agents/templates/orchestrator-loop.md`. | Sprint 28. Bouwt voort op L-017 (quality gate per wave). |
+| L-100 | **OAuth token verloopt — oa agents falen stil met 401 als Claude CLI token verlopen is** — Fix: `claude auth login` uitvoeren in terminal (niet via Claude Code chat). A1 leerloop logt dit automatisch. Workaround: core bestanden direct schrijven via Claude Code Edit tool. | Sessie 2026-03-12: lessons-writer en handoff-writer faalden beiden door verlopen token. |
+
+*Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-101, L-102, etc.*
+
+## L-AUTO-20260312191448 — Agent fout: lessons-writer
+**Datum**: 2026-03-12
+**Agent**: lessons-writer
+**Model**: claude/sonnet
+**Fout**: Failed to authenticate. API Error: 401 {"type":"error","error":{"type":"authentication_error","messa
+**Taak**: ---
+## AUTO-INJECTED CONTEXT
+
+PO Decisions (laatste 3):
+-  {'verdict': 'WARN', 'explanation': 'WARN\
+**Les**: Controleer agent output na collect — automatisch gelogd door A1 leerloop.
+
+## L-AUTO-20260312191506 — Agent fout: handoff-writer
+**Datum**: 2026-03-12
+**Agent**: handoff-writer
+**Model**: claude/sonnet
+**Fout**: Failed to authenticate. API Error: 401 {"type":"error","error":{"type":"authentication_error","messa
+**Taak**: ---
+## AUTO-INJECTED CONTEXT
+
+PO Decisions (laatste 3):
+-  {'verdict': 'WARN', 'explanation': 'WARN\
+**Les**: Controleer agent output na collect — automatisch gelogd door A1 leerloop.
+
+## L-AUTO-20260312191559 — Agent fout: ping-remote
+**Datum**: 2026-03-12
+**Agent**: ping-remote
+**Model**: claude/sonnet
+**Fout**: Failed to authenticate. API Error: 401 {"type":"error","error":{"type":"authentication_error","messa
+**Taak**: zeg hallo
+**Les**: Controleer agent output na collect — automatisch gelogd door A1 leerloop.
