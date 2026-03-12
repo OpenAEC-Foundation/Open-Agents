@@ -96,10 +96,9 @@ export const AgentCard = memo(function AgentCard({ agent, selected, onSelect }: 
             <img
               src={favicon}
               alt=""
-              width={10}
-              height={10}
-              style={{ display: 'inline-block', verticalAlign: 'middle', borderRadius: '2px' }}
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              width={12}
+              height={12}
+              style={{ display: 'inline-block', verticalAlign: 'middle', borderRadius: '2px', flexShrink: 0 }}
             />
           )}
           {modelLabel(agent.model)}
