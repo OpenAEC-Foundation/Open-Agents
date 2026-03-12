@@ -231,7 +231,7 @@ def register_commands(app: typer.Typer) -> None:
 
         try:
             if target_host:
-                rec = spawn_remote_agent(name, task, host=target_host, model=model, direct=direct)
+                rec = spawn_remote_agent(name, task, host=target_host, model=model, direct=direct, max_iterations=max_iterations)
             elif use_docker:
                 from ..workspace import create_workspace, _AGENT_PATH
                 from ..spawner import CLAUDE_MODEL_MAP, _validate_claude_model, CLAUDE_CMD

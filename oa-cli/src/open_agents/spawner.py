@@ -343,7 +343,7 @@ def _build_remote_ollama_command(workspace_path: str, name: str, ollama_model: s
         f"TERM=dumb cat task.txt | ollama run {safe_model} 2>/dev/null | {strip_ansi} > output/result.md && "
         # Multi-turn feedback loop
         f"for _oa_i in $(seq 1 {max_iterations}); do "
-        f"  sleep 3; "
+        f"  sleep 10; "
         f"  _OA_MSG=$(ls inbox/*.json 2>/dev/null | sort | python3 -c \"import sys; lines=sys.stdin.read().split(); print(lines[0] if lines else '')\" 2>/dev/null); "
         f"  [ -z \"$_OA_MSG\" ] && break; "
         f"  _OA_FEEDBACK=$(python3 -c \"import json,sys; d=json.load(open(sys.argv[1])); print(d.get('content',''))\" \"$_OA_MSG\" 2>/dev/null); "
