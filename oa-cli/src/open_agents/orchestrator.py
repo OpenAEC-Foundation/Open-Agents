@@ -34,8 +34,8 @@ from .state import get_agent
 def spawn_with_orchestrator(
     name: str,
     task: str,
-    worker_model: str = "claude/sonnet",
-    orchestrator_model: str = "claude/opus",
+    worker_model: str = "hetzner/mixtral:8x7b",
+    orchestrator_model: str = "hetzner/mixtral:8x7b",
     max_workers: int = 5,
     max_depth: int = MAX_DEPTH,
     max_iterations: int = 3,

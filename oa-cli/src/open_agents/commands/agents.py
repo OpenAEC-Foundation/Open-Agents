@@ -34,7 +34,7 @@ def register_commands(app: typer.Typer) -> None:
     def run(
         task: str = typer.Argument(None, help="The task description for the agent"),
         name: str = typer.Option("", "--name", "-n", help="Agent name (auto-generated if empty)"),
-        model: str = typer.Option("claude", "--model", "-m", help="Model: 'claude' or 'ollama/<model>' (e.g. ollama/qwen3:8b)"),
+        model: str = typer.Option("", "--model", "-m", help="Model to use (default: config default_model, e.g. 'hetzner/mixtral:8x7b')"),
         parent: str = typer.Option("", "--parent", "-p", help="Parent/orchestrator agent name (for hierarchy)"),
         workspace: str = typer.Option("", "--workspace", "-w", help="Use existing workspace directory (skips workspace creation)"),
         direct: bool = typer.Option(True, "--direct", "-d", help="Direct write mode (default: True). Use --tmp for temporary workspace."),
@@ -66,6 +66,12 @@ def register_commands(app: typer.Typer) -> None:
                 raise typer.Exit(1)
             task = pf.read_text(encoding="utf-8")
             console.print(f"[dim]Prompt loaded from file: {pf} ({len(task)} chars)[/dim]")
+
+        # Resolve model: empty string → config default_model
+        if not model:
+            from ..config import get as _cfg_get
+            model = _cfg_get("default_model") or "hetzner/mixtral:8x7b"
+            console.print(f"[dim]Model: {model} (config default)[/dim]")
 
         # Determine remote target early for the session check
         # (full resolution happens later, but we need to know if we'll go remote)
@@ -534,8 +540,8 @@ def register_commands(app: typer.Typer) -> None:
     @app.command()
     def delegate(
         task: str = typer.Argument(..., help="The high-level task to delegate"),
-        model: str = typer.Option("claude/sonnet", "--model", "-m", help="Worker model"),
-        orchestrator_model: str = typer.Option("claude/opus", "--orchestrator-model", help="Orchestrator model"),
+        model: str = typer.Option("hetzner/mixtral:8x7b", "--model", "-m", help="Worker model"),
+        orchestrator_model: str = typer.Option("hetzner/mixtral:8x7b", "--orchestrator-model", help="Orchestrator model"),
         name: str = typer.Option("", "--name", "-n", help="Base name for the orchestrator"),
         max_workers: int = typer.Option(5, "--max-workers", help="Max concurrent workers per batch"),
     ):

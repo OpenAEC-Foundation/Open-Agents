@@ -10,7 +10,7 @@ CONFIG_PATH = OA_DIR / "config.json"
 
 DEFAULT_CONFIG = {
     "version": "0.2.0",
-    "default_model": "claude",
+    "default_model": "hetzner/mixtral:8x7b",
     "max_workers": 5,
     "timeout_minutes": 60,
     "max_depth": 5,
