@@ -37,20 +37,33 @@ export function modelLabel(model: string): string {
   return parts[parts.length - 1];
 }
 
-/** Returns a favicon URL for the model's vendor, or '' if unknown. */
+// Inline SVG vendor logos — works offline, no external requests needed.
+// Each is a 16×16 SVG encoded as a data URI.
+const _VENDOR_ICONS: Record<string, string> = {
+  // Anthropic — coral/orange "A" mark inspired by their brand
+  anthropic: `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%23d97706'/><text x='8' y='12' font-size='10' font-weight='bold' font-family='sans-serif' text-anchor='middle' fill='white'>A</text></svg>`,
+  // Mistral — orange flame chevron shape
+  mistral: `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%23ff7000'/><text x='8' y='12' font-size='10' font-weight='bold' font-family='sans-serif' text-anchor='middle' fill='white'>M</text></svg>`,
+  // Allen AI (OLMo) — indigo
+  allenai: `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%236366f1'/><text x='8' y='12' font-size='10' font-weight='bold' font-family='sans-serif' text-anchor='middle' fill='white'>O</text></svg>`,
+  // Ollama — neutral gray
+  ollama: `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%234b5563'/><text x='8' y='12' font-size='10' font-weight='bold' font-family='sans-serif' text-anchor='middle' fill='white'>ol</text></svg>`,
+};
+
+/** Returns an inline SVG data URI for the model's vendor logo. */
 export function modelVendorFavicon(model: string): string {
   const m = model.toLowerCase();
   if (m.includes('claude') || m.includes('opus') || m.includes('sonnet') || m.includes('haiku')) {
-    return 'https://www.google.com/s2/favicons?sz=16&domain=anthropic.com';
+    return _VENDOR_ICONS.anthropic;
   }
   if (m.includes('mixtral') || m.includes('mistral') || m.includes('codestral') || m.includes('nemo')) {
-    return 'https://www.google.com/s2/favicons?sz=16&domain=mistral.ai';
+    return _VENDOR_ICONS.mistral;
   }
   if (m.includes('olmo')) {
-    return 'https://www.google.com/s2/favicons?sz=16&domain=allenai.org';
+    return _VENDOR_ICONS.allenai;
   }
   if (m.includes('ollama')) {
-    return 'https://www.google.com/s2/favicons?sz=16&domain=ollama.com';
+    return _VENDOR_ICONS.ollama;
   }
   return '';
 }

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import subprocess
 import time
+from pathlib import Path
 
 import typer
 from rich.console import Console
@@ -118,6 +120,89 @@ def register_commands(app: typer.Typer) -> None:
                 time.sleep(2)
         except KeyboardInterrupt:
             console.print("\n[dim]Stopped watching.[/dim]")
+
+    @app.command()
+    def feedback(
+        name: str = typer.Argument(..., help="Agent name to send feedback to"),
+        message: str = typer.Argument(..., help="Improvement feedback message"),
+        sender: str = typer.Option("quality-loop", "--from", "-f", help="Sender name"),
+        wait: bool = typer.Option(False, "--wait", "-w", help="Wait for agent to process feedback and show updated output"),
+        timeout: int = typer.Option(60, "--timeout", "-t", help="Max seconds to wait for updated output"),
+    ):
+        """Send improvement feedback to an agent (local Claude or remote Ollama).
+
+        Delivers the message to the agent's inbox (via SCP for remote agents).
+        With --wait, polls until the agent updates output/result.md.
+        """
+        rec = get_agent(name)
+        if rec is None:
+            console.print(f"[red]Agent '{name}' not found.[/red]")
+            raise typer.Exit(1)
+
+        send_message(sender, name, message, metadata={"type": "feedback"})
+        console.print(f"[green]Feedback sent[/green] -> {name}: {message[:80]}")
+
+        if not wait:
+            return
+
+        # Determine where result.md lives and its current mtime
+        is_remote = bool(rec.remote_host and rec.remote_workspace)
+
+        def _get_mtime() -> float | None:
+            if is_remote:
+                result = subprocess.run(
+                    ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
+                     rec.remote_host, f"stat -c %Y {rec.remote_workspace}/output/result.md 2>/dev/null || echo 0"],
+                    capture_output=True, text=True, timeout=10,
+                )
+                try:
+                    return float(result.stdout.strip())
+                except (ValueError, AttributeError):
+                    return None
+            else:
+                ws = rec.workspace or ""
+                result_path = Path(ws) / "output" / "result.md"
+                if result_path.exists():
+                    return result_path.stat().st_mtime
+                return None
+
+        baseline_mtime = _get_mtime()
+        console.print(f"[dim]Waiting up to {timeout}s for agent to update output...[/dim]")
+
+        deadline = time.time() + timeout
+        updated = False
+        while time.time() < deadline:
+            time.sleep(3)
+            current_mtime = _get_mtime()
+            if current_mtime is not None and baseline_mtime is not None:
+                if current_mtime > baseline_mtime:
+                    updated = True
+                    break
+            elif current_mtime is not None and baseline_mtime is None:
+                updated = True
+                break
+
+        if not updated:
+            console.print(f"[yellow]Timeout: agent '{name}' did not update output within {timeout}s.[/yellow]")
+            return
+
+        console.print(f"[green]Agent '{name}' updated output![/green]")
+
+        # Show updated result
+        if is_remote:
+            result = subprocess.run(
+                ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
+                 rec.remote_host, f"cat {rec.remote_workspace}/output/result.md 2>/dev/null | head -50"],
+                capture_output=True, text=True, timeout=15,
+            )
+            console.print(result.stdout)
+        else:
+            ws = rec.workspace or ""
+            result_path = Path(ws) / "output" / "result.md"
+            if result_path.exists():
+                content = result_path.read_text()
+                lines = content.splitlines()[:50]
+                console.print("\n".join(lines))
 
     @app.command(name="shutdown-request")
     def shutdown_request_cmd(
