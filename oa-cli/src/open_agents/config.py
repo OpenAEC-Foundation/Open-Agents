@@ -37,6 +37,10 @@ DEFAULT_CONFIG = {
     },
     # A1 leerloop — automatisch les toevoegen aan LESSONS.md bij fout in agent-output
     "auto_lessons": True,
+    # Remote path mapping — translates WSL paths in prompts to remote Ubuntu paths
+    "remote_repo_path": "/home/oa-agent/Open-Agents",
+    "remote_wsl_path_prefix": "/mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents",
+    "remote_repo_git_url": "https://github.com/OpenAEC-Foundation/Open-Agents.git",
     # Docker isolation (D-040) — opt-in via --docker flag
     "docker_enabled": False,
     "docker_image": "oa-agent:latest",

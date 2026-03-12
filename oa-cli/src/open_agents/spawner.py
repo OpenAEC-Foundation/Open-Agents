@@ -44,6 +44,76 @@ CLAUDE_MODEL_MAP = {
 HETZNER_SSH_HOST = "hetzner-agent"
 
 
+def _map_paths_for_remote(text: str) -> str:
+    """Translate Windows/WSL paths in text to remote Ubuntu paths.
+
+    Reads remote_wsl_path_prefix and remote_repo_path from config.
+    Replaces occurrences of the WSL prefix with the remote repo path.
+    Also handles the generic /mnt/c/ prefix as a fallback.
+    """
+    cfg = load_config()
+    wsl_prefix = cfg.get("remote_wsl_path_prefix", "")
+    remote_path = cfg.get("remote_repo_path", "")
+
+    if not wsl_prefix or not remote_path:
+        return text
+
+    # Primary mapping: exact WSL project path → remote repo path
+    result = text.replace(wsl_prefix, remote_path)
+
+    # Fallback: /mnt/c/Users/Freek Heijting/Documents/GitHub/ → /home/oa-agent/
+    # This catches other repos that might be referenced
+    remote_home = str(Path(remote_path).parent)
+    github_dir = str(Path(wsl_prefix).parent)
+    if github_dir != wsl_prefix:
+        result = result.replace(github_dir, remote_home)
+
+    return result
+
+
+def _ensure_remote_repo(host: str) -> None:
+    """Ensure the project repo exists and is up-to-date on the remote host.
+
+    Checks if remote_repo_path exists. If not, clones from remote_repo_git_url.
+    If it exists, runs git pull to update.
+    """
+    cfg = load_config()
+    remote_path = cfg.get("remote_repo_path", "")
+    git_url = cfg.get("remote_repo_git_url", "")
+
+    if not remote_path:
+        return
+
+    try:
+        # Check if remote repo directory exists
+        check = subprocess.run(
+            ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
+             host, f"test -d {shlex.quote(remote_path)} && echo exists"],
+            capture_output=True, text=True, timeout=10,
+        )
+        if "exists" in check.stdout:
+            # Repo exists — git pull to update (best-effort, don't fail spawn on pull errors)
+            subprocess.run(
+                ["ssh", "-o", "BatchMode=yes", host,
+                 f"cd {shlex.quote(remote_path)} && git pull --ff-only 2>/dev/null || true"],
+                capture_output=True, text=True, timeout=30,
+            )
+        elif git_url:
+            # Repo doesn't exist — clone it
+            parent_dir = str(Path(remote_path).parent)
+            repo_name = str(Path(remote_path).name)
+            subprocess.run(
+                ["ssh", "-o", "BatchMode=yes", host,
+                 f"mkdir -p {shlex.quote(parent_dir)} && "
+                 f"cd {shlex.quote(parent_dir)} && "
+                 f"git clone {shlex.quote(git_url)} {shlex.quote(repo_name)}"],
+                capture_output=True, text=True, timeout=120,
+            )
+    except (subprocess.TimeoutExpired, OSError):
+        # Don't block spawn on repo sync failures
+        pass
+
+
 def is_oss_model(model: str) -> bool:
     """True for text-only OSS models that need minimal context: ollama/* and hetzner/* (excluding hetzner/claude/*)."""
     if model.startswith("ollama/"):
@@ -669,11 +739,18 @@ def spawn_remote_agent(
     if existing and existing.status == "running":
         raise RuntimeError(f"Agent '{name}' is already running.")
 
-    # 1. Create local workspace for state tracking
-    local_ws = create_workspace(name, task)
+    # 0. Ensure remote repo is available and up-to-date
+    if not is_hetzner_ollama:
+        _ensure_remote_repo(host)
+
+    # 0b. Map WSL paths in the task to remote paths
+    mapped_task = _map_paths_for_remote(task)
+
+    # 1. Create local workspace for state tracking (with mapped paths)
+    local_ws = create_workspace(name, mapped_task)
     remote_ws = f"/tmp/oa-agent-{name}"
 
-    # 2. Upload workspace to remote
+    # 2. Upload workspace to remote (CLAUDE.md already has mapped paths)
     sync_workspace_to_remote(host, local_ws, remote_ws)
 
     # 3. Detect whether the remote user is root.
@@ -703,6 +780,44 @@ def spawn_remote_agent(
                 "See GitHub issue #64 for details."
             )
 
+    # 3b. Pre-flight auth check for Claude agents.
+    # claude auth status can report loggedIn: true while the OAuth token is
+    # actually expired, causing agents to fail with 401. We do a real API call
+    # to verify, and attempt auto-refresh if it fails.
+    if not is_hetzner_ollama:
+        try:
+            auth_test = subprocess.run(
+                ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", host,
+                 'echo "ping" | claude --print 2>&1 | head -5'],
+                capture_output=True, text=True, timeout=45,
+            )
+            auth_output = auth_test.stdout
+            if "401" in auth_output or "authentication_error" in auth_output or "Failed to authenticate" in auth_output:
+                print(f"{_YELLOW}⚠ Claude auth expired on {host} — attempting auto-refresh...{_RESET}")
+                # Try headless auth refresh script
+                script_path = Path(__file__).resolve().parents[3] / "scripts" / "claude-auth-headless.py"
+                if script_path.exists():
+                    refresh = subprocess.run(
+                        ["python3", str(script_path), host],
+                        timeout=180,
+                    )
+                    if refresh.returncode != 0:
+                        raise RuntimeError(
+                            f"Claude auth expired on '{host}' and auto-refresh failed. "
+                            f"Run manually: python3 {script_path} {host}"
+                        )
+                else:
+                    raise RuntimeError(
+                        f"Claude auth expired on '{host}'. OAuth token needs refresh. "
+                        f"Run: ssh {host} 'claude auth login' and authorize in browser."
+                    )
+        except subprocess.TimeoutExpired:
+            pass  # Don't block spawn on auth check timeout
+        except RuntimeError:
+            raise
+        except OSError:
+            pass  # SSH failure — let the spawn attempt handle it
+
     # 4. Build remote command based on model type
     if is_hetzner_ollama:
         # Wait for VRAM before spawning (L-088, issue #79)
@@ -724,11 +839,12 @@ def spawn_remote_agent(
         )
         # Use subshell ( ... ) & to properly background and detach from SSH session.
         # Plain 'nohup ... &' doesn't reliably detach the process group when SSH exits.
-        remote_path = "/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        # Use $HOME so the PATH works for any remote user (root or oa-agent)
+        remote_path = "$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
         remote_cmd = (
             f"export PATH=\"{remote_path}:$PATH\" && "
             f"cd {remote_ws} && "
-            f"unset CLAUDECODE && "
+            f"unset CLAUDECODE CLAUDE_API_KEY && "
             f"mkdir -p output && "
             f"(nohup {CLAUDE_CMD}{model_flag} --dangerously-skip-permissions -p {claude_prompt} "
             f"> output/result.md 2>&1; touch .done) &"
