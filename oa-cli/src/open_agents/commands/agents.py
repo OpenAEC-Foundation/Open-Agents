@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import time
 from pathlib import Path
 
@@ -489,6 +490,23 @@ def register_commands(app: typer.Typer) -> None:
                 )
             except Exception:
                 pass
+
+        # Auto-detect OAuth 401 and trigger headless auth refresh
+        if output and ("OAuth token has expired" in output or "401" in output and "authentication_error" in output):
+            console.print("[yellow]⚠ OAuth token verlopen op remote server — automatisch vernieuwen...[/yellow]")
+            auth_script = Path(__file__).parents[4] / "scripts" / "claude-auth-headless.py"
+            if auth_script.exists() and rec.remote_host:
+                result = subprocess.run(
+                    ["python3", str(auth_script), rec.remote_host],
+                    timeout=120
+                )
+                if result.returncode == 0:
+                    console.print("[green]✅ Auth vernieuwd. Spawn de agent opnieuw met: oa run ...[/green]")
+                else:
+                    console.print("[red]❌ Auto-auth mislukt. Run handmatig: ssh hetzner-agent 'claude auth login'[/red]")
+            else:
+                console.print("[yellow]Auth script niet gevonden of geen remote host — run handmatig:[/yellow]")
+                console.print(f"  ssh {rec.remote_host or 'hetzner-agent'} 'claude auth login'")
 
         if output:
             console.print(f"\n[bold]Output from agent '{name}':[/bold]\n")
