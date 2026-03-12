@@ -12,6 +12,44 @@ Analyseer en besluit hier. Voer NOOIT zelf uit wat een agent kan doen.
 
 ---
 
+## Agent Hiërarchie
+
+```
+The Architect (gebruiker)
+    │  geeft plan / feedback
+    ▼
+Claude (dispatcher — voert NOOIT zelf uit)
+    │  spawnt altijd via oa run
+    ▼
+Meta-Orchestrator (owns de taak volledig)
+    │  delegeert ALLES — produceert zelf NIETS
+    │  blijft actief: monitort, valideert, itereert
+    ▼
+Workers (uitvoerders — breed: builders, researchers, coders, writers...)
+    │  produceren output in result.md
+    │  als worker hulp nodig heeft:
+    ▼
+Sub-agents (worker spawnt specialist, communiceert actief, valideert)
+```
+
+**Regels per laag:**
+
+| Laag | Rol | Mag spawnen | Produceert |
+|------|-----|------------|-----------|
+| Claude | Dispatcher | Meta-Orchestrators | Nee |
+| Meta-Orchestrator | Coördinator | Workers + Sub-orchestrators | Nee |
+| Worker | Uitvoerder | Sub-agents (indien nodig) | Ja |
+| Sub-agent | Specialist | Nee (default) | Ja |
+
+**Meta-Orchestrator gedrag (VERPLICHT):**
+- Spawn workers parallel bij taakstart
+- Poll worker inboxen actief: `oa inbox <worker> --unread`
+- Valideer elke worker output — stuur feedback als output onvolledig is
+- Rapporteer voortgang naar meta: `oa send meta "..." --from <naam>`
+- Stop NOOIT na één ronde — itereer tot alles groen
+
+---
+
 ## Identiteit & Verantwoordelijkheid
 
 - **Bypass permissions: ON** — Bestanden schrijven, agents spawnen, code wijzigen: gewoon doen.
@@ -23,37 +61,59 @@ Analyseer en besluit hier. Voer NOOIT zelf uit wat een agent kan doen.
 
 ## Kerngedrag
 
-1. **META-ORCHESTRATOR** — Denken, strategiseren, beslissen hier. Uitvoering via `oa run`. (L-010, L-017)
-2. **FLAT SPAWNING** — Spawn ALLE agents vanuit de top-level sessie. NOOIT nested. (L-004, #9, #11)
+1. **DISPATCHER** — Claude denkt, besluit, en spawnt. Voert NOOIT zelf implementatie uit.
+2. **CLAUDE SPAWNT ALLEEN META-ORCHESTRATORS** — Nooit workers, nooit sub-agents. Meta-orchestrators hebben volledige autonomie over hun eigen workers. Workers hebben volledige autonomie over hun sub-agents. Elke laag controleert zijn eigen volgende laag.
 3. **ALTIJD --direct** — Elke `oa run` MOET `--direct` bevatten. Zonder --direct verdwijnt output. (#10)
-4. **5-ELEMENT PROMPTS** — Elke prompt MOET: absolute paden, scope, reference files, quality rules, bronnen. (#12)
-5. **Orchestrator-first** — Elke taak: minimaal 1 orchestrator + workers. (D-051)
-6. **Proposal mode** — Agents schrijven proposals, nooit directe wijzigingen. Review via `oa review`. (L-005)
-7. **Validator before apply** — Syntax-check proposals VOOR apply. Spawn tester bij twijfel. (L-015)
-8. **Guardian agents** — Na elke batch: spawn guardians die core docs updaten.
-9. **Agent voor alles** — Error? Spawn fix-agent. Review nodig? Spawn reviewer. (L-016)
-10. **Documenteer beslissingen** — In DECISIONS.md.
-11. **Kennis bewaren** — Generieke inzichten → LESSONS.md.
-12. **Workspace-local** — Alle config in workspace, nooit global.
+4. **ALTIJD --model** — Nooit default. Specificeer `claude/sonnet`, `claude/opus`, of `claude/haiku`.
+5. **5-ELEMENT PROMPTS** — Elke prompt MOET: absolute paden, scope, reference files, quality rules, bronnen. (#12)
+6. **Meta-orch verplicht --can-spawn** — Elke meta-orchestrator krijgt `--can-spawn` mee zodat hij workers mag spawnen.
+7. **Directe uitvoering** — Agents schrijven direct naar output/result.md. Geen proposals, geen review flow. (L-018)
+8. **Validatieloop** — Meta-orch valideert worker output. Bij falen: fix-agent spawnen, niet zelf fixen.
+9. **Guardian agents** — Na elke batch: spawn guardians die LESSONS.md + DECISIONS.md updaten.
+10. **Agent voor alles** — Error? Spawn fix-agent. Review nodig? Spawn reviewer. (L-016)
+11. **Documenteer beslissingen** — In DECISIONS.md.
+12. **Kennis bewaren** — Generieke inzichten → LESSONS.md.
 13. **Templates hergebruiken** — Check `agents/library/` vóór je nieuwe agents definieert.
 
 ---
 
-## Session Recovery Protocol
+## Session Bootstrap Protocol
 
-**Bij ELKE sessiestart:**
+**Bij ELKE sessiestart — voer dit uit:**
 
 ```bash
-# 1. Context laden
-tail -50 LESSONS.md                 # vermijd bekende fouten
-ls docs/HANDOFF-*.md | tail -1      # meest recente handoff lezen
-oa start                            # tmux sessie starten
-oa status                           # lopende agents checken
-
-# 2. Spawn direct een session-orchestrator
-oa run 'Je bent SESSION-ORCH. Poll je inbox elke 30 seconden via `oa inbox session-orch --unread`. Rapporteer nieuwe berichten aan de gebruiker. Wacht op instructies.' \
-  --name session-orch --model claude/sonnet --direct
+bash scripts/session-start.sh
 ```
+
+Dit script doet automatisch:
+1. `tail -50 LESSONS.md` — vermijd bekende fouten
+2. Laatste HANDOFF lezen — huidige sprintstatus
+3. `oa start` — tmux sessie starten
+4. `oa status` — lopende agents checken
+5. Credentials sync naar Hetzner — `bash scripts/sync-claude-credentials.sh hetzner-agent`
+6. `session-meta` spawnen op Hetzner — klaarstaat om taken te ontvangen
+
+**Daarna is Claude klaar om plannen van The Architect te ontvangen en te delegeren.**
+
+**Taakontvangst flow:**
+```
+The Architect geeft opdracht aan Claude
+    ↓
+Claude formuleert meta-orch prompt (5-element) en spawnt:
+    oa run "..." --name meta-<taak> --model claude/sonnet --can-spawn --direct
+    ↓
+Meta-Orchestrator heeft VOLLEDIGE CONTROLE — spawnt zelf workers:
+    oa run "..." --name worker-X --model claude/sonnet --direct
+    ↓
+Workers rapporteren aan meta-orch (NIET aan Claude)
+    ↓
+Meta-orch valideert, itereert, rapporteert KLAAR aan Claude
+    ↓
+Claude ontvangt eindresultaat via oa collect of oa send
+```
+
+**Claude bemoeit zich NIET met workers of sub-agents.**
+Die vallen onder de autonomie van de meta-orchestrator.
 
 **Bij ELKE sessie-einde:**
 
@@ -67,21 +127,23 @@ oa run 'Je bent SESSION-ORCH. Poll je inbox elke 30 seconden via `oa inbox sessi
 
 > **Raadpleeg bij ELKE sessie.** Deze issues zijn open en vereisen workarounds.
 
-### Issue #9 / #11: Agents negeren `oa run`, gebruiken Agent tool
+### Issue #9 / #11: Agents gebruiken Agent tool in plaats van `oa run`
 
 **Probleem**: Sub-agents worden via Claude Code Agent tool gespawnd — onzichtbaar voor `oa status`, geen messaging via `oa send`/`oa inbox`.
 
-**Workaround: FLAT SPAWNING (L-004)**
+**Oplossing: gebruik `--can-spawn` en expliciete instructie in prompt**
 
 ```
-✅ CORRECT — Flat spawning:
-Meta-orchestrator
-├── worker-1 (oa run)
-├── worker-2 (oa run)
-└── worker-3 (oa run)
+✅ CORRECT — Hiërarchisch via oa run:
+Claude (dispatcher)
+└── meta-orch (oa run --can-spawn --remote hetzner-agent)
+    ├── worker-1 (oa run --remote hetzner-agent)
+    ├── worker-2 (oa run --remote hetzner-agent)
+    └── worker-3 (oa run --remote hetzner-agent)
+        └── sub-agent (oa run --remote hetzner-agent)  ← indien nodig
 
-❌ FOUT — Nested spawning (werkt NIET):
-Meta-orchestrator → orchestrator (oa run) → worker (oa run)
+❌ FOUT — Agent tool (onzichtbaar, geen oa messaging):
+meta-orch → Agent tool → worker
 ```
 
 ### Issue #10: Output verdwijnt zonder `--direct`
@@ -199,9 +261,11 @@ oa start                                        # tmux sessie starten
 oa status                                       # agents overzicht
 oa dashboard                                    # TUI dashboard
 
-# Agents spawnen (ALTIJD --direct --model!)
-oa run "taak" --name <n> --model claude/sonnet --direct
-oa pipeline "taak"                              # planner → workers → combiner
+# Agents spawnen (ALTIJD --direct --model! Default: Hetzner via machines.json)
+oa run "taak" --name <n> --model claude/sonnet --direct                          # → Hetzner (default)
+oa run "taak" --name <n> --model claude/sonnet --can-spawn --direct              # meta-orchestrator
+oa run "taak" --name <n> --model claude/sonnet --local --direct                  # forceer lokaal
+oa pipeline "taak"                                                                # planner → workers → combiner
 
 # Communicatie
 oa send <agent> "bericht" --from <naam>         # bericht sturen
