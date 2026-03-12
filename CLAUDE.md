@@ -181,6 +181,16 @@ Alleen Europees of écht open-source non-profit — zie docs/MODEL-BENCHMARK.md 
 
 ---
 
+## Remote Agent Auth (D-082)
+
+**Standaard**: `scp ~/.claude/.credentials.json <host>:~/.claude/.credentials.json`
+**Sync script**: `bash scripts/sync-claude-credentials.sh [host]`
+**Multi-user**: `~/.oa/accounts.json` → host-naar-credentials mapping
+**Automatisch**: `spawner.py` sync + verify vóór elke remote spawn
+**NOOIT meer**: OAuth flow, browser, `claude auth login` op remote server
+
+---
+
 ## Quick Reference
 
 ```bash

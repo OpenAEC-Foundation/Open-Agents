@@ -9,7 +9,7 @@
 | Vereiste | Details |
 |----------|---------|
 | SSH key | `~/.ssh/config` met `Host hetzner-agent` alias |
-| Claude CLI auth | `claude auth login` uitgevoerd op Hetzner (OAuth via browser) |
+| Claude CLI auth | credentials.json gesynchroniseerd via scp (zie sectie Claude Authenticatie) |
 | oa-cli geïnstalleerd | Op de Hetzner server als niet-root gebruiker (`oa-agent`) |
 | GitHub PAT | Fine-grained token met toegang tot OpenAEC-Foundation/Open-Agents |
 | Python 3 | Op de Hetzner server (standaard aanwezig) |
@@ -115,26 +115,58 @@ Agents draaien in `/tmp/oa-agent-<name>/` op Hetzner. Paden in CLAUDE.md zijn al
 
 ## Troubleshooting
 
+## Claude Authenticatie (credentials sync)
+
+Geen OAuth dance. Geen browser. Geen handmatige stappen.
+
+### Eerste keer / token verlopen:
+
+```bash
+bash scripts/sync-claude-credentials.sh hetzner-agent
+```
+
+### Multi-user setup:
+
+Maak `~/.oa/accounts.json` aan:
+
+```json
+{"hetzner-agent": "~/.claude/.credentials.json", "worker2": "~/.claude/.credentials-worker2.json"}
+```
+
+```bash
+bash scripts/sync-claude-credentials.sh  # sync alle accounts
+```
+
+### Verificatie:
+
+```bash
+ssh hetzner-agent "echo ping | claude --print"
+# Verwacht: pong
+```
+
+### Automatisch bij agent spawn:
+
+`spawner.py` doet automatisch scp + verify vóór elke remote spawn.
+
+---
+
 ### 401 auth error bij agent spawn
 
 ```
 Failed to authenticate. API Error: 401 {"type":"error","error":{"type":"authentication_error"...
 ```
 
-**Oorzaak**: OAuth token van Claude CLI is verlopen op Hetzner.
+**Oorzaak**: Claude credentials zijn niet gesynchroniseerd naar Hetzner of zijn verlopen.
 
-**Oplossing**:
+**Oplossing** (D-082):
 
 ```bash
-# Methode 1: Automatisch (headless via explorer.exe)
-python3 scripts/claude-auth-headless.py hetzner-agent
-
-# Methode 2: Handmatig
-ssh hetzner-agent 'claude auth login'
-# Kopieer de OAuth URL → open in Windows browser → autoriseert automatisch
+bash scripts/sync-claude-credentials.sh hetzner-agent
+# Verifieer:
+ssh hetzner-agent "echo ping | claude --print"
 ```
 
-Zie lesson `L-096` in de CLAUDE.md voor de headless OAuth flow.
+Zie lesson `L-097` in LESSONS.md voor achtergrond.
 
 ---
 
@@ -218,7 +250,7 @@ ssh hetzner-agent "cd /home/oa-agent/Open-Agents && git fetch origin && git rese
 | `oa-cli/src/open_agents/spawner.py` | `_ensure_remote_repo()` en `_build_authenticated_git_url()` |
 | `oa-cli/src/open_agents/config.py` | `DEFAULT_CONFIG["github_pat"]` en `DEFAULT_CONFIG["remote_repo_git_url"]` |
 | `scripts/setup-hetzner-repo.sh` | Eenmalig setup script |
-| `scripts/claude-auth-headless.py` | OAuth refresh voor Claude CLI op Hetzner |
+| `scripts/sync-claude-credentials.sh` | Credentials sync via scp (D-082) |
 | `~/.oa/config.json` | Lokale configuratie (niet in repo) |
 | `~/.ssh/config` | SSH alias `hetzner-agent` |
 

@@ -407,6 +407,25 @@ PO Decisions (laatste 3):
 
 **Conclusie**: `explorer.exe <url>` + poll = volledig headless OAuth refresh. Playwright en Chrome cookie extractie zijn niet nodig.
 
+## L-097 — Claude auth op remote servers: scp credentials, niet OAuth
+
+**Datum**: 2026-03-12
+**Tags**: #auth #hetzner #remote #credentials #multi-user
+
+OAuth flow op remote servers is onbetrouwbaar: vereist browser, handmatige klik, SSH tunnel. De echte oplossing: kopieer ~/.claude/.credentials.json rechtstreeks via scp.
+
+**Bewezen**: scp ~/.claude/.credentials.json hetzner-agent:~/.claude/.credentials.json → echo ping | claude --print → "pong" ✅
+
+**Multi-user aanpak**: ~/.oa/accounts.json mapt elke host naar een credentials bestand.
+```json
+{"hetzner-agent": "~/.claude/.credentials.json", "hetzner-worker2": "~/.claude/.credentials-account2.json"}
+```
+
+**NOOIT meer gebruiken**: claude auth login, OAuth URL, explorer.exe, SSH tunnel voor auth.
+**ALTIJD gebruiken**: scripts/sync-claude-credentials.sh
+
+---
+
 ## L-AUTO-20260312194333 — Agent fout: hetzner-ping
 **Datum**: 2026-03-12
 **Agent**: hetzner-ping
@@ -420,6 +439,18 @@ PO Decisions (laatste 3):
 **Agent**: hetzner-auth-fix
 **Model**: claude/opus
 **Fout**: - If refresh fails: raises RuntimeError with clear manual instructions
+**Taak**: ---
+## AUTO-INJECTED CONTEXT
+
+PO Decisions (laatste 3):
+-  {'verdict': 'WARN', 'explanation': 'WARN\
+**Les**: Controleer agent output na collect — automatisch gelogd door A1 leerloop.
+
+## L-AUTO-20260312203952 — Agent fout: auth-standard
+**Datum**: 2026-03-12
+**Agent**: auth-standard
+**Model**: claude/opus
+**Fout**: 6. Bij failure: duidelijke RuntimeError met instructie om lokaal `claude auth login` te doen
 **Taak**: ---
 ## AUTO-INJECTED CONTEXT
 

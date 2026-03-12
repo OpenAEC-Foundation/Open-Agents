@@ -808,12 +808,50 @@ def spawn_remote_agent(
                 "See GitHub issue #64 for details."
             )
 
-    # 3b. Pre-flight auth check for Claude agents.
-    # claude auth status can report loggedIn: true while the OAuth token is
-    # actually expired, causing agents to fail with 401. We do a real API call
-    # to verify, and attempt auto-refresh if it fails.
+    # 3b. Pre-flight auth: sync local credentials to remote host via scp.
+    # Instead of OAuth flows, we copy ~/.claude/.credentials.json directly.
+    # This is idempotent and fully automated — no browser needed.
     if not is_hetzner_ollama:
         try:
+            # Determine local credentials file (support multi-account via ~/.oa/accounts.json)
+            import json as _json
+            import os as _os
+            local_creds = Path.home() / ".claude" / ".credentials.json"
+            accounts_file = Path.home() / ".oa" / "accounts.json"
+            if accounts_file.exists():
+                try:
+                    with open(accounts_file) as _af:
+                        _accounts = _json.load(_af)
+                    mapped = _accounts.get(host, "")
+                    if mapped:
+                        expanded = Path(_os.path.expanduser(mapped))
+                        if expanded.exists():
+                            local_creds = expanded
+                except (ValueError, OSError):
+                    pass  # Use default credentials
+
+            if not local_creds.exists():
+                raise RuntimeError(
+                    f"Local Claude credentials not found at {local_creds}. "
+                    f"Run 'claude auth login' locally first."
+                )
+
+            # Ensure remote ~/.claude/ directory exists
+            subprocess.run(
+                ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
+                 host, "mkdir -p ~/.claude"],
+                capture_output=True, text=True, timeout=10,
+            )
+
+            # Copy credentials to remote host
+            subprocess.run(
+                ["scp", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
+                 str(local_creds), f"{host}:~/.claude/.credentials.json"],
+                capture_output=True, text=True, timeout=15,
+                check=True,
+            )
+
+            # Verify auth works on remote
             auth_test = subprocess.run(
                 ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", host,
                  'echo "ping" | claude --print 2>&1 | head -5'],
@@ -821,28 +859,17 @@ def spawn_remote_agent(
             )
             auth_output = auth_test.stdout
             if "401" in auth_output or "authentication_error" in auth_output or "Failed to authenticate" in auth_output:
-                print(f"{_YELLOW}⚠ Claude auth expired on {host} — attempting auto-refresh...{_RESET}")
-                # Try headless auth refresh script
-                script_path = Path(__file__).resolve().parents[3] / "scripts" / "claude-auth-headless.py"
-                if script_path.exists():
-                    refresh = subprocess.run(
-                        ["python3", str(script_path), host],
-                        timeout=180,
-                    )
-                    if refresh.returncode != 0:
-                        raise RuntimeError(
-                            f"Claude auth expired on '{host}' and auto-refresh failed. "
-                            f"Run manually: python3 {script_path} {host}"
-                        )
-                else:
-                    raise RuntimeError(
-                        f"Claude auth expired on '{host}'. OAuth token needs refresh. "
-                        f"Run: ssh {host} 'claude auth login' and authorize in browser."
-                    )
+                raise RuntimeError(
+                    f"Claude credentials synced to '{host}' but auth verification failed. "
+                    f"Your local credentials may be expired. "
+                    f"Run 'claude auth login' locally, then retry."
+                )
         except subprocess.TimeoutExpired:
             pass  # Don't block spawn on auth check timeout
         except RuntimeError:
             raise
+        except subprocess.CalledProcessError as e:
+            print(f"{_YELLOW}⚠ Failed to sync credentials to {host}: {e}{_RESET}")
         except OSError:
             pass  # SSH failure — let the spawn attempt handle it
 
