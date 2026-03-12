@@ -30,6 +30,7 @@ from .commands.analytics import register_commands as _reg_analytics
 from .commands.po import register_commands as _reg_po
 from .commands.profile import register_commands as _reg_profile
 from .commands.misc import register_commands as _reg_misc
+from .commands.quality_chain import register_commands as _reg_quality_chain
 
 _reg_session(app)
 _reg_agents(app)
@@ -44,6 +45,7 @@ _reg_analytics(app)
 _reg_po(app)
 _reg_profile(app)
 _reg_misc(app)
+_reg_quality_chain(app)
 
 
 if __name__ == "__main__":
