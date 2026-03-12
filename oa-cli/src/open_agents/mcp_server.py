@@ -70,6 +70,27 @@ mcp = FastMCP("open-agents")
 OA_BIN = "oa"
 
 
+def _autostart_session() -> None:
+    """Start the oa tmux session at MCP server startup (runs once when Claude Code loads).
+
+    This means `oa start` is called automatically every time Claude Code opens
+    the project — no manual bootstrap needed. Safe to call if already running.
+    """
+    try:
+        subprocess.run(
+            [OA_BIN, "start"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+    except Exception:
+        pass  # Silent — don't break MCP startup if oa is unavailable
+
+
+# Run at import time (Claude Code loads .mcp.json → starts this server → session starts)
+_autostart_session()
+
+
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
