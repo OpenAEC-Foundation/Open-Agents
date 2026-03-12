@@ -71,11 +71,38 @@ def _map_paths_for_remote(text: str) -> str:
     return result
 
 
+def _build_authenticated_git_url(git_url: str) -> str:
+    """Inject a GitHub PAT into a git URL for private repo access.
+
+    Token is read from (in order of precedence):
+    1. GITHUB_PAT environment variable
+    2. ~/.oa/config.json key "github_pat"
+
+    If no token is available, returns the original URL unchanged.
+    Only modifies https:// URLs — SSH URLs are returned as-is.
+    """
+    import os
+    pat = os.environ.get("GITHUB_PAT", "").strip()
+    if not pat:
+        pat = load_config().get("github_pat", "").strip()
+    if not pat or not git_url.startswith("https://"):
+        return git_url
+    # Insert token: https://TOKEN@github.com/...
+    # Strip any existing credentials first for idempotence
+    url_body = git_url[len("https://"):]
+    if "@" in url_body.split("/")[0]:
+        url_body = url_body.split("@", 1)[1]
+    return f"https://{pat}@{url_body}"
+
+
 def _ensure_remote_repo(host: str) -> None:
     """Ensure the project repo exists and is up-to-date on the remote host.
 
     Checks if remote_repo_path exists. If not, clones from remote_repo_git_url.
     If it exists, runs git pull to update.
+
+    For private repos, the GitHub PAT is injected into the clone URL.
+    Token source: GITHUB_PAT env var OR ~/.oa/config.json key "github_pat".
     """
     cfg = load_config()
     remote_path = cfg.get("remote_repo_path", "")
@@ -99,14 +126,15 @@ def _ensure_remote_repo(host: str) -> None:
                 capture_output=True, text=True, timeout=30,
             )
         elif git_url:
-            # Repo doesn't exist — clone it
+            # Repo doesn't exist — clone it (with PAT for private repos)
+            auth_url = _build_authenticated_git_url(git_url)
             parent_dir = str(Path(remote_path).parent)
             repo_name = str(Path(remote_path).name)
             subprocess.run(
                 ["ssh", "-o", "BatchMode=yes", host,
                  f"mkdir -p {shlex.quote(parent_dir)} && "
                  f"cd {shlex.quote(parent_dir)} && "
-                 f"git clone {shlex.quote(git_url)} {shlex.quote(repo_name)}"],
+                 f"git clone {shlex.quote(auth_url)} {shlex.quote(repo_name)}"],
                 capture_output=True, text=True, timeout=120,
             )
     except (subprocess.TimeoutExpired, OSError):

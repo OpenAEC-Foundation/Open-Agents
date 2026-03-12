@@ -406,3 +406,23 @@ PO Decisions (laatste 3):
 `claude auth login` op de Hetzner server genereert een OAuth URL. Als je die URL opent in een Windows browser (via `explorer.exe`) waar de gebruiker al ingelogd is op claude.ai én de client eerder heeft goedgekeurd, autoriseert claude.ai automatisch — geen klik nodig. De server pikt het token meteen op.
 
 **Conclusie**: `explorer.exe <url>` + poll = volledig headless OAuth refresh. Playwright en Chrome cookie extractie zijn niet nodig.
+
+## L-AUTO-20260312194333 — Agent fout: hetzner-ping
+**Datum**: 2026-03-12
+**Agent**: hetzner-ping
+**Model**: claude/haiku
+**Fout**: Failed to authenticate. API Error: 401 {"type":"error","error":{"type":"authentication_error","messa
+**Taak**: Zeg precies: 'Ik draai op Hetzner' en stop.
+**Les**: Controleer agent output na collect — automatisch gelogd door A1 leerloop.
+
+## L-AUTO-20260312200940 — Agent fout: hetzner-auth-fix
+**Datum**: 2026-03-12
+**Agent**: hetzner-auth-fix
+**Model**: claude/opus
+**Fout**: - If refresh fails: raises RuntimeError with clear manual instructions
+**Taak**: ---
+## AUTO-INJECTED CONTEXT
+
+PO Decisions (laatste 3):
+-  {'verdict': 'WARN', 'explanation': 'WARN\
+**Les**: Controleer agent output na collect — automatisch gelogd door A1 leerloop.

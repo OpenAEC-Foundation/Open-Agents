@@ -23,6 +23,39 @@ _config = load_config()
 TIMEOUT_MINUTES = _config.get("timeout_minutes", 60)
 
 
+def _run_contract_validation(rec: AgentRecord) -> None:
+    """Auto-validate output contract when a task-typed agent finishes.
+
+    If the agent has a task_type, verify its output against the contract
+    and store the result in agent state + contract_violation.json.
+    Non-blocking: errors are silently ignored.
+    """
+    if not rec.task_type or not rec.workspace:
+        return
+    try:
+        from .contract import verify_contract
+        result = verify_contract(Path(rec.workspace), rec.task_type)
+        status = "PASS" if result.passed else "FAIL"
+        update_agent(
+            rec.name,
+            contract_status=status,
+            contract_detail=result.summary(),
+        )
+        if not result.passed:
+            import json
+            violation_path = Path(rec.workspace) / "output" / "contract_violation.json"
+            violation_path.write_text(json.dumps({
+                "task_type": rec.task_type,
+                "status": status,
+                "checks": [
+                    {"name": c[0], "passed": c[1], "detail": c[2]}
+                    for c in result.checks
+                ],
+            }, indent=2) + "\n")
+    except Exception:
+        pass
+
+
 def check_agent(name: str) -> str | None:
     """Check if a running agent has finished. Updates state if so.
 
@@ -53,6 +86,7 @@ def check_agent(name: str) -> str | None:
             except Exception:
                 pass
             update_agent(name, status="done", finished_at=now, last_activity=now)
+            _run_contract_validation(rec)
             if rec.run_id:
                 try:
                     _telemetry.finish_run(rec.run_id, exit_status="success")
@@ -89,6 +123,7 @@ def check_agent(name: str) -> str | None:
             return "running"
 
         update_agent(name, status="done", finished_at=now, last_activity=now)
+        _run_contract_validation(rec)
         if rec.run_id:
             try:
                 _telemetry.finish_run(rec.run_id, exit_status="success")
@@ -141,6 +176,7 @@ def check_agent(name: str) -> str | None:
                 except Exception:
                     pass
             if new_status == "done":
+                _run_contract_validation(rec)
                 if rec.shared_results_dir:
                     _write_shared_result(rec)
                 _hooks.run_hooks("post-run", {"OA_AGENT_NAME": name, "OA_EXIT_STATUS": "done"})

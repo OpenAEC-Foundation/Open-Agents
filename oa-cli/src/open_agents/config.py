@@ -41,6 +41,9 @@ DEFAULT_CONFIG = {
     "remote_repo_path": "/home/oa-agent/Open-Agents",
     "remote_wsl_path_prefix": "/mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents",
     "remote_repo_git_url": "https://github.com/OpenAEC-Foundation/Open-Agents.git",
+    # GitHub PAT for cloning private repos on remote hosts (e.g. Hetzner)
+    # Set via: oa set github_pat <token>  OR  env var GITHUB_PAT
+    "github_pat": "",
     # Docker isolation (D-040) — opt-in via --docker flag
     "docker_enabled": False,
     "docker_image": "oa-agent:latest",
