@@ -47,6 +47,18 @@ _reg_profile(app)
 _reg_misc(app)
 _reg_quality_chain(app)
 
+# Node system — Click group integrated as typer callback
+try:
+    from .node_cli import node as _node_click_group
+
+    @app.command(name="node", context_settings={"allow_extra_args": True, "ignore_unknown_options": True}, help="Manage persistent node agents.")
+    def _node_cmd(ctx: typer.Context) -> None:
+        from click import Context as _ClickCtx
+        with _ClickCtx(_node_click_group) as click_ctx:
+            _node_click_group.main(args=ctx.args, standalone_mode=False, obj=click_ctx.obj)
+except Exception:
+    pass
+
 
 if __name__ == "__main__":
     app()

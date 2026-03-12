@@ -257,4 +257,4 @@ ssh hetzner-agent "cd /home/oa-agent/Open-Agents && git fetch origin && git rese
 ---
 
 *Aangemaakt: 2026-03-12 door hetzner-sync agent*
-*Zie ook: DECISIONS.md D-061, D-076, D-079*
+*Zie ook: DECISIONS.md D-061, D-074, D-076, D-079, D-082*

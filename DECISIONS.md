@@ -741,3 +741,47 @@ Bij `oa run --user <naam>` wordt de agent gestart met `HOME=/home/oa-agent/users
 
 ### Niet gebouwd in
 Sprint 28 (live tree viz). Gepland voor Sprint 29 (Multi-user remote execution).
+
+---
+
+## D-083 — Browser CLI sessies via ttyd + tmux send-keys als interactie-laag
+
+**Datum**: 2026-03-13
+**Status**: Bewezen in productie
+
+### Beslissing
+Verbinding tussen lokale machine, Hetzner server en browser-gebruiker via:
+
+1. **ttyd op Hetzner (port 7125)** — exposeert tmux sessie als live terminal in browser
+2. **Claude Code via browser** — gebruiker opent `claude` in die terminal, volledige sessie met tools
+3. **tmux send-keys vanaf lokaal** — lokale Claude Code injecteert tekst in de browser-sessie via SSH + tmux
+4. **Gedeelde chat server (port 7123)** — alternatief kanaal voor gestructureerde berichten
+
+### Resultaat
+- Freek kan vanuit zijn lokale machine (Claude Code) opdrachten sturen naar een Claude sessie op Hetzner die in een browser draait
+- Die Hetzner Claude kan zelf agents spawnen, bash uitvoeren, bestanden schrijven
+- Communicatie is bidirectioneel: browser → chat server → lokaal, en lokaal → SSH → tmux send-keys → browser
+
+### Architectuur
+```
+Freek (lokaal) ←→ Claude Code (lokaal)
+                        │
+                   SSH + tmux send-keys
+                        ↓
+                 Hetzner tmux sessie
+                        │
+                   ttyd (port 7125)
+                        ↓
+              Browser van Freek — live Claude Code sessie
+```
+
+### Waarom dit werkt zonder API
+- Geen API kosten — alles via Claude Max subscription
+- ttyd is open source, draait lokaal op de server
+- tmux send-keys is de brug tussen sessies
+- claude -p voor headless, claude TUI voor interactief via browser
+
+### Toepassing
+- Freek geeft hier opdrachten → ik stuur via tmux naar Hetzner Claude
+- Hetzner Claude voert uit, spawnt agents, rapporteert terug
+- Schaalbaar: meerdere tmux windows = meerdere parallelle sessies
