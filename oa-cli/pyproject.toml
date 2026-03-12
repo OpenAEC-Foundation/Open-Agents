@@ -43,6 +43,7 @@ Issues = "https://github.com/OpenAEC-Foundation/Open-Agents/issues"
 
 [project.scripts]
 oa = "open_agents.cli:app"
+oa-mcp = "open_agents.mcp_server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
