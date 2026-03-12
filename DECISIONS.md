@@ -23,6 +23,7 @@
 
 | # | Beslissing | Gekozen | Rationale | Datum |
 |---|-----------|---------|-----------|-------|
+| D-079 | Orchestrator/Worker model split | Orchestrators → Claude (subscription CLI). Workers → Hetzner Ollama (mixtral:8x7b, codestral:22b). Geen API — alles via betaalde Max-subscription in tmux/SSH. | Open-Agents omzeilt API-kosten bewust door in de CLI te blijven. Claude heeft redeneerdiepte nodig voor orchestratie; OSS-modellen op de eigen GPU zijn voldoende voor uitvoerend werk en schalen parallel zonder limieten. | 2026-03-12 |
 | D-073 | `_archive/` uitsluiten van template_loader.py scans | `EXCLUDED_DIRS = {"_archive"}` in template_loader.py | Gearchiveerde templates horen niet in de actieve library, UI, of CLI. Structureel uitsluiten is schoner dan 130 JSON-patches. validate_library() biedt explicit scan inclusief archive voor CI. | 2026-03-11 |
 | D-074 | Root-detectie vóór SSH-spawn in spawn_remote_agent() | SSH `id -u` check vóór spawn, RuntimeError bij UID=0 | Fail-fast is beter dan silent failure. Een duidelijke fout met fix-instructies is betere UX dan een agent die na 1s stil faalt en "done" rapporteert. | 2026-03-11 |
 | D-075 | Machine-selector in SpawnForm conditioneel tonen | Verborgen als geen niet-lokale machines aanwezig | UI-features tonen zonder relevante data is rommel. Solo-devs zien een cleaner form; teams met remote servers zien de volledige selector. Data-driven UI rendering als principe. | 2026-03-11 |

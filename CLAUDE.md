@@ -152,14 +152,18 @@ Schrijf naar: /mnt/c/project/docs/research/topic.md
 
 ## Model Tiering
 
-| Taak | Model |
-|------|-------|
-| Scannen, formatteren, listing | `claude/haiku` |
-| Schrijven, coderen, implementatie | `claude/sonnet` (DEFAULT) |
-| Architectuur, deep reasoning | `claude/opus` |
-| Review, QA, validatie | `claude/sonnet` |
-| Privacy-gevoelig / geen API-kosten | `hetzner/mistral:7b` of `ollama/mistral:7b` |
-| Zware lokale inferentie | `hetzner/mixtral:8x7b` |
+> **Principe**: Open-Agents gebruikt GEEN API. Claude draait via betaalde Max-subscription in de CLI (tmux/SSH). Hetzner Ollama draait lokaal op de GPU. Beide zijn zonder per-token kosten.
+
+| Taak | Model | Waarom |
+|------|-------|--------|
+| Orchestratie, planning, delegatie | `claude/sonnet` (DEFAULT) | Redeneerdiepte nodig |
+| Architectuur, complexe beslissingen | `claude/opus` | Maximum diepgang |
+| Snel scannen, listing, formattering | `claude/haiku` | Snelste Claude tier |
+| Worker: tekst, analyse, samenvatting | `hetzner/mixtral:8x7b` | Sterkste OSS, GPU, parallel schaalbaar |
+| Worker: code schrijven en reviewen | `hetzner/codestral:22b` | Code-gespecialiseerd, Mistral |
+| Worker: snelle bulk-taken | `hetzner/mistral-nemo` | 128k context, snel |
+| Worker: embeddings / RAG | `hetzner/bge-m3` | Multilinguale embeddings |
+| Offline / geen SSH | `ollama/mistral:7b` | Lokaal Windows |
 
 ### Goedgekeurde open-source modellen (D-028)
 
