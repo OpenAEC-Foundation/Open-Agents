@@ -1,7 +1,7 @@
 # Masterplan - Open-Agents
 
-> **Versie**: 0.7
-> **Laatste update**: 2026-03-11
+> **Versie**: 0.8
+> **Laatste update**: 2026-03-12
 > **Methodiek**: Scrum (korte sprints, snel waarde leveren)
 > **Zie ook**: REQUIREMENTS.md, PRINCIPLES.md, ROADMAP.md, SOURCES.md
 >
@@ -46,6 +46,8 @@
 | 24 | Iteration Control & Meta-Agent | Zelf-regulerend systeem, skill evolver, meta-agent | Sprint 22, Sprint 23 | Done |
 | 25 | Periodic Analytics & Observability | Diepe analyse agent-ecosysteem op historische data | Sprint 22, Sprint 23 | Done |
 | 26 | CLI Infrastructure Boost | Vervang primitieve subprocess calls door libtmux, watchdog, psutil. Bouw skills die agents en de CLI zelf powertools geven. Slimme tmux-architecturen. | Sprint 12, Sprint 21 | Done |
+| 27 | Living Agent Tree + Checkpoint/Resume | Persistent orchestrator, delegatie-hooks, checkpoint/resume, agent tree zichtbaar | Sprint 12, 19 | Done |
+| 28 | Live Agent Tree Visualisatie | Real-time boom-diagram van spawning agents in canvas UI (D-060, inspiratie: draw.io) | Sprint 27 | Planned |
 
 ```
 Sprint 0 ──→ Sprint 1 ──→ Sprint 1.2a ──→ Sprint 1.5
@@ -1672,7 +1674,7 @@ oa CLI (Python/typer)
 
 ## Sprint 13: Docker Isolation + Non-Claude Tool Use
 
-**Status**: Planned
+**Status**: Done
 **Doel**: De twee grootste technische schulden uit v0.1.0 oplossen: container isolatie per agent (D-040) en echte tool use voor non-Claude runtimes (D-032).
 
 **Afhankelijk van**: Sprint 10 (v0.1.0 release)
@@ -1749,7 +1751,7 @@ Twee open problemen blokkeren productie-inzet:
 
 ## Sprint 14: Agent Library Scale-up
 
-**Status**: Planned
+**Status**: Done
 **Doel**: Van 90 naar 300+ agents. Focus op de 10 nog niet geïmplementeerde categorieën (J-T) uit AGENTS.md.
 
 **Afhankelijk van**: Sprint 9 (library infrastructuur werkend)
@@ -1818,7 +1820,7 @@ De library heeft 90 agents (categorieën A-I). Nog te implementeren: categorieë
 
 ## Sprint 15: oa-cli × packages/ Convergentie
 
-**Status**: Planned
+**Status**: Done
 **Doel**: oa-cli als alternatieve execution backend voor het visuele platform. Één platform, drie execution runtimes (API, CLI, Tmux).
 
 **Afhankelijk van**: Sprint 12 (oa-cli werkend), Sprint 11 (VS Code bridge)
@@ -1862,7 +1864,7 @@ Sprint 15 verbindt deze: het canvas kan kiezen welke runtime een agent uitvoert.
 
 ## Sprint 16: Google A2A Protocol Evaluatie
 
-**Status**: Planned
+**Status**: In Progress
 **Doel**: Evalueer Google's Agent-to-Agent (A2A) protocol als mogelijke interoperabiliteitsstandaard.
 
 **Afhankelijk van**: Sprint 13 (Docker isolation stabiel)
@@ -1897,7 +1899,7 @@ Google A2A is een open protocol voor agent-to-agent communicatie (2025). Mogelij
 
 ## Sprint 17: oa-cli Agent Teams Patterns
 
-**Status**: In Progress (95%) — task_list.py blockedBy/auto-unblock, messaging graceful shutdown, state.py AgentRecord uitgebreid, dashboard Teams tab (keybinding t), tests klaar; quality hooks, workspace template, web UI team overzicht nog open
+**Status**: Done
 **Doel**: Agent Teams patterns (L-022 t/m L-029) implementeren in oa-cli. Gebaseerd op Claude Code Agent Teams referentie-architectuur.
 
 **Afhankelijk van**: Sprint 12 (oa-cli basis Done)
@@ -2195,7 +2197,7 @@ React (shared codebase)
 
 ## Sprint 21: oa-cli als Product
 
-**Status**: In Progress (60%) — mcp_server.py (FastMCP 7 tools), .mcp.json, oa setup + oa doctor, pyproject.toml productie-klaar, scripts/install.sh klaar; Web UI Command Centre F1/F2 nog open
+**Status**: Done
 **Doel**: oa-cli ombouwen van developer tool naar installeerbaar product. Web UI naar Command Centre, oa MCP Server, packaging en onboarding.
 **Afhankelijk van**: Sprint 12 (oa-cli), Sprint 17 (Agent Teams), Sprint 18 (Dashboard basis)
 **Beslissingen**: D-050 (React SPA), D-048 (3 interfaces)
@@ -2415,7 +2417,7 @@ React (shared codebase)
 
 ## Sprint 22: Self-Improvement Foundation
 
-**Status**: Planned
+**Status**: Done
 **Doel**: Telemetrie, hooks, context tracking en kwaliteits-gates — het fundament voor al het zelflerende gedrag.
 **Afhankelijk van**: Sprint 12 (oa-cli basis)
 **Issues**: #14, #15, #16, #20, #26, #27, #28, #30, #31, #33, #45 + research #47, #54, #58
@@ -2513,7 +2515,7 @@ Zonder telemetrie is het systeem een black box. Sprint 22 bouwt de 'boekhouding'
 
 ## Sprint 23: Self-Improvement Automation
 
-**Status**: Planned
+**Status**: Done
 **Doel**: Kennisaccumulatie automatiseren op basis van Sprint 22 telemetrie.
 **Afhankelijk van**: Sprint 22 (telemetrie + hooks beschikbaar)
 **Issues**: #17, #18, #19, #23, #24, #29, #34, #35, #36, #42, #43 + research #53, #56
@@ -2586,7 +2588,7 @@ Zonder telemetrie is het systeem een black box. Sprint 22 bouwt de 'boekhouding'
 
 ## Sprint 24: Iteration Control & Meta-Agent
 
-**Status**: Planned
+**Status**: Done
 **Doel**: Zelf-regulerend systeem dat eigen iteraties beheert en zichzelf verbetert.
 **Afhankelijk van**: Sprint 22 + Sprint 23
 **Issues**: #25, #32, #41, #44
@@ -2626,7 +2628,7 @@ Zonder telemetrie is het systeem een black box. Sprint 22 bouwt de 'boekhouding'
 
 ## Sprint 25: Periodic Analytics & Observability
 
-**Status**: Planned
+**Status**: Done
 **Doel**: Diepe analyse van het agent-ecosysteem op basis van verzamelde historische data.
 **Afhankelijk van**: Sprint 22 + 23 (minimaal 2-3 sprints productiedata)
 **Issues**: #37, #38, #39, #40
@@ -2795,7 +2797,7 @@ Zonder telemetrie is het systeem een black box. Sprint 22 bouwt de 'boekhouding'
 
 ## Sprint 26: CLI Infrastructure Boost
 
-**Status**: Planned
+**Status**: Done
 **Doel**: De oa-cli van een set losse subprocess-aanroepen omzetten naar een professionele Python-applicatie die de juiste packages gebruikt. Tegelijkertijd skills bouwen die zowel de CLI zelf als agents die de CLI gebruiken sterker maken. Slimme tmux-architecturen die agent-trees visueel en functioneel rijker maken.
 **Afhankelijk van**: Sprint 12 (oa-cli basis), Sprint 21 (product-ready CLI)
 **Filosofie**: We bouwen de infrastructuur van onze eigen tool net zo goed als de tool zelf. Goede packages vervangen fragiele subprocess strings. Skills maken kennis herbruikbaar voor elk agent dat ooit met oa werkt.
@@ -3139,6 +3141,43 @@ Skills die agents zelf kunnen gebruiken wanneer ze oa-cli aanroepen of inspectie
 | [#47](https://github.com/OpenAEC-Foundation/Open-Agents/issues/47) | CLI Toolchain Evaluatie | Fase 26.1 (libtmux implementatie) |
 | [#51](https://github.com/OpenAEC-Foundation/Open-Agents/issues/51) | Tmux als Agent Container Runtime | Fase 26.1 + 26.4 (upgrade) |
 | [#56](https://github.com/OpenAEC-Foundation/Open-Agents/issues/56) | Observability & Logging | Fase 26.3 (psutil metrics) |
+
+---
+
+## Sprint 27: Living Agent Tree + Checkpoint/Resume — Done
+
+**Doel**: Maak het systeem self-enforcing: persistent orchestrator, delegatie-hooks, checkpoint/resume end-to-end in web UI, agent tree zichtbaar.
+**Status**: Done (commits 25ccf23, 23011b0, 482de59)
+**Afhankelijk van**: Sprint 12, Sprint 19
+
+- [x] DashboardTab: List/Tree view toggle — LiveCanvas (React Flow) nu zichtbaar
+- [x] CheckpointPanel.tsx: incomplete checkpoints tonen + resume knop
+- [x] AgentPanel: Resume from checkpoint op error/failed/killed agents
+- [x] bridge.py: api_resume_agent spawnt nu echt een nieuwe agent
+- [x] spawner.py: auto-save checkpoint bij elke agent spawn (L-044)
+- [x] `oa session-start`: spawnt persistent session-orch met inbox-polling loop
+- [x] .claude/hooks/check-delegation.sh: waarschuwt bij direct implementatiewerk
+- [x] CLAUDE.md: herschreven naar <216 regels — puur gedragsconfig, geen status
+- [x] docs/template-consolidation-report.md: 1626→~200 consolidatie plan (opus)
+- [ ] Template cleanup uitvoeren (rapport klaar, JSONs nog niet opgeruimd)
+
+---
+
+## Sprint 28: Live Agent Tree Visualisatie
+
+**Status**: Planned
+**Beslissing**: D-060 (Recursive Agent Tree als kernfilosofie)
+
+**Doel**: De agent-boom live zichtbaar maken als interactief diagram in de canvas UI. Gebruikers zien in real-time hoe agents spawnen, wat hun status is (running/done/failed), en welke resultaten zijn doorgegeven. Inspiratie: draw.io node-based diagramming.
+
+**Taken:**
+- [ ] AgentTreeView component — React Flow gebaseerde live boom visualisatie
+- [ ] Live updates via polling of WebSocket (agent spawn/done/failed events)
+- [ ] Node kleuring per status (idle/running/done/failed/blocked)
+- [ ] Edge animatie bij actieve dataflow (bottom-up propagation zichtbaar)
+- [ ] Click-through naar agent output/log per node
+- [ ] Integratie in DashboardTab naast bestaande List/Tree view toggle
+- [ ] Export boom als draw.io-compatibel XML (optioneel, stretch goal)
 
 ---
 

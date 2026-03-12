@@ -141,6 +141,54 @@ skill-name/
 - LangGraph behandelt contextstromen als code — prompts, tools en geheugen als programmeerbare ketens
 - ACE (Agentic Context Engineering) behandelt contexten als *evoluerende playbooks* die strategieën accumuleren via generatie, reflectie en curatie
 
+---
+
+### 3.4.1 Kernfilosofie: Recursive Agent Tree (D-060)
+
+> *"Informatie daalt eerst diep de boom in. Resultaten stijgen gecheckt omhoog."*
+
+Dit is de centrale metafoor en werkingsprincipe van het platform.
+
+**De structuur:**
+
+```
+ROOT SESSIE (gebruiker)
+└── Orchestrator (niveau 1)
+    ├── Worker A (niveau 2)
+    │   ├── Sub-worker A1 (niveau 3) — onderzoek
+    │   ├── Sub-worker A2 (niveau 3) — implementatie
+    │   └── Verifier A3  (niveau 3) — controle van A1+A2
+    ├── Worker B (niveau 2)
+    │   └── ...
+    └── Combiner (niveau 2) — integreert resultaten Workers A+B
+```
+
+**De twee richtingen:**
+
+| Richting | Beweging | Wat er gebeurt |
+|----------|----------|----------------|
+| **Top-down (spawning)** | Root → dieper | Taak wordt opgesplitst, gespecialiseerd, geparallelliseerd |
+| **Bottom-up (propagation)** | Leaf → root | Resultaten worden geverifieerd, samengevoegd, opgeborreld |
+
+**Kernprincipes:**
+
+1. **Specialisatie neemt toe met diepte** — Hoe dieper in de boom, hoe enger de scope. Level-1 agents zijn generalisten; level-4 agents doen één ding heel goed.
+2. **Verificatie op elk niveau** — Een resultaat wordt pas doorgegeven naar boven als het op het huidige niveau is gevalideerd. Agents op hetzelfde niveau controleren elkaars werk (peer review).
+3. **Parallellisatie is structureel** — Branches van dezelfde ouder draaien parallel. De boom is het parallellisatiemechanisme.
+4. **De root ziet alleen eindresultaten** — De gebruiker/root-sessie ontvangt gecheckt, samengevoegd output. De complexiteit zit in de boom, niet in de interface.
+5. **Iteratie binnen de boom** — Als verificatie faalt, spawnt de verifier een fix-agent op hetzelfde niveau. Het systeem itereert intern totdat het goed is, zonder de root lastig te vallen.
+
+**Implementatie in oa-cli:**
+- `AgentRecord.depth` — niveau in de boom (0 = root)
+- `AgentRecord.lineage` — pad van root naar huidige agent
+- `validate_spawn()` — bewaakt max depth (5 absoluut) en max children
+- `shared_results_dir` — gedeelde output-map per tak van de boom
+
+**Visualisatie als eerste-klas feature:**
+De agent-boom moet zichtbaar zijn als live diagram in de canvas UI. Inspiratiebron: draw.io's node-gebaseerde diagramming. De boom toont in real-time hoe agents spawnen, wat hun status is (running/done/failed), en welke resultaten zijn doorgegeven. Dit geeft de gebruiker visuele terugkoppeling op een anders onzichtbaar proces.
+
+Zie ook: **D-060** (beslissing), **D-025** (multi-layered engineering model), **D-051** (AgentRecord hiërarchie).
+
 ### 3.5 Globaal vs. Lokaal — Het Scope-Vraagstuk
 
 Dit is een architectuurvraagstuk dat op meerdere niveaus speelt:
@@ -282,6 +330,8 @@ project-root/
 5. **Meetbaarheid** — Zonder observeerbaarheid (token-tracking, tracing) is optimalisatie giswerk
 6. **Zelfreferentie** — Het systeem moet zichzelf kunnen documenteren, evalueren en verbeteren
 7. **Isolatie als kracht** — Verschillende taken vereisen verschillende informatie; niet alles hoort in één context
+8. **Recursive tree als werkprincipe** — Complexe taken worden uitgevoerd als een zelfspawnende boom. Werk daalt in, verificatie stijgt uit. De gebruiker ziet alleen het gecheckte eindresultaat. (D-060)
+9. **Visualisatie is geen bijzaak** — De agent-boom moet live zichtbaar zijn. Onzichtbare complexiteit ondermijnt vertrouwen. Visuele terugkoppeling is een eerste-klas feature, niet een nice-to-have.
 
 ---
 
