@@ -1,6 +1,6 @@
 # Masterplan - Open-Agents
 
-> **Versie**: 0.8
+> **Versie**: 0.9
 > **Laatste update**: 2026-03-12
 > **Methodiek**: Scrum (korte sprints, snel waarde leveren)
 > **Zie ook**: REQUIREMENTS.md, PRINCIPLES.md, ROADMAP.md, SOURCES.md
@@ -48,6 +48,7 @@
 | 26 | CLI Infrastructure Boost | Vervang primitieve subprocess calls door libtmux, watchdog, psutil. Bouw skills die agents en de CLI zelf powertools geven. Slimme tmux-architecturen. | Sprint 12, Sprint 21 | Done |
 | 27 | Living Agent Tree + Checkpoint/Resume | Persistent orchestrator, delegatie-hooks, checkpoint/resume, agent tree zichtbaar | Sprint 12, 19 | Done |
 | 28 | Live Agent Tree Visualisatie | Real-time boom-diagram van spawning agents in canvas UI (D-060, inspiratie: draw.io) | Sprint 27 | Planned |
+| 29 | Reproducible Foundation | Deterministische task-types, hardcoded output contracts, AI-interface zo smal mogelijk | Sprint 12, Sprint 22, Sprint 27 | In Progress |
 
 ```
 Sprint 0 ──→ Sprint 1 ──→ Sprint 1.2a ──→ Sprint 1.5
@@ -3178,6 +3179,79 @@ Skills die agents zelf kunnen gebruiken wanneer ze oa-cli aanroepen of inspectie
 - [ ] Click-through naar agent output/log per node
 - [ ] Integratie in DashboardTab naast bestaande List/Tree view toggle
 - [ ] Export boom als draw.io-compatibel XML (optioneel, stretch goal)
+
+---
+
+## Sprint 29: Reproducible Foundation — In Progress
+
+**Doel**: oa-cli als maximaal reproduceerbaar systeem — deterministische task-types, hardcoded output contracts, AI-interface zo smal mogelijk.
+**Status**: In Progress
+**Afhankelijk van**: Sprint 12 (oa-cli basis), Sprint 22 (hooks/telemetrie), Sprint 27 (agent tree)
+
+**Motivatie (sessie-input 2026-03-12)**:
+- oa-cli = deterministisch fundament (hardcoded, tmux, reproduceerbaar)
+- AI = intelligentielaag bovenop, ingekaderd door vaste in/output-contracten
+- Onvoorspelbaarheid van AI zo klein mogelijk maken zonder bewegingsvrijheid te beperken
+
+### Fase 29.1: Task-Type Templates `[PAR]`
+
+**6 hardcoded CLAUDE.md templates per task-type:**
+
+| Type | Doel | Output contract |
+|------|------|-----------------|
+| researcher | Informatie verzamelen uit bronnen | findings.md + sources.json |
+| builder | Code of bestanden schrijven | files gewijzigd + summary.md |
+| reviewer | Beoordelen van code of output | review.md (score + issues) |
+| transformer | Bestaand materiaal omzetten | transformed output + diff.md |
+| orchestrator | Sub-agents coördineren | plan.json + status.md |
+| validator | Verifiëren van contracten | verdict.md (pass/fail + reason) |
+
+**Taken:**
+- [ ] `[PAR]` `oa-cli/src/open_agents/templates/task_types/researcher.md` schrijven
+- [ ] `[PAR]` `oa-cli/src/open_agents/templates/task_types/builder.md` schrijven
+- [ ] `[PAR]` `oa-cli/src/open_agents/templates/task_types/reviewer.md` schrijven
+- [ ] `[PAR]` `oa-cli/src/open_agents/templates/task_types/transformer.md` schrijven
+- [ ] `[PAR]` `oa-cli/src/open_agents/templates/task_types/orchestrator.md` schrijven
+- [ ] `[PAR]` `oa-cli/src/open_agents/templates/task_types/validator.md` schrijven
+
+---
+
+### Fase 29.2: Output Contract Schema `[PAR]`
+
+**result.md structuur per task-type (JSON Schema):**
+
+- [ ] `oa-cli/src/open_agents/contracts/output_contracts.py` — schema definities per type
+- [ ] Validatiefunctie `validate_output_contract(type, workspace_path)` → pass/fail + reasons
+- [ ] Unit tests voor alle 6 contract schemas
+
+---
+
+### Fase 29.3: `--type` Parameter in `oa run` `[SEQ na 29.1]`
+
+- [ ] `cli.py` — `oa run --type <task-type>` parameter toevoegen
+- [ ] `workspace.py` — template-selectie op basis van `--type` (gebruik task_types/ templates)
+- [ ] Fallback: geen `--type` → generic template (huidig gedrag behouden)
+- [ ] Help tekst bijwerken: `oa run --help`
+
+---
+
+### Fase 29.4: Contract-Verificatie in spawner.py `[SEQ na 29.2 + 29.3]`
+
+- [ ] `spawner.py` — na `.done` detectie: roep `validate_output_contract()` aan
+- [ ] Als contract faalt: log warning + sla `contract_violation.json` op in workspace
+- [ ] Bridge API: `/api/agents/<naam>/contract` → contract status teruggeven
+- [ ] Web UI: contract status zichtbaar naast agent status (groen/oranje/rood)
+
+---
+
+### Acceptatiecriteria Sprint 29
+
+- `oa run --type researcher "..."` → workspace bevat researcher.md template
+- Na `.done`: spawner verifieert of `findings.md` aanwezig is (researcher contract)
+- `oa run --type builder "..."` → workspace bevat builder.md template
+- Contract-schending → `contract_violation.json` in workspace + warning in `oa status`
+- Alle 6 templates werkend en getest
+- Output contract schemas gevalideerd met unit tests
 
 ---
 

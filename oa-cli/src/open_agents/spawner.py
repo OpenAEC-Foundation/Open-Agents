@@ -275,12 +275,23 @@ class GpuQueue:
     def wait_for_vram(self, host: str, model: str, timeout: int = 600) -> None:
         """Block until the GPU has enough free VRAM for *model*.
 
+        Models larger than _GPU_TOTAL_VRAM (e.g. mixtral:8x7b at 26 GB on a
+        20 GB GPU) are allowed via CPU offloading — Ollama handles this
+        automatically. For these oversized models we wait until the GPU is
+        mostly idle (< 1 GB used) to avoid VRAM contention with other models.
+
         Args:
             host:    SSH host alias (e.g. 'hetzner-agent').
             model:   Ollama model name (e.g. 'codestral:22b').
             timeout: Max seconds to wait before raising RuntimeError.
         """
         required = _VRAM_ESTIMATES.get(model, 10.0)  # conservative default
+        # Models larger than GPU VRAM use CPU offloading — wait for GPU to be
+        # mostly free (<1 GB used) rather than requiring required <= total.
+        if required > _GPU_TOTAL_VRAM:
+            threshold = 1.0  # GB — wait until GPU is nearly idle
+        else:
+            threshold = _GPU_TOTAL_VRAM - required
         deadline = time.time() + timeout
         while time.time() < deadline:
             try:
@@ -289,15 +300,16 @@ class GpuQueue:
                     capture_output=True, text=True, timeout=10,
                 )
                 used = _parse_ollama_ps(result.stdout)
-                if used + required <= _GPU_TOTAL_VRAM:
-                    return  # enough VRAM available
+                if used <= threshold:
+                    return  # GPU free enough — proceed (offloading if needed)
             except Exception:
                 return  # SSH failed → assume available, let ollama handle it
             time.sleep(30)
         raise RuntimeError(
-            f"GpuQueue timeout after {timeout}s: not enough VRAM for '{model}' on '{host}'. "
-            f"Required: {required}GB, GPU total: {_GPU_TOTAL_VRAM}GB. "
-            f"Run 'ssh {host} ollama ps' to inspect running models."
+            f"GpuQueue timeout after {timeout}s: GPU not free enough for '{model}' on '{host}'. "
+            f"Required: {required}GB (GPU total: {_GPU_TOTAL_VRAM}GB"
+            + (" — will use CPU offload" if required > _GPU_TOTAL_VRAM else "")
+            + f"). Run 'ssh {host} ollama ps' to inspect running models."
         )
 
 
@@ -341,6 +353,7 @@ def spawn_agent(
     skills: list[str] | None = None,
     profile: str = "",
     max_iterations: int = 3,
+    task_type: str = "",
 ) -> AgentRecord:
     """Spawn an agent in a tmux window.
 
@@ -412,7 +425,7 @@ def spawn_agent(
 
     # Create workspace (or use provided one)
     if workspace is None:
-        workspace = create_workspace(name, task, project_root=project_root, agent_type=agent_type, can_spawn=can_spawn, team=team, model=model, parent_name=parent_name, skills=skills, profile=profile, max_iterations=max_iterations)
+        workspace = create_workspace(name, task, project_root=project_root, agent_type=agent_type, can_spawn=can_spawn, team=team, model=model, parent_name=parent_name, skills=skills, profile=profile, max_iterations=max_iterations, task_type=task_type)
     else:
         workspace = Path(workspace)
 
@@ -495,6 +508,7 @@ def spawn_agent(
         shared_results_dir=shared_results_dir,
         project_root=str(project_root) if project_root else None,
         run_id=run_id,
+        task_type=task_type,
     )
     add_agent(rec)
 

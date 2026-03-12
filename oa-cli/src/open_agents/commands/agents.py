@@ -264,7 +264,7 @@ def register_commands(app: typer.Typer) -> None:
                 add_agent(rec)
             else:
                 skills_list = [s.strip() for s in skills.split(",") if s.strip()] if skills else []
-                rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None, project_root=proj_root, agent_type=agent_type, can_spawn=can_spawn, skills=skills_list, profile=profile, max_iterations=max_iterations)
+                rec = spawn_agent(name, task, model=model, workspace=ws, parent=parent or None, project_root=proj_root, agent_type=agent_type, can_spawn=can_spawn, skills=skills_list, profile=profile, max_iterations=max_iterations, task_type=agent_type)
         except RuntimeError as e:
             console.print(f"[red]{e}[/red]")
             raise typer.Exit(1)
@@ -448,6 +448,24 @@ def register_commands(app: typer.Typer) -> None:
                 raise typer.Exit(1)
 
         output = read_output(rec.workspace)
+
+        if rec.task_type and rec.workspace:
+            try:
+                from ..contract import verify_contract
+                contract_result = verify_contract(_Path(rec.workspace), rec.task_type)
+                color = "green" if contract_result.passed else "yellow"
+                console.print(f"\n[{color}]Contract [{rec.task_type}]: {'PASS' if contract_result.passed else 'FAIL'}[/{color}]")
+                if not contract_result.passed:
+                    for check_name, ok, detail in contract_result.checks:
+                        icon = "✓" if ok else "✗"
+                        console.print(f"  [{('green' if ok else 'yellow')}]{icon} {check_name}: {detail}[/{'green' if ok else 'yellow'}]")
+                update_agent(rec.name,
+                    contract_status="PASS" if contract_result.passed else "FAIL",
+                    contract_detail=contract_result.summary(),
+                )
+            except Exception:
+                pass
+
         if output:
             console.print(f"\n[bold]Output from agent '{name}':[/bold]\n")
             try:

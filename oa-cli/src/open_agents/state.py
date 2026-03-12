@@ -109,6 +109,11 @@ class AgentRecord:
     team: str = ""                          # team this agent belongs to (empty = no team)
     mailbox_path: str = ""                  # path to agent's mailbox directory
 
+    # --- Task type & contract verification ---
+    task_type: str = ""                     # one of TASK_TYPES keys (researcher/builder/etc.)
+    contract_status: str = ""              # "PASS", "FAIL", or "" (no contract)
+    contract_detail: str = ""             # human-readable verification summary
+
     def __post_init__(self) -> None:
         """Bereken task_hash als nog niet ingesteld."""
         if not self.task_hash and self.task:
@@ -161,6 +166,9 @@ def load_agents() -> dict[str, AgentRecord]:
         data.setdefault("no_autocompact", False)
         data.setdefault("team", "")
         data.setdefault("mailbox_path", "")
+        data.setdefault("task_type", "")
+        data.setdefault("contract_status", "")
+        data.setdefault("contract_detail", "")
         result[name] = AgentRecord(**data)
     # PERF: Store in cache keyed by current mtime
     _cache = result

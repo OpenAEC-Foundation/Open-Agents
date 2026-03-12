@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-11 (Sprint 27 Done)
-> **Status**: v0.3.2 — Sprint 13-27 Done — Tree view toggle in web UI — Checkpoint/resume end-to-end — Living agent tree (oa session-start) — Delegation hooks actief — CLAUDE.md gesloopt naar pure gedragsconfig — Template consolidatie rapport klaar (1626→~200 plan)
+> **Laatste update**: 2026-03-12 (Sprint 28 In Progress)
+> **Status**: v0.3.2 — Sprint 13-27 Done — Sprint 28 (Reproducible Foundation) gestart — Tree view toggle in web UI — Checkpoint/resume end-to-end — Living agent tree (oa session-start) — Delegation hooks actief — CLAUDE.md gesloopt naar pure gedragsconfig — Template consolidatie rapport klaar (1626→~200 plan)
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
@@ -688,6 +688,23 @@
 - [x] CLAUDE.md: herschreven naar <216 regels — puur gedragsconfig, geen status
 - [x] docs/template-consolidation-report.md: 1626→~200 consolidatie plan (opus)
 - [ ] Template cleanup uitvoeren (rapport klaar, JSONs nog niet opgeruimd)
+
+---
+
+## Sprint 28: Reproducible Foundation — In Progress
+
+**Doel**: oa-cli als maximaal reproduceerbaar systeem — deterministische task-types, hardcoded output contracts, AI-interface zo smal mogelijk.
+**Afhankelijk van**: Sprint 12, Sprint 22, Sprint 27
+**Status**: In Progress
+
+**Motivatie**: oa-cli = deterministisch fundament (hardcoded, tmux, reproduceerbaar). AI = intelligentielaag bovenop, ingekaderd door vaste in/output-contracten. Onvoorspelbaarheid van AI zo klein mogelijk maken zonder bewegingsvrijheid te beperken.
+
+- [ ] 6 hardcoded task-type CLAUDE.md templates (researcher/builder/reviewer/transformer/orchestrator/validator)
+- [ ] Output contract schema — result.md structuur per type
+- [ ] `--type` parameter in `oa run` command
+- [ ] Contract-verificatie in spawner.py (na .done detectie)
+- [ ] workspace.py: template-selectie op basis van task-type
+- [ ] MASTERPLAN + ROADMAP bijwerken
 
 ---
 
