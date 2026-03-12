@@ -706,20 +706,38 @@
 
 ---
 
-## Sprint 28: Reproducible Foundation — In Progress
+## Sprint 28: Reproducible Foundation — Done
 
 **Doel**: oa-cli als maximaal reproduceerbaar systeem — deterministische task-types, hardcoded output contracts, AI-interface zo smal mogelijk.
 **Afhankelijk van**: Sprint 12, Sprint 22, Sprint 27
-**Status**: In Progress
+**Status**: Done
 
 **Motivatie**: oa-cli = deterministisch fundament (hardcoded, tmux, reproduceerbaar). AI = intelligentielaag bovenop, ingekaderd door vaste in/output-contracten. Onvoorspelbaarheid van AI zo klein mogelijk maken zonder bewegingsvrijheid te beperken.
 
-- [ ] 6 hardcoded task-type CLAUDE.md templates (researcher/builder/reviewer/transformer/orchestrator/validator)
-- [ ] Output contract schema — result.md structuur per type
-- [ ] `--type` parameter in `oa run` command
-- [ ] Contract-verificatie in spawner.py (na .done detectie)
-- [ ] workspace.py: template-selectie op basis van task-type
-- [ ] MASTERPLAN + ROADMAP bijwerken
+- [x] 6 hardcoded task-type CLAUDE.md templates (researcher/builder/reviewer/transformer/orchestrator/validator)
+- [x] Output contract schema — result.md structuur per type
+- [x] `--type` parameter in `oa run` command
+- [x] Contract-verificatie in spawner.py (na .done detectie)
+- [x] workspace.py: template-selectie op basis van task-type
+- [x] MASTERPLAN + ROADMAP bijwerken
+
+---
+
+## Sprint 29: Reproducible Foundation — Done (2026-03-12)
+
+**Doel**: Hardcoded kwaliteitsgaranties, CI-pipeline, en remote agent pad-mapping als structurele oplossing.
+**Afhankelijk van**: Sprint 28
+**Status**: Done
+
+- [x] 6 task-type CLAUDE.md templates (researcher/builder/reviewer/transformer/orchestrator/validator)
+- [x] output_contracts.py — validate_output_contract() voor alle 6 types, 24 tests groen
+- [x] lifecycle.py — _run_contract_validation() na elke agent completion
+- [x] CLI: `--type` flag in `oa run`
+- [x] CI: python-test.yml (GitHub Actions, matrix 3.10/3.11)
+- [x] spawner.py: _map_paths_for_remote() WSL→Ubuntu + _ensure_remote_repo() git sync
+- [x] config.py: remote_repo_path, github_pat keys
+- [x] scripts/setup-hetzner-repo.sh + docs/HETZNER-SETUP.md
+- [x] scripts/claude-auth-headless.py: --check-only + retry logica
 
 ---
 
