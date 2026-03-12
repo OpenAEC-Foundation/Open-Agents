@@ -126,9 +126,9 @@ class TestBuildOllamaCommand:
         cmd = _build_ollama_command(tmp_path, "myagent", "llama3:8b")
         assert shlex.quote("llama3:8b") in cmd
 
-    def test_pipes_claude_md(self, tmp_path):
+    def test_pipes_task_txt(self, tmp_path):
         cmd = _build_ollama_command(tmp_path, "myagent", "llama3")
-        assert "cat CLAUDE.md" in cmd
+        assert "cat task.txt" in cmd
 
     def test_redirects_output_to_result_md(self, tmp_path):
         cmd = _build_ollama_command(tmp_path, "myagent", "llama3")
