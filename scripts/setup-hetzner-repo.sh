@@ -132,11 +132,20 @@ PYEOF
 SSHEOF
 ok "~/.oa/config.json geconfigureerd op $SSH_HOST"
 
-# ── 6. Verificatie ────────────────────────────────────────────────────────────
+# ── 6. oa-cli reinstall (editable) ───────────────────────────────────────────
+info "oa-cli reinstall op $SSH_HOST (editable, pikt git pull automatisch op)..."
+ssh -o BatchMode=yes "$SSH_HOST" \
+  "pip3 install -e $(printf '%q' "$REMOTE_REPO_PATH/oa-cli") --quiet 2>/dev/null || \
+   sudo pip3 install -e $(printf '%q' "$REMOTE_REPO_PATH/oa-cli") --quiet 2>/dev/null || true"
+ok "oa-cli geïnstalleerd (editable — altijd up-to-date na git pull)"
+
+# ── 7. Verificatie ────────────────────────────────────────────────────────────
 info "Verificatie — bekijk repo op $SSH_HOST..."
 VERIFY=$(ssh -o BatchMode=yes "$SSH_HOST" \
   "ls $(printf '%q' "$REMOTE_REPO_PATH") | head -5" 2>/dev/null || echo "(leeg of fout)")
 echo "   Repo inhoud: $VERIFY"
+ssh -o BatchMode=yes "$SSH_HOST" \
+  "cd $(printf '%q' "$REMOTE_REPO_PATH") && echo 'Repo commit:' && git log --oneline -1" 2>/dev/null || true
 
 ok "Setup voltooid!"
 echo ""
