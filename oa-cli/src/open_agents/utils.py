@@ -16,7 +16,7 @@ def generate_agent_name(task: str) -> str:
 
 def format_duration(start: float, end: float | None = None) -> str:
     """Format elapsed time as human-readable string."""
-    elapsed = (end or time.time()) - start
+    elapsed = max(0.0, (end or time.time()) - start)
     if elapsed < 60:
         return f"{elapsed:.0f}s"
     minutes = int(elapsed // 60)

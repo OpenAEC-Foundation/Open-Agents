@@ -1,6 +1,6 @@
 import { memo, useState, useEffect } from 'react';
 import type { Agent } from '../../types';
-import { modelColor, modelLabel, formatDuration } from '../../stores/agentStore';
+import { modelColor, modelLabel, modelVendorFavicon, formatDuration } from '../../stores/agentStore';
 
 interface AgentCardProps {
   agent: Agent;
@@ -28,7 +28,12 @@ export const AgentCard = memo(function AgentCard({ agent, selected, onSelect }: 
   }, [isRunning]);
 
   const mColor = modelColor(agent.model);
-  const duration = formatDuration(agent.created_at, agent.finished_at);
+  const favicon = modelVendorFavicon(agent.model);
+  // For multi-turn agents: reset duration clock when agent resumes (last_activity > finished_at)
+  const durationStart = (agent.last_activity && agent.finished_at && agent.last_activity > agent.finished_at)
+    ? agent.last_activity
+    : agent.created_at;
+  const duration = formatDuration(durationStart, isRunning ? null : agent.finished_at);
   const dotColor = STATUS_COLORS[agent.status] ?? 'var(--color-oa-text-dim)';
 
   return (
@@ -84,9 +89,19 @@ export const AgentCard = memo(function AgentCard({ agent, selected, onSelect }: 
       {/* Model badge + duration */}
       <div className="flex items-center gap-2 mb-1.5">
         <span
-          className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold leading-none"
+          className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-semibold leading-none"
           style={{ background: `${mColor}22`, color: mColor, border: `1px solid ${mColor}44` }}
         >
+          {favicon && (
+            <img
+              src={favicon}
+              alt=""
+              width={10}
+              height={10}
+              style={{ display: 'inline-block', verticalAlign: 'middle', borderRadius: '2px' }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          )}
           {modelLabel(agent.model)}
         </span>
         <span className="text-[10px] font-mono" style={{ color: 'var(--color-oa-text-dim)' }}>

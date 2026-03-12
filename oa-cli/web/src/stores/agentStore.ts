@@ -17,16 +17,42 @@ export function statusColor(status: string): string {
 }
 
 export function modelColor(model: string): string {
-  if (model.includes('opus')) return '#a78bfa';
-  if (model.includes('sonnet')) return '#60a5fa';
-  if (model.includes('haiku')) return '#22d3ee';
-  if (model.includes('ollama')) return '#fb923c';
+  const m = model.toLowerCase();
+  // Anthropic / Claude
+  if (m.includes('opus'))   return '#a78bfa';
+  if (m.includes('sonnet')) return '#60a5fa';
+  if (m.includes('haiku'))  return '#22d3ee';
+  if (m.includes('claude')) return '#60a5fa';
+  // Mistral family (mistral, mixtral, codestral, nemo)
+  if (m.includes('mixtral') || m.includes('mistral') || m.includes('codestral') || m.includes('nemo')) return '#ff7000';
+  // OLMo (Allen AI)
+  if (m.includes('olmo'))   return '#6366f1';
+  // Generic ollama
+  if (m.includes('ollama')) return '#fb923c';
   return '#8b95a5';
 }
 
 export function modelLabel(model: string): string {
   const parts = model.split('/');
   return parts[parts.length - 1];
+}
+
+/** Returns a favicon URL for the model's vendor, or '' if unknown. */
+export function modelVendorFavicon(model: string): string {
+  const m = model.toLowerCase();
+  if (m.includes('claude') || m.includes('opus') || m.includes('sonnet') || m.includes('haiku')) {
+    return 'https://www.google.com/s2/favicons?sz=16&domain=anthropic.com';
+  }
+  if (m.includes('mixtral') || m.includes('mistral') || m.includes('codestral') || m.includes('nemo')) {
+    return 'https://www.google.com/s2/favicons?sz=16&domain=mistral.ai';
+  }
+  if (m.includes('olmo')) {
+    return 'https://www.google.com/s2/favicons?sz=16&domain=allenai.org';
+  }
+  if (m.includes('ollama')) {
+    return 'https://www.google.com/s2/favicons?sz=16&domain=ollama.com';
+  }
+  return '';
 }
 
 export function formatDuration(startEpoch: number, endEpoch: number | null): string {
