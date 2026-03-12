@@ -64,6 +64,75 @@ HETZNER_VRAM_MB = {
 }
 
 
+def route_oss_model(task: str) -> str:
+    """Pick the best Hetzner OSS model based on task characteristics.
+
+    Rules (in order):
+    1. Long-context tasks  → mistral-nemo (128k context window)
+    2. Simple/fast tasks   → mistral:7b
+    3. Default             → mixtral:8x7b (strongest)
+
+    Override via config: set "oss_model_default" to pin a specific model.
+    """
+    from .config import get as _cfg_get
+    override = _cfg_get("oss_model_default")
+    if override:
+        return f"hetzner/{override}" if not override.startswith("hetzner/") else override
+
+    t = task.lower()
+    task_len = len(task)
+
+    # 1. Empty task → fast model
+    if not task.strip():
+        return "hetzner/mistral:7b"
+
+    # 2. Complexity signals → always mixtral (even if short)
+    _complex_keywords = (
+        "implementatie", "implement", "schrijf", "bouw", "ontwikkel",
+        "refactor", "analyseer", "onderzoek", "ontwerp", "design",
+        "migreer", "migrate", "integreer", "integrate", "genereer",
+        "optimaliseer", "debugge", "fix ", "repareer", "tests voor",
+        "unit test", "integratie test",
+    )
+    if any(kw in t for kw in _complex_keywords):
+        # But first check: long context?
+        _long_context_keywords = (
+            "analyseer alle", "lees alle", "verwerk alle", "alle bestanden",
+            "samenvatting van", "summarize", "summarise", "research", "bronnen",
+            "documenten", "alle logs", "volledige", "hele codebase",
+            "long context", "lange context", "128k",
+        )
+        if task_len > 3000 or any(kw in t for kw in _long_context_keywords):
+            return "hetzner/mistral-nemo"
+        return "hetzner/mixtral:8x7b"
+
+    # 3. Long-context signals (no complexity) → mistral-nemo
+    _long_context_keywords = (
+        "analyseer alle", "lees alle", "verwerk alle", "alle bestanden",
+        "samenvatting van", "summarize", "summarise", "research", "bronnen",
+        "documenten", "alle logs", "volledige", "hele codebase",
+        "long context", "lange context", "128k",
+    )
+    if task_len > 3000 or any(kw in t for kw in _long_context_keywords):
+        return "hetzner/mistral-nemo"
+
+    # 4. Simple/fast operations
+    _fast_keywords = (
+        "maak een lijst", "lijst van", "hernoem", "format", "rename",
+        "tel ", "count ", "converteer", "convert", "verplaats", "move ",
+        "controleer of", "is er een", "bestaat er",
+    )
+    if task_len < 400 and any(kw in t for kw in _fast_keywords):
+        return "hetzner/mistral:7b"
+
+    # 5. Very short and no complexity → fast
+    if task_len < 60:
+        return "hetzner/mistral:7b"
+
+    # 6. Default: strongest model
+    return "hetzner/mixtral:8x7b"
+
+
 def check_hetzner_vram(host: str, model_id: str) -> tuple[bool, str]:
     """Check if Hetzner server has enough free VRAM for model_id.
     Returns (ok, message). ok=True means safe to spawn."""

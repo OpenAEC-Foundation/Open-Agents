@@ -67,11 +67,11 @@ def register_commands(app: typer.Typer) -> None:
             task = pf.read_text(encoding="utf-8")
             console.print(f"[dim]Prompt loaded from file: {pf} ({len(task)} chars)[/dim]")
 
-        # Resolve model: empty string → config default_model
-        if not model:
-            from ..config import get as _cfg_get
-            model = _cfg_get("default_model") or "hetzner/mixtral:8x7b"
-            console.print(f"[dim]Model: {model} (config default)[/dim]")
+        # Resolve model: empty string or bare "hetzner" → smart OSS router
+        if not model or model == "hetzner":
+            from ..spawner import route_oss_model
+            model = route_oss_model(task or "")
+            console.print(f"[dim]Model: {model} (auto-routed)[/dim]")
 
         # Determine remote target early for the session check
         # (full resolution happens later, but we need to know if we'll go remote)
