@@ -3,8 +3,8 @@
 > Dit is de SINGLE SOURCE OF TRUTH voor project status en voortgang.
 > Claude Project Instructies verwijzen hiernaar - geen dubbele tracking.
 >
-> **Laatste update**: 2026-03-12 (Sprint 28 In Progress)
-> **Status**: v0.3.2 — Sprint 13-27 Done — Sprint 28 (Reproducible Foundation) gestart — Tree view toggle in web UI — Checkpoint/resume end-to-end — Living agent tree (oa session-start) — Delegation hooks actief — CLAUDE.md gesloopt naar pure gedragsconfig — Template consolidatie rapport klaar (1626→~200 plan)
+> **Laatste update**: 2026-03-12 (Sprint 29 Done)
+> **Status**: v0.3.3 — Sprint 13-28 Done — Sprint 29 (Reproducible Foundation) klaar — Task-type templates + output contracts — CI GitHub Actions — WSL→Ubuntu pad-mapping + git sync — Claude auth headless script
 > **Visie**: Visueel agent orchestratie platform
 > **Zie ook**: MASTERPLAN.md (sprints), REQUIREMENTS.md (requirements), PRINCIPLES.md (uitgangspunten)
 
