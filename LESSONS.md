@@ -397,3 +397,12 @@ PO Decisions (laatste 3):
 **Fout**: Failed to authenticate. API Error: 401 {"type":"error","error":{"type":"authentication_error","messa
 **Taak**: zeg hallo
 **Les**: Controleer agent output na collect — automatisch gelogd door A1 leerloop.
+
+## L-096 — Claude CLI OAuth refresh is de facto headless via explorer.exe
+
+**Datum**: 2026-03-12
+**Tags**: #auth #oauth #claude-cli #hetzner #remote
+
+`claude auth login` op de Hetzner server genereert een OAuth URL. Als je die URL opent in een Windows browser (via `explorer.exe`) waar de gebruiker al ingelogd is op claude.ai én de client eerder heeft goedgekeurd, autoriseert claude.ai automatisch — geen klik nodig. De server pikt het token meteen op.
+
+**Conclusie**: `explorer.exe <url>` + poll = volledig headless OAuth refresh. Playwright en Chrome cookie extractie zijn niet nodig.

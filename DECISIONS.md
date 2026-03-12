@@ -706,3 +706,35 @@ oa-cli is bewust gebouwd als deterministisch fundament. Alle orkestratie-logica 
 - ALWAYS AI inzetten voor evaluatie, validatie en inhoudelijke beoordeling.
 
 **Gerelateerd**: D-022 (self-assembly architectuur), D-040 (autonomous-first), P-16 (Code enforceert, AI evalueert), L-076
+
+## D-062 — Multi-user token isolatie via gesimuleerde HOME directories
+
+**Datum**: 2026-03-12
+**Status**: PROPOSED
+**Tags**: #multi-user #auth #hetzner #remote
+
+### Probleem
+Meerdere gebruikers willen hun eigen Anthropic Claude Max subscription gebruiken voor oa agents op de Hetzner server. Claude CLI slaat auth op in `~/.claude.json`. Eén Linux user → één token → conflict.
+
+### Beslissing
+Gesimuleerde HOME directories per user via `HOME` env var override bij agent spawn:
+
+```
+/home/oa-agent/users/<username>/.claude.json
+```
+
+Bij `oa run --user <naam>` wordt de agent gestart met `HOME=/home/oa-agent/users/<naam>`. Claude CLI leest automatisch het juiste token.
+
+### Implementatie
+- `oa user add <naam>` — maakt user directory aan
+- `oa user auth <naam> [host]` — start headless auth refresh voor die user
+- `oa run --user <naam>` — spawnt agent met juiste HOME
+- `machines.json` uitbreiden met `default_user` per machine
+
+### Alternatieven overwogen
+- Aparte Linux users: te veel overhead
+- Docker per user: te complex
+- Token injection per call: niet persistent
+
+### Niet gebouwd in
+Sprint 28 (live tree viz). Gepland voor Sprint 29 (Multi-user remote execution).
