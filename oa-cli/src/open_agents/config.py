@@ -113,3 +113,11 @@ def get_machine_host(machine_id: str) -> str | None:
         if m['id'] == machine_id:
             return m.get('host', '')
     return None
+
+
+def get_default_machine() -> dict | None:
+    """Return the machine with is_default=True, or None if not found."""
+    for machine in load_machines_config():
+        if machine.get("is_default"):
+            return machine
+    return None

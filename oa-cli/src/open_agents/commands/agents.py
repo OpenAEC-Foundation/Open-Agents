@@ -18,6 +18,7 @@ from ..lifecycle import attach_agent, check_agent, clean_finished, kill_agent
 from ..monitor import print_status, print_status_verbose, print_status_with_context
 from ..orchestrator import spawn_with_orchestrator
 from ..prompt_templates import L010_TEMPLATE_NAMES, apply_template, validate_prompt
+from ..config import get_default_machine
 from ..spawner import spawn_agent, spawn_remote_agent, is_oss_model
 from ..state import get_agent, list_agents, update_agent
 from ..tmux import session_exists
@@ -45,6 +46,7 @@ def register_commands(app: typer.Typer) -> None:
         profile: str = typer.Option("", "--profile", help="Profile ID from agents/library/profiles/ or preset (researcher|builder|orchestrator|reviewer|guardian)"),
         guardians: bool = typer.Option(False, "--guardians/--no-guardians", help="Trigger batch_complete guardians after spawning"),
         remote: str = typer.Option("", "--remote", "-r", help="Remote SSH host voor remote execution (bijv. 'hetzner' of 'user@host')"),
+        local: bool = typer.Option(False, "--local", help="Force local execution (override remote default from machines.json)"),
         strict: bool = typer.Option(False, "--strict", help="Fail if prompt is missing L-010 elements (absolute paths, scope, output)"),
         can_spawn: bool = typer.Option(False, "--can-spawn", help="Configure agent as orchestrator that can spawn child agents via oa run"),
         docker: bool = typer.Option(False, "--docker", help="Run agent in Docker container (requires Docker)"),
@@ -65,7 +67,12 @@ def register_commands(app: typer.Typer) -> None:
             task = pf.read_text(encoding="utf-8")
             console.print(f"[dim]Prompt loaded from file: {pf} ({len(task)} chars)[/dim]")
 
-        if not remote and not session_exists():
+        # Determine remote target early for the session check
+        # (full resolution happens later, but we need to know if we'll go remote)
+        _early_remote = remote or (
+            not local and (get_default_machine() or {}).get("host", "") or ""
+        )
+        if not _early_remote and not session_exists():
             console.print("[red]No oa session. Run 'oa start' first.[/red]")
             raise typer.Exit(1)
 
@@ -211,9 +218,20 @@ def register_commands(app: typer.Typer) -> None:
                     console.print("[yellow]Docker image 'oa-agent:latest' not found. Build with: docker build -f Dockerfile.agent -t oa-agent:latest .[/yellow]")
                     console.print("[yellow]Falling back to tmux.[/yellow]")
 
+        # Bepaal target machine: --local → lokaal; --remote <host> → expliciet remote;
+        # anders → lees default machine uit machines.json (remote-first, D-061)
+        if local:
+            target_host = None
+        elif remote:
+            target_host = remote
+        else:
+            _default_machine = get_default_machine()
+            _default_host = _default_machine.get("host", "") if _default_machine else ""
+            target_host = _default_host if _default_host else None
+
         try:
-            if remote:
-                rec = spawn_remote_agent(name, task, host=remote, model=model, direct=direct)
+            if target_host:
+                rec = spawn_remote_agent(name, task, host=target_host, model=model, direct=direct)
             elif use_docker:
                 from ..workspace import create_workspace, _AGENT_PATH
                 from ..spawner import CLAUDE_MODEL_MAP, _validate_claude_model, CLAUDE_CMD
@@ -274,7 +292,7 @@ def register_commands(app: typer.Typer) -> None:
 
         model_label = format_model_rich(rec.model)
         parent_label = f"  (child of [bold]{rec.parent}[/bold])" if rec.parent else ""
-        remote_label = f"  [dim](remote: {remote})[/dim]" if remote else ""
+        remote_label = f"  [dim](remote: {target_host})[/dim]" if target_host else ""
         docker_label = "  [dim](docker)[/dim]" if use_docker else ""
         console.print(f"[green]Agent '{rec.name}' spawned[/green]  ({model_label}){parent_label}{remote_label}{docker_label}")
         console.print(f"  Task: {rec.task}")

@@ -8,6 +8,7 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
+from ..config import get_default_machine
 from ..spawner import spawn_agent, spawn_remote_agent
 from ..tmux import session_exists
 
@@ -36,6 +37,7 @@ def register_commands(app: typer.Typer) -> None:
         model: str = typer.Option("claude/sonnet", "--model", "-m", help="Model for each agent"),
         name_prefix: str = typer.Option("loop", "--name", "-n", help="Prefix for agent names (loop-0, loop-1, ...)"),
         remote: str = typer.Option("", "--remote", "-r", help="Remote SSH host for remote execution"),
+        local: bool = typer.Option(False, "--local", help="Force local execution (override remote default from machines.json)"),
         max_runs: int = typer.Option(0, "--max", help="Maximum number of runs (0 = infinite)"),
         wait: bool = typer.Option(False, "--wait", help="Wait for each agent to finish before spawning the next"),
     ) -> None:
@@ -53,9 +55,20 @@ def register_commands(app: typer.Typer) -> None:
             return value * {"s": 1, "m": 60, "h": 3600, "d": 86400}[unit]
 
         seconds = _parse_interval(interval)
+        # Bepaal target machine: --local → lokaal; --remote <host> → expliciet remote;
+        # anders → lees default machine uit machines.json (remote-first, D-061)
+        if local:
+            loop_target_host = None
+        elif remote:
+            loop_target_host = remote
+        else:
+            _default_machine = get_default_machine()
+            _default_host = _default_machine.get("host", "") if _default_machine else ""
+            loop_target_host = _default_host if _default_host else None
+
         console.print(f"[green]oa loop started[/green] — interval: [bold]{interval}[/bold] ({seconds}s), model: [bold]{model}[/bold]")
-        if remote:
-            console.print(f"  Remote: [bold]{remote}[/bold]")
+        if loop_target_host:
+            console.print(f"  Remote: [bold]{loop_target_host}[/bold]")
         if max_runs:
             console.print(f"  Max runs: [bold]{max_runs}[/bold]")
         console.print("  Press [bold]Ctrl-C[/bold] to stop.\n")
@@ -79,8 +92,8 @@ def register_commands(app: typer.Typer) -> None:
             console.print(f"[cyan]→ Spawning {agent_name}[/cyan] (run {run_count + 1}{f'/{max_runs}' if max_runs else ''})")
 
             try:
-                if remote:
-                    rec = spawn_remote_agent(agent_name, task, host=remote, model=model, direct=True)
+                if loop_target_host:
+                    rec = spawn_remote_agent(agent_name, task, host=loop_target_host, model=model, direct=True)
                 else:
                     rec = spawn_agent(agent_name, task, model=model)
                 console.print(f"  [dim]spawned → status: {rec.status}[/dim]")
@@ -90,7 +103,7 @@ def register_commands(app: typer.Typer) -> None:
 
             run_count += 1
 
-            if wait and rec is not None and not remote:
+            if wait and rec is not None and not loop_target_host:
                 from ..lifecycle import check_agent
                 console.print(f"  [dim]waiting for {agent_name} to finish...[/dim]")
                 while not _stop:
