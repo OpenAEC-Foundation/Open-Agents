@@ -5,307 +5,293 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terminal Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: #1a1a2e;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            min-height: 100vh;
-        }
+        body { background: #0d0d1a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
         .header {
-            background: #16213e;
-            padding: 12px 24px;
+            background: #13132a;
+            padding: 8px 16px;
             display: flex;
             align-items: center;
-            gap: 20px;
-            border-bottom: 1px solid #0f3460;
+            gap: 16px;
+            border-bottom: 1px solid #1e1e4a;
+            flex-wrap: wrap;
         }
-        .header h1 {
-            font-size: 18px;
-            color: #e94560;
+        .header h1 { font-size: 15px; color: #e94560; font-weight: 700; letter-spacing: 1px; }
+        .header label { font-size: 13px; color: #aaa; display: flex; align-items: center; gap: 6px; }
+        .header input[type="range"] { width: 110px; accent-color: #e94560; }
+        #count-display { color: #e94560; font-weight: bold; min-width: 18px; }
+
+        .hbtn {
+            padding: 4px 12px; border: none; border-radius: 3px;
+            cursor: pointer; font-size: 12px; font-weight: 700;
         }
-        .header label {
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .header input[type="range"] {
-            width: 150px;
-        }
-        #count-display {
-            color: #e94560;
-            font-weight: bold;
-            min-width: 20px;
-        }
+        .hbtn-bash  { background: #2a1a5a; color: #c4aaff; }
+        .hbtn-claude { background: #5a1a30; color: #ffaad4; }
+        .hbtn-kill  { background: #3a1a1a; color: #ffaaaa; }
+        .hbtn-bash:hover   { background: #3d2a7a; }
+        .hbtn-claude:hover { background: #7a1a40; }
+        .hbtn-kill:hover   { background: #6a2020; }
+
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
-            gap: 8px;
-            padding: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
+            gap: 5px;
+            padding: 5px;
         }
-        .terminal-card {
-            background: #16213e;
-            border: 1px solid #0f3460;
-            border-radius: 6px;
+
+        .tcard {
+            background: #13132a;
+            border: 1px solid #1e1e4a;
+            border-radius: 4px;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
-        .terminal-header {
+        .tcard.wide { grid-column: span 2; }
+
+        .thead {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 6px 12px;
-            background: #0f3460;
-            font-size: 13px;
-        }
-        .terminal-title {
-            font-weight: 600;
-        }
-        .terminal-buttons {
-            display: flex;
-            gap: 6px;
-        }
-        .terminal-buttons button {
-            padding: 3px 10px;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
+            padding: 4px 10px;
+            background: #0c0c22;
             font-size: 12px;
-            font-weight: 600;
+            flex-shrink: 0;
+            gap: 8px;
         }
-        .btn-bash { background: #533483; color: white; }
-        .btn-claude { background: #e94560; color: white; }
-        .btn-kill { background: #c0392b; color: white; }
-        .btn-bash:hover { background: #6a4c9c; }
-        .btn-claude:hover { background: #ff6b81; }
-        .btn-kill:hover { background: #e74c3c; }
-        .terminal-body {
-            height: 350px;
-            padding: 4px;
+        .ttitle { display: flex; align-items: center; gap: 6px; font-weight: 600; color: #ccc; }
+        .ttag { font-size: 11px; color: #777; }
+
+        .tbadge {
+            width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
         }
-        .terminal-body.disconnected {
+        .tbadge.on  { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+        .tbadge.off { background: #444; }
+        .tbadge.pending { background: #f39c12; box-shadow: 0 0 5px #f39c12; }
+
+        .tbtns { display: flex; gap: 3px; }
+        .tbtns button {
+            padding: 2px 7px; border: none; border-radius: 2px;
+            cursor: pointer; font-size: 11px; font-weight: 700;
+        }
+        .tb-bash   { background: #2a1a5a; color: #c4aaff; }
+        .tb-claude { background: #5a1a30; color: #ffaad4; }
+        .tb-wide   { background: #1a3a3a; color: #aaffee; }
+        .tb-kill   { background: #3a1a1a; color: #ffaaaa; }
+        .tb-bash:hover   { background: #3d2a7a; }
+        .tb-claude:hover { background: #7a1a40; }
+        .tb-wide:hover   { background: #1a5a5a; }
+        .tb-wide.on { background: #1a5a5a; color: #00ffcc; }
+        .tb-kill:hover   { background: #6a2020; }
+
+        .tbody {
+            flex: 1;
+            min-height: 280px;
+            padding: 2px;
+            overflow: hidden;
+        }
+        .tcard.wide .tbody { min-height: 300px; }
+
+        .tplaceholder {
+            height: 100%;
+            min-height: 280px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #888;
-            font-size: 14px;
+            color: #333;
+            font-size: 13px;
         }
-        .status-badge {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 6px;
-        }
-        .status-connected { background: #2ecc71; }
-        .status-disconnected { background: #e74c3c; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Terminal Dashboard</h1>
-        <label>
-            Terminals:
-            <input type="range" id="term-count" min="1" max="20" value="4">
-            <span id="count-display">4</span>
-        </label>
-    </div>
-    <div class="grid" id="grid"></div>
+<div class="header">
+    <h1>⬛ TERMINALS</h1>
+    <label>
+        Count: <input type="range" id="slider" min="1" max="20" value="6">
+        <span id="count-display">6</span>
+    </label>
+    <button class="hbtn hbtn-bash"   onclick="spawnAll('bash')">▶ bash all</button>
+    <button class="hbtn hbtn-claude" onclick="spawnAll('claude')">▶ claude all</button>
+    <button class="hbtn hbtn-kill"   onclick="killAll()">✕ kill all</button>
+</div>
+<div class="grid" id="grid"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
-    <script>
-    const grid = document.getElementById('grid');
-    const slider = document.getElementById('term-count');
-    const countDisplay = document.getElementById('count-display');
+<script>
+const grid = document.getElementById('grid');
+const slider = document.getElementById('slider');
+const countDisplay = document.getElementById('count-display');
+const WS = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws/`;
 
-    // Track active terminals: { slotIndex -> { id, ws, xterm, type, element } }
-    const slots = {};
+// slots[i] = { id, ws, xterm, fit, type } or undefined
+const slots = {};
 
-    const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsBase = `${wsProto}//${location.host}/ws/`;
+slider.addEventListener('input', () => {
+    countDisplay.textContent = slider.value;
+    syncGrid(+slider.value);
+});
 
-    slider.addEventListener('input', () => {
-        countDisplay.textContent = slider.value;
-        syncGrid(parseInt(slider.value));
+// ── Card creation ──────────────────────────────────────────────
+
+function makeCard(i) {
+    const card = document.createElement('div');
+    card.className = 'tcard';
+    card.id = `card-${i}`;
+    card.innerHTML = `
+        <div class="thead">
+            <span class="ttitle">
+                <span class="tbadge off" id="badge-${i}"></span>
+                T${i+1} <span class="ttag" id="tag-${i}">idle</span>
+            </span>
+            <div class="tbtns">
+                <button class="tb-bash"   onclick="startT(${i},'bash')">bash</button>
+                <button class="tb-claude" onclick="startT(${i},'claude')">claude</button>
+                <button class="tb-wide"   id="wide-${i}" onclick="toggleWide(${i})">wide</button>
+                <button class="tb-kill"   onclick="killT(${i})">✕</button>
+            </div>
+        </div>
+        <div class="tbody" id="body-${i}">
+            <div class="tplaceholder">bash / claude</div>
+        </div>`;
+    return card;
+}
+
+function toggleWide(i) {
+    const card = document.getElementById(`card-${i}`);
+    const btn  = document.getElementById(`wide-${i}`);
+    if (!card) return;
+    const on = card.classList.toggle('wide');
+    btn.classList.toggle('on', on);
+    slots[i]?.fit?.fit();
+}
+
+// ── Terminal lifecycle ─────────────────────────────────────────
+
+async function startT(i, cmdType) {
+    await killT(i);
+
+    setBadge(i, 'pending');
+    const r = await fetch(`/api/terminals?cmd_type=${cmdType}&rows=50&cols=220`, { method: 'POST' });
+    const data = await r.json();
+
+    const body = document.getElementById(`body-${i}`);
+    body.innerHTML = '';
+
+    const xterm = new Terminal({
+        theme: {
+            background: '#0d0d1a', foreground: '#d4d4d4',
+            cursor: '#e94560',
+            black: '#1e1e2e', brightBlack: '#45475a',
+            red: '#f38ba8',    brightRed:   '#f38ba8',
+            green: '#a6e3a1',  brightGreen: '#a6e3a1',
+            yellow: '#f9e2af', brightYellow:'#f9e2af',
+            blue: '#89b4fa',   brightBlue:  '#89b4fa',
+            magenta: '#cba6f7',brightMagenta:'#cba6f7',
+            cyan: '#89dceb',   brightCyan:  '#89dceb',
+            white: '#cdd6f4',  brightWhite: '#cdd6f4',
+        },
+        fontSize: 13,
+        fontFamily: "'JetBrains Mono','Fira Code','Cascadia Code',monospace",
+        cursorBlink: true,
+        scrollback: 3000,
     });
 
-    async function apiPost(url) {
-        const res = await fetch(url, { method: 'POST' });
-        return res.json();
-    }
+    const fit = new FitAddon.FitAddon();
+    xterm.loadAddon(fit);
+    xterm.open(body);
+    fit.fit();
 
-    async function apiDelete(url) {
-        const res = await fetch(url, { method: 'DELETE' });
-        return res.json();
-    }
+    slots[i] = { id: data.id, xterm, fit, type: cmdType };
+    setTag(i, cmdType);
 
-    function createTerminalCard(index) {
-        const card = document.createElement('div');
-        card.className = 'terminal-card';
-        card.innerHTML = `
-            <div class="terminal-header">
-                <span class="terminal-title">
-                    <span class="status-badge status-disconnected" id="status-${index}"></span>
-                    Terminal ${index + 1} — <span id="type-${index}">idle</span>
-                </span>
-                <div class="terminal-buttons">
-                    <button class="btn-bash" onclick="startTerminal(${index}, 'bash')">bash</button>
-                    <button class="btn-claude" onclick="startTerminal(${index}, 'claude')">claude</button>
-                    <button class="btn-kill" onclick="killTerminal(${index})">kill</button>
-                </div>
-            </div>
-            <div class="terminal-body" id="tbody-${index}"></div>
-        `;
-        return card;
-    }
+    const ws = new WebSocket(WS + data.id);
+    ws.binaryType = 'arraybuffer';
+    slots[i].ws = ws;
 
-    function connectWS(index, terminalId) {
-        const slot = slots[index];
-        if (!slot) return;
+    ws.onopen = () => {
+        setBadge(i, 'on');
+        // Send initial resize
+        ws.send(JSON.stringify({ type: 'resize', rows: xterm.rows, cols: xterm.cols }));
+    };
 
-        const ws = new WebSocket(wsBase + terminalId);
-        slot.ws = ws;
-
-        ws.onopen = () => {
-            const badge = document.getElementById(`status-${index}`);
-            if (badge) badge.className = 'status-badge status-connected';
-        };
-
-        ws.onmessage = (event) => {
-            const msg = JSON.parse(event.data);
-            if (msg.type === 'output' && slot.xterm) {
-                slot.xterm.reset();
-                slot.xterm.write(msg.data);
-            }
-        };
-
-        ws.onclose = () => {
-            const badge = document.getElementById(`status-${index}`);
-            if (badge) badge.className = 'status-badge status-disconnected';
-        };
-
-        ws.onerror = () => {
-            ws.close();
-        };
-
-        // Send keyboard input to server
-        slot.xterm.onData((data) => {
-            if (ws.readyState === WebSocket.OPEN) {
-                // Map special keys
-                if (data === '\r') {
-                    ws.send(JSON.stringify({ type: 'special', key: 'Enter' }));
-                } else if (data === '\x03') {
-                    ws.send(JSON.stringify({ type: 'special', key: 'C-c' }));
-                } else if (data === '\x04') {
-                    ws.send(JSON.stringify({ type: 'special', key: 'C-d' }));
-                } else if (data === '\x1b[A') {
-                    ws.send(JSON.stringify({ type: 'special', key: 'Up' }));
-                } else if (data === '\x1b[B') {
-                    ws.send(JSON.stringify({ type: 'special', key: 'Down' }));
-                } else if (data === '\x1b[C') {
-                    ws.send(JSON.stringify({ type: 'special', key: 'Right' }));
-                } else if (data === '\x1b[D') {
-                    ws.send(JSON.stringify({ type: 'special', key: 'Left' }));
-                } else if (data === '\x7f') {
-                    ws.send(JSON.stringify({ type: 'special', key: 'BSpace' }));
-                } else if (data === '\t') {
-                    ws.send(JSON.stringify({ type: 'special', key: 'Tab' }));
-                } else {
-                    ws.send(JSON.stringify({ type: 'input', data: data }));
-                }
-            }
-        });
-    }
-
-    async function startTerminal(index, cmdType) {
-        // Kill existing if any
-        await killTerminal(index);
-
-        const data = await apiPost(`/api/terminals?cmd_type=${cmdType}`);
-        const body = document.getElementById(`tbody-${index}`);
-        body.innerHTML = '';
-        body.classList.remove('disconnected');
-
-        const xterm = new Terminal({
-            theme: {
-                background: '#1a1a2e',
-                foreground: '#e0e0e0',
-                cursor: '#e94560',
-            },
-            fontSize: 13,
-            fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-            cursorBlink: true,
-            scrollback: 1000,
-        });
-        xterm.open(body);
-
-        slots[index] = { id: data.id, xterm, type: cmdType, element: body };
-
-        const typeSpan = document.getElementById(`type-${index}`);
-        if (typeSpan) typeSpan.textContent = cmdType;
-
-        connectWS(index, data.id);
-    }
-
-    async function killTerminal(index) {
-        const slot = slots[index];
-        if (!slot) return;
-
-        if (slot.ws) slot.ws.close();
-        if (slot.xterm) slot.xterm.dispose();
-        if (slot.id) await apiDelete(`/api/terminals/${slot.id}`);
-
-        delete slots[index];
-
-        const body = document.getElementById(`tbody-${index}`);
-        if (body) {
-            body.innerHTML = 'No terminal — click bash or claude to start';
-            body.classList.add('disconnected');
+    ws.onmessage = (ev) => {
+        if (ev.data instanceof ArrayBuffer) {
+            xterm.write(new Uint8Array(ev.data));
+        } else {
+            xterm.write(ev.data);
         }
-        const typeSpan = document.getElementById(`type-${index}`);
-        if (typeSpan) typeSpan.textContent = 'idle';
-        const badge = document.getElementById(`status-${index}`);
-        if (badge) badge.className = 'status-badge status-disconnected';
-    }
+    };
 
-    function syncGrid(count) {
-        // Kill terminals beyond new count
-        for (const idx of Object.keys(slots)) {
-            if (parseInt(idx) >= count) {
-                killTerminal(parseInt(idx));
-            }
+    ws.onclose = () => setBadge(i, 'off');
+    ws.onerror = () => ws.close();
+
+    // Forward keyboard input as raw bytes
+    xterm.onData((data) => {
+        if (ws.readyState === WebSocket.OPEN) {
+            const buf = new TextEncoder().encode(data);
+            ws.send(buf);
         }
+    });
 
-        grid.innerHTML = '';
-        for (let i = 0; i < count; i++) {
-            const card = createTerminalCard(i);
-            grid.appendChild(card);
-
-            // Re-attach existing terminal if it exists
-            if (slots[i] && slots[i].xterm) {
-                const body = document.getElementById(`tbody-${i}`);
-                body.classList.remove('disconnected');
-                body.innerHTML = '';
-                slots[i].xterm.open(body);
-
-                const typeSpan = document.getElementById(`type-${i}`);
-                if (typeSpan) typeSpan.textContent = slots[i].type;
-
-                const badge = document.getElementById(`status-${i}`);
-                if (badge && slots[i].ws && slots[i].ws.readyState === WebSocket.OPEN) {
-                    badge.className = 'status-badge status-connected';
-                }
-            } else {
-                const body = document.getElementById(`tbody-${i}`);
-                body.innerHTML = 'No terminal — click bash or claude to start';
-                body.classList.add('disconnected');
-            }
+    // Resize: fit xterm and tell server
+    const ro = new ResizeObserver(() => {
+        fit.fit();
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'resize', rows: xterm.rows, cols: xterm.cols }));
         }
-    }
+    });
+    ro.observe(body);
+}
 
-    // Initialize grid
-    syncGrid(4);
-    </script>
+async function killT(i) {
+    const s = slots[i];
+    if (!s) return;
+    s.ws?.close();
+    s.xterm?.dispose();
+    if (s.id) await fetch(`/api/terminals/${s.id}`, { method: 'DELETE' }).catch(() => {});
+    delete slots[i];
+    const body = document.getElementById(`body-${i}`);
+    if (body) body.innerHTML = '<div class="tplaceholder">bash / claude</div>';
+    setTag(i, 'idle');
+    setBadge(i, 'off');
+}
+
+async function spawnAll(t) {
+    const n = +slider.value;
+    for (let i = 0; i < n; i++) {
+        startT(i, t);
+        await new Promise(r => setTimeout(r, 120));
+    }
+}
+
+async function killAll() {
+    const n = +slider.value;
+    for (let i = 0; i < n; i++) killT(i);
+}
+
+// ── Grid sync ──────────────────────────────────────────────────
+
+function syncGrid(n) {
+    for (const k of Object.keys(slots)) { if (+k >= n) killT(+k); }
+    grid.innerHTML = '';
+    for (let i = 0; i < n; i++) grid.appendChild(makeCard(i));
+}
+
+function setBadge(i, state) {
+    const b = document.getElementById(`badge-${i}`);
+    if (b) b.className = `tbadge ${state}`;
+}
+function setTag(i, text) {
+    const t = document.getElementById(`tag-${i}`);
+    if (t) t.textContent = text;
+}
+
+// ── Init: 6 slots, spawn bash on all ──────────────────────────
+syncGrid(6);
+spawnAll('bash');
+</script>
 </body>
 </html>
