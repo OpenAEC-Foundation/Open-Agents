@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/OpenAEC-Foundation/Open-Agents/main/docs/assets/readme-header.svg" width="100%" alt="Open-Agents"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f0400,25:7c2d12,55:b45309,80:EA580C,100:f97316&height=280&section=header&text=Open-Agents&fontSize=85&fontColor=ffffff&fontAlignY=38&animation=fadeIn&desc=Spawn%20AI%20agents.%20Orchestrate%20anything.%20Build%20free.&descAlignY=56&descSize=22&descFontColor=ffffff" width="100%" alt="Open-Agents"/>
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1200&color=D97706&center=true&vCenter=true&width=720&height=60&lines=Agents+that+spawn+agents+that+spawn+agents.;One+root.+Infinite+trees.;Orchestrate+self-evolving+agent+hierarchies.;Agents+call+each+other+%E2%80%94+you+just+set+the+root.;No+API+key.+Powered+by+your+Claude+subscription.;1612%2B+agent+templates.+112+categories.;Open-source.+Zero+lock-in.+Built+free." alt="Typing animation"/>
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1200&color=D97706&center=true&vCenter=true&width=720&height=60&lines=Agents+that+spawn+agents+that+spawn+agents.;One+root.+Infinite+trees.;Orchestrate+self-evolving+agent+hierarchies.;You+set+the+root.+Agents+call+each+other.;No+API+key.+Powered+by+your+Claude+subscription.;1612%2B+agent+templates.+112+categories.;Open-source.+Zero+lock-in.+Built+free." alt="Typing animation"/>
 
 <br/><br/>
 
@@ -22,7 +22,7 @@
 
 </div>
 
-**Multi-agent orchestrator for Claude Code.** Spawn and coordinate hundreds of AI agents in parallel via a single CLI — no API key required, powered by your Claude Code subscription. Ideal for developers, teams, and anyone who wants to multiply their AI coding capacity.
+**Multi-agent orchestrator for Claude Code.** Spawn and coordinate hundreds of AI agents in parallel via a single CLI. No API key required, powered by your Claude Code subscription. Ideal for developers, teams, and anyone who wants to multiply their AI coding capacity.
 
 ---
 
@@ -237,7 +237,6 @@ Contributions welcome! Open an issue or submit a PR.
 | Entity | Role |
 |--------|------|
 | **OpenAEC Foundation** | Open-source stewardship |
-| **Impertio Studio B.V.** | Development & operations |
 
 ## License
 
