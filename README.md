@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f0400,25:7c2d12,55:b45309,80:EA580C,100:f97316&height=280&section=header&text=Open-Agents&fontSize=85&fontColor=ffffff&fontAlignY=38&animation=fadeIn&desc=Spawn%20AI%20agents.%20Orchestrate%20anything.%20Build%20free.&descAlignY=56&descSize=22&descFontColor=ffffff" width="100%" alt="Open-Agents"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:f97316,25:EA580C,55:b45309,80:7c2d12,100:0f0400&height=280&section=header&text=Open-Agents&fontSize=85&fontColor=ffffff&fontAlignY=38&animation=fadeIn&desc=Spawn%20AI%20agents.%20Orchestrate%20anything.%20Build%20free.&descAlignY=56&descSize=22&descFontColor=ffffff" width="100%" alt="Open-Agents"/>
 
 <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1200&color=D97706&center=true&vCenter=true&width=720&height=60&lines=Agents+that+spawn+agents+that+spawn+agents.;One+root.+Infinite+trees.;Orchestrate+self-evolving+agent+hierarchies.;You+set+the+root.+Agents+call+each+other.;No+API+key.+Powered+by+your+Claude+subscription.;1612%2B+agent+templates.+112+categories.;Open-source.+Zero+lock-in.+Built+free." alt="Typing animation"/>
 
