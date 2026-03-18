@@ -366,37 +366,6 @@
 
 *Nieuwe lessen worden per sessie toegevoegd. Nummer door: L-101, L-102, etc.*
 
-## L-AUTO-20260312191448 — Agent fout: lessons-writer
-**Datum**: 2026-03-12
-**Agent**: lessons-writer
-**Model**: claude/sonnet
-**Fout**: Failed to authenticate. API Error: 401 {"type":"error","error":{"type":"authentication_error","messa
-**Taak**: ---
-## AUTO-INJECTED CONTEXT
-
-PO Decisions (laatste 3):
--  {'verdict': 'WARN', 'explanation': 'WARN\
-**Les**: Controleer agent output na collect — automatisch gelogd door A1 leerloop.
-
-## L-AUTO-20260312191506 — Agent fout: handoff-writer
-**Datum**: 2026-03-12
-**Agent**: handoff-writer
-**Model**: claude/sonnet
-**Fout**: Failed to authenticate. API Error: 401 {"type":"error","error":{"type":"authentication_error","messa
-**Taak**: ---
-## AUTO-INJECTED CONTEXT
-
-PO Decisions (laatste 3):
--  {'verdict': 'WARN', 'explanation': 'WARN\
-**Les**: Controleer agent output na collect — automatisch gelogd door A1 leerloop.
-
-## L-AUTO-20260312191559 — Agent fout: ping-remote
-**Datum**: 2026-03-12
-**Agent**: ping-remote
-**Model**: claude/sonnet
-**Fout**: Failed to authenticate. API Error: 401 {"type":"error","error":{"type":"authentication_error","messa
-**Taak**: zeg hallo
-**Les**: Controleer agent output na collect — automatisch gelogd door A1 leerloop.
 
 ## L-096 — Claude CLI OAuth refresh is de facto headless via explorer.exe
 
@@ -426,34 +395,3 @@ OAuth flow op remote servers is onbetrouwbaar: vereist browser, handmatige klik,
 
 ---
 
-## L-AUTO-20260312194333 — Agent fout: hetzner-ping
-**Datum**: 2026-03-12
-**Agent**: hetzner-ping
-**Model**: claude/haiku
-**Fout**: Failed to authenticate. API Error: 401 {"type":"error","error":{"type":"authentication_error","messa
-**Taak**: Zeg precies: 'Ik draai op Hetzner' en stop.
-**Les**: Controleer agent output na collect — automatisch gelogd door A1 leerloop.
-
-## L-AUTO-20260312200940 — Agent fout: hetzner-auth-fix
-**Datum**: 2026-03-12
-**Agent**: hetzner-auth-fix
-**Model**: claude/opus
-**Fout**: - If refresh fails: raises RuntimeError with clear manual instructions
-**Taak**: ---
-## AUTO-INJECTED CONTEXT
-
-PO Decisions (laatste 3):
--  {'verdict': 'WARN', 'explanation': 'WARN\
-**Les**: Controleer agent output na collect — automatisch gelogd door A1 leerloop.
-
-## L-AUTO-20260312203952 — Agent fout: auth-standard
-**Datum**: 2026-03-12
-**Agent**: auth-standard
-**Model**: claude/opus
-**Fout**: 6. Bij failure: duidelijke RuntimeError met instructie om lokaal `claude auth login` te doen
-**Taak**: ---
-## AUTO-INJECTED CONTEXT
-
-PO Decisions (laatste 3):
--  {'verdict': 'WARN', 'explanation': 'WARN\
-**Les**: Controleer agent output na collect — automatisch gelogd door A1 leerloop.

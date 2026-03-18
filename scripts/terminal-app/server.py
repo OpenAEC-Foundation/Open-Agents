@@ -9,6 +9,7 @@ import pty
 import signal
 import struct
 import termios
+import time
 import uuid
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -19,6 +20,70 @@ app = FastAPI()
 
 # { terminal_id: { pid, master_fd, type } }
 terminals: dict[str, dict] = {}
+
+AGENTS_JSON = os.path.expanduser("~/.oa/agents.json")
+PROJECT_ROOT = os.environ.get("OA_PROJECT_ROOT", "/home/oa-agent/Open-Agents")
+
+
+def _load_agents() -> dict:
+    try:
+        with open(AGENTS_JSON) as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def _save_agents(agents: dict) -> None:
+    os.makedirs(os.path.dirname(AGENTS_JSON), exist_ok=True)
+    with open(AGENTS_JSON, "w") as f:
+        json.dump(agents, f, indent=2)
+
+
+def _register_agent(tid: str, name: str, pid: int) -> None:
+    """Register a terminal-app claude session as an oa agent."""
+    agents = _load_agents()
+    agents[name] = {
+        "name": name,
+        "task": f"Interactive Claude session (terminal-app T-{tid})",
+        "workspace": PROJECT_ROOT,
+        "tmux_window": f"terminal-{tid}",
+        "model": "claude/interactive",
+        "status": "running",
+        "pid": pid,
+        "created_at": time.time(),
+        "finished_at": None,
+        "output_file": None,
+        "parent": None,
+        "depth": 0,
+        "lineage": [],
+        "task_hash": uuid.uuid4().hex[:16],
+        "max_children": 10,
+        "shared_results_dir": None,
+        "last_activity": time.time(),
+        "auto_cleanup_minutes": 0,
+        "project_root": PROJECT_ROOT,
+        "remote_host": None,
+        "remote_workspace": None,
+        "run_id": str(uuid.uuid4()),
+        "no_autocompact": False,
+        "team": "",
+        "mailbox_path": "",
+        "task_type": "interactive",
+        "contract_status": "",
+        "contract_detail": "",
+        "terminal_app_id": tid,
+    }
+    _save_agents(agents)
+
+
+def _unregister_agent(tid: str) -> None:
+    """Remove terminal-app agent from agents.json."""
+    agents = _load_agents()
+    to_remove = [k for k, v in agents.items() if v.get("terminal_app_id") == tid]
+    for k in to_remove:
+        agents.pop(k)
+    if to_remove:
+        _save_agents(agents)
 
 
 def _set_winsize(fd: int, rows: int, cols: int) -> None:
@@ -73,7 +138,7 @@ async def list_terminals():
 
 
 @app.post("/api/terminals")
-async def create_terminal(cmd_type: str = "bash", rows: int = 50, cols: int = 220):
+async def create_terminal(cmd_type: str = "bash", name: str = "", rows: int = 50, cols: int = 220):
     tid = uuid.uuid4().hex[:8]
 
     if cmd_type == "claude":
@@ -84,6 +149,12 @@ async def create_terminal(cmd_type: str = "bash", rows: int = 50, cols: int = 22
 
     pid, master_fd = _spawn(cmd, rows=rows, cols=cols)
     terminals[tid] = {"pid": pid, "master_fd": master_fd, "type": cmd_type}
+
+    # Register claude sessions as oa agents
+    if cmd_type == "claude":
+        agent_name = name or f"terminal-{tid}"
+        _register_agent(tid, agent_name, pid)
+
     return JSONResponse({"id": tid, "type": cmd_type})
 
 
@@ -91,6 +162,9 @@ async def create_terminal(cmd_type: str = "bash", rows: int = 50, cols: int = 22
 async def kill_terminal(terminal_id: str):
     info = terminals.pop(terminal_id, None)
     if info:
+        # Unregister from oa agents
+        if info["type"] == "claude":
+            _unregister_agent(terminal_id)
         try:
             os.kill(info["pid"], signal.SIGKILL)
         except ProcessLookupError:

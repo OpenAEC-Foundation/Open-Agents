@@ -80,11 +80,19 @@ sync_host() {
         return 1
     fi
 
-    # Copy credentials
+    # Copy credentials to root
     if ! scp -o BatchMode=yes -o ConnectTimeout=5 "$creds" "$host:~/.claude/.credentials.json" 2>/dev/null; then
         echo -e "${RED}FAIL${RESET} $host — scp failed"
         return 1
     fi
+
+    # Also copy to oa-agent user if it exists (terminal-app runs as oa-agent)
+    ssh -o BatchMode=yes -o ConnectTimeout=5 "$host" \
+        'if id oa-agent &>/dev/null; then
+            mkdir -p /home/oa-agent/.claude
+            cp ~/.claude/.credentials.json /home/oa-agent/.claude/.credentials.json
+            chown oa-agent:oa-agent /home/oa-agent/.claude/.credentials.json
+        fi' 2>/dev/null
 
     # Verify auth works
     local verify

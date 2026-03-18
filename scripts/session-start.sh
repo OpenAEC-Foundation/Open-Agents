@@ -1,119 +1,146 @@
 #!/bin/bash
 # session-start.sh — Open-Agents bootstrap protocol
 # Gebruik: bash scripts/session-start.sh
-# Doel: Claude zsm up to speed brengen + Hetzner updaten + session-meta spawnen
+# Doel: Hetzner GPU server volledig bootstrappen — deterministisch, geen interactie nodig
 
-REPO="/mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents"
+set -euo pipefail
+
+HETZNER_HOST="hetzner"
+HETZNER_USER="oa-agent"
+HETZNER_IP="144.76.60.210"
+REMOTE_REPO="/home/oa-agent/Open-Agents"
+TERMINAL_APP_PORT=7127
+OA_WEB_PORT=5174
+LOCAL_CREDS="$HOME/.claude/.credentials.json"
+
+# Detect local repo path (WSL or Windows)
+if [ -d "/mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents" ]; then
+  REPO="/mnt/c/Users/Freek Heijting/Documents/GitHub/Open-Agents"
+elif [ -d "/c/Users/Freek Heijting/Documents/GitHub/Open-Agents" ]; then
+  REPO="/c/Users/Freek Heijting/Documents/GitHub/Open-Agents"
+else
+  REPO="$(cd "$(dirname "$0")/.." && pwd)"
+fi
 cd "$REPO"
 
+ok()   { echo -e "  \033[32m✅ $1\033[0m"; }
+fail() { echo -e "  \033[31m❌ $1\033[0m"; }
+warn() { echo -e "  \033[33m⚠  $1\033[0m"; }
+step() { echo -e "\n\033[1m▶ $1\033[0m"; }
+
 echo "╔══════════════════════════════════════════════════╗"
-echo "║         Open-Agents Session Bootstrap            ║"
+echo "║       Open-Agents — Hetzner Session Bootstrap    ║"
 echo "╚══════════════════════════════════════════════════╝"
 
-# ─── 1. Hetzner: repo updaten + oa-cli herladen ────────────────────────────────
-echo ""
-echo "▶ 1/6  Hetzner sync (repo pull + oa-cli reload)"
-echo "────────────────────────────────────────"
-if ssh -o ConnectTimeout=5 hetzner-agent "exit" 2>/dev/null; then
-  ssh hetzner-agent "
-    cd /home/oa-agent/Open-Agents &&
-    git fetch origin --quiet &&
-    git reset --hard origin/main --quiet &&
-    echo '✅ Repo geüpdated naar:' \$(git log --oneline -1)
-  " 2>&1
-  # oa-cli is editable install (-e) → herstart daemon zodat nieuwe code actief is
-  ssh hetzner-agent "
-    pkill -f 'oa bridge' 2>/dev/null || true
-    echo '✅ oa-cli actief (editable install pikt git pull automatisch op)'
-  " 2>&1
-else
-  echo "⚠ Hetzner niet bereikbaar — lokale sessie"
+# ─── 1. SSH connectivity ─────────────────────────────────────────────────────
+step "1/7  SSH connectivity"
+if ! ssh -o ConnectTimeout=5 -o BatchMode=yes "$HETZNER_HOST" "echo ok" &>/dev/null; then
+  fail "Hetzner ($HETZNER_IP) niet bereikbaar via SSH"
+  echo "    Controleer: ssh $HETZNER_HOST"
+  exit 1
+fi
+ok "SSH naar $HETZNER_HOST ($HETZNER_IP)"
+
+# ─── 2. Repo sync ────────────────────────────────────────────────────────────
+step "2/7  Repo sync op Hetzner"
+ssh "$HETZNER_HOST" "
+  cd $REMOTE_REPO 2>/dev/null || { echo 'REPO_MISSING'; exit 1; }
+  git fetch origin --quiet 2>/dev/null
+  git reset --hard origin/main --quiet 2>/dev/null
+  echo \$(git log --oneline -1)
+" 2>&1 | while read -r line; do
+  if [ "$line" = "REPO_MISSING" ]; then
+    fail "Repo niet gevonden op $REMOTE_REPO"
+  else
+    ok "Repo: $line"
+  fi
+done
+
+# ─── 3. Credentials sync (root + oa-agent) ───────────────────────────────────
+step "3/7  Claude credentials sync"
+if [ ! -f "$LOCAL_CREDS" ]; then
+  fail "Lokale credentials niet gevonden: $LOCAL_CREDS"
+  echo "    Voer uit: claude auth login"
+  exit 1
 fi
 
-# ─── 2. Context laden ──────────────────────────────────────────────────────────
-echo ""
-echo "▶ 2/6  LESSONS.md (laatste 50 regels)"
-echo "────────────────────────────────────────"
-tail -50 LESSONS.md 2>/dev/null || echo "(geen LESSONS.md)"
+# Sync to root
+scp -o BatchMode=yes -o ConnectTimeout=5 "$LOCAL_CREDS" "$HETZNER_HOST:~/.claude/.credentials.json" &>/dev/null \
+  && ok "Credentials → root" \
+  || fail "SCP naar root mislukt"
 
+# Sync to oa-agent
+ssh "$HETZNER_HOST" "
+  mkdir -p /home/$HETZNER_USER/.claude
+  cp ~/.claude/.credentials.json /home/$HETZNER_USER/.claude/.credentials.json
+  chown $HETZNER_USER:$HETZNER_USER /home/$HETZNER_USER/.claude/.credentials.json
+" &>/dev/null \
+  && ok "Credentials → oa-agent" \
+  || fail "Copy naar oa-agent mislukt"
+
+# Verify auth works
+AUTH_CHECK=$(ssh "$HETZNER_HOST" "su - $HETZNER_USER -c 'echo ping | claude --print 2>&1 | head -1'" 2>/dev/null)
+if echo "$AUTH_CHECK" | grep -qi "pong\|ping"; then
+  ok "Auth verificatie geslaagd"
+else
+  fail "Auth verificatie mislukt: $AUTH_CHECK"
+  echo "    Voer lokaal uit: claude auth login"
+  echo "    Daarna opnieuw: bash scripts/session-start.sh"
+  exit 1
+fi
+
+# ─── 4. Terminal-app (port 7127) ──────────────────────────────────────────────
+step "4/7  Terminal-app (port $TERMINAL_APP_PORT)"
+TERM_RUNNING=$(ssh "$HETZNER_HOST" "ss -tlnp | grep :$TERMINAL_APP_PORT | wc -l" 2>/dev/null)
+if [ "$TERM_RUNNING" -gt 0 ]; then
+  ok "Terminal-app draait al op port $TERMINAL_APP_PORT"
+else
+  warn "Terminal-app niet actief — wordt gestart..."
+  ssh "$HETZNER_HOST" "
+    su - $HETZNER_USER -c 'cd $REMOTE_REPO/scripts/terminal-app && nohup python3 server.py > /tmp/terminal-app.log 2>&1 &'
+  " 2>/dev/null
+  sleep 3
+  TERM_CHECK=$(ssh "$HETZNER_HOST" "ss -tlnp | grep :$TERMINAL_APP_PORT | wc -l" 2>/dev/null)
+  if [ "$TERM_CHECK" -gt 0 ]; then
+    ok "Terminal-app gestart op port $TERMINAL_APP_PORT"
+  else
+    fail "Terminal-app kon niet starten — check /tmp/terminal-app.log"
+  fi
+fi
+
+# ─── 5. Cleanup stale agents + zombie processes ──────────────────────────────
+step "5/7  Cleanup stale agents"
+ZOMBIES=$(ssh "$HETZNER_HOST" "ps aux | grep '\[claude\] <defunct>' | grep -v grep | wc -l" 2>/dev/null)
+if [ "$ZOMBIES" -gt 0 ]; then
+  ssh "$HETZNER_HOST" "ps aux | grep '\[claude\] <defunct>' | grep -v grep | awk '{print \$2}' | xargs kill -9 2>/dev/null || true" 2>/dev/null
+  ok "Killed $ZOMBIES zombie claude processes"
+else
+  ok "Geen zombie processes"
+fi
+
+# ─── 6. oa status ────────────────────────────────────────────────────────────
+step "6/7  oa status"
+ssh "$HETZNER_HOST" "su - $HETZNER_USER -c 'cd $REMOTE_REPO && oa status 2>&1'" 2>/dev/null || warn "oa status niet beschikbaar"
+
+# ─── 7. Context laden ────────────────────────────────────────────────────────
+step "7/7  Context"
 echo ""
-echo "▶ 3/6  Laatste HANDOFF"
-echo "────────────────────────────────────────"
+echo "  Laatste LESSONS:"
+tail -20 LESSONS.md 2>/dev/null | sed 's/^/    /' || echo "    (geen LESSONS.md)"
+
 HANDOFF=$(ls docs/HANDOFF-*.md 2>/dev/null | sort | tail -1)
 if [ -n "$HANDOFF" ]; then
-  echo "→ $HANDOFF"
-  cat "$HANDOFF"
-else
-  echo "(geen HANDOFF gevonden)"
+  echo ""
+  echo "  Laatste HANDOFF: $HANDOFF"
 fi
-
-# ─── 3. Lokale sessie starten ──────────────────────────────────────────────────
-echo ""
-echo "▶ 4/6  Sessie starten"
-echo "────────────────────────────────────────"
-oa start 2>/dev/null || true
-sleep 1
-oa status 2>/dev/null || echo "(oa status niet beschikbaar)"
-
-# ─── 4. Credentials sync ───────────────────────────────────────────────────────
-echo ""
-echo "▶ 5/6  Claude credentials sync naar Hetzner"
-echo "────────────────────────────────────────"
-bash scripts/sync-claude-credentials.sh hetzner-agent 2>/dev/null \
-  && echo "✅ Credentials gesynchroniseerd" \
-  || echo "⚠ Sync mislukt — agents kunnen auth errors krijgen"
-
-# ─── 5. Session Meta-Orchestrator spawnen ──────────────────────────────────────
-echo ""
-echo "▶ 6/6  Session-Meta spawnen op Hetzner"
-echo "────────────────────────────────────────"
-oa run 'Je bent SESSION-META, de primaire meta-orchestrator voor deze sessie.
-
-## Rol
-Je ontvangt taken van Claude (de dispatcher) via je inbox en delegeert ALLES naar workers.
-Je voert NOOIT zelf implementatie uit. Je coördineert, delegeert, valideert, itereert.
-
-## Gedrag
-1. Poll je inbox elke 30 seconden: `oa inbox session-meta --unread`
-2. Bij nieuwe taak van Claude:
-   a. Breek taak op in parallelle worker-taken
-   b. Spawn workers: `oa run "..." --name worker-<naam> --model claude/sonnet --direct`
-   c. Monitor: `oa inbox session-meta --unread` (workers sturen KLAAR/GEBLOKKEERD updates)
-   d. Valideer worker output — stuur feedback als onvolledig: `oa send <worker> "feedback" --from session-meta`
-   e. Itereer tot alle workers groen
-   f. Rapporteer: `oa send meta "KLAAR: samenvatting" --from session-meta`
-3. Workers die zelf kunnen orchestreren spawnen krijgen `--can-spawn`
-
-## Worker template
-```
-oa run "Je bent een WORKER. Taak: <specifieke taak>
-
-## Output
-Schrijf naar: /home/oa-agent/Open-Agents/<pad>/result.md
-
-## Scope
-- <bullet 1>
-- <bullet 2>
-
-## Regels
-- Direct schrijven, geen proposals
-- Na voltooiing: oa send session-meta KLAAR --from <worker-naam>" \
-  --name worker-<naam> --model claude/sonnet --direct
-```
-
-## NOOIT
-- Zelf code schrijven of bestanden aanmaken
-- Stoppen na één ronde — poll inbox en blijf actief
-- Workers spawnen zonder output pad en scope' \
-  --name session-meta \
-  --model claude/sonnet \
-  --can-spawn \
-  --direct
 
 echo ""
 echo "╔══════════════════════════════════════════════════╗"
-echo "║  ✅ Sessie klaar — session-meta actief            ║"
-echo "║                                                  ║"
-echo "║  Stuur taken via:                                ║"
-echo "║  oa send session-meta 'taak' --from meta         ║"
+echo "║  Sessie klaar!                                  ║"
+echo "║                                                 ║"
+echo "║  Terminal dashboard: http://$HETZNER_IP:$TERMINAL_APP_PORT  ║"
+echo "║  oa Web UI:          http://$HETZNER_IP:$OA_WEB_PORT   ║"
+echo "║                                                 ║"
+echo "║  Stuur taken via:                               ║"
+echo "║  oa send session-meta 'taak' --from meta        ║"
 echo "╚══════════════════════════════════════════════════╝"
