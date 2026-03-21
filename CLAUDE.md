@@ -308,3 +308,10 @@ pnpm dev:backend                                # Fastify op port 3001
 ---
 
 *CLAUDE.md = gedragsconfig. Status staat in ROADMAP.md.*
+
+## Companion Skill Packages
+
+| Package | Skills | Install |
+|---------|--------|---------|
+| [Vite](https://github.com/OpenAEC-Foundation/Vite-Claude-Skill-Package) | 22 | Build config, plugins |
+| [Docker](https://github.com/OpenAEC-Foundation/Docker-Claude-Skill-Package) | 22 | Containerization, Compose |
